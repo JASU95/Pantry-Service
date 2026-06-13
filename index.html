@@ -156,6 +156,40 @@
     return '';
   }
 
+  // --- फिंगरप्रिंट लॉक (BIOMETRIC FUNCTIONS) ---
+  async function isBiometricSupported() {
+    return window.PublicKeyCredential && 
+           await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+  }
+
+  async function authenticateWithBiometrics(username) {
+    try {
+      const challenge = new Uint8Array(32);
+      window.crypto.getRandomValues(challenge);
+      const userId = new Uint8Array(16);
+      window.crypto.getRandomValues(userId);
+
+      const credentialOptions = {
+        challenge: challenge,
+        rp: { name: "DAU Pantry Service" },
+        user: {
+          id: userId,
+          name: username || "pantry_user",
+          displayName: username || "Pantry User"
+        },
+        pubKeyCredParams: [{ type: "public-key", alg: -7 }],
+        authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
+        timeout: 60000
+      };
+
+      const credential = await navigator.credentials.create({ publicKey: credentialOptions });
+      return credential ? true : false;
+    } catch (error) {
+      console.error("Biometric Error:", error);
+      return false;
+    }
+  }
+
   let deviceFingerprint = "";
   try {
     deviceFingerprint = localStorage.getItem('dau_device_id');
@@ -885,10 +919,30 @@
     document.getElementById('revealPinCheck').onchange = (e) => { document.getElementById('pantryPin').type = e.target.checked ? 'text' : 'password'; };
     document.getElementById('adminSymbolBtn').onclick = window.openAdminPopup;
     window.checkActiveSessionStatusAndTogglePINBox();
-    document.getElementById('pantryLoginBtn').onclick = () => {
+    
+    document.getElementById('pantryLoginBtn').onclick = async () => {
       const sel = document.getElementById('pantrySelect').value; const member = pantryTeam.find(p => p.id === sel);
       if(!member) return appAlert('Error', 'Select valid staff');
       if(window.checkActiveSessionStatusAndTogglePINBox()) { currentUser = { role:'pantry', id:member.id, name:member.name }; renderPantryDashboard(); return; }
+      
+      // --- फिंगरप्रिंट लॉक (WEB AUTHN LOGIC) ---
+      const bioSupported = await isBiometricSupported();
+      if (bioSupported) {
+        const success = await authenticateWithBiometrics(member.name);
+        if (success) {
+          currentUser = { role:'pantry', id:member.id, name:member.name };
+          db.ref('sessionDevices/pantry_'+member.id).set({ device: deviceFingerprint, role:'pantry' });
+          renderPantryDashboard();
+          return;
+        } else {
+          appAlert('Biometric Failed', 'फिंगरप्रिंट काम नहीं किया। कृपया अपना Backup PIN दर्ज करें।');
+          // सुधार: फिंगरप्रिंट एरर आने पर इनपुट पिन बॉक्स को स्क्रीन पर विज़िबल (विंडो रीस्टोर) करें
+          const pinDiv = document.getElementById('regularPinInputWrapperBlock');
+          if(pinDiv) pinDiv.style.display = "block";
+        }
+      }
+
+      // --- बैकअप पिन चेकिंग ---
       if(document.getElementById('pantryPin').value !== member.pin) return appAlert('Error', 'Invalid PIN');
       currentUser = { role:'pantry', id:member.id, name:member.name };
       db.ref('sessionDevices/pantry_'+member.id).set({ device: deviceFingerprint, role:'pantry' });
@@ -1260,14 +1314,14 @@
     document.getElementById('pantryDynamicContent').innerHTML = `
       <div style="display:flex; gap:8px; margin-bottom:12px; flex-shrink:0;"><select id="filterType" style="flex:1; margin:0; padding:10px;"><option value="date">📅 Daily</option><option value="month">🗓 Monthly</option><option value="year">📆 Yearly</option></select><input type="date" id="filterValue" value="${today}" style="flex:2; margin:0; padding:10px;"></div>
       <div class="card" style="padding:14px; margin-bottom:14px; background:#F8FAFC; border:1px solid #0A56D0; flex-shrink:0;">
-         <h4 style="font-size:0.85rem; color:#0A56D0; margin-bottom:8px; text-align:center;">📋 Metrics</h4>
-         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; text-align:center;">
-            <div style="background:white; padding:6px; border-radius:8px; border:1px solid #CBD5E1;"><div id="statTeaCups" style="font-size:1.1rem; font-weight:700;">0</div><div style="font-size:0.65rem; color:#64748B;">TEA</div></div>
-            <div style="background:white; padding:6px; border-radius:8px; border:1px solid #CBD5E1;"><div id="statCoffeeCups" style="font-size:1.1rem; font-weight:700;">0</div><div style="font-size:0.65rem; color:#64748B;">COFFEE</div></div>
-            <div style="background:white; padding:6px; border-radius:8px; border:1px solid #CBD5E1;"><div id="statGreenTeaCups" style="font-size:1.1rem; font-weight:700;">0</div><div style="font-size:0.65rem; color:#64748B;">GREEN TEA</div></div>
-            <div style="background:white; padding:6px; border-radius:8px; border:1px solid #CBD5E1;"><div id="statOtherCups" style="font-size:1.1rem; font-weight:700;">0</div><div style="font-size:0.65rem; color:#64748B;">OTHER</div></div>
-         </div>
-         <div style="text-align:center; margin-top:8px; font-size:0.8rem; font-weight:700; color:#0A56D0;" id="filteredTotalText">Grand Total: 0 Served</div>
+          <h4 style="font-size:0.85rem; color:#0A56D0; margin-bottom:8px; text-align:center;">📋 Metrics</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; text-align:center;">
+             <div style="background:white; padding:6px; border-radius:8px; border:1px solid #CBD5E1;"><div id="statTeaCups" style="font-size:1.1rem; font-weight:700;">0</div><div style="font-size:0.65rem; color:#64748B;">TEA</div></div>
+             <div style="background:white; padding:6px; border-radius:8px; border:1px solid #CBD5E1;"><div id="statCoffeeCups" style="font-size:1.1rem; font-weight:700;">0</div><div style="font-size:0.65rem; color:#64748B;">COFFEE</div></div>
+             <div style="background:white; padding:6px; border-radius:8px; border:1px solid #CBD5E1;"><div id="statGreenTeaCups" style="font-size:1.1rem; font-weight:700;">0</div><div style="font-size:0.65rem; color:#64748B;">GREEN TEA</div></div>
+             <div style="background:white; padding:6px; border-radius:8px; border:1px solid #CBD5E1;"><div id="statOtherCups" style="font-size:1.1rem; font-weight:700;">0</div><div style="font-size:0.65rem; color:#64748B;">OTHER</div></div>
+          </div>
+          <div style="text-align:center; margin-top:8px; font-size:0.8rem; font-weight:700; color:#0A56D0;" id="filteredTotalText">Grand Total: 0 Served</div>
       </div>
       <div id="logsList" class="scroll-list-box"></div>`;
 
