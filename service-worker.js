@@ -1,5 +1,5 @@
-// Auto Dynamic Versioning using Year-Month-Day to avoid manual changes
-const CACHE_VERSION = "pantry-service-v.0.3" + new Date().toISOString().slice(0,10);
+// Auto Dynamic Versioning: દરરોજ તારીખ પ્રમાણે વર્ઝન ઓટોમેટિક બદલાશે, હાથેથી ચેન્જ નહીં કરવું પડે
+const CACHE_VERSION = "pantry-service-v1.0.3_" + new Date().toISOString().slice(0,10);
 const CACHE_NAME = "pantry-cache-" + CACHE_VERSION;
 
 const ASSETS_TO_CACHE = [
@@ -8,9 +8,9 @@ const ASSETS_TO_CACHE = [
   "./manifest.json"
 ];
 
-// 1. Install Event: Nayi files ko cache storage mein safely store karna
+// 1. Install Event: નવી ફાઈલો બેકગ્રાઉન્ડમાં ડાઉનલોડ થશે
 self.addEventListener("install", (event) => {
-  // force skip waiting taaki naya service worker back-end mein instantly active ho jaye
+  // force skip waiting: નવો કોડ આવતા જ જુના સર્વિસ વર્કરને તરત હટાવી દેશે
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -20,7 +20,7 @@ self.addEventListener("install", (event) => {
   );
 });
 
-// 2. Activate Event: Purane aur bekar caches ko instantly automatic clean up/delete karna
+// 2. Activate Event: જુની કેશ ફાઈલોને એપ ઓપન થતા જ તરત ડીલીટ કરી નાખશે
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -32,19 +32,18 @@ self.addEventListener("activate", (event) => {
           }
         })
       );
-    }).then(() => self.clients.claim()) // App ka immediate control naye service worker ko dena
+    }).then(() => self.clients.claim()) // એપનું કંટ્રોલ તરત જ નવા કોડને આપી દેશે
   );
 });
 
-// 3. Fetch Event (Network-First Pipeline): Pehle live internet/GitHub check karega, naya data dikhaega
-// Agar wifi/internet nahi chal raha hoga tabhi phone storage ke cache se app open karega.
+// 3. Fetch Event (Network-First Pipeline): પહેલા લાઈવ ઈન્ટરનેટ/GitHub ચેક કરશે
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
   event.respondWith(
     fetch(event.request)
       .then((networkResponse) => {
-        // Agar live internet sahi chal raha hai, toh background cache ko silent update karo
+        // જો ઈન્ટરનેટ ચાલુ છે તો ગિટહબ પરથી નવો ડેટા જ બતાવશે અને બેકગ્રાઉન્ડમાં સ્ટોર કરશે
         if (networkResponse && networkResponse.status === 200) {
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -54,12 +53,11 @@ self.addEventListener("fetch", (event) => {
         return networkResponse;
       })
       .catch(() => {
-        // Agar offline hain (No Internet), tabhi cached fallback response handle hoga
+        // જો ફોનમાં ઈન્ટરનેટ બિલકુલ બંધ હશે, ત્યારે જ જૂની સેવ થયેલી ફાઈલ ખોલશે
         return caches.match(event.request).then((cachedResponse) => {
           if (cachedResponse) {
             return cachedResponse;
           }
-          // Agar dono jagah fail ho jaye to basic fetch return karo
           return fetch(event.request);
         });
       })
