@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1976d2">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1976d2">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -19,71 +19,84 @@
   
   <style>
     html, body { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; overscroll-behavior-y: contain; height: 100%; }
-    body { background: #E2E8F0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-    #app { width: 100%; max-width: 420px; background: #F8F9FA; display: flex; flex-direction: column; height: 100vh; min-height: 100vh; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+    body { background: #E2E8F0; display: flex; justify-content: center; align-items: center; min-height: 100vh; position: relative; }
+    #app { width: 100%; max-width: 420px; background: #F8F9FA; display: flex; flex-direction: column; height: 100vh; min-height: 100vh; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.15); overscroll-behavior-y: contain; }
     @media (min-width: 480px) { #app { height: 90vh; min-height: 90vh; border-radius: 24px; } body { padding: 16px; } }
-    .screen { padding: 16px; flex: 1; display: flex; flex-direction: column; overflow-y: auto; background: #F8F9FA; }
-    #loginScreen { display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding-top: 4vh; text-align: center; }
-    .card { background: #FFFFFF; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.12); width: -webkit-fill-available; box-sizing: border-box; }
     
-    /* Logo styling */
+    .screen { padding: 16px; flex: 1; display: flex; flex-direction: column; overflow-y: auto; background: #F8F9FA; box-sizing: border-box; height: 100%; }
+    #loginScreen { display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding-top: 4vh; text-align: center; }
+    .card { background: #FFFFFF; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); width: -webkit-fill-available; width: -moz-available; box-sizing: border-box; }
+    
     .logo-area { text-align: center; margin: 0 0 16px; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     .logo-img { width: 140px; height: auto; object-fit: contain; margin-bottom: 8px; }
-    .pantry-title { font-size: 1.4rem; font-weight: 700; color: #072B61; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 5px; }
     
-    button, .btn { background: #0A56D0; color: white; border: none; border-radius: 100px; padding: 12px 24px; font-weight: 500; font-size: 0.95rem; cursor: pointer; transition: background 0.2s, transform 0.1s; display: inline-flex; align-items: center; justify-content: center; text-align: center; }
+    button, .btn { background: #0A56D0; color: white; border: none; border-radius: 100px; padding: 12px 24px; font-weight: 500; font-size: 0.95rem; cursor: pointer; touch-action: manipulation; transition: background 0.2s, transform 0.1s; display: inline-flex; align-items: center; justify-content: center; text-align: center; letter-spacing: 0.2px; }
     button.success { background: #146C43; }
     button.danger { background: #DC3545; }
-    button:active { transform: scale(0.97); }
-    input, select, textarea { width: 100%; padding: 14px 16px; border: 1px solid #74777F; border-radius: 8px; margin: 8px 0 16px; font-size: 1rem; background: #FFFFFF; outline: none; box-sizing: border-box; text-align: center; }
+    button:active { transform: scale(0.97); background: #0842A0; }
+    button.success:active { background: #0F5132; }
+    button.danger:active { background: #B02A37; }
+    
+    input, select, textarea { width: 100%; padding: 14px 16px; border: 1px solid #74777F; border-radius: 8px; margin: 8px 0 16px; font-size: 1rem; background: #FFFFFF; outline: none; box-sizing: border-box; transition: border 0.2s; text-align: center; }
     input:focus, select:focus, textarea:focus { border: 2px solid #0A56D0; padding: 13px 15px; }
     
-    /* Login Selection Dropdown box centered styling */
     .login-uniform-box { max-width: 260px; width: 100%; margin: 8px auto 16px auto; display: flex; justify-content: center; align-items: center; gap: 10px; background: #ffffff; border: 1px solid #74777F; padding: 12px 16px; border-radius: 8px; cursor: pointer; box-sizing: border-box; text-align: center; }
     .login-uniform-box span:first-child { flex: 1; font-weight: 500; color: #1F1F1F; font-size: 1rem; text-align: center; }
     
     .pin-container { display: flex; flex-direction: column; align-items: center; margin: 8px 0; width: 100%; }
     .small-pin-input { text-align: center; letter-spacing: 4px; font-size: 1.2rem; padding: 14px 16px; }
+    
     .merged-filter-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
     .merged-filter-row input, .merged-filter-row select { margin: 0; padding: 12px; font-size: 0.9rem; text-align: left; }
     .merged-filter-row input { flex: 1.3; }
     .merged-filter-row select { flex: 1; }
     
     .dashboard-menu { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; overflow-y: auto; }
-    .dash-btn { background: #FFFFFF; border: 1px solid #CBD5E1; color: #0A56D0; padding: 18px 16px; border-radius: 14px; font-size: 1.15rem; font-weight: 700; text-align: left; display: flex; align-items: center; justify-content: space-between; }
+    .dash-btn { background: #FFFFFF; border: 1px solid #CBD5E1; color: #0A56D0; padding: 18px 16px; border-radius: 14px; font-size: 1.15rem; font-weight: 700; text-align: left; box-shadow: 0 2px 4px rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
     .dash-btn::after { content: "➔"; font-size: 1.2rem; color: #94A3B8; }
     .dash-btn:active { background: #F8FAFC; transform: scale(0.98); }
     
-    .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #E2E8F0; gap: 12px; }
+    .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #E2E8F0; flex-shrink: 0; gap: 12px; }
     .top-header h2 { font-size: 1.2rem; margin: 0; text-align: left; flex: 1; font-weight: 700; line-height: 1.3; color: #1F1F1F; display: flex; align-items: center; gap: 6px; }
-    .header-buttons { display: flex; flex-direction: column; gap: 6px; min-width: 90px; }
-    .header-buttons button { padding: 8px 14px; font-size: 0.85rem; border-radius: 100px; width: 100%; font-weight: 500; }
+    .header-buttons { display: flex; gap: 6px; }
+    .header-buttons button { padding: 8px 14px; font-size: 0.85rem; border-radius: 100px; font-weight: 500; }
     
-    .nav-controls { display: flex; gap: 8px; margin-bottom: 16px; width: 100%; }
+    .nav-controls { display: flex; gap: 8px; margin-bottom: 16px; width: 100%; flex-shrink: 0; }
     .nav-controls button { background: #E2E8F0; color: #1E293B; font-size: 0.9rem; padding: 10px 18px; border-radius: 100px; font-weight: 700; flex: 1; }
-    .employee-item, .log-item { background: #FFFFFF; padding: 14px 16px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem; border: 1px solid #E0E2E5; text-align: left; }
+    .nav-controls button:active { background: #CBD5E1; }
+    
+    .employee-item, .log-item { background: #FFFFFF; padding: 14px 16px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem; border: 1px solid #E0E2E5; text-align: left; box-shadow: 0 1px 2px rgba(0,0,0,0.05); flex-shrink: 0; }
     .hidden { display: none !important; }
-    .admin-btn-wrapper { display: flex; justify-content: center; margin-top: 16px; width: 100%; }
-    .admin-icon-btn { background: transparent; color: #0A56D0; border: 1px solid #0A56D0; padding: 8px 24px; }
-    .popup-overlay { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 16px; }
+    
+    .admin-btn-wrapper { display: flex; justify-content: center; margin-top: 16px; width: 100%; flex-shrink: 0; }
+    .admin-icon-btn { background: transparent; color: #0A56D0; border: 1px solid #0A56D0; padding: 8px 24px; border-radius: 100px; font-weight: 700; font-size: 0.95rem; }
+    
+    .popup-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 16px; }
     .popup-card { background: white; border-radius: 20px; padding: 24px; width: 100%; max-width: 360px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); max-height: 85vh; overflow-y: auto; display: flex; flex-direction: column; }
-    .scroll-list-box { max-height: 380px; overflow-y: auto; padding: 4px; border: 1px solid #E2E8F0; border-radius: 12px; background: #F1F5F9; margin-top: 8px; }
+    
+    .scroll-list-box { max-height: 380px; overflow-y: auto; padding: 4px; border: 1px solid #E2E8F0; border-radius: 12px; background: #F1F5F9; margin-top: 8px; -webkit-overflow-scrolling: touch; }
+    
     .table-row { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #E0E2E5; }
-    .table-row > div:nth-child(1) { flex: 2; font-weight: 500; font-size: 0.95rem; text-align: left; }
+    .table-row > div:nth-child(1) { flex: 2; font-weight: 500; font-size: 0.95rem; text-align: left; color: #1F1F1F; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 8px; }
     .table-row > div:nth-child(2), .table-row > div:nth-child(3) { flex: 1.3; text-align: center; }
-    .table-row select { width: 100%; padding: 10px 4px; margin: 0; border-radius: 6px; font-size: 0.85rem; text-align: center; }
-    .table-header { font-weight: 700; color: #0A56D0; border-bottom: 2px solid #0A56D0; padding-bottom: 8px; margin-bottom: 8px; }
+    .table-row select { width: 100%; padding: 10px 4px; margin: 0; border-radius: 6px; font-size: 0.85rem; border: 1px solid #CBD5E1; background: #F8F9FA; text-align: center; }
+    
+    .table-header { font-weight: 700; color: #0A56D0; border-bottom: 2px solid #0A56D0; padding-bottom: 8px; margin-bottom: 8px; font-size: 0.85rem; flex-shrink: 0; }
+    
     .sub-section-title { font-size: 0.9rem; font-weight: 700; color: #44474E; margin: 12px 0 6px; padding-bottom: 4px; border-bottom: 1px solid #E2E8F0; text-align: left; }
     .report-btn { width: 100%; margin-bottom: 12px; font-size: 0.9rem; padding: 12px; border-radius: 12px; }
     .bin-item-title { font-weight: 700; font-size: 0.85rem; color: #74777F; text-transform: uppercase; margin-top: 10px; margin-left: 4px; text-align: left; }
-    .popup-list-item { padding: 14px 16px; margin: 8px 0; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; font-weight: 500; cursor: pointer; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+    
+    .popup-list-item { padding: 14px 16px; margin: 8px 0; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; font-weight: 500; cursor: pointer; display: flex; justify-content: space-between; align-items: center; text-align: left; transition: all 0.2s ease; color: #1E293B; }
+    .popup-list-item:hover { background: #E0F2FE; border-color: #38BDF8; color: #0369A1; }
+    
     .meeting-notif-card { background: #FFF3E0; border-left: 4px solid #FF9800; padding: 12px; margin-bottom: 12px; border-radius: 8px; font-size: 0.9rem; text-align: left; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
     .refreshment-row { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; flex-wrap: wrap; }
     .refreshment-row input, .refreshment-row select { margin: 0; padding: 8px; font-size: 0.8rem; flex: 1; text-align: left; }
-    .refreshment-row button { padding: 8px 12px; font-size: 0.8rem; }
   </style>
 </head>
 <body>
+
 <div id="app">
   <div id="loginScreen" class="screen"></div>
   <div id="adminScreen" class="screen hidden"></div>
@@ -112,12 +125,15 @@
     if (parts.length !== 3) return dateStr;
     return `${parts[2]}/${parts[1]}/${parts[0]}`;
   }
+  
   function parseDMYToYMD(dmy) {
     if (!dmy) return '';
+    if (dmy.includes('-')) return dmy;
     let parts = dmy.split('/');
     if (parts.length !== 3) return dmy;
     return `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
   }
+  
   function getDayFromDateDMY(dmy) {
     if (!dmy) return '';
     const ymd = parseDMYToYMD(dmy);
@@ -127,6 +143,7 @@
     if (isNaN(d.getTime())) return '';
     return days[d.getDay()];
   }
+  
   function detectBeverageFromItem(item) {
     const lower = item.toLowerCase();
     if (lower.includes('tea') && !lower.includes('green')) return 'Tea';
@@ -155,15 +172,18 @@
   let employeeList = [];
   let pantryTeam = [];
   let logsData = [];
+  let eventLogsData = [];
   let extraLogsData = [];
+  let upcomingEventsData = [];
   let meetingData = [];
   let meetingHistory = [];
   let canteenList = [];
-  let binData = { employees: {}, pantryTeam: {}, extraLogs: {}, logs: {}, meetings: {} };
+  let binData = { employees: {}, pantryTeam: {}, extraLogs: {}, eventLogs: {}, logs: {}, meetings: {} };
   let adminSecurity = { password: "admin123" };
   let activeAdminTab = null;
   let activePantryTab = null;
   let isRendering = false;
+  let renderTimeout = null;
 
   const loginScreen = document.getElementById('loginScreen');
   const adminScreen = document.getElementById('adminScreen');
@@ -175,7 +195,7 @@
   function openAppModal(title, message, isConfirm, onConfirm) {
     const modal = document.createElement('div');
     modal.className = 'popup-overlay';
-    modal.innerHTML = `<div class="popup-card" style="text-align:center;"><h3 style="color:#0A56D0; margin-top:0; margin-bottom:12px;">${title}</h3><p style="margin-bottom:20px;">${message}</p><div style="display:flex; gap:12px; justify-content:center; width:100%;">${isConfirm ? '<button id="modalCancelBtn" style="background:#E2E8F0; color:#1F1F1F; flex:1; border-radius:100px;">Cancel</button>' : ''}<button id="modalOkBtn" class="success" style="flex:1;">OK</button></div></div>`;
+    modal.innerHTML = `<div class="popup-card" style="text-align:center;"><h3 style="color:#0A56D0; margin-top:0; margin-bottom:12px;">${title}</h3><p style="margin-bottom:20px; color:#44474E; font-size:0.95rem;">${message}</p><div style="display:flex; gap:12px; justify-content:center; width:100%;">${isConfirm ? '<button id="modalCancelBtn" style="background:#E2E8F0; color:#1F1F1F; flex:1; border-radius:100px;">Cancel</button>' : ''}<button id="modalOkBtn" class="success" style="flex:1; border-radius:100px;">OK</button></div></div>`;
     document.body.appendChild(modal);
     if(isConfirm) document.getElementById('modalCancelBtn').onclick = () => modal.remove();
     document.getElementById('modalOkBtn').onclick = () => { modal.remove(); if(onConfirm) onConfirm(); };
@@ -188,8 +208,10 @@
     else if (type === 'pantry') { appConfirm('Delete Team Member', 'Send to Recycle Bin?', () => { const targeted = pantryTeam.find(p => p.id === id); if(targeted) { db.ref('recycleBin/pantryTeam/' + id).set(targeted); db.ref('pantryTeam/' + id).remove(); }}); }
     else if (type === 'canteen') { appConfirm('Delete Vendor', 'Remove this canteen?', () => { db.ref('canteens/' + id).remove(); }); }
     else if (type === 'extra') { appConfirm('Delete Record', 'Move to Recycle Bin?', () => { const targeted = extraLogsData.find(x => x.id === id); if(targeted) { db.ref('recycleBin/extraLogs/' + id).set(targeted); db.ref('extraLogs/' + id).remove(); }}); }
+    else if (type === 'event') { appConfirm('Delete Record', 'Move dynamic event entry to Recycle Bin?', () => { const targeted = eventLogsData.find(e => e.id === id); if(targeted) { db.ref('recycleBin/eventLogs/' + id).set(targeted); db.ref('eventLogs/' + id).remove(); }}); }
     else if (type === 'regular_log') { appConfirm('Delete Record', 'Move to Recycle Bin?', () => { const targeted = logsData.find(l => l.id === id); if(targeted) { db.ref('recycleBin/logs/' + id).set(targeted); db.ref('logs/' + id).remove(); }}); }
     else if (type === 'meeting') { appConfirm('Delete Meeting', 'Move to Recycle Bin?', () => { const targeted = meetingData.find(m => m.id === id); if(targeted) { db.ref('recycleBin/meetings/' + id).set(targeted); db.ref('meetings/' + id).remove(); } }); }
+    else if (type === 'upcoming_event') { appConfirm('Delete Notification', "Remove notification permanently?", () => { db.ref('upcomingEvents/' + id).remove(); }); }
   };
 
   window.pantryRestoreHandler = function(section, id) {
@@ -197,11 +219,11 @@
     if(!targetData) return appAlert('Error', 'Data not found.');
     db.ref(section + '/' + id).set(targetData);
     db.ref('recycleBin/' + section + '/' + id).remove();
-    appAlert('Restored', 'Data recovered.');
+    appAlert('Restored', 'Data recovered back successfully!');
   };
 
   window.pantryEditLogHandler = function(id, currentDrink) {
-    const d = prompt('Edit Drink:', currentDrink);
+    const d = prompt('Edit Drink Selection:', currentDrink);
     if(d && d.trim()) db.ref('logs/'+id).update({drink:d.trim()});
   };
 
@@ -249,6 +271,276 @@
     rowDiv.querySelector('.remove-row-btn').onclick = () => rowDiv.remove();
   }
 
+  window.addEventItemRow = function(prefix) {
+    const container = document.getElementById(prefix + 'ItemsContainer');
+    if (!container) return;
+    const row = document.createElement('div');
+    row.className = 'dynamic-item-row';
+    row.style = "display:flex; gap:6px; margin-bottom:8px; align-items:center;";
+    row.innerHTML = `
+        <select class="item-type" style="flex:1.2; padding:10px; font-size:0.75rem; margin:0; border-radius:6px;"><option>☕ Tea/Coffee</option><option>🍪 Snacks/Food</option><option>🥤 Other</option></select>
+        <input type="text" class="item-name" placeholder="Item Name" style="flex:2; padding:10px; font-size:0.8rem; margin:0; border-radius:6px;">
+        <input type="number" class="item-qty" placeholder="Qty" min="1" value="1" style="flex:1; padding:10px; font-size:0.8rem; margin:0; border-radius:6px;">
+        <input type="number" class="item-rate" placeholder="₹ Rate" min="0" value="" style="flex:1; padding:10px; font-size:0.8rem; margin:0; border-radius:6px;">
+        <button type="button" class="danger remove-item-btn" style="padding:8px 12px; box-shadow:none; border-radius:6px; margin:0; font-size:1rem;">X</button>
+    `;
+    container.appendChild(row);
+    row.querySelector('.remove-item-btn').onclick = function() { row.remove(); window.calcEventTotal(prefix); };
+    row.querySelectorAll('input').forEach(i => i.addEventListener('input', () => window.calcEventTotal(prefix)));
+    window.calcEventTotal(prefix);
+  };
+
+  window.calcEventTotal = function(prefix) {
+    const container = document.getElementById(prefix + 'ItemsContainer');
+    const display = document.getElementById(prefix + 'CalcDisplay');
+    if (!container || !display) return;
+    let total = 0;
+    container.querySelectorAll('.dynamic-item-row').forEach(row => {
+        const q = Number(row.querySelector('.item-qty').value) || 0;
+        const rawRate = row.querySelector('.item-rate').value.trim();
+        const r = rawRate === "" ? 0 : (parseFloat(rawRate) || 0);
+        total += (q * r);
+    });
+    display.innerText = "₹ " + total.toFixed(2);
+  };
+
+  window.saveMergedEventControlRoomHandler = function(prefix, uId, uName) {
+    const canteen = document.getElementById(prefix+'Canteen').value;
+    const orderedBy = document.getElementById(prefix+'OrderedBy').value.trim();
+    const name = document.getElementById(prefix+'Name').value.trim();
+    const d = document.getElementById(prefix+'Date').value;
+    const t = document.getElementById(prefix+'Time').value;
+    const venue = document.getElementById(prefix+'Venue').value.trim();
+    
+    const container = document.getElementById(prefix+'ItemsContainer');
+    if (!container) return;
+    
+    const items = [];
+    let totalAmt = 0;
+    let summaryTextList = [];
+
+    container.querySelectorAll('.dynamic-item-row').forEach(row => {
+        const type = row.querySelector('.item-type').value;
+        const iName = row.querySelector('.item-name').value.trim();
+        const qty = Number(row.querySelector('.item-qty').value) || 0;
+        const rawRate = row.querySelector('.item-rate').value.trim();
+        const rate = rawRate === "" ? 0 : (parseFloat(rawRate) || 0);
+        if(iName && qty > 0) {
+            const amt = qty * rate;
+            items.push({type, name: iName, qty, rate, amount: amt});
+            totalAmt += amt;
+            summaryTextList.push(`${qty} ${iName}`);
+        }
+    });
+
+    if(!name) return appAlert('Missing Field', 'Please enter Event Name.');
+    if(items.length === 0) return appAlert('Table Empty', 'Provide at least 1 valid line item.');
+
+    const generatedTimestampId = Date.now();
+    const compiledMenuSummary = summaryTextList.join(', ');
+    const billLogId = 'event_' + generatedTimestampId + "_" + Math.floor(Math.random()*1000);
+    
+    db.ref('eventLogs/' + billLogId).set({
+        id: billLogId, canteenSource: canteen, orderedBy, eventName: name, date: d, time: t, venue,
+        items: items, amount: totalAmt, pantryId: uId, pantryName: uName, refreshmentSummary: compiledMenuSummary
+    });
+
+    const broadcastNoticeId = 'upc_' + generatedTimestampId;
+    db.ref('upcomingEvents/' + broadcastNoticeId).set({ id: broadcastNoticeId, title: name, venue: venue || 'Not Specified', refreshment: compiledMenuSummary, date: d, time: t });
+
+    appAlert('Success', 'Event compiled and live announcement broadcasted!');
+    document.getElementById(prefix+'Name').value = ''; document.getElementById(prefix+'OrderedBy').value = ''; document.getElementById(prefix+'Venue').value = '';
+    if (document.getElementById(prefix+'ScriptTextarea')) document.getElementById(prefix+'ScriptTextarea').value = '';
+    container.innerHTML = ''; window.calcEventTotal(prefix);
+  };
+
+  window.parseEventScriptText = function(prefix) {
+    const rawText = document.getElementById(prefix + 'ScriptTextarea').value;
+    const container = document.getElementById(prefix + 'ItemsContainer');
+    if(!rawText.trim() || !container) return;
+
+    const lines = rawText.split('\n');
+    let parsedAny = false;
+
+    lines.forEach(line => {
+        const qtyMatch = line.match(/(\d+)\s*(tea|coffee|samosa|biscuit|cookie|water|juice|drink|snack|cup|plate|pkt)/i);
+        if(qtyMatch) {
+            const qty = qtyMatch[1];
+            let itemName = qtyMatch[2]; itemName = itemName.charAt(0).toUpperCase() + itemName.slice(1);
+            const row = document.createElement('div');
+            row.className = 'dynamic-item-row';
+            row.style = "display:flex; gap:6px; margin-bottom:8px; align-items:center;";
+            row.innerHTML = `
+                <select class="item-type" style="flex:1.2; padding:10px; font-size:0.75rem; margin:0; border-radius:6px;">
+                  <option ${itemName.toLowerCase().includes('tea')||itemName.toLowerCase().includes('coffee') ? 'selected':''}>☕ Tea/Coffee</option>
+                  <option ${itemName.toLowerCase().includes('samosa')||itemName.toLowerCase().includes('biscuit') ? 'selected':''}>🍪 Snacks/Food</option>
+                  <option>🥤 Other</option>
+                </select>
+                <input type="text" class="item-name" value="${itemName}" placeholder="Item Name" style="flex:2; padding:10px; font-size:0.8rem; margin:0; border-radius:6px;">
+                <input type="number" class="item-qty" value="${qty}" placeholder="Qty" min="1" style="flex:1; padding:10px; font-size:0.8rem; margin:0; border-radius:6px;">
+                <input type="number" class="item-rate" placeholder="₹ Rate" min="0" value="" style="flex:1; padding:10px; font-size:0.8rem; margin:0; border-radius:6px;">
+                <button type="button" class="danger remove-item-btn" style="padding:8px 12px; box-shadow:none; border-radius:6px; margin:0; font-size:1rem;">X</button>
+            `;
+            container.appendChild(row);
+            row.querySelector('.remove-item-btn').onclick = function() { row.remove(); window.calcEventTotal(prefix); };
+            row.querySelectorAll('input').forEach(i => i.addEventListener('input', () => window.calcEventTotal(prefix)));
+            parsedAny = true;
+        }
+    });
+    if(parsedAny) { window.calcEventTotal(prefix); document.getElementById(prefix + 'ScriptTextarea').value = ''; appAlert('Script Processed', 'Auto-filled matched items!'); } 
+    else { appAlert('Parsing Failed', 'Could not detect item quantities.'); }
+  };
+
+  window.handleEventExcelUpload = function(event, prefix) {
+    const file = event.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, {type: 'array'});
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonRows = XLSX.utils.sheet_to_json(worksheet);
+        const container = document.getElementById(prefix + 'ItemsContainer');
+        if(!container) return;
+
+        jsonRows.forEach(row => {
+            const itemName = row['Item Name'] || row['Item'] || row['ItemName'] || '';
+            const qty = row['Quantity'] || row['Qty'] || 1;
+            const rate = row['Rate'] || row['Price'] || '';
+
+            if(itemName) {
+                const div = document.createElement('div');
+                div.className = 'dynamic-item-row';
+                div.style = "display:flex; gap:6px; margin-bottom:8px; align-items:center;";
+                div.innerHTML = `
+                    <select class="item-type" style="flex:1.2; padding:10px; font-size:0.75rem; margin:0; border-radius:6px;"><option>☕ Tea/Coffee</option><option>🍪 Snacks/Food</option><option>🥤 Other</option></select>
+                    <input type="text" class="item-name" value="${itemName.replace(/"/g, '&quot;')}" placeholder="Item Name" style="flex:2; padding:10px; font-size:0.8rem; margin:0; border-radius:6px;">
+                    <input type="number" class="item-qty" value="${qty}" placeholder="Qty" min="1" style="flex:1; padding:10px; font-size:0.8rem; margin:0; border-radius:6px;">
+                    <input type="number" class="item-rate" value="${rate}" placeholder="₹ Rate" min="0" style="flex:1; padding:10px; font-size:0.8rem; margin:0; border-radius:6px;">
+                    <button type="button" class="danger remove-item-btn" style="padding:8px 12px; box-shadow:none; border-radius:6px; margin:0; font-size:1rem;">X</button>
+                `;
+                container.appendChild(div);
+                div.querySelector('.remove-item-btn').onclick = function() { div.remove(); window.calcEventTotal(prefix); };
+                div.querySelectorAll('input').forEach(i => i.addEventListener('input', () => window.calcEventTotal(prefix)));
+            }
+        });
+        window.calcEventTotal(prefix); appAlert('Excel Processed', 'Loaded data items directly from sheet!');
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  window.renderCentralizedEventSectionUI = function(targetContainerId, formPrefix) {
+    const targetElement = document.getElementById(targetContainerId); if(!targetElement) return;
+    const todayDate = new Date().toISOString().split('T')[0];
+    const rightNowTime = new Date().toTimeString().split(' ')[0].substring(0,5);
+    
+    let activeUserContext = currentUser;
+    const currentUserId = activeUserContext ? activeUserContext.id : 'unknown';
+    const currentUserName = activeUserContext ? activeUserContext.name : 'Unknown Operator';
+
+    targetElement.innerHTML = `
+      <div class="card" style="background:#FFFDF5; border: 1px dashed #D97706; flex-shrink:0;">
+         <h4 style="color:#B45309; margin:0 0 10px 0; font-size:0.95rem;">🔔 Live Streaming Event Notifications</h4>
+         <div id="${formPrefix}SharedUpcomingNoticeListContainer"></div>
+      </div>
+      <div class="card" style="flex-shrink:0; border-top: 4px solid #0A56D0;">
+         <h3 style="color:#0A56D0; margin:0 0 16px 0; font-size:1.15rem; text-align:center;">🎪 Event Control Room</h3>
+         <div style="background:#F0F7FF; border:1px solid #B9E0FF; padding:12px; border-radius:12px; margin-bottom:16px;">
+            <h4 style="color:#0369A1; margin:0 0 8px 0; font-size:0.9rem;">⚡ Fast Entry Option</h4>
+            <textarea id="${formPrefix}ScriptTextarea" placeholder="Order 50 Tea and 20 Samosa" rows="2" style="margin-bottom:6px; font-size:0.85rem; padding:8px; border:1px solid #7DD3FC; border-radius:8px; resize:none; text-align:left;"></textarea>
+            <button type="button" onclick="window.parseEventScriptText('${formPrefix}')" style="background:#0284C7; width:100%; font-size:0.8rem; padding:8px; margin-bottom:12px; border-radius:8px;">⚡ Auto Extract</button>
+            <label style="font-size:0.75rem; color:#0369A1; font-weight:700; text-align:left; display:block;">Upload Excel Menu</label>
+            <input type="file" id="${formPrefix}ExcelFileEl" accept=".xlsx, .xls" style="padding:6px; margin:4px 0 0 0; font-size:0.8rem; background:white; text-align:left;" onchange="window.handleEventExcelUpload(event, '${formPrefix}')">
+         </div>
+         <label style="font-size:0.8rem; color:#44474E; font-weight:700; text-align:left; display:block;">Event / Meeting Name *</label>
+         <input type="text" id="${formPrefix}Name" placeholder="e.g., Assembly" style="margin-bottom:8px; text-align:left;">
+         <label style="font-size:0.8rem; color:#44474E; text-align:left; display:block;">Ordered By</label>
+         <input type="text" id="${formPrefix}OrderedBy" placeholder="e.g., Dean Office" style="margin-bottom:8px; text-align:left;">
+         <label style="font-size:0.8rem; color:#44474E; text-align:left; display:block;">Canteen Vendor</label>
+         <select id="${formPrefix}Canteen" style="margin-bottom:8px;"><option value="">-- Select --</option>${canteenList.map(cnt => `<option value="${cnt.name}">${safeStr(cnt.name)}</option>`).join('')}</select>
+         <div style="display:flex; gap:8px;">
+           <div style="flex:1;"><label style="font-size:0.8rem; color:#44474E; text-align:left; display:block;">Date</label><input type="date" id="${formPrefix}Date" value="${todayDate}" style="margin-bottom:8px;"></div>
+           <div style="flex:1;"><label style="font-size:0.8rem; color:#44474E; text-align:left; display:block;">Time</label><input type="time" id="${formPrefix}Time" value="${rightNowTime}" style="margin-bottom:8px;"></div>
+         </div>
+         <label style="font-size:0.8rem; color:#44474E; text-align:left; display:block;">Venue Location</label>
+         <input type="text" id="${formPrefix}Venue" placeholder="e.g., Hall 302" style="margin-bottom:8px; text-align:left;">
+         <div class="sub-section-title" style="margin-top:8px;">📋 Compiled Items</div>
+         <div id="${formPrefix}ItemsContainer"></div>
+         <button type="button" onclick="window.addEventItemRow('${formPrefix}')" class="btn" style="background:#E2E8F0; color:#0A56D0; width:100%; margin-bottom:12px; font-weight:700;">➕ Add Manual Row</button>
+         <div class="card" style="background:#F0F4F9; margin-top:0px; padding:12px; text-align:center; border: 1px dashed #0A56D0; box-shadow:none;">
+           <span style="font-size:0.85rem; color:#44474E; font-weight:700;">Grand Total:</span>
+           <div id="${formPrefix}CalcDisplay" style="font-size:1.4rem; font-weight:700; color:#0A56D0;">₹ 0.00</div>
+         </div>
+         <button type="button" id="${formPrefix}MasterMergedSubmitActionBtn" class="success" style="width:100%; padding:14px; margin-top:8px; border-radius:12px; font-weight:700;">📌 SAVE & BROADCAST</button>
+      </div>
+      <h4 style="color:#1E293B; margin:16px 0 8px 4px; font-size:0.95rem; font-weight:700; text-align:left;">🏛️ Past Archived Events</h4>
+      <div id="${formPrefix}SharedPastArchivedEventsHistoryFeedContainer" class="scroll-list-box" style="max-height:340px;"></div>
+    `;
+    document.getElementById(`${formPrefix}MasterMergedSubmitActionBtn`).onclick = () => { window.saveMergedEventControlRoomHandler(formPrefix, currentUserId, currentUserName); };
+    window.populateSharedEventSectionDataViews(formPrefix);
+  };
+
+  window.populateSharedEventSectionDataViews = function(formPrefix) {
+    const alertListFeed = document.getElementById(`${formPrefix}SharedUpcomingNoticeListContainer`);
+    const pastArchiveHistoryFeed = document.getElementById(`${formPrefix}SharedPastArchivedEventsHistoryFeedContainer`);
+    const rightNowTimestamp = Date.now(); const absoluteFiveHoursInMilliseconds = 5 * 60 * 60 * 1000;
+    let completedPastArchivedArray = [];
+    let upcomingRemovals = [];
+
+    eventLogsData.forEach(event => {
+        const eventDateTimeString = `${event.date}T${event.time || '00:00'}`;
+        const eventScheduleEpochTime = new Date(eventDateTimeString).getTime();
+        if (!isNaN(eventScheduleEpochTime) && (rightNowTimestamp - eventScheduleEpochTime) >= absoluteFiveHoursInMilliseconds) {
+            completedPastArchivedArray.push(event);
+            upcomingEventsData.forEach(noticeTicket => { 
+                if (noticeTicket.title === event.eventName && noticeTicket.date === event.date) { 
+                    upcomingRemovals.push(noticeTicket.id);
+                }
+            });
+        }
+    });
+
+    if (upcomingRemovals.length > 0) {
+        upcomingRemovals.forEach(id => { db.ref('upcomingEvents/' + id).remove(); });
+    }
+
+    if(alertListFeed) {
+        const rightNowTruncatedDate = new Date(new Date().toISOString().split('T')[0]).setHours(0,0,0,0);
+        const liveBroadcastNoticeTickets = upcomingEventsData.filter(u => new Date(u.date) >= rightNowTruncatedDate).sort((a,b) => new Date(a.date+' '+a.time) - new Date(b.date+' '+b.time));
+        if(liveBroadcastNoticeTickets.length === 0) { alertListFeed.innerHTML = `<p style="font-size:0.85rem; color:#74777F; text-align:center;">No live streaming.</p>`; } 
+        else { alertListFeed.innerHTML = liveBroadcastNoticeTickets.map(u => `
+              <div style="border-left: 3px solid #D97706; padding-left: 8px; margin-bottom: 8px; background:#FFF; padding:6px; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
+                 <div style="width:85%; text-align:left;">
+                    <strong style="color:#D97706; font-size:0.95rem;">${safeStr(u.title)}</strong>
+                    <div style="font-size:0.75rem; color:#44474E; margin-top:2px;">📍 <strong>${safeStr(u.venue)}</strong> | 📅 ${safeStr(formatDateToDMY(u.date))} ⏰ ${safeStr(u.time)}</div>
+                    <div style="margin-top:4px; font-weight:600; color:#B45309; font-size:0.75rem;">Menu: ${safeStr(u.refreshment)}</div>
+                 </div>
+                 <button onclick="window.pantryDeleteHandler('upcoming_event', '${u.id}')" style="background:transparent; color:#DC3545; padding:4px; font-size:1.1rem; cursor:pointer;">🗑</button>
+              </div>`).join('');
+        }
+    }
+
+    if(pastArchiveHistoryFeed) {
+        const chronologicallySortedArchive = completedPastArchivedArray.sort((a,b) => new Date(b.date + ' ' + b.time) - new Date(a.date + ' ' + a.time));
+        if(chronologicallySortedArchive.length === 0) { pastArchiveHistoryFeed.innerHTML = `<p style="text-align:center; padding:16px; color:#64748B; font-size:0.85rem;">No past archives.</p>`; } 
+        else { pastArchiveHistoryFeed.innerHTML = chronologicallySortedArchive.map(ev => {
+              let parsedLineItemsDetailsStr = '';
+              if(ev.items && Array.isArray(ev.items)) { parsedLineItemsDetailsStr = ev.items.map(i => `${i.name} (Qty: ${i.qty}${i.rate ? `, Rate: ₹${i.rate}` : ''})`).join(' | '); }
+              return `
+                 <div class="log-item" style="flex-direction:column; align-items:stretch; gap:4px; font-size:0.85rem; border-left:4px solid #475569; margin: 6px 4px; text-align:left; background:#F8FAFC;">
+                   <div style="display:flex; justify-content:space-between; font-weight:700; color:#334155;"><span>🏛️ ${safeStr(ev.eventName)}</span><span>₹${(Number(ev.amount)||0).toFixed(2)}</span></div>
+                   <div style="color:#475569; font-size:0.8rem; margin-top:2px;">🏬 Vendor: <strong>${safeStr(ev.canteenSource || 'Main Kitchen')}</strong> | 🧑‍🍳 Logged: <strong>${safeStr(ev.pantryName)}</strong><br>
+                     <div style="margin-top: 4px; padding: 4px 6px; background: #F1F5F9; border-radius: 4px; font-weight:500;">Details: ${parsedLineItemsDetailsStr}</div>
+                   </div>
+                   <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; border-top:1px dashed #CBD5E1; padding-top:4px;">
+                     <small style="color:#64748B; font-weight:600;">📅 Concluded: ${safeStr(formatDateToDMY(ev.date))}</small>
+                     <button onclick="window.pantryDeleteHandler('event', '${ev.id}')" style="background:transparent; color:#DC3545; padding:4px; font-size:1.1rem; cursor:pointer;">Delete</button>
+                   </div>
+                 </div>`;
+           }).join('');
+        }
+    }
+  };
+
   function renderMeetingForm(containerId, rolePrefix) {
     const container = document.getElementById(containerId);
     if(!container) return;
@@ -258,10 +550,10 @@
       <div class="card">
         <h3 style="color:#0A56D0; text-align:left;">📝 New Meeting / Event Entry</h3>
         <div style="background:#F0F7FF; padding:12px; border-radius:12px; margin-bottom:12px; text-align:left;">
-          <label>📋 Quick Paste (Excel/Word/PDF copy)</label>
+          <label style="text-align:left; display:block;">Quick Paste (Excel/Word/PDF copy)</label>
           <textarea id="${rolePrefix}PasteText" rows="2" placeholder="Paste tab-separated data..." style="font-size:0.8rem; text-align:left;"></textarea>
           <button id="${rolePrefix}ParsePasteBtn" class="btn" style="background:#0284C7; width:100%; margin-top:6px;">📌 Parse & Fill</button>
-          <div style="margin-top:10px;"><label>📎 Upload Excel (Multi-Row Refreshment)</label><input type="file" id="${rolePrefix}ExcelFile" accept=".xlsx,.xls" style="padding:6px; text-align:left;"></div>
+          <div style="margin-top:10px;"><label style="text-align:left; display:block;">Upload Excel (Multi-Row Refreshment)</label><input type="file" id="${rolePrefix}ExcelFile" accept=".xlsx,.xls" style="padding:6px; text-align:left;"></div>
         </div>
         <div class="merged-filter-row">
           <input type="text" id="${rolePrefix}SrNo" placeholder="Sr No" style="flex:0.8;">
@@ -404,9 +696,9 @@
     if(!upcomingDiv) return;
     const now = new Date();
     const upcoming = meetingData.filter(m => new Date(parseDMYToYMD(m.date) + 'T' + (m.time||'00:00')) > now && !m.archived).sort((a,b) => new Date(parseDMYToYMD(a.date)+'T'+a.time) - new Date(parseDMYToYMD(b.date)+'T'+b.time));
-    upcomingDiv.innerHTML = upcoming.length ? upcoming.map(m => `<div class="log-item" style="flex-direction:column;"><div><strong>#${m.srNo} ${m.eventName}</strong> 📅 ${m.date} ${m.time}</div><div>📍 ${m.venue} | 📞 ${m.requestBy} | 🏪 ${m.orderedFrom}</div><div><strong>Refreshments:</strong> ${(m.refreshments||[]).map(r=>`${r.time} ${r.qty}x${r.snacks}(${r.beverage||'-'})`).join('; ')}</div>${currentUser?.role==='admin'?`<button onclick="window.manualArchiveMeeting('${m.id}')" class="btn" style="margin-top:6px;">📦 Save to History</button>`:''}<button onclick="window.pantryDeleteHandler('meeting','${m.id}')" class="danger" style="margin-top:4px;">🗑 Delete</button></div>`).join('') : '<p style="padding:12px;">No upcoming meetings</p>';
+    upcomingDiv.innerHTML = upcoming.length ? upcoming.map(m => `<div class="log-item" style="flex-direction:column;"><div><strong>#${m.srNo} ${m.eventName}</strong> 📅 ${formatDateToDMY(m.date)} ${m.time}</div><div>📍 ${m.venue} | 📞 ${m.requestBy} | 🏪 ${m.orderedFrom}</div><div><strong>Refreshments:</strong> ${(m.refreshments||[]).map(r=>`${r.time} ${r.qty}x${r.snacks}(${r.beverage||'-'})`).join('; ')}</div>${currentUser?.role==='admin'?`<button onclick="window.manualArchiveMeeting('${m.id}')" class="btn" style="margin-top:6px;">📦 Save to History</button>`:''}<button onclick="window.pantryDeleteHandler('meeting','${m.id}')" class="danger" style="margin-top:4px;">🗑 Delete</button></div>`).join('') : '<p style="padding:12px;">No upcoming meetings</p>';
     const historySorted = [...meetingHistory].sort((a,b) => new Date(parseDMYToYMD(b.date)+'T'+b.time) - new Date(parseDMYToYMD(a.date)+'T'+a.time));
-    historyDiv.innerHTML = historySorted.length ? historySorted.map(m => `<div class="log-item" style="flex-direction:column; background:#F9FAFB;"><div><strong>#${m.srNo} ${m.eventName}</strong> 📅 ${m.date} ${m.time}</div><div>📍 ${m.venue} | 📞 ${m.requestBy} | 🏪 ${m.orderedFrom}</div><div>${(m.refreshments||[]).map(r=>`${r.time} ${r.qty}x${r.snacks}(${r.beverage||'-'})`).join('; ')}</div><div>🧑‍🍳 by ${m.createdBy}</div></div>`).join('') : '<p style="padding:12px;">No archived meetings</p>';
+    historyDiv.innerHTML = historySorted.length ? historySorted.map(m => `<div class="log-item" style="flex-direction:column; background:#F9FAFB;"><div><strong>#${m.srNo} ${m.eventName}</strong> 📅 ${formatDateToDMY(m.date)} ${m.time}</div><div>📍 ${m.venue} | 📞 ${m.requestBy} | 🏪 ${m.orderedFrom}</div><div>${(m.refreshments||[]).map(r=>`${r.time} ${r.qty}x${r.snacks}(${r.beverage||'-'})`).join('; ')}</div><div>🧑‍🍳 by ${m.createdBy}</div></div>`).join('') : '<p style="padding:12px;">No archived meetings</p>';
   }
 
   function renderMeetingNotifications() {
@@ -421,6 +713,16 @@
     notifContainer.innerHTML = upcoming.length ? upcoming.map(m => `<div class="meeting-notif-card"><strong>🔔 ${m.eventName}</strong> at ${m.time}<br>📍 ${m.venue} | 🍽️ ${(m.refreshments||[]).map(r=>`${r.time} ${r.qty}x${r.snacks}`).join(', ')}</div>`).join('') : '<div class="card"><p style="text-align:center; color:#74777F; margin:0;">No upcoming reminders</p></div>';
   }
 
+  window.renderPantryLiveUpcomingEventsCard = function() {
+    const streamContainer = document.getElementById('pantryDashboardUpcomingStream'); 
+    const rootCard = document.getElementById('livePantryBroadcastCard'); 
+    if(!streamContainer || !rootCard) return;
+    const todayNum = new Date(new Date().toISOString().split('T')[0]).setHours(0,0,0,0);
+    const activeUpcoming = upcomingEventsData.filter(u => new Date(u.date) >= todayNum).sort((a,b) => new Date(a.date+' '+a.time) - new Date(b.date+' '+b.time));
+    if(activeUpcoming.length === 0) { rootCard.classList.add('hidden'); streamContainer.innerHTML = ''; } 
+    else { rootCard.classList.remove('hidden'); streamContainer.innerHTML = activeUpcoming.map(u => `<div style="border-left: 3px solid #D97706; padding-left: 8px; margin-bottom: 8px; background:#FFF; padding:6px; border-radius:6px; text-align:left;"><strong style="color:#D97706; font-size:0.95rem;">${safeStr(u.title)}</strong><div style="font-size:0.75rem; color:#44474E; margin-top:2px;">📍 <strong>${safeStr(u.venue)}</strong> | 📅 ${safeStr(formatDateToDMY(u.date))} ⏰ ${safeStr(u.time)}</div><div style="margin-top:4px; font-size:0.75rem; color:#B45309; font-weight:600;">Menu: ${safeStr(u.refreshment)}</div></div>`).join(''); }
+  };
+
   window.getDayFromDateDMY = getDayFromDateDMY;
 
   db.ref('sessionDevices').on('value', snap => { cloudSessions = snap.val() || {}; renderIfNeeded(); });
@@ -428,23 +730,23 @@
   db.ref('employees').on('value', snap => { employeeList = snap.exists() ? Object.values(snap.val()) : []; renderIfNeeded(); });
   db.ref('pantryTeam').on('value', snap => { pantryTeam = snap.exists() ? Object.values(snap.val()) : []; renderIfNeeded(); });
   db.ref('logs').on('value', snap => { logsData = snap.exists() ? Object.values(snap.val()) : []; renderIfNeeded(); });
+  db.ref('eventLogs').on('value', snap => { eventLogsData = snap.exists() ? Object.values(snap.val()) : []; renderIfNeeded(); });
   db.ref('extraLogs').on('value', snap => { extraLogsData = snap.exists() ? Object.values(snap.val()) : []; renderIfNeeded(); });
   db.ref('canteens').on('value', snap => { canteenList = snap.exists() ? Object.values(snap.val()) : []; renderIfNeeded(); });
   db.ref('meetings').on('value', snap => { meetingData = snap.exists() ? Object.values(snap.val()) : []; renderIfNeeded(); autoArchiveMeetings(); });
   db.ref('meetingsHistory').on('value', snap => { meetingHistory = snap.exists() ? Object.values(snap.val()) : []; renderIfNeeded(); });
-  db.ref('recycleBin').on('value', snap => { binData = snap.exists() ? snap.val() : { employees:{}, pantryTeam:{}, extraLogs:{}, logs:{}, meetings:{} }; renderIfNeeded(); });
+  db.ref('upcomingEvents').on('value', snap => { upcomingEventsData = snap.exists() ? Object.values(snap.val()) : []; renderIfNeeded(); });
+  db.ref('recycleBin').on('value', snap => { binData = snap.exists() ? snap.val() : { employees: {}, pantryTeam: {}, extraLogs: {}, eventLogs: {}, logs: {}, meetings: {} }; renderIfNeeded(); });
 
   function renderIfNeeded() {
     if(isRendering) return;
     isRendering = true;
-    setTimeout(() => {
+    if (renderTimeout) clearTimeout(renderTimeout);
+    renderTimeout = setTimeout(() => {
       try {
         if (currentUser) {
-          if (currentUser.role === 'admin' && cloudSessions["admin_portal"]?.device !== deviceFingerprint) {
-            currentUser = null;
-          } else if (currentUser.role === 'pantry' && cloudSessions["pantry_"+currentUser.id]?.device !== deviceFingerprint) {
-            currentUser = null;
-          }
+          if (currentUser.role === 'admin' && cloudSessions["admin_portal"]?.device !== deviceFingerprint) { currentUser = null; } 
+          else if (currentUser.role === 'pantry' && cloudSessions["pantry_"+currentUser.id]?.device !== deviceFingerprint) { currentUser = null; }
         }
 
         if (!currentUser) {
@@ -452,32 +754,40 @@
           const activePantries = Object.keys(cloudSessions).filter(k => k.startsWith('pantry_') && cloudSessions[k].device === deviceFingerprint);
 
           if (hasAdmin && activePantries.length > 0) {
-            if(loginScreen.classList.contains('hidden')) renderLogin();
-            else window.checkActiveSessionStatusAndTogglePINBox?.();
+            if(loginScreen.classList.contains('hidden')) renderLogin(); else window.checkActiveSessionStatusAndTogglePINBox?.();
           } else if (hasAdmin) {
-            currentUser = { role:'admin', id:'admin', name:'System Admin' };
-            renderAdminConsole();
+            currentUser = { role:'admin', id:'admin', name:'System Admin' }; renderAdminConsole();
           } else if (activePantries.length > 0) {
             let k = activePantries[0];
             let p = pantryTeam.find(pm => pm.id === k.replace('pantry_',''));
-            if(p) {
-              currentUser = { role:'pantry', id:p.id, name:p.name };
-              renderPantryDashboard();
-            } else {
-              if(loginScreen.classList.contains('hidden')) renderLogin();
-              else window.checkActiveSessionStatusAndTogglePINBox?.();
-            }
+            if(p) { currentUser = { role:'pantry', id:p.id, name:p.name }; renderPantryDashboard(); } 
+            else { if(loginScreen.classList.contains('hidden')) renderLogin(); else window.checkActiveSessionStatusAndTogglePINBox?.(); }
           } else {
-            if(loginScreen.classList.contains('hidden')) renderLogin();
-            else window.checkActiveSessionStatusAndTogglePINBox?.();
+            if(loginScreen.classList.contains('hidden')) renderLogin(); else window.checkActiveSessionStatusAndTogglePINBox?.();
           }
         } else {
           if (currentUser.role === 'admin') {
             if(adminScreen.classList.contains('hidden')) renderAdminConsole();
-            if(activeAdminTab === 'meetings') renderMeetingLists('adminMtg');
+            if (activeAdminTab && !document.getElementById('adminContentArea').classList.contains('hidden')) {
+              if(activeAdminTab === 'events') window.populateSharedEventSectionDataViews?.('admEvt');
+              else if(activeAdminTab === 'meetings') renderMeetingLists('adminMtg');
+              else if(activeAdminTab !== 'reports' && activeAdminTab !== 'bin' && activeAdminTab !== 'settings') renderAdminTab(activeAdminTab);
+            }
           } else if (currentUser.role === 'pantry') {
             if(pantryScreen.classList.contains('hidden')) renderPantryDashboard();
-            if(activePantryTab === 'meetings') { renderMeetingLists('pantryMtg'); renderMeetingNotifications(); }
+            if (!document.getElementById('pantryScreen').classList.contains('hidden')) {
+              if (activePantryTab && !document.getElementById('pantryContentArea').classList.contains('hidden')) {
+                if (activePantryTab === 'serve') populateServe();
+                if (activePantryTab === 'extra') renderExtraTeaSection(true);
+                if (activePantryTab === 'event') window.populateSharedEventSectionDataViews?.('pntEvt');
+                if (activePantryTab === 'meetings') { renderMeetingLists('pantryMtg'); renderMeetingNotifications(); }
+                if (activePantryTab === 'logs') window.refreshLogsHistoryOnly?.();
+              }
+              if (!activePantryTab) {
+                renderMeetingNotifications();
+                window.renderPantryLiveUpcomingEventsCard?.();
+              }
+            }
           }
         }
       } catch(e) { console.error(e); }
@@ -487,10 +797,16 @@
 
   window.openPantrySelectionPopup = function() {
     const modal = document.createElement('div'); modal.className = 'popup-overlay'; modal.id = 'pantrySelectModal';
-    modal.innerHTML = `<div class="popup-card" style="text-align:center;"><h3 style="color:#0A56D0; margin-top:0; margin-bottom:12px;">Select Profile</h3><div class="scroll-list-box" style="margin-bottom:16px;">${pantryTeam.map(p => `<div class="popup-list-item" onclick="window.selectPantryBoyProfile('${p.id}','${escape(p.name)}')"><strong>${safeStr(p.name)}</strong><span>➔</span></div>`).join('')}</div><button onclick="document.getElementById('pantrySelectModal').remove()" class="danger" style="width:100%;">Cancel</button></div>`;
+    modal.innerHTML = `<div class="popup-card" style="text-align:center;"><h3 style="color:#0A56D0; margin-top:0; margin-bottom:12px;">Select Profile</h3><div class="scroll-list-box" style="margin-bottom:16px;">${pantryTeam.map(p => `<div class="popup-list-item" onclick="window.selectPantryBoyProfile('${p.id}','${escape(p.name)}')"><strong>${safeStr(p.name)}</strong><span>➔</span></div>`).join('')}</div><button onclick="document.getElementById('pantrySelectModal').remove()" class="danger" style="width:100%; border-radius:100px;">Cancel</button></div>`;
     document.body.appendChild(modal);
   };
-  window.selectPantryBoyProfile = function(id,name) { document.getElementById('pantrySelect').value = id; document.getElementById('selectedPantryBoyText').innerText = unescape(name); document.getElementById('pantrySelectModal').remove(); window.checkActiveSessionStatusAndTogglePINBox(); };
+  
+  window.selectPantryBoyProfile = function(id,name) { 
+    document.getElementById('pantrySelect').value = id; 
+    document.getElementById('selectedPantryBoyText').innerText = unescape(name); 
+    document.getElementById('pantrySelectModal').remove(); 
+    window.checkActiveSessionStatusAndTogglePINBox(); 
+  };
   
   window.checkActiveSessionStatusAndTogglePINBox = function() {
     const sel = document.getElementById('pantrySelect')?.value;
@@ -504,7 +820,7 @@
   
   window.openAdminPopup = function() {
     if(cloudSessions["admin_portal"]?.device === deviceFingerprint) { currentUser = { role:'admin', id:'admin', name:'System Admin' }; renderAdminConsole(); return; }
-    adminPopupContainer.innerHTML = `<div class="popup-card" style="text-align:center;"><h3 style="color:#0A56D0; margin-top:0; margin-bottom:16px;">Admin Access</h3><input type="password" id="adminPassword" placeholder="Admin Password" style="text-align:center; margin-bottom:16px;"><div style="display:flex; gap:12px; justify-content:center; width:100%;"><button id="closeAdminPopup" class="danger" style="flex:1;">Cancel</button><button id="loginAdminBtn" class="success" style="flex:1;">Enter</button></div></div>`;
+    adminPopupContainer.innerHTML = `<div class="popup-card" style="text-align:center;"><h3 style="color:#0A56D0; margin-top:0; margin-bottom:16px;">Admin Access</h3><input type="password" id="adminPassword" placeholder="Admin Password" style="text-align:center; margin-bottom:16px;"><div style="display:flex; gap:12px; justify-content:center; width:100%;"><button id="closeAdminPopup" class="danger" style="flex:1;">Cancel</button><button id="loginAdminBtn" class="success" style="flex:1;">Enter Portal</button></div></div>`;
     adminPopupContainer.classList.remove('hidden');
     document.getElementById('closeAdminPopup').onclick = () => adminPopupContainer.classList.add('hidden');
     document.getElementById('loginAdminBtn').onclick = () => {
@@ -519,74 +835,58 @@
 
   function renderLogin() {
     loginScreen.classList.remove('hidden'); adminScreen.classList.add('hidden'); pantryScreen.classList.add('hidden');
-    
-    // Check for an active pantry session
     let activePantryMember = null;
     for (let k in cloudSessions) {
       if (k.startsWith('pantry_') && cloudSessions[k].device === deviceFingerprint) {
-        let pid = k.replace('pantry_', '');
-        activePantryMember = pantryTeam.find(p => p.id === pid);
-        if (activePantryMember) break;
+        let pid = k.replace('pantry_', ''); activePantryMember = pantryTeam.find(p => p.id === pid); if (activePantryMember) break;
       }
     }
 
+    let isAdminActive = (cloudSessions["admin_portal"]?.device === deviceFingerprint);
+    let adminBtnText = isAdminActive ? "Admin Portal (🟢 Active Session)" : "Admin Portal";
+
+    if (activePantryMember) {
+      loginScreen.innerHTML = `
+        <div class="logo-area"><img src="https://iili.io/Cf1HIm7.png" class="logo-img"></div>
+        <div class="card" style="background:#E8F5E9; border: 1px solid #C8E6C9; padding:20px; text-align:center;">
+          <span style="font-weight:700; color:#2E7D32; font-size:1.1rem; display:block; margin-bottom:12px;">🟢 Logged in as: ${activePantryMember.name}</span>
+          <button id="pantryQuickJumpBtn" class="btn success" style="width:100%; padding:14px; font-weight:700;">Go to Pantry Dashboard</button>
+        </div>
+        <div class="admin-btn-wrapper"><button id="adminSymbolBtn" class="admin-icon-btn">${adminBtnText}</button></div>
+      `;
+      document.getElementById('pantryQuickJumpBtn').onclick = () => { currentUser = { role:'pantry', id:activePantryMember.id, name:activePantryMember.name }; renderPantryDashboard(); };
+      document.getElementById('adminSymbolBtn').onclick = window.openAdminPopup;
+      return;
+    }
+
     loginScreen.innerHTML = `
-      <div class="logo-area">
-        <img src="https://iili.io/Cf1HIm7.png" class="logo-img">
-      </div>
-      
-      <div id="adminActiveSessionBlock" class="card hidden" style="background:#E0F2FE;">
-        <span style="font-weight:500; color:#0A56D0; margin-bottom:8px; display:block;">🟢 Admin logged in</span>
-        <button id="adminQuickJumpBtn" class="btn success" style="width:100%;">Go to Admin Panel</button>
-      </div>
-
-      <div id="pantryActiveSessionBlock" class="card hidden" style="background:#E8F5E9;">
-        <span id="pantryActiveSessionText" style="font-weight:500; color:#146C43; margin-bottom:8px; display:block;">🟢 Logged in as: </span>
-        <button id="pantryQuickJumpBtn" class="btn success" style="width:100%;">Go to Pantry Dashboard</button>
-      </div>
-
+      <div class="logo-area"><img src="https://iili.io/Cf1HIm7.png" class="logo-img"></div>
       <div class="card">
-        <h3 style="text-align:center; margin-bottom:18px;">Pantry Staff Login</h3>
-        <div style="text-align:center; margin-bottom:4px;"><label style="font-weight:500; color:#44474E;">Select Name</label></div>
+        <h3 style="text-align:center; margin-bottom:12px; color:#0A56D0;">Pantry Staff Login</h3>
+        <div style="text-align:center;"><label style="font-size:0.85rem; color:#44474E;">Select Name</label></div>
         <div id="pantrySelectorTrigger" class="login-uniform-box">
-          <span id="selectedPantryBoyText">-- Choose Account --</span>
-          <span style="font-size:0.8rem; color:#74777F;">▼</span>
+          <span id="selectedPantryBoyText">-- Choose Account --</span><span style="font-size:0.8rem; color:#74777F;">▼</span>
         </div>
         <input type="hidden" id="pantrySelect">
-        <div id="alreadyLoggedSessionNoticeMessageBlock" style="display:none; background:#E8F5E9; padding:12px; border-radius:8px; text-align:center; margin-bottom:16px; color:#146C43; font-weight:500;">🟢 You are already logged in</div>
+        <div id="alreadyLoggedSessionNoticeMessageBlock" style="display:none; background:#E8F5E9; color:#2E7D32; font-weight:700; border:1px solid #C8E6C9; padding:12px; border-radius:8px; text-align:center; margin:12px 0; font-size:0.9rem;">🟢 Connected via Cloud Remote Storage.</div>
         <div id="regularPinInputWrapperBlock">
           <div class="pin-container">
-            <label style="font-weight:500; color:#44474E; margin-bottom:4px;">Security PIN</label>
-            <input type="password" id="pantryPin" class="small-pin-input login-uniform-box" maxlength="4" style="margin-top:0;">
-            <div style="display:flex; align-items:center; gap:6px; margin-bottom:12px;"><input type="checkbox" id="revealPinCheck" style="width:auto; margin:0;"><label for="revealPinCheck" style="font-size:0.9rem; color:#44474E;">Show PIN</label></div>
+            <label style="font-weight:500; color:#44474E; margin-bottom:4px; font-size:0.85rem;">Security PIN</label>
+            <input type="password" id="pantryPin" class="small-pin-input login-uniform-box" placeholder="••••" maxlength="4" inputmode="numeric" style="margin-top:0;">
+            <div><input type="checkbox" id="revealPinCheck" style="width:16px; height:16px; margin:0 6px 0 2px; vertical-align:middle; display:inline-block;"><label for="revealPinCheck" style="font-size:0.8rem; color:#74777F; vertical-align:middle; cursor:pointer;">Show PIN</label></div>
           </div>
         </div>
-        <button id="pantryLoginBtn" class="btn success" style="width:100%; margin-top:8px;">Secure Login</button>
+        <button id="pantryLoginBtn" class="btn success" style="width:100%; margin-top:16px;">Secure Login</button>
       </div>
-      <div class="admin-btn-wrapper"><button id="adminSymbolBtn" class="admin-icon-btn">Admin Portal</button></div>
+      <div class="admin-btn-wrapper"><button id="adminSymbolBtn" class="admin-icon-btn">${adminBtnText}</button></div>
     `;
-
-    if(cloudSessions["admin_portal"]?.device === deviceFingerprint) {
-      document.getElementById('adminActiveSessionBlock').classList.remove('hidden');
-      document.getElementById('adminQuickJumpBtn').onclick = () => { currentUser = { role:'admin', id:'admin', name:'System Admin' }; renderAdminConsole(); };
-    }
-
-    if(activePantryMember) {
-      document.getElementById('pantryActiveSessionBlock').classList.remove('hidden');
-      document.getElementById('pantryActiveSessionText').innerText = '🟢 Logged in as: ' + activePantryMember.name;
-      document.getElementById('pantryQuickJumpBtn').onclick = () => {
-        currentUser = { role:'pantry', id:activePantryMember.id, name:activePantryMember.name };
-        renderPantryDashboard();
-      };
-    }
 
     document.getElementById('pantrySelectorTrigger').onclick = window.openPantrySelectionPopup;
     document.getElementById('revealPinCheck').onchange = (e) => { document.getElementById('pantryPin').type = e.target.checked ? 'text' : 'password'; };
     document.getElementById('adminSymbolBtn').onclick = window.openAdminPopup;
     window.checkActiveSessionStatusAndTogglePINBox();
     document.getElementById('pantryLoginBtn').onclick = () => {
-      const sel = document.getElementById('pantrySelect').value;
-      const member = pantryTeam.find(p => p.id === sel);
+      const sel = document.getElementById('pantrySelect').value; const member = pantryTeam.find(p => p.id === sel);
       if(!member) return appAlert('Error', 'Select valid staff');
       if(window.checkActiveSessionStatusAndTogglePINBox()) { currentUser = { role:'pantry', id:member.id, name:member.name }; renderPantryDashboard(); return; }
       if(document.getElementById('pantryPin').value !== member.pin) return appAlert('Error', 'Invalid PIN');
@@ -598,11 +898,11 @@
 
   function renderAdminConsole() {
     loginScreen.classList.add('hidden'); pantryScreen.classList.add('hidden'); adminScreen.classList.remove('hidden');
-    adminScreen.innerHTML = `<div class="top-header"><h2>🛡️ Admin Portal</h2><div class="header-buttons"><button id="homeAdminBtn">🏠 Home</button><button id="logoutAdmin" class="danger">Logout</button></div></div><div id="adminMenuArea" class="dashboard-menu"><button class="dash-btn" data-tab="employees"><span>👥 Employees</span></button><button class="dash-btn" data-tab="pantry"><span>👨‍🍳 Pantry Team</span></button><button class="dash-btn" data-tab="canteens"><span>🏢 Canteens</span></button><button class="dash-btn" data-tab="meetings"><span>📅 Meetings</span></button><button class="dash-btn" data-tab="reports"><span>📊 Reports</span></button><button class="dash-btn" data-tab="bin" style="color:#DC3545;"><span>🗑️ Recycle Bin</span></button><button class="dash-btn" data-tab="settings"><span>⚙️ Settings</span></button></div><div id="adminContentArea" class="hidden"><div class="nav-controls"><button id="adminBackBtn">⬅ Back</button><button id="adminHomeBtn">📊 Dashboard</button></div><div id="adminContentTitle" style="font-size:1.2rem; font-weight:700; margin-bottom:12px; color:#0A56D0; text-align:left;"></div><div id="adminContent"></div></div>`;
+    adminScreen.innerHTML = `<div class="top-header"><h2 style="color:#0A56D0; font-size:1.3rem;">🛡️ Admin Portal</h2><div class="header-buttons"><button id="homeAdminBtn" style="background:#E2E8F0; color:#1E293B; border-radius:8px;">🏠 Home</button><button id="logoutAdmin" class="danger" style="border-radius:8px;">Logout</button></div></div><div id="adminMenuArea" class="dashboard-menu"><button class="dash-btn" data-tab="employees"><span>👥 Employees Database</span></button><button class="dash-btn" data-tab="pantry"><span>👨‍🍳 Pantry Team Profiles</span></button><button class="dash-btn" data-tab="canteens"><span>🏢 Canteen Vendors</span></button><button class="dash-btn" data-tab="meetings"><span>📅 Meetings (Legacy)</span></button><button class="dash-btn" data-tab="events"><span>🎪 Meetings & Guest Menu</span></button><button class="dash-btn" data-tab="reports"><span>📊 Reports Engine</span></button><button class="dash-btn" data-tab="bin" style="color:#DC3545; border-color:#FECACA; background:#FEF2F2;"><span>🗑️ Recycle Bin</span></button><button class="dash-btn" data-tab="settings" style="color:#44474E; border-color:#E2E8F0; background:#F8FAFC;"><span>⚙️ Settings</span></button></div><div id="adminContentArea" class="hidden" style="display:flex; flex-direction:column; flex:1; overflow:hidden;"><div class="nav-controls"><button id="adminBackBtn">⬅ Back</button><button id="adminHomeBtn">📊 Dashboard</button></div><div id="adminContentTitle" style="font-weight:700; color:#0A56D0; margin-bottom:12px; font-size:1.15rem; flex-shrink:0;"></div><div id="adminContent" style="flex:1; overflow-y:auto; padding-bottom:16px;"></div></div>`;
     
-    document.getElementById('homeAdminBtn').onclick = () => { currentUser = null; activeAdminTab = null; adminScreen.classList.add('hidden'); renderLogin(); };
+    document.getElementById('homeAdminBtn').onclick = () => { adminScreen.classList.add('hidden'); activeAdminTab = null; renderLogin(); };
+    document.getElementById('logoutAdmin').onclick = () => { appConfirm('Logout Account', 'Logout from Admin Portal?', () => { currentUser = null; activeAdminTab = null; db.ref('sessionDevices/admin_portal').remove(); adminScreen.classList.add('hidden'); renderLogin(); }); };
     
-    document.getElementById('logoutAdmin').onclick = () => { appConfirm('Logout', 'Logout?', () => { currentUser = null; activeAdminTab = null; db.ref('sessionDevices/admin_portal').remove(); adminScreen.classList.add('hidden'); renderLogin(); }); };
     const menuArea = document.getElementById('adminMenuArea'), contentArea = document.getElementById('adminContentArea'), contentTitle = document.getElementById('adminContentTitle');
     document.querySelectorAll('.dash-btn').forEach(btn => btn.addEventListener('click', (e) => { const tab = e.currentTarget.dataset.tab; contentTitle.innerText = btn.querySelector('span').innerText; menuArea.classList.add('hidden'); contentArea.classList.remove('hidden'); renderAdminTab(tab); }));
     const goBack = () => { activeAdminTab = null; contentArea.classList.add('hidden'); menuArea.classList.remove('hidden'); document.getElementById('adminContent').innerHTML = ''; };
@@ -612,36 +912,39 @@
   function renderAdminTab(tab) {
     activeAdminTab = tab; const cont = document.getElementById('adminContent'); if(!cont) return;
     if(tab === 'employees') {
-      if(!document.getElementById('employeeListContainer')) cont.innerHTML = `<div class="merged-filter-row"><input id="employeeSearch" placeholder="Search" style="text-align:left;"><select id="categoryFilter"><option value="">All Categories</option><option>Faculty</option><option>Staff</option><option>Law</option><option>Outsourced</option></select></div><div style="display:flex; gap:6px; margin-bottom:12px;"><button id="addEmployeeBtn" class="btn" style="flex:1;">+ Add</button><button id="importExcelBtn" class="success" style="flex:1;">📥 Import</button><button id="bulkDeleteBtn" class="danger" style="flex:1;">🗑 Delete</button></div><div style="display:flex; align-items:center; gap:6px; margin-bottom:8px; justify-content:flex-start;"><input type="checkbox" id="selectAllEmployees" style="width:auto; margin:0;"><label for="selectAllEmployees">Select All</label></div><div id="employeeListContainer" class="scroll-list-box"></div>`;
-      renderEmployeeList();
+      if(!document.getElementById('employeeListContainer')) cont.innerHTML = `<div class="merged-filter-row"><input id="employeeSearch" placeholder="🔍 Search employees..."><select id="categoryFilter"><option value="">All Categories</option><option>Faculty</option><option>Staff</option><option>Law</option><option>Outsourced</option></select></div><div style="display:flex; gap:8px; margin-bottom:16px; flex-shrink:0;"><button id="addEmployeeBtn" style="flex:1; font-size:0.85rem;">+ Add</button><button id="importExcelBtn" class="success" style="flex:1; font-size:0.85rem;">📥 Import</button><button id="bulkDeleteBtn" class="danger" style="flex:1; font-size:0.85rem;">🗑 Delete</button></div><div style="display:flex; align-items:center; margin-bottom:4px; padding:0 4px; flex-shrink:0;"><input type="checkbox" id="selectAllEmployees" style="width:18px; height:18px; margin:0 8px 0 0;"><label for="selectAllEmployees" style="font-weight:500; color:#44474E;">Select All</label></div><div id="employeeListContainer" class="scroll-list-box"></div>`;
+      document.getElementById('employeeSearch').addEventListener('input', () => renderEmployeeList()); 
+      document.getElementById('categoryFilter').addEventListener('change', () => renderEmployeeList());
       document.getElementById('addEmployeeBtn').onclick = () => openEmployeeForm();
       document.getElementById('importExcelBtn').onclick = importExcel;
       document.getElementById('bulkDeleteBtn').onclick = bulkDeleteEmployees;
       document.getElementById('selectAllEmployees').onchange = (e) => document.querySelectorAll('.employeeCheckbox').forEach(cb => cb.checked = e.target.checked);
+      renderEmployeeList();
     } else if(tab === 'pantry') {
-      if(!document.getElementById('pantryListContainer')) cont.innerHTML = `<div style="display:flex; gap:8px; margin-bottom:12px;"><button id="addPantryBtn" class="btn" style="flex:1;">+ Add New</button><button id="bulkDeletePantryBtn" class="danger" style="flex:1;">🗑 Delete</button></div><div style="display:flex; align-items:center; gap:6px; margin-bottom:8px; justify-content:flex-start;"><input type="checkbox" id="selectAllPantry" style="width:auto; margin:0;"><label for="selectAllPantry">Select All</label></div><div id="pantryListContainer" class="scroll-list-box"></div>`;
-      renderPantryList();
+      if(!document.getElementById('pantryListContainer')) cont.innerHTML = `<div style="display:flex; gap:8px; margin-bottom:16px; flex-shrink:0;"><button id="addPantryBtn" style="flex:1; font-size:0.85rem;">+ Add New</button><button id="bulkDeletePantryBtn" class="danger" style="flex:1; font-size:0.85rem;">🗑 Delete</button></div><div style="display:flex; align-items:center; margin-bottom:4px; padding:0 4px; flex-shrink:0;"><input type="checkbox" id="selectAllPantry" style="width:18px; height:18px; margin:0 8px 0 0;"><label for="selectAllPantry" style="font-weight:500; color:#44474E;">Select All</label></div><div id="pantryListContainer" class="scroll-list-box"></div>`;
       document.getElementById('addPantryBtn').onclick = () => openPantryForm();
       document.getElementById('bulkDeletePantryBtn').onclick = bulkDeletePantry;
       document.getElementById('selectAllPantry').onchange = (e) => document.querySelectorAll('.pantryCheckbox').forEach(cb => cb.checked = e.target.checked);
+      renderPantryList();
     } else if(tab === 'canteens') {
-      cont.innerHTML = `<div class="card" style="text-align:left;"><h4>Add Canteen</h4><input id="cantNameInput" placeholder="Canteen Name" style="text-align:left;"><button id="saveCanteenBtn" class="success" style="width:100%;">Add Vendor</button></div><h4 style="text-align:left;">Available Vendors</h4><div id="canteenListContainer" class="scroll-list-box"></div>`;
+      cont.innerHTML = `<div class="card"><h4 style="margin-bottom:12px; color:#0A56D0;">Add Authorized Canteen</h4><input id="cantNameInput" placeholder="Enter Canteen Name" style="text-align:left;"><button id="saveCanteenBtn" class="success" style="width:100%;">Add Canteen Vendor</button></div><h4 style="color:#44474E; margin:8px 4px;">Available Vendors</h4><div id="canteenListContainer" class="scroll-list-box"></div>`;
       renderAdminCanteens();
-      document.getElementById('saveCanteenBtn').onclick = () => { const name = document.getElementById('cantNameInput').value.trim(); if(name) db.ref('canteens/cant_'+Date.now()).set({ id:'cant_'+Date.now(), name }); document.getElementById('cantNameInput').value = ''; };
+      document.getElementById('saveCanteenBtn').onclick = () => { const name = document.getElementById('cantNameInput').value.trim(); if(name) { db.ref('canteens/cant_'+Date.now()).set({ id:'cant_'+Date.now(), name }); document.getElementById('cantNameInput').value = ''; appAlert('Success', 'Configured safely!'); }};
     } else if(tab === 'meetings') {
-      cont.innerHTML = `<div id="adminMeetingRoot"></div>`;
-      renderMeetingForm('adminMeetingRoot', 'adminMtg');
+      cont.innerHTML = `<div id="adminMeetingRoot"></div>`; renderMeetingForm('adminMeetingRoot', 'adminMtg');
+    } else if(tab === 'events') {
+      window.renderCentralizedEventSectionUI('adminContent', 'admEvt');
     } else if(tab === 'reports') {
-      cont.innerHTML = `<div class="card" style="text-align:left;"><h4>Reports</h4><label>Select Month</label><input type="month" id="reportMonth" value="${new Date().toISOString().slice(0,7)}"><div style="margin-top:12px;"><h5>Regular Tea Report</h5><select id="reportCategory"><option value="All">All Categories</option><option>Faculty</option><option>Staff</option><option>Law</option><option>Outsourced</option></select><button id="exportRegularBtn" class="success report-btn">Download Regular Report</button></div><div><h5>Extra Tea Report</h5><button id="exportExtraBtn" class="btn report-btn" style="background:#D97706;">Download Extra Report</button></div><div><h5>Meeting Report</h5><button id="exportMeetingBtn" class="btn report-btn" style="background:#0A56D0;">Download Meeting Report</button></div></div>`;
+      cont.innerHTML = `<div class="card"><h4 style="margin-bottom:16px; color:#0A56D0;">📅 Reports Portal</h4><label style="font-size:0.85rem; color:#44474E;">Select Month</label><input type="month" id="reportMonth" value="${new Date().toISOString().slice(0,7)}"><div style="border-top:1px solid #E2E8F0; padding-top:16px;"><h5 style="color:#44474E; margin-bottom:8px;">1. Regular Daily Tea Report</h5><select id="reportCategory" style="margin-bottom:8px;"><option value="All">All Categories</option><option>Faculty</option><option>Staff</option><option>Law</option><option>Outsourced</option></select><button id="exportRegularBtn" class="success report-btn">📊 Download</button></div><div style="border-top:1px solid #E2E8F0; padding-top:16px; margin-top:8px;"><h5 style="color:#D97706; margin-bottom:8px;">2. Extra Tea Report</h5><button id="exportExtraBtn" class="btn report-btn" style="background:#D97706;">📊 Download</button></div><div style="border-top:1px solid #E2E8F0; padding-top:16px; margin-top:8px;"><h5 style="color:#0A56D0; margin-bottom:8px;">3. Meeting Refreshment Report</h5><button id="exportMeetingBtn" class="btn report-btn" style="background:#0A56D0;">📊 Download</button></div></div>`;
       document.getElementById('exportRegularBtn').onclick = () => exportIndividualReport('regular');
       document.getElementById('exportExtraBtn').onclick = () => exportIndividualReport('extra');
       document.getElementById('exportMeetingBtn').onclick = () => exportIndividualReport('meeting');
     } else if(tab === 'bin') {
-      cont.innerHTML = `<div style="display:flex; justify-content:between; align-items:center; margin-bottom:12px;"><h4 style="margin:0; text-align:left; flex:1;">🗑 Recycle Bin</h4><button id="emptyBinBtn" class="danger">Empty Bin</button></div><div class="scroll-list-box"><div class="bin-item-title">Employees</div><div id="binEmployeesBox"></div><div class="bin-item-title">Pantry</div><div id="binPantryBox"></div><div class="bin-item-title">Extra Logs</div><div id="binExtraBox"></div><div class="bin-item-title">Meetings</div><div id="binMeetingsBox"></div><div class="bin-item-title">Regular Logs</div><div id="binLogsBox"></div></div>`;
+      cont.innerHTML = `<div style="display:flex; justify-content:between; align-items:center; margin-bottom:12px;"><h4 style="margin:0; text-align:left; flex:1; color:#DC3545;">🗑 Recycle Bin Storage</h4><button id="emptyBinBtn" class="danger">Empty Bin</button></div><div class="scroll-list-box" style="max-height:480px; background:#FEF2F2;"><div class="bin-item-title">Staff Members</div><div id="binEmployeesBox"></div><div class="bin-item-title">Pantry Personnel</div><div id="binPantryBox"></div><div class="bin-item-title">Extra Drink Logs</div><div id="binExtraBox"></div><div class="bin-item-title">Event Refreshments</div><div id="binEventsBox"></div><div class="bin-item-title">Meetings (Legacy)</div><div id="binMeetingsBox"></div><div class="bin-item-title">Regular Drink Logs</div><div id="binLogsBox"></div></div>`;
       renderRecycleBinLists();
-      document.getElementById('emptyBinBtn').onclick = () => { appConfirm('Empty Bin', 'Permanently delete all?', () => { db.ref('recycleBin').remove(); appAlert('Purged', 'Bin emptied.'); }); };
+      document.getElementById('emptyBinBtn').onclick = () => { appConfirm('Empty Trash Bin', 'Permanently erase everything?', () => { db.ref('recycleBin').remove(); appAlert('Purged', 'Bin emptied completely.'); }); };
     } else if(tab === 'settings') {
-      cont.innerHTML = `<div class="card" style="text-align:left;"><h4>Change Admin Password</h4><input type="password" id="newAdminPass" placeholder="New Password" value="${adminSecurity.password}"><button id="saveAdminCreds" class="success" style="width:100%;">Update Password</button></div>`;
+      cont.innerHTML = `<div class="card"><h4 style="margin-bottom:12px; color:#44474E;">⚙️ Change Admin Password</h4><input type="password" id="newAdminPass" placeholder="New Password" value="${adminSecurity.password}"><button id="saveAdminCreds" class="success" style="width:100%;">Update Password</button></div>`;
       document.getElementById('saveAdminCreds').onclick = () => { const np = document.getElementById('newAdminPass').value.trim(); if(np) db.ref('adminSecurityConfig').set({ password: np }); appAlert('Success', 'Password updated.'); };
     }
   }
@@ -649,15 +952,21 @@
   function renderEmployeeList() {
     const search = document.getElementById('employeeSearch')?.value.toLowerCase() || '';
     const cat = document.getElementById('categoryFilter')?.value || '';
-    const filtered = employeeList.filter(e => e.name.toLowerCase().includes(search) && (!cat || e.category === cat));
-    const container = document.getElementById('employeeListContainer');
-    if(!container) return;
-    container.innerHTML = filtered.length ? filtered.map(emp => `<div class="employee-item"><span><strong>${emp.name}</strong><br><small>${emp.category}</small></span><span><button class="editEmployeeBtn" data-id="${emp.id}" style="background:transparent; border:none; cursor:pointer; font-size:1.1rem; padding:4px;">✏️</button><button onclick="window.pantryDeleteHandler('employee','${emp.id}')" style="background:transparent; border:none; color:#DC3545; cursor:pointer; font-size:1.1rem; padding:4px;">🗑</button><input type="checkbox" class="employeeCheckbox" data-id="${emp.id}" style="width:auto; margin-left:6px;"></span></div>`).join('') : '<p style="padding:20px; text-align:center;">No employees found</p>';
+    const filtered = employeeList.filter(e => (e.name||'').toLowerCase().includes(search) && (!cat || e.category === cat));
+    const container = document.getElementById('employeeListContainer'); if(!container) return;
+    if (filtered.length === 0) { container.innerHTML = `<p style="text-align:center; padding:20px; color:#74777F; font-size:0.9rem;">No employees tracked.</p>`; return; }
+    container.innerHTML = filtered.map(emp => {
+      let assignedName = 'Unassigned'; if(emp.assignedPantryId) { let p = pantryTeam.find(pt => pt.id === emp.assignedPantryId); if(p) assignedName = p.name; }
+      return `<div class="employee-item" style="margin:6px 4px;"><span><strong>${safeStr(emp.name)}</strong><br><small style="color:#74777F;">${safeStr(emp.category)} | 🧑‍🍳 ${safeStr(assignedName)}</small></span><span style="display:flex; align-items:center;"><button class="editEmployeeBtn" data-id="${emp.id}" style="background:transparent; border:none; cursor:pointer; font-size:1.1rem; padding:8px; color:#0A56D0;">✏️</button><button onclick="window.pantryDeleteHandler('employee','${emp.id}')" style="background:transparent; border:none; color:#DC3545; cursor:pointer; font-size:1.1rem; padding:8px;">🗑</button><input type="checkbox" class="employeeCheckbox" data-id="${emp.id}" style="width:18px; height:18px; margin:0 0 0 8px;"></span></div>`;
+    }).join('');
     document.querySelectorAll('.editEmployeeBtn').forEach(b => b.onclick = (e) => { const emp = employeeList.find(em => em.id === e.currentTarget.dataset.id); if(emp) openEmployeeForm(emp); });
   }
+  
   function openEmployeeForm(existing=null) {
-    const form = document.createElement('div'); form.className='card'; form.id='dynamicFormCard'; form.style.textalign = "left";
-    form.innerHTML = `<h3 style="text-align:left;">${existing?'Edit':'Add'} Employee</h3><input id="empName" placeholder="Name" value="${safeStr(existing?.name)}" style="text-align:left;"><select id="empCat"><option value="">Category</option><option ${existing?.category==='Faculty'?'selected':''}>Faculty</option><option ${existing?.category==='Staff'?'selected':''}>Staff</option><option ${existing?.category==='Law'?'selected':''}>Law</option><option ${existing?.category==='Outsourced'?'selected':''}>Outsourced</option></select><select id="empPantryAssign"><option value="">Assign Pantry</option>${pantryTeam.map(p=>`<option value="${p.id}" ${existing?.assignedPantryId===p.id?'selected':''}>${p.name}</option>`).join('')}</select><div style="display:flex; gap:8px;"><button id="cancelEmployeeBtn" class="danger" style="flex:1;">Cancel</button><button id="saveEmployeeBtn" class="success" style="flex:1;">Save</button></div>`;
+    document.getElementById('dynamicFormCard')?.remove();
+    const form = document.createElement('div'); form.className='card'; form.id='dynamicFormCard'; form.style.flexShrink = "0";
+    let pantryOptions = `<option value="">-- Unassigned --</option>`; pantryTeam.forEach(p => { let selected = (existing && existing.assignedPantryId === p.id) ? 'selected' : ''; pantryOptions += `<option value="${p.id}" ${selected}>${safeStr(p.name)}</option>`; });
+    form.innerHTML = `<h3 style="color:#0A56D0; margin-bottom:12px;">${existing?'✏️ Edit':'➕ Add'} Employee</h3><input id="empName" placeholder="Name" value="${safeStr(existing?.name)}" style="text-align:left;"><select id="empCat"><option value="">Category</option><option value="Faculty" ${existing?.category=='Faculty'?'selected':''}>Faculty</option><option value="Staff" ${existing?.category=='Staff'?'selected':''}>Staff</option><option value="Law" ${existing?.category=='Law'?'selected':''}>Law</option><option value="Outsourced" ${existing?.category=='Outsourced'?'selected':''}>Outsourced</option></select><label style="font-size:0.85rem; color:#44474E; margin-left:4px; text-align:left; display:block;">Assign to Pantry Boy:</label><select id="empPantryAssign" style="margin-top:6px;">${pantryOptions}</select><div style="display:flex; gap:8px; margin-top:16px;"><button id="cancelEmployeeBtn" class="danger" style="flex:1;">Cancel</button><button id="saveEmployeeBtn" class="success" style="flex:2;">Save</button></div>`;
     document.getElementById('adminContent').prepend(form);
     document.getElementById('cancelEmployeeBtn').onclick = () => form.remove();
     document.getElementById('saveEmployeeBtn').onclick = () => {
@@ -668,284 +977,309 @@
       form.remove();
     };
   }
+  
   function bulkDeleteEmployees() {
-    const checks = document.querySelectorAll('.employeeCheckbox:checked');
-    if(!checks.length) return appAlert('Error', 'Select employees');
+    const checks = document.querySelectorAll('.employeeCheckbox:checked'); if(!checks.length) return appAlert('Error', 'Select employees');
     appConfirm('Bulk Delete', 'Delete selected?', () => {
       checks.forEach(cb => { const id = cb.dataset.id; const e = employeeList.find(em=>em.id===id); if(e) { db.ref('recycleBin/employees/'+id).set(e); db.ref('employees/'+id).remove(); } });
       if(document.getElementById('selectAllEmployees')) document.getElementById('selectAllEmployees').checked = false;
     });
   }
+  
   async function importExcel() {
     const input = document.createElement('input'); input.type='file'; input.accept='.xlsx,.xls';
     input.onchange = async (e) => {
-      const file = e.target.files[0];
-      const data = await file.arrayBuffer();
-      const wb = XLSX.read(data);
-      const sheet = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet);
+      const file = e.target.files[0]; const data = await file.arrayBuffer(); const wb = XLSX.read(data); const sheet = wb.Sheets[wb.SheetNames[0]]; const rows = XLSX.utils.sheet_to_json(sheet);
       let count = 0;
       rows.forEach((row, idx) => {
-        const name = row['Name'] || row['Employee Name'] || '';
-        const cat = row['Category'] || 'Staff';
+        const name = row['Name'] || row['Employee Name'] || row['EmployeeName'] || '';
+        const cat = row['Category'] || 'Staff'; const pantryName = row['Pantry Boy'] || row['PantryBoy'] || row['Pantry Name'] || '';
         if(name) {
-          const id = 'emp_'+Date.now()+'_'+idx;
-          db.ref('employees/'+id).set({ id, name: String(name), category: String(cat), assignedPantryId: '' });
+          const id = 'emp_'+Date.now()+'_'+idx+'_'+Math.floor(Math.random()*10000);
+          let assignedId = ""; if(pantryName) { const found = pantryTeam.find(p => p.name.toLowerCase() === pantryName.toString().toLowerCase().trim()); if(found) assignedId = found.id; }
+          db.ref('employees/'+id).set({ id, name: String(name), category: String(cat), assignedPantryId: assignedId });
           count++;
         }
       });
-      appAlert('Import', `${count} employees imported`);
+      appAlert('Import Successful', `✅ ${count} Employees Imported Successfully!`);
     };
     input.click();
   }
+  
   function renderPantryList() {
-    const c = document.getElementById('pantryListContainer');
-    if(!c) return;
-    c.innerHTML = pantryTeam.length ? pantryTeam.map(p => `<div class="employee-item"><span><strong>${p.name}</strong><br><small>📱 ${p.mobile} | PIN: ${p.pin}</small></span><span><button class="editPantryBtn" data-id="${p.id}" style="background:transparent; border:none; cursor:pointer; font-size:1.1rem; padding:4px;">✏️</button><button onclick="window.pantryDeleteHandler('pantry','${p.id}')" style="background:transparent; border:none; color:#DC3545; cursor:pointer; font-size:1.1rem; padding:4px;">🗑</button><input type="checkbox" class="pantryCheckbox" data-id="${p.id}" style="width:auto; margin-left:6px;"></span></div>`).join('') : '<p style="padding:20px; text-align:center;">No pantry team found</p>';
+    const c = document.getElementById('pantryListContainer'); if(!c) return;
+    if (pantryTeam.length === 0) { c.innerHTML = `<p style="text-align:center; padding:20px; color:#74777F; font-size:0.9rem;">No team profiles logged.</p>`; return; }
+    c.innerHTML = pantryTeam.map(p => `<div class="employee-item" style="margin:6px 4px;"><span><strong>${p.name}</strong><br><small style="color:#74777F;">📱 ${p.mobile} | 🔐 PIN: <strong style="color:#146C43;">${p.pin}</strong></small></span><span style="display:flex; align-items:center;"><button class="editPantryBtn" data-id="${p.id}" style="background:transparent; border:none; cursor:pointer; font-size:1.1rem; padding:8px; color:#0A56D0;">✏️</button><button onclick="window.pantryDeleteHandler('pantry','${p.id}')" style="background:transparent; border:none; color:#DC3545; cursor:pointer; font-size:1.1rem; padding:8px;">🗑</button><input type="checkbox" class="pantryCheckbox" data-id="${p.id}" style="width:18px; height:18px; margin:0 0 0 8px;"></span></div>`).join('');
     document.querySelectorAll('.editPantryBtn').forEach(b => b.onclick = (e) => { const p = pantryTeam.find(pt => pt.id === e.currentTarget.dataset.id); if(p) openPantryForm(p); });
   }
+  
   function bulkDeletePantry() {
-    const checks = document.querySelectorAll('.pantryCheckbox:checked');
-    if(!checks.length) return appAlert('Error', 'Select staff');
+    const checks = document.querySelectorAll('.pantryCheckbox:checked'); if(!checks.length) return appAlert('Error', 'Select staff');
     appConfirm('Bulk Delete', 'Delete selected?', () => {
       checks.forEach(cb => { const id = cb.dataset.id; const p = pantryTeam.find(pt=>pt.id===id); if(p) { db.ref('recycleBin/pantryTeam/'+id).set(p); db.ref('pantryTeam/'+id).remove(); } });
       if(document.getElementById('selectAllPantry')) document.getElementById('selectAllPantry').checked = false;
     });
   }
+  
   function openPantryForm(existing=null) {
-    const form = document.createElement('div'); form.className='card'; form.id='dynamicPantryForm';
-    form.innerHTML = `<h3 style="text-align:left;">${existing?'Edit':'Add'} Pantry Member</h3><input id="pName" placeholder="Name" value="${safeStr(existing?.name)}" style="text-align:left;"><input id="pMobile" placeholder="Mobile" value="${safeStr(existing?.mobile)}" style="text-align:left;"><input id="pPin" placeholder="4-Digit PIN" maxlength="4" value="${safeStr(existing?.pin)}"><div style="display:flex; gap:8px;"><button id="cancelPantryBtn" class="danger" style="flex:1;">Cancel</button><button id="savePantryBtn" class="success" style="flex:1;">Save</button></div>`;
+    document.getElementById('dynamicPantryForm')?.remove();
+    const form = document.createElement('div'); form.className='card'; form.id='dynamicPantryForm'; form.style.flexShrink = "0";
+    form.innerHTML = `<h3 style="text-align:left; color:#0A56D0;">${existing?'✏️ Edit':'➕ Add'} Pantry Member</h3><input id="pName" placeholder="Name" value="${safeStr(existing?.name)}" style="text-align:left;"><input id="pMobile" placeholder="Mobile" value="${safeStr(existing?.mobile)}" style="text-align:left;"><input id="pPin" placeholder="4-Digit PIN" maxlength="4" value="${safeStr(existing?.pin)}"><div style="display:flex; gap:8px; margin-top:8px;"><button id="cancelPantryBtn" class="danger" style="flex:1;">Cancel</button><button id="savePantryBtn" class="success" style="flex:2;">Save</button></div>`;
     document.getElementById('adminContent').prepend(form);
     document.getElementById('cancelPantryBtn').onclick = () => form.remove();
     document.getElementById('savePantryBtn').onclick = () => {
       const n = document.getElementById('pName').value.trim(), m = document.getElementById('pMobile').value.trim(), p = document.getElementById('pPin').value.trim();
-      if(!n) return appAlert('Error', 'Name required');
-      const id = existing?.id || 'pantry_'+Date.now();
-      db.ref('pantryTeam/'+id).set({ id, name: n, mobile: m, pin: p });
-      form.remove();
+      if(!n) return; const id = existing?.id || 'pantry_'+Date.now();
+      db.ref('pantryTeam/'+id).set({ id, name: n, mobile: m, pin: p }); form.remove();
     };
   }
+  
   function renderAdminCanteens() {
-    const c = document.getElementById('canteenListContainer');
-    if(!c) return;
-    c.innerHTML = canteenList.length ? canteenList.map(cnt => `<div class="employee-item"><span>🏢 ${cnt.name}</span><button onclick="window.pantryDeleteHandler('canteen','${cnt.id}')" style="background:transparent; border:none; color:#DC3545; cursor:pointer; font-size:1.1rem;">🗑</button></div>`).join('') : '<p style="padding:12px; text-align:center;">No canteens added</p>';
+    const c = document.getElementById('canteenListContainer'); if(!c) return;
+    if(canteenList.length === 0) { c.innerHTML = `<p style="padding:12px; color:#74777F; font-size:0.9rem; text-align:center;">No canteens added.</p>`; return; }
+    c.innerHTML = canteenList.map(cnt => `<div class="employee-item" style="margin:6px 4px;"><span>🏢 <strong>${cnt.name}</strong></span><button onclick="window.pantryDeleteHandler('canteen','${cnt.id}')" style="background:transparent; border:none; color:#DC3545; cursor:pointer; font-size:1.1rem; padding:8px;">🗑</button></div>`).join('');
   }
+  
   function renderRecycleBinLists() {
-    const empBox = document.getElementById('binEmployeesBox'), pntBox = document.getElementById('binPantryBox'), extBox = document.getElementById('binExtraBox'), mtgBox = document.getElementById('binMeetingsBox'), logBox = document.getElementById('binLogsBox');
+    const empBox = document.getElementById('binEmployeesBox'), pntBox = document.getElementById('binPantryBox'), extBox = document.getElementById('binExtraBox'), evtBox = document.getElementById('binEventsBox'), mtgBox = document.getElementById('binMeetingsBox'), logBox = document.getElementById('binLogsBox');
     if(!empBox) return;
-    empBox.innerHTML = Object.values(binData.employees||{}).length ? Object.values(binData.employees).map(e=>`<div class="employee-item"><span>${e.name}</span><button onclick="window.pantryRestoreHandler('employees','${e.id}')" style="background:#146C43; padding:6px 12px; font-size:0.8rem;">Restore</button></div>`).join('') : '<p style="padding:4px; color:#74777F; font-size:0.85rem;">Empty</p>';
-    pntBox.innerHTML = Object.values(binData.pantryTeam||{}).length ? Object.values(binData.pantryTeam).map(p=>`<div class="employee-item"><span>${p.name}</span><button onclick="window.pantryRestoreHandler('pantryTeam','${p.id}')" style="background:#146C43; padding:6px 12px; font-size:0.8rem;">Restore</button></div>`).join('') : '<p style="padding:4px; color:#74777F; font-size:0.85rem;">Empty</p>';
-    extBox.innerHTML = Object.values(binData.extraLogs||{}).length ? Object.values(binData.extraLogs).map(ex=>`<div class="employee-item"><span>${ex.employeeName}: ${ex.qty} ${ex.drink}</span><button onclick="window.pantryRestoreHandler('extraLogs','${ex.id}')" style="background:#146C43; padding:6px 12px; font-size:0.8rem;">Restore</button></div>`).join('') : '<p style="padding:4px; color:#74777F; font-size:0.85rem;">Empty</p>';
-    mtgBox.innerHTML = Object.values(binData.meetings||{}).length ? Object.values(binData.meetings).map(m=>`<div class="employee-item"><span>${m.eventName} ${m.date}</span><button onclick="window.pantryRestoreHandler('meetings','${m.id}')" style="background:#146C43; padding:6px 12px; font-size:0.8rem;">Restore</button></div>`).join('') : '<p style="padding:4px; color:#74777F; font-size:0.85rem;">Empty</p>';
-    logBox.innerHTML = Object.values(binData.logs||{}).length ? Object.values(binData.logs).map(l=>`<div class="employee-item"><span>${l.employeeName}: ${l.drink}</span><button onclick="window.pantryRestoreHandler('logs','${l.id}')" style="background:#146C43; padding:6px 12px; font-size:0.8rem;">Restore</button></div>`).join('') : '<p style="padding:4px; color:#74777F; font-size:0.85rem;">Empty</p>';
+    const bEmps = Object.values(binData.employees||{}); empBox.innerHTML = bEmps.length ? bEmps.map(e=>`<div class="employee-item" style="margin:4px 0; background:#FFF5F5;"><span><strong>${e.name}</strong> [${e.category}]</span><button onclick="window.pantryRestoreHandler('employees','${e.id}')" style="background:#146C43; padding:4px 10px; border-radius:6px; font-size:0.75rem;">🔄 Restore</button></div>`).join('') : '<p style="padding:4px; color:#A8A29E; font-size:0.8rem;">Empty</p>';
+    const bPnt = Object.values(binData.pantryTeam||{}); pntBox.innerHTML = bPnt.length ? bPnt.map(p=>`<div class="employee-item" style="margin:4px 0; background:#FFF5F5;"><span><strong>${p.name}</strong></span><button onclick="window.pantryRestoreHandler('pantryTeam','${p.id}')" style="background:#146C43; padding:4px 10px; border-radius:6px; font-size:0.75rem;">🔄 Restore</button></div>`).join('') : '<p style="padding:4px; color:#A8A29E; font-size:0.8rem;">Empty</p>';
+    const bExt = Object.values(binData.extraLogs||{}).length ? Object.values(binData.extraLogs).map(ex=>`<div class="employee-item" style="margin:4px 0; background:#FFF5F5; font-size:0.8rem;"><span><strong>${ex.employeeName}</strong>: ${ex.qty} ${ex.drink}</span><button onclick="window.pantryRestoreHandler('extraLogs','${ex.id}')" style="background:#146C43; padding:4px 8px; border-radius:6px; font-size:0.7rem;">🔄</button></div>`).join('') : '<p style="padding:4px; color:#A8A29E; font-size:0.8rem;">Empty</p>';
+    const bEvts = Object.values(binData.eventLogs||{}).length ? Object.values(binData.eventLogs).map(ev=>`<div class="employee-item" style="margin:4px 0; background:#FFF5F5; font-size:0.8rem;"><span><strong>${ev.eventName}</strong>: ₹${ev.amount}</span><button onclick="window.pantryRestoreHandler('eventLogs','${ev.id}')" style="background:#146C43; padding:4px 8px; border-radius:6px; font-size:0.7rem;">🔄</button></div>`).join('') : '<p style="padding:4px; color:#A8A29E; font-size:0.8rem;">Empty</p>';
+    const bMtgs = Object.values(binData.meetings||{}).length ? Object.values(binData.meetings).map(m=>`<div class="employee-item" style="margin:4px 0; background:#FFF5F5; font-size:0.8rem;"><span><strong>${m.eventName}</strong> ${formatDateToDMY(m.date)}</span><button onclick="window.pantryRestoreHandler('meetings','${m.id}')" style="background:#146C43; padding:4px 8px; border-radius:6px; font-size:0.7rem;">🔄</button></div>`).join('') : '<p style="padding:4px; color:#A8A29E; font-size:0.8rem;">Empty</p>';
+    const bLogs = Object.values(binData.logs||{}).length ? Object.values(binData.logs).map(l=>`<div class="employee-item" style="margin:4px 0; background:#FFF5F5; font-size:0.8rem;"><span><strong>${l.employeeName}</strong>: ${l.drink}</span><button onclick="window.pantryRestoreHandler('logs','${l.id}')" style="background:#146C43; padding:4px 8px; border-radius:6px; font-size:0.7rem;">🔄</button></div>`).join('') : '<p style="padding:4px; color:#A8A29E; font-size:0.8rem;">Empty</p>';
   }
+  
   function exportIndividualReport(type) {
-    const month = document.getElementById('reportMonth')?.value;
-    if(!month) return appAlert('Error', 'Select month');
+    const month = document.getElementById('reportMonth')?.value; if(!month) return appAlert('Error', 'Select month');
     const wb = XLSX.utils.book_new();
     if(type === 'regular') {
       const cat = document.getElementById('reportCategory').value;
-      const data = [['Employee','Category','Morning','Afternoon','Total']];
+      const data = [['Employee Name','Category','Morning Regular','Afternoon Regular','Grand Total']];
       employeeList.filter(e => cat === 'All' || e.category === cat).forEach(emp => {
         const m = logsData.filter(l => l.employeeId === emp.id && l.session === 'Morning' && l.date.startsWith(month)).length;
         const a = logsData.filter(l => l.employeeId === emp.id && l.session === 'Afternoon' && l.date.startsWith(month)).length;
         data.push([emp.name, emp.category, m, a, m+a]);
       });
-      const ws = XLSX.utils.aoa_to_sheet(data);
-      XLSX.utils.book_append_sheet(wb, ws, 'Regular Tea');
-      XLSX.writeFile(wb, `Regular_Tea_${month}.xlsx`);
+      const ws = XLSX.utils.aoa_to_sheet(data); ws['!cols'] = [{wch: 26}, {wch: 15}, {wch: 24}, {wch: 24}, {wch: 26}];
+      XLSX.utils.book_append_sheet(wb, ws, 'Regular Daily Tea'); XLSX.writeFile(wb, `Daily_Regular_Tea_Report_${month}.xlsx`);
     } else if(type === 'extra') {
-      const data = [['ID','Employee','Item','Qty','Remarks','Date','Served By']];
-      extraLogsData.filter(ex => ex.date.startsWith(month)).forEach(ex => data.push([ex.id, ex.employeeName, ex.drink, ex.qty, ex.remarks, ex.date, ex.pantryName]));
-      const ws = XLSX.utils.aoa_to_sheet(data);
-      XLSX.utils.book_append_sheet(wb, ws, 'Extra Tea');
-      XLSX.writeFile(wb, `Extra_Tea_${month}.xlsx`);
+      const data = [['Log ID','Employee Name','Choice','Quantity','Remarks','Date','Served By']];
+      extraLogsData.filter(ex => ex.date && ex.date.startsWith(month)).forEach(ex => data.push([ex.id, ex.employeeName, ex.drink, ex.qty, ex.remarks || 'None', formatDateToDMY(ex.date), ex.pantryName]));
+      const ws = XLSX.utils.aoa_to_sheet(data); ws['!cols'] = [{wch: 16}, {wch: 24}, {wch: 18}, {wch: 18}, {wch: 32}, {wch: 14}, {wch: 20}];
+      XLSX.utils.book_append_sheet(wb, ws, 'Extra Tea Entries'); XLSX.writeFile(wb, `Extra_Tea_Allocation_Report_${month}.xlsx`);
     } else if(type === 'meeting') {
-      const data = [['Sr No','Date','Time','Day','Event','Venue','Request By','Ordered From','Refreshments','Created By']];
-      meetingHistory.filter(m => m.date && (m.date.includes(month.slice(5)) && m.date.includes(month.slice(0,4)))).forEach(m => {
-        const items = (m.refreshments||[]).map(r=>`${r.time} ${r.qty}x${r.snacks}(${r.beverage||''})`).join('; ');
-        data.push([m.srNo, m.date, m.time, m.day, m.eventName, m.venue, m.requestBy, m.orderedFrom, items, m.createdBy]);
+      const data = [['Log ID', 'Canteen Vendor', 'Ordered By', 'Event Title', 'Date', 'Time', 'Venue Location', 'Detailed Dynamic Items', 'Grand Total (₹)', 'Log Operator']];
+      eventLogsData.filter(ev => ev.date && ev.date.startsWith(month)).forEach(ev => {
+        let itemsStr = ''; if(ev.items && Array.isArray(ev.items)) { itemsStr = ev.items.map(i => `${i.name} (Qty:${i.qty}, Rate:₹${i.rate})`).join(' | '); }
+        data.push([ ev.id, ev.canteenSource || '-', ev.orderedBy || '-', ev.eventName, formatDateToDMY(ev.date), ev.time, ev.venue, itemsStr, ev.amount, ev.pantryName ]);
       });
-      const ws = XLSX.utils.aoa_to_sheet(data);
-      XLSX.utils.book_append_sheet(wb, ws, 'Meetings');
-      XLSX.writeFile(wb, `Meetings_${month}.xlsx`);
+      const ws = XLSX.utils.aoa_to_sheet(data); ws['!cols'] = [{wch: 14}, {wch: 18}, {wch: 18}, {wch: 22}, {wch: 12}, {wch: 10}, {wch: 18}, {wch: 45}, {wch: 16}, {wch: 18}];
+      XLSX.utils.book_append_sheet(wb, ws, 'Meeting Refreshments'); XLSX.writeFile(wb, `Meeting_And_Refreshment_Report_${month}.xlsx`);
     }
   }
 
   function renderPantryDashboard() {
-    loginScreen.classList.add('hidden'); adminScreen.classList.add('hidden'); pantryScreen.classList.remove('hidden');
+    loginScreen.classList.add('hidden'); adminScreen.classList.add('hidden'); pantryScreen.classList.remove('navy');
+    pantryScreen.classList.remove('hidden');
     pantryScreen.innerHTML = `
       <div class="top-header">
-        <h2>🧑‍🍳 ${safeStr(currentUser.name)}</h2>
-        <div class="header-buttons">
-          <button id="homePantryBtn">🏠 Home</button>
-          <button id="logoutPantry" class="danger">Logout</button>
-        </div>
+        <h2 style="color:#0A56D0; font-size:1.2rem;">🧑‍🍳 ${safeStr(currentUser.name)}</h2>
+        <div style="display:flex; gap:8px;"><button id="homePantryBtn" style="background:#E2E8F0; color:#1E293B; padding:6px 12px; font-size:0.8rem; border-radius:8px;">🏠 Home</button><button id="logoutPantry" class="danger" style="padding:6px 12px; font-size:0.8rem; border-radius:8px;">Logout</button></div>
       </div>
       <div id="pantryMeetingNotifications"></div>
+      <div id="livePantryBroadcastCard" class="card hidden" style="background:#FFFBEB; border: 1px solid #D97706; padding:14px; margin-bottom:12px;"><h4 style="color:#D97706; margin:0 0 8px 0; font-size:1rem; display:flex; align-items:center; gap:6px;">📢 Upcoming Meeting Notification</h4><div id="pantryDashboardUpcomingStream"></div></div>
       <div id="pantryMenuArea" class="dashboard-menu">
         <button class="dash-btn" data-tab="serve"><span>☕ Beverages Entry</span></button>
         <button class="dash-btn" data-tab="extra"><span>⚠️ Extra Tea Entry</span></button>
-        <button class="dash-btn" data-tab="meetings"><span>📅 Meetings / Events</span></button>
+        <button class="dash-btn" data-tab="event"><span>🎪 Events / Guest Menu</span></button>
+        <button class="dash-btn" data-tab="meetings"><span>📅 Meetings (Legacy)</span></button>
         <button class="dash-btn" data-tab="logs"><span>📋 My Duty Records</span></button>
-        <button class="dash-btn" data-tab="profile"><span>🔐 Change PIN</span></button>
+        <button class="dash-btn" data-tab="profile" style="color:#44474E; border-color:#CBD5E1; background:#F8FAFC;"><span>🔐 Change Profile PIN</span></button>
       </div>
-      <div id="pantryContentArea" class="hidden">
-        <div class="nav-controls">
-          <button id="pantryBackBtn">⬅ Back</button>
-          <button id="pantryHomeBtn">📊 Dashboard</button>
-        </div>
-        <div id="pantryContentTitle" style="font-size:1.2rem; font-weight:700; margin-bottom:12px; color:#0A56D0; text-align:left;"></div>
-        <div id="pantryDynamicContent"></div>
+      <div id="pantryContentArea" class="hidden" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+        <div class="nav-controls"><button id="pantryBackBtn">⬅ Back</button><button id="pantryHomeBtn">📊 Dashboard</button></div>
+        <div id="pantryContentTitle" style="font-weight:700; color:#0A56D0; margin-bottom:12px; font-size:1.15rem; flex-shrink:0;"></div>
+        <div id="pantryDynamicContent" style="flex:1; overflow-y:auto; padding-bottom:16px;"></div>
       </div>
     `;
+    window.renderPantryLiveUpcomingEventsCard();
     renderMeetingNotifications();
     
-    document.getElementById('homePantryBtn').onclick = () => { currentUser = null; activePantryTab = null; pantryScreen.classList.add('hidden'); renderLogin(); };
+    document.getElementById('homePantryBtn').onclick = () => { pantryScreen.classList.add('hidden'); activePantryTab = null; renderLogin(); };
+    document.getElementById('logoutPantry').onclick = () => { appConfirm('Logout', 'Logout account?', () => { const old = currentUser.id; currentUser = null; activePantryTab = null; db.ref('sessionDevices/pantry_'+old).remove().then(() => { pantryScreen.classList.add('hidden'); renderLogin(); }); }); };
     
-    document.getElementById('logoutPantry').onclick = () => { appConfirm('Logout', 'Logout?', () => { const old = currentUser.id; currentUser = null; activePantryTab = null; db.ref('sessionDevices/pantry_'+old).remove(); pantryScreen.classList.add('hidden'); renderLogin(); }); };
-    const menuArea = document.getElementById('pantryMenuArea'), contentArea = document.getElementById('pantryContentArea'), contentTitle = document.getElementById('pantryContentTitle');
+    const menuArea = document.getElementById('pantryMenuArea'), contentArea = document.getElementById('pantryContentArea'), contentTitle = document.getElementById('pantryContentTitle'), liveAlertCard = document.getElementById('livePantryBroadcastCard');
     document.querySelectorAll('#pantryMenuArea .dash-btn').forEach(btn => btn.addEventListener('click', (e) => {
-      const tab = e.currentTarget.dataset.tab;
-      contentTitle.innerText = btn.querySelector('span').innerText;
-      menuArea.classList.add('hidden'); contentArea.classList.remove('hidden');
+      const tab = e.currentTarget.dataset.tab; contentTitle.innerText = btn.querySelector('span').innerText;
+      menuArea.classList.add('hidden'); if(liveAlertCard) liveAlertCard.classList.add('hidden'); contentArea.classList.remove('hidden');
       if(tab === 'serve') renderServeEntry();
       else if(tab === 'extra') renderExtraTeaSection();
+      else if(tab === 'event') { activePantryTab = 'event'; window.renderCentralizedEventSectionUI('pantryDynamicContent', 'pntEvt'); }
       else if(tab === 'meetings') { activePantryTab = 'meetings'; document.getElementById('pantryDynamicContent').innerHTML = '<div id="pantryMeetingRoot"></div>'; renderMeetingForm('pantryMeetingRoot','pantryMtg'); }
       else if(tab === 'logs') renderLogsHistory();
       else if(tab === 'profile') renderPantryProfileSection();
     }));
-    const back = () => { activePantryTab = null; contentArea.classList.add('hidden'); menuArea.classList.remove('hidden'); renderMeetingNotifications(); document.getElementById('pantryDynamicContent').innerHTML = ''; };
-    document.getElementById('pantryBackBtn').onclick = back; document.getElementById('pantryHomeBtn').onclick = back;
+    
+    window.pantryBackToMenu = () => { activePantryTab = null; contentArea.classList.add('hidden'); menuArea.classList.remove('hidden'); window.renderPantryLiveUpcomingEventsCard(); renderMeetingNotifications(); document.getElementById('pantryDynamicContent').innerHTML = ''; };
+    document.getElementById('pantryBackBtn').onclick = window.pantryBackToMenu; document.getElementById('pantryHomeBtn').onclick = window.pantryBackToMenu;
   }
+  
   function renderPantryProfileSection() {
     activePantryTab = 'profile';
-    document.getElementById('pantryDynamicContent').innerHTML = `<div class="card"><h3>Change PIN</h3><input type="text" value="${currentUser.id}" readonly style="background:#E2E8F0;"><div class="pin-container"><label>New 4-Digit PIN</label><input type="password" id="newPantryPin" class="small-pin-input" maxlength="4"></div><button id="updatePantryPinBtn" class="success" style="width:100%;">Update PIN</button></div>`;
+    document.getElementById('pantryDynamicContent').innerHTML = `<div class="card"><h3 style="color:#0A56D0; margin-bottom:12px;">Manage Security PIN</h3><label style="font-size:0.85rem; color:#44474E; font-weight:500; text-align:left; display:block;">Account Unique ID</label><input type="text" value="${currentUser.id}" readonly style="background:#E2E8F0; color:#64748B;"><div class="pin-container"><label style="font-size:0.85rem; color:#44474E; font-weight:500;">New 4-Digit Security PIN</label><input type="password" id="newPantryPin" class="small-pin-input login-uniform-box" placeholder="••••" maxlength="4" inputmode="numeric"></div><button id="updatePantryPinBtn" class="success" style="width:100%; margin-top:8px; border-radius:12px;">Update Security PIN</button></div>`;
     document.getElementById('updatePantryPinBtn').onclick = () => {
       const pin = document.getElementById('newPantryPin').value.trim();
       if(pin.length !== 4 || isNaN(pin)) return appAlert('Error', 'PIN must be 4 numbers');
-      db.ref('pantryTeam/'+currentUser.id).update({ pin }).then(() => appAlert('Success', 'PIN updated'));
+      db.ref('pantryTeam/'+currentUser.id).update({ pin }).then(() => { appAlert('Success', 'PIN modified successfully!'); document.getElementById('newPantryPin').value = ''; });
     };
   }
+  
   function renderServeEntry() {
-    activePantryTab = 'serve';
-    const today = new Date().toLocaleDateString('en-GB');
-    document.getElementById('pantryDynamicContent').innerHTML = `<div class="card"><label>Date (DD/MM/YYYY)</label><input type="text" id="beverageEntryDate" value="${today}"><div class="merged-filter-row"><input id="pantryStaffSearch" placeholder="Search staff..." style="text-align:left;"><select id="entryCategory"><option value="All">All Categories</option><option>Faculty</option><option>Staff</option><option>Law</option><option>Outsourced</option></select></div><div class="table-row table-header"><div>Name</div><div>Morning</div><div>Afternoon</div></div><div id="bulkServeList"></div><button id="saveBulkEntries" class="success" style="width:100%; margin-top:12px;">Save Entries</button></div>`;
+    activePantryTab = 'serve'; const today = new Date().toISOString().split('T')[0];
+    document.getElementById('pantryDynamicContent').innerHTML = `<div class="card" style="padding:16px; margin-bottom:16px; display:flex; flex-direction:column; overflow:hidden; max-height:100%;"><div style="margin-bottom:12px; flex-shrink:0;"><label style="font-size:0.85rem; color:#44474E; font-weight:700; text-align:left; display:block;">Select Date:</label><input type="date" id="beverageEntryDate" value="${today}" style="margin:4px 0 0 0; padding:10px;"></div><div class="merged-filter-row" style="flex-shrink:0;"><input id="pantryStaffSearch" placeholder="🔍 Search..."><select id="entryCategory"><option value="All">All</option><option value="Faculty">Faculty</option><option value="Staff">Staff</option><option value="Law">Law</option><option value="Outsourced">Outsourced</option></select></div><div class="table-row table-header"><div>Name</div><div style="text-align:center;">Morning</div><div style="text-align:center;">Afternoon</div></div><div id="bulkServeList" style="flex:1; overflow-y:auto; margin-bottom:16px;"></div><button id="saveBulkEntries" class="success" style="width:100%; padding:14px; font-size:1.05rem; flex-shrink:0;">💾 SAVE ENTRIES</button></div>`;
     document.getElementById('entryCategory').addEventListener('change', populateServe);
     document.getElementById('pantryStaffSearch').addEventListener('input', populateServe);
     document.getElementById('beverageEntryDate').addEventListener('change', populateServe);
     populateServe();
+    
     document.getElementById('saveBulkEntries').onclick = () => {
-      let saved = 0;
-      const dateDMY = document.getElementById('beverageEntryDate').value;
-      const dateYMD = parseDMYToYMD(dateDMY);
-      if(!dateYMD) return appAlert('Error', 'Invalid date');
-      document.querySelectorAll('.bulk-entry-row').forEach((row, idx) => {
+      let saved = 0; const selectedDate = document.getElementById('beverageEntryDate').value || today; const baseTimestamp = Date.now();
+      const activeRows = document.querySelectorAll('.bulk-entry-row');
+      if(activeRows.length === 0) return appAlert('Notification', 'No staff to process.');
+      activeRows.forEach((row, rowIndex) => {
         const empId = row.dataset.id, empName = row.dataset.name;
         const morn = row.querySelector('.mornDrink').value, aft = row.querySelector('.aftDrink').value;
-        if(morn && morn !== "Served") { db.ref('logs/log_'+(Date.now()+idx*2)).set({ id:'log_'+(Date.now()+idx*2), employeeId:empId, employeeName:empName, drink:morn, session:'Morning', date:dateYMD, pantryId:currentUser.id, pantryName:currentUser.name }); saved++; }
-        if(aft && aft !== "Served") { db.ref('logs/log_'+(Date.now()+idx*2+1)).set({ id:'log_'+(Date.now()+idx*2+1), employeeId:empId, employeeName:empName, drink:aft, session:'Afternoon', date:dateYMD, pantryId:currentUser.id, pantryName:currentUser.name }); saved++; }
+        if(morn && morn !== "Served") { const logIdM = 'log_' + (baseTimestamp + (rowIndex * 2)) + '_' + Math.floor(Math.random() * 10000); db.ref('logs/' + logIdM).set({ id: logIdM, employeeId: empId, employeeName: empName, drink: morn, session: 'Morning', date: selectedDate, pantryId: currentUser.id, pantryName: currentUser.name }); saved++; }
+        if(aft && aft !== "Served") { const logIdA = 'log_' + (baseTimestamp + (rowIndex * 2) + 1) + '_' + Math.floor(Math.random() * 10000); db.ref('logs/' + logIdA).set({ id: logIdA, employeeId: empId, employeeName: empName, drink: aft, session: 'Afternoon', date: selectedDate, pantryId: currentUser.id, pantryName: currentUser.name }); saved++; }
       });
-      if(saved) appAlert('Saved', `${saved} entries saved`);
-      else appAlert('Error', 'No drinks selected');
+      if(saved > 0) { setTimeout(() => { appAlert('Logged', `✅ ${saved} Entries saved!`); }, 100); } else { appAlert('Error', 'No drinks selected.'); }
     };
   }
+  
   function populateServe() {
+    const container = document.getElementById('bulkServeList'); if (!container) return;
     const cat = document.getElementById('entryCategory')?.value || 'All';
-    const search = document.getElementById('pantryStaffSearch')?.value.toLowerCase() || '';
-    const dateDMY = document.getElementById('beverageEntryDate')?.value;
-    const dateYMD = parseDMYToYMD(dateDMY);
-    if(!dateYMD) return;
-    const filtered = employeeList.filter(emp => emp.assignedPantryId === currentUser.id && (cat === 'All' || emp.category === cat) && (!search || emp.name.toLowerCase().includes(search)));
-    const container = document.getElementById('bulkServeList');
-    if(!container) return;
+    const searchName = document.getElementById('pantryStaffSearch')?.value.toLowerCase().trim() || '';
+    const selectedDate = document.getElementById('beverageEntryDate')?.value || new Date().toISOString().split('T')[0];
+    
+    const filtered = employeeList.filter(emp => {
+        return emp.assignedPantryId === currentUser.id && (cat === 'All' || emp.category === cat) && (!searchName || emp.name.toLowerCase().includes(searchName));
+    });
+    
+    if(filtered.length === 0) { container.innerHTML = `<p style="text-align:center; padding:20px; color:#74777F; font-size:0.9rem;">No dynamic employee outstanding.</p>`; return; }
+    
     container.innerHTML = filtered.map(emp => {
-      const logsOnDate = logsData.filter(l => l.employeeId === emp.id && l.date === dateYMD);
-      const hasM = logsOnDate.some(l => l.session === 'Morning');
-      const hasA = logsOnDate.some(l => l.session === 'Afternoon');
-      const mornSel = hasM ? `<select class="mornDrink" disabled><option>Served</option></select>` : `<select class="mornDrink"><option value="">-</option><option>Tea</option><option>Coffee</option><option>Green Tea</option><option>Black Tea</option><option>Black Coffee</option><option>Lemon Tea</option></select>`;
-      const aftSel = hasA ? `<select class="aftDrink" disabled><option>Served</option></select>` : `<select class="aftDrink"><option value="">-</option><option>Tea</option><option>Coffee</option><option>Green Tea</option><option>Black Tea</option><option>Black Coffee</option><option>Lemon Tea</option></select>`;
-      return `<div class="table-row bulk-entry-row" data-id="${emp.id}" data-name="${emp.name}"><div>${emp.name}<br><small>${emp.category}</small></div><div>${mornSel}</div><div>${aftSel}</div></div>`;
+        const matchingLogsTargetDate = logsData.filter(l => l.employeeId === emp.id && l.date === selectedDate);
+        const hadMorning = matchingLogsTargetDate.some(l => l.session === 'Morning');
+        const hadAfternoon = matchingLogsTargetDate.some(l => l.session === 'Afternoon');
+        
+        const mEl = hadMorning ? `<select class="mornDrink" disabled style="background:#E2E8F0; color:#74777F;"><option>Served</option></select>` : `<select class="mornDrink"><option value="">-</option><option>Tea</option><option>Coffee</option><option>Green Tea</option><option>Black Tea</option><option>Black Coffee</option><option>Lemon Tea</option></select>`;
+        const aEl = hadAfternoon ? `<select class="aftDrink" disabled style="background:#E2E8F0; color:#74777F;"><option>Served</option></select>` : `<select class="aftDrink"><option value="">-</option><option>Tea</option><option>Coffee</option><option>Green Tea</option><option>Black Tea</option><option>Black Coffee</option><option>Lemon Tea</option></select>`;
+        return `<div class="table-row bulk-entry-row" data-id="${emp.id}" data-name="${safeStr(emp.name)}"><div title="${safeStr(emp.name)}">${safeStr(emp.name)} <br><small style="color:#74777F; font-size:0.75rem;">[${emp.category}]</small></div><div>${mEl}</div><div>${aEl}</div></div>`;
     }).join('');
   }
-  function renderExtraTeaSection(isRefresh=false) {
-    activePantryTab = 'extra';
-    const today = new Date().toLocaleDateString('en-GB');
-    const todayYMD = parseDMYToYMD(today);
-    if(isRefresh && document.getElementById('pantryExtraLogsContainer')) {
-      const container = document.getElementById('pantryExtraLogsContainer');
-      const myLogs = extraLogsData.filter(l => l.pantryId === currentUser.id).sort((a,b)=>b.id.localeCompare(a.id));
-      container.innerHTML = myLogs.length ? myLogs.map(ex => `<div class="log-item" style="flex-direction:column;"><div><strong>${ex.employeeName}</strong> - ${ex.qty} ${ex.drink}</div><div>📝 ${ex.remarks || 'None'} | 📅 ${formatDateToDMY(ex.date)}</div><button onclick="window.pantryDeleteHandler('extra','${ex.id}')" style="background:transparent; border:none; color:#DC3545; cursor:pointer; align-self:flex-end; font-size:0.9rem;">Delete</button></div>`).join('') : '<p style="text-align:center; padding:12px;">No extra logs recorded today</p>';
+  
+  function renderExtraTeaSection(isRefreshedOnly=false) {
+    activePantryTab = 'extra'; const c = document.getElementById('pantryDynamicContent'); if (!c) return;
+    const today = new Date().toISOString().split('T')[0];
+    if (isRefreshedOnly && document.getElementById('pantryExtraLogsContainer')) {
+      const ledger = document.getElementById('pantryExtraLogsContainer');
+      const myHistoricalExtra = extraLogsData.filter(l => l.pantryId === currentUser.id).sort((a,b) => b.id.localeCompare(a.id));
+      if(myHistoricalExtra.length === 0) { ledger.innerHTML = `<p style="padding:12px; color:#74777F; font-size:0.85rem; text-align:center;">No extra logs.</p>`; }
+      else { ledger.innerHTML = myHistoricalExtra.map(ex => `<div class="log-item" style="flex-direction:column; align-items:stretch; gap:4px; font-size:0.85rem; border-left:4px solid #D97706; margin:6px 4px;"><div style="display:flex; justify-content:space-between; font-weight:700; color:#D97706;"><span>${safeStr(ex.employeeName)}</span><span>${ex.qty} Cups</span></div><div style="color:#44474E; font-size:0.8rem;">☕ Item: ${safeStr(ex.drink)} | 📝 Reason: ${safeStr(ex.remarks || 'None Provided')}</div><div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; font-size:0.75rem; color:#74777F;"><span>📅 ${safeStr(formatDateToDMY(ex.date))}</span><button onclick="window.pantryDeleteHandler('extra', '${ex.id}')" style="background:transparent; border:none; color:#DC3545; padding:2px; font-size:1.1rem; cursor:pointer;">🗑</button></div></div>`).join(''); }
       return;
     }
-    const myStaff = employeeList.filter(emp => emp.assignedPantryId === currentUser.id);
-    document.getElementById('pantryDynamicContent').innerHTML = `<div class="card" style="text-align:left;"><label>Select Employee</label><select id="extraStaffSelect"><option value="">-- Choose Staff --</option>${myStaff.map(emp => `<option value="${emp.id}" data-name="${emp.name}">${emp.name} [${emp.category}]</option>`).join('')}</select><label>Item</label><select id="extraItemSelect"><option>Tea</option><option>Coffee</option><option>Green Tea</option><option>Lemon Tea</option><option>Black Coffee</option></select><label>Quantity</label><input type="number" id="extraQty" value="1" min="1"><label>Reason / Remarks</label><input type="text" id="extraRemarks" placeholder="e.g., Guest" style="text-align:left;"><button id="saveExtraBtn" class="btn" style="background:#D97706; width:100%; margin-top:8px;">Log Extra Entry</button></div><h4 style="text-align:left;">Today's Extra Logs</h4><div id="pantryExtraLogsContainer" class="scroll-list-box"></div>`;
+    const myAssignedStaff = employeeList.filter(emp => emp.assignedPantryId === currentUser.id);
+    c.innerHTML = `
+      <div class="card" style="flex-shrink:0; text-align:left;"><label style="font-size:0.8rem; color:#44474E; text-align:left; display:block;">Select Employee Member</label><select id="extraStaffSelect"><option value="">-- Choose Assigned Employee --</option>${myAssignedStaff.map(emp => `<option value="${emp.id}" data-name="${emp.name}">${safeStr(emp.name)} [${emp.category}]</option>`).join('')}</select><label style="font-size:0.8rem; color:#44474E; text-align:left; display:block;">Select Type</label><select id="extraItemSelect"><option>Tea</option><option>Coffee</option><option>Green Tea</option><option>Lemon Tea</option><option>Black Coffee</option></select><label style="font-size:0.8rem; color:#44474E; text-align:left; display:block;">Quantity</label><input type="number" id="extraQty" value="1" min="1"><label style="font-size:0.8rem; color:#44474E; text-align:left; display:block;">Reason</label><input type="text" id="extraRemarks" placeholder="e.g., Guest in office" style="text-align:left;"><button id="saveExtraBtn" class="btn" style="background:#D97706; width:100%; border-radius:12px; padding:14px; font-size:1rem; margin-top:8px;">➕ LOG EXTRA</button></div><h4 style="color:#44474E; margin:8px 4px; font-size:0.9rem; flex-shrink:0; text-align:left;">Today's Extra Tea Logs</h4><div id="pantryExtraLogsContainer" class="scroll-list-box"></div>`;
+
     document.getElementById('saveExtraBtn').onclick = () => {
-      const sel = document.getElementById('extraStaffSelect');
-      const empId = sel.value;
-      const empName = sel.options[sel.selectedIndex]?.dataset.name || '';
-      const drink = document.getElementById('extraItemSelect').value;
-      const qty = parseInt(document.getElementById('extraQty').value) || 1;
+      const staffSelect = document.getElementById('extraStaffSelect'); const empId = staffSelect.value;
+      const empName = staffSelect.options[staffSelect.selectedIndex] ? staffSelect.options[staffSelect.selectedIndex].dataset.name : '';
+      const drink = document.getElementById('extraItemSelect').value; const qty = Number(document.getElementById('extraQty').value) || 1;
       const remarks = document.getElementById('extraRemarks').value.trim();
-      if(!empId) return appAlert('Error', 'Select employee');
-      const id = 'extra_'+Date.now();
-      db.ref('extraLogs/'+id).set({ id, employeeId:empId, employeeName:empName, drink, qty, remarks, date:todayYMD, pantryId:currentUser.id, pantryName:currentUser.name });
-      appAlert('Logged', 'Extra tea logged');
-      document.getElementById('extraRemarks').value = '';
-      renderExtraTeaSection(true);
+      if(!empId) return appAlert('Error', 'Please select employee.');
+      const id = 'extra_' + Date.now();
+      db.ref('extraLogs/' + id).set({ id, employeeId: empId, employeeName: empName, drink, qty, remarks, date: today, pantryId: currentUser.id, pantryName: currentUser.name });
+      appAlert('Success', 'Logged!'); document.getElementById('extraRemarks').value = ''; renderExtraTeaSection(true);
     };
     renderExtraTeaSection(true);
   }
-  function renderLogsHistory() {
-    activePantryTab = 'logs';
-    const today = new Date().toLocaleDateString('en-GB');
-    document.getElementById('pantryDynamicContent').innerHTML = `<div class="merged-filter-row"><select id="filterType"><option value="date">Daily</option><option value="month">Monthly</option><option value="year">Yearly</option></select><input type="text" id="filterValue" placeholder="DD/MM/YYYY" value="${today}"></div><div class="card" style="text-align:left;"><h4>Duty Summary Metrics</h4><div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; text-align:center; margin-bottom:12px;"><div style="background:#F1F5F9; padding:8px; border-radius:8px;"><div id="statTeaCups" style="font-size:1.4rem; font-weight:700; color:#0A56D0;">0</div><div style="font-size:0.85rem; color:#44474E;">Tea</div></div><div style="background:#F1F5F9; padding:8px; border-radius:8px;"><div id="statCoffeeCups" style="font-size:1.4rem; font-weight:700; color:#0A56D0;">0</div><div style="font-size:0.85rem; color:#44474E;">Coffee</div></div><div style="background:#F1F5F9; padding:8px; border-radius:8px;"><div id="statGreenTeaCups" style="font-size:1.4rem; font-weight:700; color:#0A56D0;">0</div><div style="font-size:0.85rem; color:#44474E;">Green Tea</div></div><div style="background:#F1F5F9; padding:8px; border-radius:8px;"><div id="statOtherCups" style="font-size:1.4rem; font-weight:700; color:#0A56D0;">0</div><div style="font-size:0.85rem; color:#44474E;">Other</div></div></div><div id="filteredTotalText" style="font-weight:700; color:#1E293B; text-align:center; border-top:1px dashed #CBD5E1; padding-top:8px;">Total: 0 served</div></div><div id="logsList" class="scroll-list-box"></div>`;
-    const filterType = document.getElementById('filterType');
-    const filterValue = document.getElementById('filterValue');
-    const refresh = () => {
-      const type = filterType.value;
-      let val = filterValue.value;
-      let search = '';
-      if(type === 'date') search = parseDMYToYMD(val);
-      else search = val;
-      const myLogs = logsData.filter(l => l.pantryId === currentUser.id);
-      let filtered = myLogs;
-      if(search) {
-        if(type === 'date') filtered = myLogs.filter(l => l.date === search);
-        else if(type === 'month') filtered = myLogs.filter(l => l.date.startsWith(search));
-        else if(type === 'year') filtered = myLogs.filter(l => l.date.startsWith(search));
-      }
-      let tea=0, coffee=0, green=0, other=0;
-      filtered.forEach(l => {
-        const d = (l.drink || '').toLowerCase();
-        if(d.includes('tea') && !d.includes('green')) tea++;
-        else if(d.includes('coffee')) coffee++;
-        else if(d.includes('green tea')) green++;
-        else other++;
-      });
-      document.getElementById('statTeaCups').innerText = tea;
-      document.getElementById('statCoffeeCups').innerText = coffee;
-      document.getElementById('statGreenTeaCups').innerText = green;
-      document.getElementById('statOtherCups').innerText = other;
-      document.getElementById('filteredTotalText').innerText = `Total Total: ${filtered.length} served`;
-      const grouped = {};
-      filtered.forEach(l => {
-        const key = l.date+'_'+l.employeeId;
-        if(!grouped[key]) grouped[key] = { empName: l.employeeName, date: l.date, mDrink:null, aDrink:null, mId:null, aId:null };
-        if(l.session === 'Morning') { grouped[key].mDrink = l.drink; grouped[key].mId = l.id; }
-        if(l.session === 'Afternoon') { grouped[key].aDrink = l.drink; grouped[key].aId = l.id; }
-      });
-      const list = Object.values(grouped).sort((a,b)=>new Date(b.date)-new Date(a.date));
-      document.getElementById('logsList').innerHTML = list.length ? list.map(g => `<div class="log-item" style="flex-direction:column;"><div><strong>${g.empName}</strong> - ${formatDateToDMY(g.date)}</div>${g.mDrink ? `<div style="display:flex; justify-content:space-between; width:100%; margin-top:4px;"><span>🌅 Morning: ${g.mDrink}</span><span><button onclick="window.pantryEditLogHandler('${g.mId}','${g.mDrink}')" style="background:transparent; border:none; cursor:pointer;">✏️</button> <button onclick="window.pantryDeleteHandler('regular_log','${g.mId}')" style="background:transparent; border:none; color:#DC3545; cursor:pointer;">🗑</button></span></div>` : ''}${g.aDrink ? `<div style="display:flex; justify-content:space-between; width:100%; margin-top:4px;"><span>🌇 Afternoon: ${g.aDrink}</span><span><button onclick="window.pantryEditLogHandler('${g.aId}','${g.aDrink}')" style="background:transparent; border:none; cursor:pointer;">✏️</button> <button onclick="window.pantryDeleteHandler('regular_log','${g.aId}')" style="background:transparent; border:none; color:#DC3545; cursor:pointer;">🗑</button></span></div>` : ''}</div>`).join('') : '<p style="text-align:center; padding:12px;">No duty logs found</p>';
-    };
-    filterType.addEventListener('change', () => {
-      if(filterType.value === 'date') { filterValue.type = 'text'; filterValue.placeholder = 'DD/MM/YYYY'; filterValue.value = new Date().toLocaleDateString('en-GB'); }
-      else if(filterType.value === 'month') { filterValue.type = 'month'; filterValue.value = new Date().toISOString().slice(0,7); }
-      else { filterValue.type = 'number'; filterValue.placeholder = 'YYYY'; filterValue.value = new Date().getFullYear(); }
-      refresh();
+
+  window.refreshLogsHistoryOnly = function() {
+    if (activePantryTab === 'logs' && document.getElementById('logsList')) { renderLogsHistoryData(); }
+  };
+
+  function renderLogsHistoryData() {
+    const filterType = document.getElementById('filterType'), filterValue = document.getElementById('filterValue');
+    if (!filterType || !filterValue) return;
+    const type = filterType.value, val = filterValue.value;
+    const freshLogs = logsData.filter(l => l.pantryId === currentUser.id);
+    let filteredLogs = freshLogs.filter(l => { if(!val) return true; return type === 'date' ? l.date === val : l.date.startsWith(val); });
+
+    let tea=0, coffee=0, green=0, other=0;
+    filteredLogs.forEach(l => {
+      const d = (l.drink || '').toLowerCase().trim();
+      if(d === 'tea' || d === 'black tea' || d === 'lemon tea') tea++;
+      else if(d === 'coffee' || d === 'black coffee') coffee++;
+      else if(d === 'green tea') green++;
+      else other++;
     });
-    filterValue.addEventListener('input', refresh);
-    refresh();
+    
+    const tc = document.getElementById('statTeaCups');
+    if(tc) {
+      tc.innerText = tea; document.getElementById('statCoffeeCups').innerText = coffee;
+      document.getElementById('statGreenTeaCups').innerText = green; document.getElementById('statOtherCups').innerText = other;
+      document.getElementById('filteredTotalText').innerText = `Grand Total: ${filteredLogs.length} Distributed`;
+    }
+
+    const grouped = {};
+    filteredLogs.forEach(l => {
+      const key = l.date + '_' + l.employeeId;
+      if(!grouped[key]) grouped[key] = { empName: l.employeeName, date: l.date, mDrink: null, aDrink: null, mId: null, aId: null };
+      if(l.session === 'Morning') { grouped[key].mDrink = l.drink; grouped[key].mId = l.id; }
+      if(l.session === 'Afternoon') { grouped[key].aDrink = l.drink; grouped[key].aId = l.id; }
+    });
+    
+    const groupedArr = Object.values(grouped).sort((a,b) => new Date(b.date) - new Date(a.date));
+    const targetList = document.getElementById('logsList'); if(!targetList) return;
+    if(groupedArr.length === 0) { targetList.innerHTML = `<p style="text-align:center; padding:20px; color:#74777F; font-size:0.85rem;">No historical entries.</p>`; return; }
+    
+    targetList.innerHTML = groupedArr.map(g => `
+      <div class="log-item" style="display:flex; flex-direction:column; align-items:flex-start; margin:8px 2px; padding:12px; border-left:4px solid #0A56D0;">
+        <div style="width:100%; display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid #E2E8F0; padding-bottom:6px;"><strong style="color:#0A56D0; font-size:1rem;">${safeStr(g.empName)}</strong><small style="color:#74777F; font-weight:700;">${formatDateToDMY(g.date)}</small></div>
+        ${g.mDrink ? `<div style="width:100%; display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;"><span style="color:#44474E; font-size:0.85rem;">🌅 Morning: <strong>${safeStr(g.mDrink)}</strong></span><span><button onclick="window.pantryEditLogHandler('${g.mId}', '${safeStr(g.mDrink)}')" style="background:transparent; color:#0A56D0; padding:2px; box-shadow:none; font-size:1.1rem; cursor:pointer;">✏️</button><button onclick="window.pantryDeleteHandler('regular_log', '${g.mId}')" style="background:transparent; color:#DC3545; padding:2px; box-shadow:none; font-size:1.1rem; cursor:pointer;">🗑</button></span></div>` : ''}
+        ${g.aDrink ? `<div style="width:100%; display:flex; justify-content:space-between; align-items:center;"><span style="color:#44474E; font-size:0.85rem;">🌇 Afternoon: <strong>${safeStr(g.aDrink)}</strong></span><span><button onclick="window.pantryEditLogHandler('${g.aId}', '${safeStr(g.aDrink)}')" style="background:transparent; color:#0A56D0; padding:2px; box-shadow:none; font-size:1.1rem; cursor:pointer;">✏️</button><button onclick="window.pantryDeleteHandler('regular_log', '${g.aId}')" style="background:transparent; color:#DC3545; padding:2px; box-shadow:none; font-size:1.1rem; cursor:pointer;">🗑</button></span></div>` : ''}
+      </div>`).join('');
+  }
+
+  function renderLogsHistory() {
+    activePantryTab = 'logs'; const today = new Date().toISOString().split('T')[0];
+    document.getElementById('pantryDynamicContent').innerHTML = `
+      <div style="display:flex; gap:8px; margin-bottom:12px; flex-shrink:0;"><select id="filterType" style="flex:1; margin:0; padding:10px;"><option value="date">📅 Daily</option><option value="month">🗓 Monthly</option><option value="year">📆 Yearly</option></select><input type="date" id="filterValue" value="${today}" style="flex:2; margin:0; padding:10px;"></div>
+      <div class="card" style="padding:14px; margin-bottom:14px; background:#F8FAFC; border:1px solid #0A56D0; flex-shrink:0;">
+         <h4 style="font-size:0.85rem; color:#0A56D0; margin-bottom:8px; text-align:center;">📋 Metrics</h4>
+         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; text-align:center;">
+            <div style="background:white; padding:6px; border-radius:8px; border:1px solid #CBD5E1;"><div id="statTeaCups" style="font-size:1.1rem; font-weight:700;">0</div><div style="font-size:0.65rem; color:#64748B;">TEA</div></div>
+            <div style="background:white; padding:6px; border-radius:8px; border:1px solid #CBD5E1;"><div id="statCoffeeCups" style="font-size:1.1rem; font-weight:700;">0</div><div style="font-size:0.65rem; color:#64748B;">COFFEE</div></div>
+            <div style="background:white; padding:6px; border-radius:8px; border:1px solid #CBD5E1;"><div id="statGreenTeaCups" style="font-size:1.1rem; font-weight:700;">0</div><div style="font-size:0.65rem; color:#64748B;">GREEN TEA</div></div>
+            <div style="background:white; padding:6px; border-radius:8px; border:1px solid #CBD5E1;"><div id="statOtherCups" style="font-size:1.1rem; font-weight:700;">0</div><div style="font-size:0.65rem; color:#64748B;">OTHER</div></div>
+         </div>
+         <div style="text-align:center; margin-top:8px; font-size:0.8rem; font-weight:700; color:#0A56D0;" id="filteredTotalText">Grand Total: 0 Served</div>
+      </div>
+      <div id="logsList" class="scroll-list-box"></div>`;
+
+    const filterType = document.getElementById('filterType'), filterValue = document.getElementById('filterValue');
+    filterType.addEventListener('change', (e) => {
+      if(e.target.value === 'date') { filterValue.type = 'date'; filterValue.value = today; } 
+      else if(e.target.value === 'month') { filterValue.type = 'month'; filterValue.value = today.substring(0, 7); } 
+      else if(e.target.value === 'year') { filterValue.type = 'number'; filterValue.placeholder = 'YYYY'; filterValue.value = today.substring(0, 4); }
+      renderLogsHistoryData();
+    });
+    filterValue.addEventListener('input', renderLogsHistoryData);
+    renderLogsHistoryData();
   }
 
   renderLogin();
