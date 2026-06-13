@@ -1,5 +1,5 @@
 // Auto Dynamic Versioning using Year-Month-Day to avoid manual changes
-const CACHE_VERSION = "pantry-service-v1.0.2_" + new Date().toISOString().slice(0,10);
+const CACHE_VERSION = "pantry-service-v.0.3" + new Date().toISOString().slice(0,10);
 const CACHE_NAME = "pantry-cache-" + CACHE_VERSION;
 
 const ASSETS_TO_CACHE = [
