@@ -5,7 +5,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
 
-  <link rel="manifest" href="manifest.json?v=1.0.3">
+  <link rel="manifest" href="manifest.json?v=1.0.4">
   <meta name="theme-color" content="#1976d2">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -22,7 +22,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   
   <script>
-    // पुराना लोकल स्टोरेज या ऐप कैशे पूरी तरह मिटाकर सर्वर से लाइव फाइल उठाने का फंक्शन
     async function forceLiveAppUpdate() {
       try {
         if ('caches' in window) {
@@ -30,7 +29,6 @@
           await Promise.all(cacheNames.map(name => caches.delete(name)));
         }
         
-        // गिटहब से लाइव चेक करना कि क्या नया एचटीएमएल उपलब्ध है
         const res = await fetch(window.location.href, { method: 'HEAD', cache: 'no-store' });
         const latestTag = res.headers.get('ETag') || res.headers.get('Last-Modified');
         
@@ -38,7 +36,7 @@
           const localTag = localStorage.getItem('app_html_version_token');
           if (localTag && localTag !== latestTag) {
             localStorage.setItem('app_html_version_token', latestTag);
-            window.location.reload(true); // एकदम नया HTML लोड करने के लिए हार्ड रीलोड
+            window.location.reload(true); 
           } else if (!localTag) {
             localStorage.setItem('app_html_version_token', latestTag);
           }
@@ -48,9 +46,7 @@
       }
     }
 
-    // ऐप शुरू होते ही कैशे बस्टिंग एक्टिव करें
     forceLiveAppUpdate();
-    // हर 3 मिनट में बैकग्राउंड में लाइव गिटहब चेक करें
     setInterval(forceLiveAppUpdate, 3 * 60 * 1000);
   </script>
 
@@ -199,98 +195,6 @@
     const d = new Date(ymd);
     if (isNaN(d.getTime())) return '';
     return days[d.getDay()];
-  }
-
-  // --- HARDWARE COMPATIBLE BIOMETRIC CORE ENGINE ---
-  async function isBiometricSupported() {
-    try {
-      if (window.PublicKeyCredential && typeof window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === 'function') {
-        return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-      }
-      return false;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  async function registerBiometricsOnDevice(username) {
-    try {
-      const isAvailable = await isBiometricSupported();
-      if (!isAvailable) {
-        localStorage.setItem('dau_bio_auth_token_' + username, "SYS_LNK_VERIFIED_" + deviceFingerprint);
-        return true;
-      }
-
-      const challenge = new Uint8Array(32);
-      window.crypto.getRandomValues(challenge);
-      const userId = new Uint8Array(16);
-      window.crypto.getRandomValues(userId);
-
-      const publicKeyCredentialCreationOptions = {
-        challenge: challenge,
-        rp: { name: "DAU Pantry Service" },
-        user: { id: userId, name: username, displayName: username },
-        pubKeyCredParams: [{type: "public-key", alg: -7}],
-        authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
-        timeout: 30000
-      };
-
-      const credential = await navigator.credentials.create({ publicKey: publicKeyCredentialCreationOptions });
-      if (credential) {
-        localStorage.setItem('dau_bio_auth_token_' + username, "HW_KEY_VERIFIED_" + Date.now());
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error("Native Biometric Registration Error:", error);
-      localStorage.setItem('dau_bio_auth_token_' + username, "SYS_LNK_VERIFIED_" + deviceFingerprint);
-      return true;
-    }
-  }
-
-  async function authenticateWithBiometrics(username) {
-    try {
-      const tokenExists = localStorage.getItem('dau_bio_auth_token_' + username);
-      if (!tokenExists) return false;
-
-      if (window.PublicKeyCredential && tokenExists.startsWith("HW_KEY_VERIFIED_")) {
-        try {
-          const challenge = new Uint8Array(32);
-          window.crypto.getRandomValues(challenge);
-          const publicKeyCredentialRequestOptions = { challenge: challenge, timeout: 30000, userVerification: "required" };
-          const assertion = await navigator.credentials.get({ publicKey: publicKeyCredentialRequestOptions });
-          if (assertion) return true;
-        } catch(hardwareScanError) {
-          console.warn("Hardware Scanner Interrupted, switching to Secure Pin/Pattern Authentication layer", hardwareScanError);
-        }
-      }
-
-      return new Promise((resolve) => {
-        const modal = document.createElement('div');
-        modal.className = 'popup-overlay';
-        modal.style.zIndex = '100000';
-        modal.innerHTML = `
-          <div class="popup-card" style="text-align:center; border: 2px solid #0A56D0; padding: 24px;">
-            <div style="font-size:3.2rem; margin-bottom:14px; animation: pulse 1.5s infinite;">🔐</div>
-            <h3 style="color:#0A56D0; margin:0 0 8px 0; font-weight:700;">Device Security Authentication</h3>
-            <p style="font-size:0.9rem; color:#44474E; margin-bottom:24px; line-height:1.4;">Please scan your smartphone fingerprint or face ID recognition to unlock account.</p>
-            <div style="display:flex; gap:12px; width:100%;">
-              <button id="bioCancel" class="danger" style="flex:1; border-radius:100px; padding:12px;">Cancel</button>
-              <button id="bioTriggerNativeHardware" class="success" style="flex:1; border-radius:100px; padding:12px; font-weight:700;">Scan Fingerprint</button>
-            </div>
-          </div>`;
-        document.body.appendChild(modal);
-        
-        document.getElementById('bioCancel').onclick = () => { modal.remove(); resolve(false); };
-        document.getElementById('bioTriggerNativeHardware').onclick = () => {
-          modal.remove();
-          resolve(true); 
-        };
-      });
-    } catch (error) {
-      console.error("Biometric Authentication Core Error:", error);
-      return false;
-    }
   }
 
   let deviceFingerprint = "";
@@ -787,6 +691,7 @@
   };
 
   function renderLogin() {
+    loginScreen.removeClassName = 'hidden'; 
     loginScreen.classList.remove('hidden'); adminScreen.classList.add('hidden'); pantryScreen.classList.add('hidden');
 
     let isAdminActive = (localStorage.getItem('dau_admin_session_persistent') === 'true');
@@ -801,10 +706,6 @@
           <span id="selectedPantryBoyText">-- Choose Account --</span><span style="font-size:0.8rem; color:#74777F;">▼</span>
         </div>
         <input type="hidden" id="pantrySelect">
-        
-        <div style="display:flex; justify-content:center; gap:10px; margin-bottom:10px;">
-          <button id="pantryBioLoginBtn" class="btn" style="background:#4A5568; display:none; border-radius:100px; padding:8px 16px; font-size:0.85rem;">🧬 Use Fingerprint</button>
-        </div>
 
         <div id="regularPinInputWrapperBlock">
           <div class="pin-container">
@@ -825,38 +726,6 @@
     document.getElementById('pantrySelectorTrigger').onclick = window.openPantrySelectionPopup;
     document.getElementById('revealPinCheck').onchange = (e) => { document.getElementById('pantryPin').type = e.target.checked ? 'text' : 'password'; };
     document.getElementById('adminSymbolBtn').onclick = window.openAdminPopup;
-    
-    async function checkBioButton() {
-      const bioSupported = await isBiometricSupported();
-      const sel = document.getElementById('pantrySelect').value;
-      const member = pantryTeam.find(p => p.id === sel);
-      const bioBtn = document.getElementById('pantryBioLoginBtn');
-      if (bioBtn) {
-        if (member && localStorage.getItem('dau_bio_auth_token_' + member.name)) {
-          bioBtn.style.display = "inline-flex";
-        } else {
-          bioBtn.style.display = "none";
-        }
-      }
-    }
-
-    const observer = new MutationObserver(checkBioButton);
-    observer.observe(document.getElementById('selectedPantryBoyText'), { childList: true });
-
-    document.getElementById('pantryBioLoginBtn').onclick = async () => {
-      const sel = document.getElementById('pantrySelect').value;
-      const member = pantryTeam.find(p => p.id === sel);
-      if (!member) return appAlert('Error', 'Please select a staff member first.');
-
-      const verified = await authenticateWithBiometrics(member.name);
-      if (verified) {
-        currentUser = { role:'pantry', id:member.id, name:member.name };
-        db.ref('sessionDevices/pantry_'+member.id).set({ device: deviceFingerprint, role:'pantry' });
-        renderPantryDashboard();
-      } else {
-        appAlert('Auth Failed', 'Biometric verification failed. Please use your PIN.');
-      }
-    };
 
     document.getElementById('pantryLoginBtn').onclick = async () => {
       const sel = document.getElementById('pantrySelect').value; 
@@ -881,19 +750,7 @@
 
       currentUser = { role:'pantry', id:member.id, name:member.name };
       db.ref('sessionDevices/pantry_'+member.id).set({ device: deviceFingerprint, role:'pantry' });
-
-      const bioSupported = await isBiometricSupported();
-      if (!localStorage.getItem('dau_bio_auth_token_' + member.name)) {
-        appConfirm('Setup Fingerprint', 'क्या आप इस डिवाइस पर अगली बार से सीधे फिंगरप्रिंट द्वारा लॉगिन करने के लिए बायोमेट्रिक रजिस्टर करना चाहते हैं?', async () => {
-          const registered = await registerBiometricsOnDevice(member.name);
-          if (registered) appAlert('Success', 'Fingerprint registered successfully!');
-          renderPantryDashboard();
-        }, () => {
-          renderPantryDashboard();
-        });
-      } else {
-        renderPantryDashboard();
-      }
+      renderPantryDashboard();
     };
   }
 
@@ -906,7 +763,7 @@
     
     const menuArea = document.getElementById('adminMenuArea'), contentArea = document.getElementById('adminContentArea'), contentTitle = document.getElementById('adminContentTitle');
     document.querySelectorAll('.dash-btn').forEach(btn => btn.addEventListener('click', (e) => { const tab = e.currentTarget.dataset.tab; contentTitle.innerText = btn.querySelector('span').innerText; menuArea.classList.add('hidden'); contentArea.classList.remove('hidden'); renderAdminTab(tab); }));
-    const goBack = () => { activeAdminTab = null; contentArea.classList.add('hidden'); menuArea.classList.hidden; document.getElementById('adminContent').innerHTML = ''; };
+    const goBack = () => { activeAdminTab = null; contentArea.classList.add('hidden'); menuArea.classList.remove('hidden'); document.getElementById('adminContent').innerHTML = ''; };
     document.getElementById('adminBackBtn').onclick = goBack; document.getElementById('adminHomeBtn').onclick = goBack;
   }
 
