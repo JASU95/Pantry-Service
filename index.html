@@ -110,8 +110,8 @@
     .scroll-list-box { max-height: 380px; overflow-y: auto; padding: 4px; border: 1px solid #E2E8F0; border-radius: 12px; background: #F1F5F9; margin-top: 8px; -webkit-overflow-scrolling: touch; }
     
     .table-row { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #E0E2E5; }
-    .table-row > div:nth-child(1) { flex: 2; font-weight: 500; font-size: 0.95rem; text-align: left; color: #1F1F1F; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 8px; }
-    .table-row > div:nth-child(2), .table-row > div:nth-child(3) { flex: 1.3; text-align: center; }
+    .table-row > div:nth-child(1) { flex: 1.8; font-weight: 500; font-size: 0.95rem; text-align: left; color: #1F1F1F; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 4px; }
+    .table-row > div:nth-child(2), .table-row > div:nth-child(3) { flex: 1.2; text-align: center; }
     .table-row select { width: 100%; padding: 10px 4px; margin: 0; border-radius: 6px; font-size: 0.85rem; border: 1px solid #CBD5E1; background: #F8F9FA; text-align: center; }
     
     .table-header { font-weight: 700; color: #0A56D0; border-bottom: 2px solid #0A56D0; padding-bottom: 8px; margin-bottom: 8px; font-size: 0.85rem; flex-shrink: 0; }
@@ -263,8 +263,116 @@
   };
 
   window.pantryEditLogHandler = function(id, currentDrink) {
-    const d = prompt('Edit Drink Selection:', currentDrink);
-    if(d && d.trim()) db.ref('logs/'+id).update({drink:d.trim()});
+    const modal = document.createElement('div');
+    modal.className = 'popup-overlay';
+    modal.id = 'inlineEditPopupModal';
+    modal.innerHTML = `
+      <div class="popup-card" style="text-align:center;">
+        <h3 style="color:#0A56D0; margin-top:0; margin-bottom:12px;">Edit Drink Selection</h3>
+        <select id="popupInlineDrinkDropdown" style="margin-bottom:20px;">
+          <option value="Tea" ${currentDrink === 'Tea' ? 'selected' : ''}>Tea</option>
+          <option value="Coffee" ${currentDrink === 'Coffee' ? 'selected' : ''}>Coffee</option>
+          <option value="Green Tea" ${currentDrink === 'Green Tea' ? 'selected' : ''}>Green Tea</option>
+          <option value="Black Tea" ${currentDrink === 'Black Tea' ? 'selected' : ''}>Black Tea</option>
+          <option value="Black Coffee" ${currentDrink === 'Black Coffee' ? 'selected' : ''}>Black Coffee</option>
+          <option value="Lemon Tea" ${currentDrink === 'Lemon Tea' ? 'selected' : ''}>Lemon Tea</option>
+        </select>
+        <div style="display:flex; gap:12px; justify-content:center; width:100%;">
+          <button onclick="document.getElementById('inlineEditPopupModal').remove()" style="background:#E2E8F0; color:#1F1F1F; flex:1; border-radius:100px;">Cancel</button>
+          <button id="popupInlineSaveBtn" class="success" style="flex:1; border-radius:100px;">Save Change</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    document.getElementById('popupInlineSaveBtn').onclick = function() {
+      const selectedValue = document.getElementById('popupInlineDrinkDropdown').value;
+      if (selectedValue) {
+        db.ref('logs/' + id).update({ drink: selectedValue });
+        modal.remove();
+        appAlert('Updated', 'Drink record corrected successfully!');
+      }
+    };
+  };
+
+  window.handleDirectRowEditTrigger = function(empId) {
+    const selectedDateYMD = document.getElementById('beverageEntryDate')?.value || new Date().toISOString().split('T')[0];
+    const selectedDateDMY = convertYMDtoDMY(selectedDateYMD);
+    const matchedLogs = logsData.filter(l => l.employeeId === empId && l.date === selectedDateDMY);
+    
+    if (matchedLogs.length === 0) {
+      return appAlert('No Records', 'No active logs found for this employee on the selected date.');
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'popup-overlay';
+    modal.id = 'directRowEditModal';
+    
+    let morningLog = matchedLogs.find(l => l.session === 'Morning');
+    let afternoonLog = matchedLogs.find(l => l.session === 'Afternoon');
+
+    modal.innerHTML = `
+      <div class="popup-card" style="text-align:center;">
+        <h3 style="color:#0A56D0; margin-top:0; margin-bottom:14px;">Modify Saved Status</h3>
+        
+        <div style="margin-bottom:14px; text-align:left;">
+          <label style="font-size:0.8rem; font-weight:700; color:#44474E;">🌅 Morning Session:</label>
+          ${morningLog ? `
+            <select id="directMornDropdown" style="margin-top:4px; margin-bottom:4px;">
+              <option value="Tea" ${morningLog.drink === 'Tea' ? 'selected' : ''}>Tea</option>
+              <option value="Coffee" ${morningLog.drink === 'Coffee' ? 'selected' : ''}>Coffee</option>
+              <option value="Green Tea" ${morningLog.drink === 'Green Tea' ? 'selected' : ''}>Green Tea</option>
+              <option value="Black Tea" ${morningLog.drink === 'Black Tea' ? 'selected' : ''}>Black Tea</option>
+              <option value="Black Coffee" ${morningLog.drink === 'Black Coffee' ? 'selected' : ''}>Black Coffee</option>
+              <option value="Lemon Tea" ${morningLog.drink === 'Lemon Tea' ? 'selected' : ''}>Lemon Tea</option>
+              <option value="REMOVE_LOG" style="color:#DC3545; font-weight:700;">❌ Clear / Delete Log</option>
+            </select>
+          ` : `<p style="font-size:0.85rem; color:#74777F; margin:4px 0;">Not served / Blank</p>`}
+        </div>
+
+        <div style="margin-bottom:20px; text-align:left;">
+          <label style="font-size:0.8rem; font-weight:700; color:#44474E;">🌇 Afternoon Session:</label>
+          ${afternoonLog ? `
+            <select id="directAftDropdown" style="margin-top:4px; margin-bottom:4px;">
+              <option value="Tea" ${afternoonLog.drink === 'Tea' ? 'selected' : ''}>Tea</option>
+              <option value="Coffee" ${afternoonLog.drink === 'Coffee' ? 'selected' : ''}>Coffee</option>
+              <option value="Green Tea" ${afternoonLog.drink === 'Green Tea' ? 'selected' : ''}>Green Tea</option>
+              <option value="Black Tea" ${afternoonLog.drink === 'Black Tea' ? 'selected' : ''}>Black Tea</option>
+              <option value="Black Coffee" ${afternoonLog.drink === 'Black Coffee' ? 'selected' : ''}>Black Coffee</option>
+              <option value="Lemon Tea" ${afternoonLog.drink === 'Lemon Tea' ? 'selected' : ''}>Lemon Tea</option>
+              <option value="REMOVE_LOG" style="color:#DC3545; font-weight:700;">❌ Clear / Delete Log</option>
+            </select>
+          ` : `<p style="font-size:0.85rem; color:#74777F; margin:4px 0;">Not served / Blank</p>`}
+        </div>
+
+        <div style="display:flex; gap:12px; justify-content:center; width:100%;">
+          <button onclick="document.getElementById('directRowEditModal').remove()" style="background:#E2E8F0; color:#1F1F1F; flex:1; border-radius:100px;">Cancel</button>
+          <button id="directRowSaveBtn" class="success" style="flex:1; border-radius:100px;">Apply</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    document.getElementById('directRowSaveBtn').onclick = function() {
+      if (morningLog && document.getElementById('directMornDropdown')) {
+        const mV = document.getElementById('directMornDropdown').value;
+        if (mV === 'REMOVE_LOG') {
+          db.ref('logs/' + morningLog.id).remove();
+        } else {
+          db.ref('logs/' + morningLog.id).update({ drink: mV });
+        }
+      }
+      if (afternoonLog && document.getElementById('directAftDropdown')) {
+        const aV = document.getElementById('directAftDropdown').value;
+        if (aV === 'REMOVE_LOG') {
+          db.ref('logs/' + afternoonLog.id).remove();
+        } else {
+          db.ref('logs/' + afternoonLog.id).update({ drink: aV });
+        }
+      }
+      modal.remove();
+      appAlert('Updated', 'Cloud entries modified successfully!');
+      window.populateServe?.();
+    };
   };
 
   window.addEventItemRow = function(prefix) {
@@ -756,7 +864,7 @@
 
   function renderAdminConsole() {
     loginScreen.classList.add('hidden'); pantryScreen.classList.add('hidden'); adminScreen.classList.remove('hidden');
-    adminScreen.innerHTML = `<div class="top-header"><h2 style="color:#0A56D0; font-size:1.3rem;">🛡️ Admin Portal</h2><div class="header-buttons"><button id="homeAdminBtn" style="background:#E2E8F0; color:#1E293B;">🏠 Home</button><button id="logoutAdmin" class="danger">Logout</button></div></div><div id="adminMenuArea" class="dashboard-menu"><button class="dash-btn" data-tab="employees"><span>👥 Employees Database</span></button><button class="dash-btn" data-tab="pantry"><span>👨‍🍳 Pantry Team Profiles</span></button><button class="dash-btn" data-tab="canteens"><span>🏢 Canteen Vendors</span></button><button class="dash-btn" data-tab="events"><span>🎪 Meetings & Guest Menu Control</span></button><button class="dash-btn" data-tab="reports"><span>📊 Reports Engine</span></button><button class="dash-btn" data-tab="bin" style="color:#DC3545; border-color:#FECACA; background:#FEF2F2;"><span>🗑️ Recycle Bin</span></button><button class="dash-btn" data-tab="settings" style="color:#44474E; border-color:#E2E8F0; background:#F8FAFC;"><span>⚙️ Settings & Locations</span></button></div><div id="adminContentArea" class="hidden" style="display:flex; flex-direction:column; flex:1; overflow:hidden;"><div class="nav-controls"><button id="adminBackBtn">⬅ Back</button><button id="adminHomeBtn">📊 Dashboard</button></div><div id="adminContentTitle" style="font-weight:700; color:#0A56D0; margin-bottom:12px; font-size:1.15rem; flex-shrink:0;"></div><div id="adminContent" style="flex:1; overflow-y:auto; padding-bottom:16px;"></div></div>`;
+    adminScreen.innerHTML = `<div class="top-header"><h2 style="color:#0A56D0; font-size:1.3rem;">🛡️ Admin Portal</h2><div class="header-buttons"><button id="homeAdminBtn" style="background:#E2E8F0; color:#1E293B;">🏠 Home</button><button id="logoutAdmin" class="danger">Logout</button></div></div><div id="adminMenuArea" class="dashboard-menu"><button class="dash-btn" data-tab="employees"><span>👥 Employees Database</span></button><button class="dash-btn" data-tab="pantry"><span>👨‍🍳 Pantry Team Profiles</span></button><button class="dash-btn" data-tab="canteens"><span>🏢 Canteen Vendors</span></button><button class="dash-btn" data-tab="events"><span>🎪 Meeting / Guest / Events</span></button><button class="dash-btn" data-tab="reports"><span>📊 All Reports</span></button><button class="dash-btn" data-tab="locations" style="color:#0A56D0; border-color:#CBD5E1; background:#F0F7FF;"><span>📍 Locations Directory</span></button><button class="dash-btn" data-tab="bin" style="color:#DC3545; border-color:#FECACA; background:#FEF2F2;"><span>🗑️ Recycle Bin</span></button><button class="dash-btn" data-tab="settings" style="color:#44474E; border-color:#E2E8F0; background:#F8FAFC;"><span>⚙️ Settings</span></button></div><div id="adminContentArea" class="hidden" style="display:flex; flex-direction:column; flex:1; overflow:hidden;"><div class="nav-controls"><button id="adminBackBtn">⬅ Back</button><button id="adminHomeBtn">📊 Dashboard</button></div><div id="adminContentTitle" style="font-weight:700; color:#0A56D0; margin-bottom:12px; font-size:1.15rem; flex-shrink:0;"></div><div id="adminContent" style="flex:1; overflow-y:auto; padding-bottom:16px;"></div></div>`;
     
     document.getElementById('homeAdminBtn').onclick = () => { adminScreen.classList.add('hidden'); activeAdminTab = null; currentUser = null; renderLogin(); };
     document.getElementById('logoutAdmin').onclick = () => { appConfirm('Logout Account', 'Logout from Admin Portal?', () => { currentUser = null; activeAdminTab = null; localStorage.removeItem('dau_admin_session_persistent'); adminScreen.classList.add('hidden'); renderLogin(); }); };
@@ -795,28 +903,29 @@
       document.getElementById('exportRegularBtn').onclick = () => exportIndividualReport('regular');
       document.getElementById('exportExtraBtn').onclick = () => exportIndividualReport('extra');
       document.getElementById('exportMeetingBtn').onclick = () => exportIndividualReport('meeting');
+    } else if(tab === 'locations') {
+      cont.innerHTML = `
+        <div class="card"><h4 style="margin-bottom:12px; color:#0A56D0;">📍 Add Meeting Venue / Campus Location</h4><input id="venueNameInput" placeholder="Enter Location Name (e.g., Faculty Block 1, CEP Lab)" style="text-align:left;"><button id="saveVenueBtn" class="success" style="width:100%;">Add Location Node</button></div>
+        <h4 style="color:#44474E; margin:8px 4px;">Configured Workspace Node Locations</h4><div id="venueListContainer" class="scroll-list-box"></div>
+      `;
+      renderAdminVenues();
+      document.getElementById('saveVenueBtn').onclick = () => {
+        const vName = document.getElementById('venueNameInput').value.trim();
+        if(vName) { db.ref('venues/vnu_'+Date.now()).set({ id:'vnu_'+Date.now(), name: vName }); document.getElementById('venueNameInput').value = ''; appAlert('Success', 'Location node added safely!'); }
+      };
     } else if(tab === 'bin') {
       cont.innerHTML = `<div style="display:flex; justify-content:between; align-items:center; margin-bottom:12px;"><h4 style="margin:0; text-align:left; flex:1; color:#DC3545;">🗑 Recycle Bin Storage</h4><button id="emptyBinBtn" class="danger">Empty Bin</button></div><div class="scroll-list-box" style="max-height:480px; background:#FEF2F2;"><div class="bin-item-title">Staff Members</div><div id="binEmployeesBox"></div><div class="bin-item-title">Pantry Personnel</div><div id="binPantryBox"></div><div class="bin-item-title">Extra Drink Logs</div><div id="binExtraBox"></div><div class="bin-item-title">Event Refreshments</div><div id="binEventsBox"></div><div class="bin-item-title">Regular Drink Logs</div><div id="binLogsBox"></div></div>`;
       renderRecycleBinLists();
       document.getElementById('emptyBinBtn').onclick = () => { appConfirm('Empty Trash Bin', 'Permanently erase everything?', () => { db.ref('recycleBin').remove(); appAlert('Purged', 'Bin emptied completely.'); }); };
     } else if(tab === 'settings') {
-      cont.innerHTML = `
-        <div class="card"><h4 style="margin-bottom:12px; color:#44474E;">⚙️ Change Admin Password</h4><input type="password" id="newAdminPass" placeholder="New Password" value="${adminSecurity.password}"><button id="saveAdminCreds" class="success" style="width:100%;">Update Password</button></div>
-        <div class="card"><h4 style="margin-bottom:12px; color:#0A56D0;">📍 Add Meeting Venue/Location</h4><input id="venueNameInput" placeholder="Enter Location Name (e.g., Room 302)" style="text-align:left;"><button id="saveVenueBtn" class="success" style="width:100%;">Add Venue</button></div>
-        <h4 style="color:#44474E; margin:8px 4px;">Available Locations</h4><div id="venueListContainer" class="scroll-list-box"></div>
-      `;
-      renderAdminVenues();
+      cont.innerHTML = `<div class="card"><h4 style="margin-bottom:12px; color:#44474E;">⚙️ Change Admin Password</h4><input type="password" id="newAdminPass" placeholder="New Password" value="${adminSecurity.password}"><button id="saveAdminCreds" class="success" style="width:100%;">Update Password</button></div>`;
       document.getElementById('saveAdminCreds').onclick = () => { const np = document.getElementById('newAdminPass').value.trim(); if(np) db.ref('adminSecurityConfig').set({ password: np }); appAlert('Success', 'Password updated.'); };
-      document.getElementById('saveVenueBtn').onclick = () => {
-        const vName = document.getElementById('venueNameInput').value.trim();
-        if(vName) { db.ref('venues/vnu_'+Date.now()).set({ id:'vnu_'+Date.now(), name: vName }); document.getElementById('venueNameInput').value = ''; appAlert('Success', 'Venue added safely!'); }
-      };
     }
   }
 
   function renderAdminVenues() {
     const vc = document.getElementById('venueListContainer'); if(!vc) return;
-    if(venueList.length === 0) { vc.innerHTML = `<p style="padding:12px; color:#74777F; font-size:0.9rem; text-align:center;">No venues configured yet.</p>`; return; }
+    if(venueList.length === 0) { vc.innerHTML = `<p style="padding:12px; color:#74777F; font-size:0.9rem; text-align:center;">No locations node configured yet.</p>`; return; }
     vc.innerHTML = venueList.map(v => `<div class="employee-item" style="margin:6px 4px;"><span>📍 <strong>${v.name}</strong></span><button onclick="window.pantryDeleteHandler('venue','${v.id}')" style="background:transparent; border:none; color:#DC3545; cursor:pointer; font-size:1.1rem; padding:8px;">🗑</button></div>`).join('');
   }
 
@@ -828,7 +937,8 @@
     if (filtered.length === 0) { container.innerHTML = `<p style="text-align:center; padding:20px; color:#74777F; font-size:0.9rem;">No employees tracked.</p>`; return; }
     container.innerHTML = filtered.map(emp => {
       let assignedName = 'Unassigned'; if(emp.assignedPantryId) { let p = pantryTeam.find(pt => pt.id === emp.assignedPantryId); if(p) assignedName = p.name; }
-      return `<div class="employee-item" style="margin:6px 4px;"><span><strong>${safeStr(emp.name)}</strong><br><small style="color:#74777F;">${safeStr(emp.category)} | 🧑‍🍳 ${safeStr(assignedName)}</small></span><span style="display:flex; align-items:center;"><button class="editEmployeeBtn" data-id="${emp.id}" style="background:transparent; border:none; cursor:pointer; font-size:1.1rem; padding:8px; color:#0A56D0;">✏️</button><button onclick="window.pantryDeleteHandler('employee','${emp.id}')" style="background:transparent; border:none; color:#DC3545; cursor:pointer; font-size:1.1rem; padding:8px;">🗑</button><input type="checkbox" class="employeeCheckbox" data-id="${emp.id}" style="width:18px; height:18px; margin:0 0 0 8px;"></span></div>`;
+      let nodeLoc = emp.locationNode || 'Unassigned Node';
+      return `<div class="employee-item" style="margin:6px 4px;"><span><strong>${safeStr(emp.name)}</strong><br><small style="color:#74777F;">${safeStr(emp.category)} | 🧑‍🍳 ${safeStr(assignedName)} | 📍 ${safeStr(nodeLoc)}</small></span><span style="display:flex; align-items:center;"><button class="editEmployeeBtn" data-id="${emp.id}" style="background:transparent; border:none; cursor:pointer; font-size:1.1rem; padding:8px; color:#0A56D0;">✏️</button><button onclick="window.pantryDeleteHandler('employee','${emp.id}')" style="background:transparent; border:none; color:#DC3545; cursor:pointer; font-size:1.1rem; padding:8px;">🗑</button><input type="checkbox" class="employeeCheckbox" data-id="${emp.id}" style="width:18px; height:18px; margin:0 0 0 8px;"></span></div>`;
     }).join('');
     document.querySelectorAll('.editEmployeeBtn').forEach(b => b.onclick = (e) => { const emp = employeeList.find(em => em.id === e.currentTarget.dataset.id); if(emp) openEmployeeForm(emp); });
   }
@@ -836,15 +946,50 @@
   function openEmployeeForm(existing=null) {
     document.getElementById('dynamicFormCard')?.remove();
     const form = document.createElement('div'); form.className='card'; form.id='dynamicFormCard'; form.style.flexShrink = "0";
-    let pantryOptions = `<option value="">-- Unassigned --</option>`; pantryTeam.forEach(p => { let selected = (existing && existing.assignedPantryId === p.id) ? 'selected' : ''; pantryOptions += `<option value="${p.id}" ${selected}>${safeStr(p.name)}</option>`; });
-    form.innerHTML = `<h3 style="color:#0A56D0; margin-bottom:12px;">${existing?'✏️ Edit':'➕ Add'} Employee</h3><input id="empName" placeholder="Name" value="${safeStr(existing?.name)}" style="text-align:left;"><select id="empCat"><option value="">Category</option><option value="Faculty" ${existing?.category=='Faculty'?'selected':''}>Faculty</option><option value="Staff" ${existing?.category=='Staff'?'selected':''}>Staff</option><option value="Law" ${existing?.category=='Law'?'selected':''}>Law</option><option value="Outsourced" ${existing?.category=='Outsourced'?'selected':''}>Outsourced</option></select><label style="font-size:0.85rem; color:#44474E; margin-left:4px; text-align:left; display:block;">Assign to Pantry Boy:</label><select id="empPantryAssign" style="margin-top:6px;">${pantryOptions}</select><div style="display:flex; gap:8px; margin-top:16px;"><button id="cancelEmployeeBtn" class="danger" style="flex:1;">Cancel</button><button id="saveEmployeeBtn" class="success" style="flex:2;">Save</button></div>`;
+    
+    let pantryOptions = `<option value="">-- Unassigned --</option>`; 
+    pantryTeam.forEach(p => { 
+      let selected = (existing && existing.assignedPantryId === p.id) ? 'selected' : ''; 
+      pantryOptions += `<option value="${p.id}" ${selected}>${safeStr(p.name)}</option>`; 
+    });
+
+    let locationOptions = `<option value="">-- No Location Assigned --</option>`;
+    venueList.forEach(v => {
+      let selected = (existing && existing.locationNode === v.name) ? 'selected' : '';
+      locationOptions += `<option value="${v.name}" ${selected}>${safeStr(v.name)}</option>`;
+    });
+
+    form.innerHTML = `
+      <h3 style="color:#0A56D0; margin-bottom:12px;">${existing?'✏️ Edit':'➕ Add'} Employee</h3>
+      <input id="empName" placeholder="Name" value="${safeStr(existing?.name)}" style="text-align:left;">
+      <select id="empCat">
+        <option value="">Category</option>
+        <option value="Faculty" ${existing?.category=='Faculty'?'selected':''}>Faculty</option>
+        <option value="Staff" ${existing?.category=='Staff'?'selected':''}>Staff</option>
+        <option value="Law" ${existing?.category=='Law'?'selected':''}>Law</option>
+        <option value="Outsourced" ${existing?.category=='Outsourced'?'selected':''}>Outsourced</option>
+      </select>
+      <label style="font-size:0.85rem; color:#44474E; margin-left:4px; text-align:left; display:block;">Assign Pantry Boy:</label>
+      <select id="empPantryAssign" style="margin-top:6px; margin-bottom:12px;">${pantryOptions}</select>
+      
+      <label style="font-size:0.85rem; color:#44474E; margin-left:4px; text-align:left; display:block;">Location Node:</label>
+      <select id="empLocationNodeAssign" style="margin-top:6px;">${locationOptions}</select>
+
+      <div style="display:flex; gap:8px; margin-top:16px;">
+        <button id="cancelEmployeeBtn" class="danger" style="flex:1;">Cancel</button>
+        <button id="saveEmployeeBtn" class="success" style="flex:2;">Save</button>
+      </div>
+    `;
     document.getElementById('adminContent').prepend(form);
     document.getElementById('cancelEmployeeBtn').onclick = () => form.remove();
     document.getElementById('saveEmployeeBtn').onclick = () => {
-      const name = document.getElementById('empName').value.trim(), cat = document.getElementById('empCat').value, pantryId = document.getElementById('empPantryAssign').value;
+      const name = document.getElementById('empName').value.trim(), 
+            cat = document.getElementById('empCat').value, 
+            pantryId = document.getElementById('empPantryAssign').value,
+            locNode = document.getElementById('empLocationNodeAssign').value;
       if(!name || !cat) return appAlert('Error', 'Name and category required');
       const id = existing?.id || 'emp_'+Date.now();
-      db.ref('employees/'+id).set({ id, name, category: cat, assignedPantryId: pantryId });
+      db.ref('employees/'+id).set({ id, name, category: cat, assignedPantryId: pantryId, locationNode: locNode });
       form.remove();
     };
   }
@@ -864,15 +1009,27 @@
       let count = 0;
       rows.forEach((row, idx) => {
         const name = row['Name'] || row['Employee Name'] || row['EmployeeName'] || '';
-        const cat = row['Category'] || 'Staff'; const pantryName = row['Pantry Boy'] || row['PantryBoy'] || row['Pantry Name'] || '';
+        const cat = row['Category'] || 'Staff'; 
+        const pantryName = row['Pantry Boy'] || row['PantryBoy'] || row['Pantry Name'] || '';
+        const sheetLocationNode = row['Location'] || row['Venue'] || row['Location Node'] || '';
         if(name) {
           const id = 'emp_'+Date.now()+'_'+idx+'_'+Math.floor(Math.random()*10000);
-          let assignedId = ""; if(pantryName) { const found = pantryTeam.find(p => p.name.toLowerCase() === pantryName.toString().toLowerCase().trim()); if(found) assignedId = found.id; }
-          db.ref('employees/'+id).set({ id, name: String(name), category: String(cat), assignedPantryId: assignedId });
+          let assignedId = ""; 
+          if(pantryName) { 
+            const found = pantryTeam.find(p => p.name.toLowerCase() === pantryName.toString().toLowerCase().trim()); 
+            if(found) assignedId = found.id; 
+          }
+          db.ref('employees/'+id).set({ 
+            id, 
+            name: String(name), 
+            category: String(cat), 
+            assignedPantryId: assignedId,
+            locationNode: sheetLocationNode ? String(sheetLocationNode).trim() : ""
+          });
           count++;
         }
       });
-      appAlert('Import Successful', `✅ ${count} Employees Imported Successfully!`);
+      appAlert('Import Successful', `✅ ${count} Employees Imported with Auto-Locations Mapping!`);
     };
     input.click();
   }
@@ -962,8 +1119,8 @@
       <div id="pantryMenuArea" class="dashboard-menu">
         <button class="dash-btn" data-tab="serve"><span>☕ Beverages Entry</span></button>
         <button class="dash-btn" data-tab="extra"><span>⚠️ Extra Tea Entry</span></button>
-        <button class="dash-btn" data-tab="event"><span>🎪 Events / Guest Menu Room</span></button>
-        <button class="dash-btn" data-tab="logs"><span>📋 My Duty Records</span></button>
+        <button class="dash-btn" data-tab="event"><span>🎪 Meeting / Guest / Events</span></button>
+        <button class="dash-btn" data-tab="logs"><span>📋 My Records</span></button>
         <button class="dash-btn" data-tab="profile" style="color:#44474E; border-color:#CBD5E1; background:#F8FAFC;"><span>🔐 Change Profile PIN</span></button>
       </div>
       <div id="pantryContentArea" class="hidden" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
@@ -1041,12 +1198,15 @@
     
     container.innerHTML = filtered.map(emp => {
         const matchingLogsTargetDate = logsData.filter(l => l.employeeId === emp.id && l.date === selectedDateDMY);
-        const hadMorning = matchingLogsTargetDate.some(l => l.session === 'Morning');
-        const hadAfternoon = matchingLogsTargetDate.some(l => l.session === 'Afternoon');
+        const morningLogNode = matchingLogsTargetDate.find(l => l.session === 'Morning');
+        const afternoonLogNode = matchingLogsTargetDate.find(l => l.session === 'Afternoon');
         
-        const mEl = hadMorning ? `<select class="mornDrink" disabled style="background:#E2E8F0; color:#74777F;"><option>Served</option></select>` : `<select class="mornDrink"><option value="">-</option><option>Tea</option><option>Coffee</option><option>Green Tea</option><option>Black Tea</option><option>Black Coffee</option><option>Lemon Tea</option></select>`;
-        const aEl = hadAfternoon ? `<select class="aftDrink" disabled style="background:#E2E8F0; color:#74777F;"><option>Served</option></select>` : `<select class="aftDrink"><option value="">-</option><option>Tea</option><option>Coffee</option><option>Green Tea</option><option>Black Tea</option><option>Black Coffee</option><option>Lemon Tea</option></select>`;
-        return `<div class="table-row bulk-entry-row" data-id="${emp.id}" data-name="${safeStr(emp.name)}"><div title="${safeStr(emp.name)}">${safeStr(emp.name)} <br><small style="color:#74777F; font-size:0.75rem;">[${emp.category}]</small></div><div>${mEl}</div><div>${aEl}</div></div>`;
+        let mEl = morningLogNode ? `<select class="mornDrink" disabled style="background:#E2E8F0; color:#146C43; font-weight:bold;"><option>${morningLogNode.drink}</option></select>` : `<select class="mornDrink"><option value="">-</option><option>Tea</option><option>Coffee</option><option>Green Tea</option><option>Black Tea</option><option>Black Coffee</option><option>Lemon Tea</option></select>`;
+        let aEl = afternoonLogNode ? `<select class="aftDrink" disabled style="background:#E2E8F0; color:#146C43; font-weight:bold;"><option>${afternoonLogNode.drink}</option></select>` : `<select class="aftDrink"><option value="">-</option><option>Tea</option><option>Coffee</option><option>Green Tea</option><option>Black Tea</option><option>Black Coffee</option><option>Lemon Tea</option></select>`;
+        
+        let editBtnNode = (morningLogNode || afternoonLogNode) ? `<button onclick="window.handleDirectRowEditTrigger('${emp.id}')" style="background:transparent; border:none; cursor:pointer; font-size:1rem; padding:4px; margin-left:4px; display:inline-block;" title="Edit Status">✏️</button>` : '';
+
+        return `<div class="table-row bulk-entry-row" data-id="${emp.id}" data-name="${safeStr(emp.name)}"><div title="${safeStr(emp.name)}" style="display:flex; align-items:center; justify-content:space-between;"><div>${safeStr(emp.name)} <br><small style="color:#74777F; font-size:0.75rem;">[${emp.category}]</small></div>${editBtnNode}</div><div>${mEl}</div><div>${aEl}</div></div>`;
     }).join('');
   }
   
@@ -1062,7 +1222,7 @@
     }
     const myAssignedStaff = employeeList.filter(emp => emp.assignedPantryId === currentUser.id);
     c.innerHTML = `
-      <div class="card" style="flex-shrink:0; text-align:left;"><label style="font-size:0.8rem; color:#44474E; text-align:left; display:block;">Select Employee Member</label><select id="extraStaffSelect"><option value="">-- Choose Assigned Employee --</option>${myAssignedStaff.map(emp => `<option value="${emp.id}" data-name="${emp.name}">${safeStr(emp.name)} [${emp.category}]</option>`).join('')}</select><label style="font-size:0.8rem; color:#44474E; text-align:left; display:block;">Select Type</label><select id="extraItemSelect"><option>Tea</option><option>Coffee</option><option>Green Tea</option><option>Lemon Tea</option><option>Black Coffee</option></select><label style="font-size:0.8rem; color:#44474E; text-align:left; display:block;">Quantity</label><input type="number" id="extraQty" value="1" min="1"><label style="font-size:0.8rem; color:#44474E; text-align:left; display:block;">Reason</label><input type="text" id="extraRemarks" placeholder="e.g., Guest in office" style="text-align:left;"><button id="saveExtraBtn" class="btn" style="background:#D97706; width:100%; border-radius:12px; padding:14px; font-size:1rem; margin-top:8px;">➕ LOG EXTRA</button></div><h4 style="color:#44474E; margin:8px 4px; font-size:0.9rem; flex-shrink:0; text-align:left;">Today's Extra Tea Logs</h4><div id="pantryExtraLogsContainer" class="scroll-list-box"></div>`;
+      <div class="card" style="flex-shrink:0; text-align:left;"><label style="font-size:0.8rem; color:#44474E; text-align:left; display:block;">Select Employee Member</label><select id="extraStaffSelect"><option value="">-- Choose Assigned Employee --</option>${myAssignedStaff.map(emp => `<option value="${emp.id}" data-name="${emp.name}">${safeStr(emp.name)} [${emp.category}]</option>`).join('')}</select><label style="font-size:0.8rem; color:#44474E; text-align:left; display:block;">Select Type</label><select id="extraItemSelect"><option>Tea</option><option>Coffee</option><option>Green Tea</option><option>Lemon Tea</option><option>Black Tea</option><option>Black Coffee</option></select><label style="font-size:0.8rem; color:#44474E; text-align:left; display:block;">Quantity</label><input type="number" id="extraQty" value="1" min="1"><label style="font-size:0.8rem; color:#44474E; text-align:left; display:block;">Reason</label><input type="text" id="extraRemarks" placeholder="e.g., Guest in office" style="text-align:left;"><button id="saveExtraBtn" class="btn" style="background:#D97706; width:100%; border-radius:12px; padding:14px; font-size:1rem; margin-top:8px;">➕ LOG EXTRA</button></div><h4 style="color:#44474E; margin:8px 4px; font-size:0.9rem; flex-shrink:0; text-align:left;">Today's Extra Tea Logs</h4><div id="pantryExtraLogsContainer" class="scroll-list-box"></div>`;
 
     document.getElementById('saveExtraBtn').onclick = () => {
       const staffSelect = document.getElementById('extraStaffSelect'); const empId = staffSelect.value;
@@ -1099,19 +1259,25 @@
       return ymd.startsWith(val); 
     });
 
-    let tea=0, coffee=0, green=0, other=0;
+    let tea=0, coffee=0, green=0, lemon=0, blackTea=0, blackCoffee=0;
     filteredLogs.forEach(l => {
       const d = (l.drink || '').toLowerCase().trim();
-      if(d === 'tea' || d === 'black tea' || d === 'lemon tea') tea++;
-      else if(d === 'coffee' || d === 'black coffee') coffee++;
+      if(d === 'tea') tea++;
+      else if(d === 'coffee') coffee++;
       else if(d === 'green tea') green++;
-      else other++;
+      else if(d === 'lemon tea') lemon++;
+      else if(d === 'black tea') blackTea++;
+      else if(d === 'black coffee') blackCoffee++;
     });
     
     const tc = document.getElementById('statTeaCups');
     if(tc) {
-      tc.innerText = tea; document.getElementById('statCoffeeCups').innerText = coffee;
-      document.getElementById('statGreenTeaCups').innerText = green; document.getElementById('statOtherCups').innerText = other;
+      tc.innerText = tea; 
+      document.getElementById('statCoffeeCups').innerText = coffee;
+      document.getElementById('statGreenTeaCups').innerText = green; 
+      document.getElementById('statLemonTeaCups').innerText = lemon;
+      document.getElementById('statBlackTeaCups').innerText = blackTea;
+      document.getElementById('statBlackCoffeeCups').innerText = blackCoffee;
       document.getElementById('filteredTotalText').innerText = `Grand Total: ${filteredLogs.length} Distributed`;
     }
 
@@ -1145,7 +1311,9 @@
              <div style="background:white; padding:6px; border-radius:8px; border:1px solid #CBD5E1;"><div id="statTeaCups" style="font-size:1.1rem; font-weight:700;">0</div><div style="font-size:0.65rem; color:#64748B;">TEA</div></div>
              <div style="background:white; padding:6px; border-radius:8px; border:1px solid #CBD5E1;"><div id="statCoffeeCups" style="font-size:1.1rem; font-weight:700;">0</div><div style="font-size:0.65rem; color:#64748B;">COFFEE</div></div>
              <div style="background:white; padding:6px; border-radius:8px; border:1px solid #CBD5E1;"><div id="statGreenTeaCups" style="font-size:1.1rem; font-weight:700;">0</div><div style="font-size:0.65rem; color:#64748B;">GREEN TEA</div></div>
-             <div style="background:white; padding:6px; border-radius:8px; border:1px solid #CBD5E1;"><div id="statOtherCups" style="font-size:1.1rem; font-weight:700;">0</div><div style="font-size:0.65rem; color:#64748B;">OTHER</div></div>
+             <div style="background:white; padding:6px; border-radius:8px; border:1px solid #CBD5E1;"><div id="statLemonTeaCups" style="font-size:1.1rem; font-weight:700;">0</div><div style="font-size:0.65rem; color:#64748B;">LEMON TEA</div></div>
+             <div style="background:white; padding:6px; border-radius:8px; border:1px solid #CBD5E1;"><div id="statBlackTeaCups" style="font-size:1.1rem; font-weight:700;">0</div><div style="font-size:0.65rem; color:#64748B;">BLACK TEA</div></div>
+             <div style="background:white; padding:6px; border-radius:8px; border:1px solid #CBD5E1;"><div id="statBlackCoffeeCups" style="font-size:1.1rem; font-weight:700;">0</div><div style="font-size:0.65rem; color:#64748B;">BLACK COFFEE</div></div>
           </div>
           <div style="text-align:center; margin-top:8px; font-size:0.8rem; font-weight:700; color:#0A56D0;" id="filteredTotalText">Grand Total: 0 Served</div>
       </div>
