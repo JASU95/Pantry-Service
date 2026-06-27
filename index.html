@@ -195,6 +195,7 @@
 </head>
 <body>
 
+<!-- SPLASH SCREEN OVERLAY (Automatically fades out after 3 seconds) -->
 <div id="splash-screen">
   <div class="bg-elements">
       <svg class="bg-icon icon-plate" viewBox="0 0 24 24" fill="none" stroke="#0b2b80" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/></svg>
@@ -224,18 +225,18 @@
   </div>
   <div class="footer">
       <div class="footer-item powered">
-          <p class="text-light">Powered by -</p>
+          <p class="text-light">Powered by</p>
           <p class="text-bold">DHIRUBHAI AMBANI UNIVERSITY</p>
       </div>
       <div class="footer-item created">
-          <p class="text-light" style="font-size:11px;">CREATED BY -</p>
-          <p class="text-bold" style="font-size:14px; color:#ff6b00;">JASHVANT PARMAR</p>
+          <p class="text-light">Created by</p>
+          <p class="text-bold" style="font-size:15px; color:#ff6b00;">JASHVANT PARMAR</p>
       </div>
   </div>
 </div>
 
 <script>
-  // Splash Screen 5 Seconds Logic
+  // Splash Screen 3 Seconds Logic
   window.addEventListener('load', function() {
       setTimeout(function() {
           const splash = document.getElementById('splash-screen');
@@ -245,10 +246,11 @@
                   splash.style.display = 'none';
               }, 500); // Wait for the fade effect to finish
           }
-      }, 5000); // 5000 milliseconds = 5 seconds
+      }, 3000); // 3000 milliseconds = 3 seconds
   });
 </script>
 
+<!-- MAIN APP -->
 <div id="app">
   <div id="loginScreen" class="screen"></div>
   <div id="adminScreen" class="screen hidden"></div>
