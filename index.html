@@ -19,7 +19,9 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+  
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
   
   <script>
     async function forceLiveAppUpdate() {
@@ -55,63 +57,72 @@
     /* SPLASH SCREEN CSS (Safe & Scoped)         */
     /* ========================================= */
     #splash-screen {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100dvh;
-      background-color: #fafafa; z-index: 9999999;
-      font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-      transition: opacity 0.5s ease-out; overflow: hidden;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100dvh;
+        background-color: #ffffff;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 9999999;
+        transition: opacity 0.6s ease-in-out;
     }
-    #splash-screen .header-logo {
-      position: absolute; top: 6vh; left: 50%; transform: translateX(-50%);
-      width: 80%; max-width: 250px; height: 12vh; min-height: 80px;
-      background-image: url('https://iili.io/CAZtFEb.png');
-      background-size: contain; background-position: center top; background-repeat: no-repeat; z-index: 10;
-    }
-    #splash-screen .bg-elements { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 1; pointer-events: none; }
-    #splash-screen .bg-icon { position: absolute; opacity: 0.12; width: 55px; height: 55px; }
-    #splash-screen .icon-plate { top: 20%; left: 5%; animation: floatAnim 7s infinite ease-in-out; }
-    #splash-screen .icon-cup { top: 22%; right: 5%; animation: floatAnim 6s infinite ease-in-out reverse; }
-    #splash-screen .icon-cookie { top: 50%; left: 8%; animation: floatAnim 8s infinite ease-in-out 1s; }
-    #splash-screen .icon-donut { top: 55%; right: 6%; animation: floatAnim 5s infinite ease-in-out; }
-    #splash-screen .icon-burger { top: 75%; left: 10%; animation: floatAnim 6s infinite ease-in-out reverse; }
-    #splash-screen .icon-cutlery { top: 72%; right: 12%; animation: floatAnim 7s infinite ease-in-out 0.5s; }
+    
+    #splash-screen * { font-family: 'Poppins', sans-serif; }
 
-    #splash-screen .center-section {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      z-index: 10; display: flex; flex-direction: column; align-items: center; width: 100%;
-    }
-    #splash-screen .badge {
-      width: 190px; height: 190px; background: white; border-radius: 50%;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      box-shadow: 0 15px 40px rgba(0,0,0,0.12); border: 6px solid transparent;
-      background-image: linear-gradient(white, white), linear-gradient(135deg, #f9bc0f, #e13a1a);
-      background-origin: border-box; background-clip: padding-box, border-box;
-      animation: popInAnim 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    }
-    #splash-screen .badge svg { width: 55px; height: 55px; stroke: #0b2b80; margin-bottom: 5px; stroke-width: 2.5; }
-    #splash-screen .badge-title { font-size: 30px; font-weight: 900; color: #0b2b80; line-height: 1; letter-spacing: 1.5px; margin: 0; }
-    #splash-screen .badge-sub { font-size: 22px; font-weight: 900; color: #ff6b00; margin-top: 4px; letter-spacing: 1px; margin: 0; }
+    #splash-screen .top-logo { margin-top: 5vh; }
+    #splash-screen .top-logo img { max-width: 150px; height: auto; }
 
-    #splash-screen .loading { margin-top: 3vh; display: flex; flex-direction: column; align-items: center; }
-    #splash-screen .spinner {
-      width: 40px; height: 40px; border: 5px solid #ffe8d6; border-top: 5px solid #ff6b00;
-      border-radius: 50%; animation: spinAnim 1s linear infinite;
+    #splash-screen .center-card {
+        background: #ffffff;
+        padding: 40px 50px;
+        border-radius: 25px;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.06);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        opacity: 0;
+        transform: translateY(40px);
+        animation: slideUpCard 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        animation-delay: 0.2s;
     }
-    #splash-screen .loading-text { margin-top: 10px; color: #0b2b80; font-weight: 700; font-size: 14px; }
 
-    #splash-screen .footer { position: absolute; bottom: 4vh; left: 0; width: 100%; text-align: center; z-index: 10; }
-    #splash-screen .footer-item { opacity: 0; margin-bottom: 12px; }
-    #splash-screen .footer-item.powered { animation: popTextAnim 0.9s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards 0.8s; }
-    #splash-screen .footer-item.created { margin-bottom: 0; animation: popTextAnim 0.9s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards 1.2s; }
-    #splash-screen .text-light { color: #666; font-size: 13px; font-weight: 600; margin-bottom: 4px; margin-top:0; }
-    #splash-screen .text-bold { color: #0b2b80; font-size: 16px; font-weight: 800; letter-spacing: 0.5px; margin: 0; }
+    #splash-screen .cup-icon { width: 80px; height: 80px; margin-bottom: 20px; overflow: visible; }
+    #splash-screen .steam { stroke: #F97316; stroke-width: 2.5; stroke-linecap: round; fill: none; opacity: 0; }
+    #splash-screen .steam-1 { animation: steamRise 2s infinite ease-in-out 0s; }
+    #splash-screen .steam-2 { animation: steamRise 2s infinite ease-in-out 0.4s; }
+    #splash-screen .steam-3 { animation: steamRise 2s infinite ease-in-out 0.8s; }
+    #splash-screen .cup-body { stroke: #003366; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; fill: none; }
 
-    @keyframes popInAnim { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-    @keyframes spinAnim { 0% { transform: rotate(0); } 100% { transform: rotate(360deg); } }
-    @keyframes floatAnim { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-12px) rotate(6deg); } }
-    @keyframes popTextAnim {
-      0% { transform: scale(0.3) translateY(20px); opacity: 0; }
-      60% { transform: scale(1.05); opacity: 1; }
-      100% { transform: scale(1) translateY(0); opacity: 1; }
+    #splash-screen .title { color: #003366; font-size: 32px; font-weight: 800; line-height: 1.1; margin-bottom: 2px; }
+    #splash-screen .subtitle { color: #F97316; font-size: 13px; font-weight: 600; letter-spacing: 0.35em; margin-bottom: 25px; margin-right: -0.35em; }
+
+    #splash-screen .progress-bar-container { width: 100%; height: 4px; background-color: #f1f5f9; border-radius: 4px; overflow: hidden; position: relative; }
+    #splash-screen .progress-bar {
+        position: absolute; top: 0; left: -50%; height: 100%; width: 50%;
+        background: linear-gradient(90deg, transparent, #F97316, transparent);
+        border-radius: 4px; animation: sweep 1.5s infinite linear;
+    }
+
+    #splash-screen .footer {
+        margin-bottom: 3vh; text-align: center; opacity: 0; transform: translateY(20px);
+        animation: fadeUpFooter 1s ease-out forwards; animation-delay: 0.6s;
+    }
+    #splash-screen .footer p { margin: 2px 0; }
+    #splash-screen .text-light { color: #9CA3AF; font-size: 11px; font-weight: 400; }
+    #splash-screen .text-dark-blue { color: #003366; font-size: 14px; font-weight: 800; }
+    #splash-screen .text-orange { color: #F97316; font-size: 13px; font-weight: 800; }
+
+    @keyframes slideUpCard { to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeUpFooter { to { opacity: 1; transform: translateY(0); } }
+    @keyframes sweep { 0% { left: -50%; } 100% { left: 100%; } }
+    @keyframes steamRise {
+        0% { transform: translateY(10px); opacity: 0; }
+        50% { opacity: 1; }
+        100% { transform: translateY(-10px); opacity: 0; }
     }
     /* ========================================= */
 
@@ -195,62 +206,52 @@
 </head>
 <body>
 
-<!-- SPLASH SCREEN OVERLAY (Automatically fades out after 3 seconds) -->
 <div id="splash-screen">
-  <div class="bg-elements">
-      <svg class="bg-icon icon-plate" viewBox="0 0 24 24" fill="none" stroke="#0b2b80" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/></svg>
-      <svg class="bg-icon icon-cup" viewBox="0 0 24 24" fill="none" stroke="#ff6b00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 10 8h-1M3 8h14v5a7 7 0 0 1-14 0V8zM2 21h18"/></svg>
-      <svg class="bg-icon icon-cookie" viewBox="0 0 24 24" fill="none" stroke="#e13a1a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8" cy="9" r="1" fill="#e13a1a"/><circle cx="15" cy="10" r="1" fill="#e13a1a"/><circle cx="10" cy="14" r="1" fill="#e13a1a"/><circle cx="14" cy="15" r="1" fill="#e13a1a"/></svg>
-      <svg class="bg-icon icon-donut" viewBox="0 0 24 24" fill="none" stroke="#f9bc0f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M6 12c1-1 2-1 3 0M15 12c1 1 2 1 3 0M12 6c-1 1-1 2 0 3"/></svg>
-      <svg class="bg-icon icon-burger" viewBox="0 0 24 24" fill="none" stroke="#e13a1a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15h18c0-4.5-3.5-8-8-8s-8 3.5-8 8zM2 19h20M12 4v3"/></svg>
-      <svg class="bg-icon icon-cutlery" viewBox="0 0 24 24" fill="none" stroke="#0b2b80" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v7a3 3 0 0 0 3 3h0a3 3 0 0 0 3-3V3M9 3v17M18 3v17M15 7h6"/></svg>
-  </div>
-  <div class="header-logo"></div>
-  <div class="center-section">
-      <div class="badge">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M17 8h1a4 4 0 1 10 8h-1"/>
-              <path d="M3 8h14v5a7 7 0 0 1-14 0V8z"/>
-              <line x1="2" y1="21" x2="22" y2="21"/>
-              <path d="M9 3v2"/>
-              <path d="M13 3v2"/>
-          </svg>
-          <p class="badge-title">PANTRY</p>
-          <p class="badge-sub">SERVICE</p>
-      </div>
-      <div class="loading">
-          <div class="spinner"></div>
-          <div class="loading-text">Loading...</div>
-      </div>
-  </div>
-  <div class="footer">
-      <div class="footer-item powered">
-          <p class="text-light">Powered by</p>
-          <p class="text-bold">DHIRUBHAI AMBANI UNIVERSITY</p>
-      </div>
-      <div class="footer-item created">
-          <p class="text-light">Created by</p>
-          <p class="text-bold" style="font-size:15px; color:#ff6b00;">JASHVANT PARMAR</p>
-      </div>
-  </div>
+    <div class="top-logo">
+        <img src="https://iili.io/CAZtFEb.png" alt="Header Logo">
+    </div>
+
+    <div class="center-card">
+        <svg class="cup-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <path class="steam steam-1" d="M 35 30 Q 30 20 35 10" />
+            <path class="steam steam-2" d="M 50 30 Q 55 15 50 5" />
+            <path class="steam steam-3" d="M 65 30 Q 60 20 65 10" />
+            <path class="cup-body" d="M 25 40 L 25 65 Q 25 80 50 80 Q 75 80 75 65 L 75 40 Z" />
+            <path class="cup-body" d="M 75 48 Q 90 48 90 60 Q 90 70 73 70" />
+            <path class="cup-body" d="M 15 85 Q 50 95 85 85" />
+        </svg>
+
+        <div class="title">PANTRY</div>
+        <div class="subtitle">SERVICE</div>
+        
+        <div class="progress-bar-container">
+            <div class="progress-bar"></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p class="text-light">Powered by</p>
+        <p class="text-dark-blue">Dhirubhai Ambani University</p>
+        <p class="text-light" style="margin-top: 6px;">Created by</p>
+        <p class="text-orange">Jashvant Parmar</p>
+    </div>
 </div>
 
 <script>
-  // Splash Screen 3 Seconds Logic
+  // Splash Screen exactly 3 Seconds Logic
   window.addEventListener('load', function() {
       setTimeout(function() {
           const splash = document.getElementById('splash-screen');
           if(splash) {
-              splash.style.opacity = '0';
+              splash.style.opacity = '0'; // Trigger the 0.6s CSS transition
               setTimeout(function() {
-                  splash.style.display = 'none';
-              }, 500); // Wait for the fade effect to finish
+                  splash.style.display = 'none'; // Completely hide after transition finishes
+              }, 600); 
           }
-      }, 3000); // 3000 milliseconds = 3 seconds
+      }, 3000); // 3000 milliseconds = exactly 3 seconds
   });
 </script>
 
-<!-- MAIN APP -->
 <div id="app">
   <div id="loginScreen" class="screen"></div>
   <div id="adminScreen" class="screen hidden"></div>
