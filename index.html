@@ -21,7 +21,6 @@
   <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
   
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
   
   <script>
     async function forceLiveAppUpdate() {
@@ -53,79 +52,6 @@
   </script>
 
   <style>
-    /* ========================================= */
-    /* SPLASH SCREEN CSS (Safe & Scoped)         */
-    /* ========================================= */
-    #splash-screen {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100dvh;
-        background-color: #ffffff;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        align-items: center;
-        z-index: 9999999;
-        transition: opacity 0.6s ease-in-out;
-    }
-    
-    #splash-screen * { font-family: 'Poppins', sans-serif; }
-
-    #splash-screen .top-logo { margin-top: 5vh; }
-    #splash-screen .top-logo img { max-width: 150px; height: auto; }
-
-    #splash-screen .center-card {
-        background: #ffffff;
-        padding: 40px 50px;
-        border-radius: 25px;
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.06);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        opacity: 0;
-        transform: translateY(40px);
-        animation: slideUpCard 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-        animation-delay: 0.2s;
-    }
-
-    #splash-screen .cup-icon { width: 80px; height: 80px; margin-bottom: 20px; overflow: visible; }
-    #splash-screen .steam { stroke: #F97316; stroke-width: 2.5; stroke-linecap: round; fill: none; opacity: 0; }
-    #splash-screen .steam-1 { animation: steamRise 2s infinite ease-in-out 0s; }
-    #splash-screen .steam-2 { animation: steamRise 2s infinite ease-in-out 0.4s; }
-    #splash-screen .steam-3 { animation: steamRise 2s infinite ease-in-out 0.8s; }
-    #splash-screen .cup-body { stroke: #003366; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; fill: none; }
-
-    #splash-screen .title { color: #003366; font-size: 32px; font-weight: 800; line-height: 1.1; margin-bottom: 2px; }
-    #splash-screen .subtitle { color: #F97316; font-size: 13px; font-weight: 600; letter-spacing: 0.35em; margin-bottom: 25px; margin-right: -0.35em; }
-
-    #splash-screen .progress-bar-container { width: 100%; height: 4px; background-color: #f1f5f9; border-radius: 4px; overflow: hidden; position: relative; }
-    #splash-screen .progress-bar {
-        position: absolute; top: 0; left: -50%; height: 100%; width: 50%;
-        background: linear-gradient(90deg, transparent, #F97316, transparent);
-        border-radius: 4px; animation: sweep 1.5s infinite linear;
-    }
-
-    #splash-screen .footer {
-        margin-bottom: 3vh; text-align: center; opacity: 0; transform: translateY(20px);
-        animation: fadeUpFooter 1s ease-out forwards; animation-delay: 0.6s;
-    }
-    #splash-screen .footer p { margin: 2px 0; }
-    #splash-screen .text-light { color: #9CA3AF; font-size: 11px; font-weight: 400; }
-    #splash-screen .text-dark-blue { color: #003366; font-size: 14px; font-weight: 800; }
-    #splash-screen .text-orange { color: #F97316; font-size: 13px; font-weight: 800; }
-
-    @keyframes slideUpCard { to { opacity: 1; transform: translateY(0); } }
-    @keyframes fadeUpFooter { to { opacity: 1; transform: translateY(0); } }
-    @keyframes sweep { 0% { left: -50%; } 100% { left: 100%; } }
-    @keyframes steamRise {
-        0% { transform: translateY(10px); opacity: 0; }
-        50% { opacity: 1; }
-        100% { transform: translateY(-10px); opacity: 0; }
-    }
-    /* ========================================= */
-
     /* MAIN APP CSS */
     html, body { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; overscroll-behavior-y: contain; height: 100%; }
     body { background: #E2E8F0; display: flex; justify-content: center; align-items: center; min-height: 100vh; position: relative; }
@@ -206,52 +132,6 @@
 </head>
 <body>
 
-<div id="splash-screen">
-    <div class="top-logo">
-        <img src="https://iili.io/CAZtFEb.png" alt="Header Logo">
-    </div>
-
-    <div class="center-card">
-        <svg class="cup-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <path class="steam steam-1" d="M 35 30 Q 30 20 35 10" />
-            <path class="steam steam-2" d="M 50 30 Q 55 15 50 5" />
-            <path class="steam steam-3" d="M 65 30 Q 60 20 65 10" />
-            <path class="cup-body" d="M 25 40 L 25 65 Q 25 80 50 80 Q 75 80 75 65 L 75 40 Z" />
-            <path class="cup-body" d="M 75 48 Q 90 48 90 60 Q 90 70 73 70" />
-            <path class="cup-body" d="M 15 85 Q 50 95 85 85" />
-        </svg>
-
-        <div class="title">PANTRY</div>
-        <div class="subtitle">SERVICE</div>
-        
-        <div class="progress-bar-container">
-            <div class="progress-bar"></div>
-        </div>
-    </div>
-
-    <div class="footer">
-        <p class="text-light">Powered by</p>
-        <p class="text-dark-blue">Dhirubhai Ambani University</p>
-        <p class="text-light" style="margin-top: 6px;">Created by</p>
-        <p class="text-orange">Jashvant Parmar</p>
-    </div>
-</div>
-
-<script>
-  // Splash Screen exactly 3 Seconds Logic
-  window.addEventListener('load', function() {
-      setTimeout(function() {
-          const splash = document.getElementById('splash-screen');
-          if(splash) {
-              splash.style.opacity = '0'; // Trigger the 0.6s CSS transition
-              setTimeout(function() {
-                  splash.style.display = 'none'; // Completely hide after transition finishes
-              }, 600); 
-          }
-      }, 3000); // 3000 milliseconds = exactly 3 seconds
-  });
-</script>
-
 <div id="app">
   <div id="loginScreen" class="screen"></div>
   <div id="adminScreen" class="screen hidden"></div>
@@ -307,16 +187,6 @@
     let parts = dmy.split('/');
     if (parts.length !== 3) return dmy;
     return `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
-  }
-  
-  function getDayFromDateDMY(dmy) {
-    if (!dmy) return '';
-    const ymd = parseDMYToYMD(dmy);
-    if (!ymd) return '';
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const d = new Date(ymd);
-    if (isNaN(d.getTime())) return '';
-    return days[d.getDay()];
   }
 
   let deviceFingerprint = "";
@@ -374,6 +244,34 @@
     else if (type === 'event') { appConfirm('Delete Record', 'Move dynamic event entry to Recycle Bin?', () => { const targeted = eventLogsData.find(e => e.id === id); if(targeted) { db.ref('recycleBin/eventLogs/' + id).set(targeted); db.ref('eventLogs/' + id).remove(); }}); }
     else if (type === 'regular_log') { appConfirm('Delete Record', 'Move to Recycle Bin?', () => { const targeted = logsData.find(l => l.id === id); if(targeted) { db.ref('recycleBin/logs/' + id).set(targeted); db.ref('logs/' + id).remove(); }}); }
     else if (type === 'upcoming_event') { appConfirm('Delete Notification', "Remove notification permanently?", () => { db.ref('upcomingEvents/' + id).remove(); }); }
+  };
+
+  window.editCanteen = function(id, currentName) {
+      const modal = document.createElement('div');
+      modal.className = 'popup-overlay';
+      modal.id = 'editCanteenModal';
+      modal.innerHTML = `
+        <div class="popup-card" style="text-align:center;">
+          <h3 style="color:#0A56D0; margin-top:0; margin-bottom:12px;">✏️ Edit Canteen Vendor</h3>
+          <input id="editCantName" value="${currentName}" style="text-align:center; margin-bottom:16px;">
+          <div style="display:flex; gap:12px; justify-content:center; width:100%;">
+            <button onclick="document.getElementById('editCanteenModal').remove()" class="danger" style="flex:1; border-radius:100px;">Cancel</button>
+            <button id="saveEditCantBtn" class="success" style="flex:1; border-radius:100px;">Save Change</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      document.getElementById('saveEditCantBtn').onclick = () => {
+          const newName = document.getElementById('editCantName').value.trim();
+          if(newName) {
+              db.ref('canteens/' + id).update({ name: newName });
+              modal.remove();
+              appAlert('Success', 'Canteen vendor updated successfully!');
+          } else {
+              appAlert('Error', 'Name cannot be blank.');
+          }
+      };
   };
 
   window.pantryRestoreHandler = function(section, id) {
@@ -815,6 +713,56 @@
     else { rootCard.classList.remove('hidden'); streamContainer.innerHTML = activeUpcoming.map(u => `<div style="border-left: 3px solid #D97706; padding-left: 8px; margin-bottom: 8px; background:#FFF; padding:6px; border-radius:6px; text-align:left;"><strong style="color:#D97706; font-size:0.95rem;">${safeStr(u.title)}</strong><div style="font-size:0.75rem; color:#44474E; margin-top:2px;">📍 <strong>${safeStr(u.venue)}</strong> | 📅 ${safeStr(u.date)} ⏰ ${safeStr(u.time)}</div><div style="margin-top:4px; font-size:0.75rem; color:#B45309; font-weight:600;">Menu: ${safeStr(u.refreshment)}</div></div>`).join(''); }
   };
 
+  window.renderAdminLiveRecords = function() {
+      const dateVal = document.getElementById('liveReportDate').value;
+      const typeVal = document.getElementById('liveReportType').value;
+      const pantryVal = document.getElementById('liveReportPantry').value;
+      const targetDMY = convertYMDtoDMY(dateVal);
+      
+      const listEl = document.getElementById('liveReportList');
+      if(!listEl) return;
+
+      let records = [];
+      if(typeVal === 'regular') records = logsData.filter(l => l.date === targetDMY);
+      else records = extraLogsData.filter(l => l.date === targetDMY);
+
+      if(pantryVal !== 'All') records = records.filter(l => l.pantryId === pantryVal);
+
+      let tea = 0, coffee = 0, total = 0;
+      records.forEach(r => {
+          const d = (r.drink || '').toLowerCase();
+          const q = r.qty ? Number(r.qty) : 1;
+          if(d.includes('tea') && !d.includes('green') && !d.includes('lemon') && !d.includes('black')) tea += q;
+          else if(d.includes('coffee')) coffee += q;
+          total += q;
+      });
+
+      document.getElementById('liveTeaTotal').innerText = tea;
+      document.getElementById('liveCoffeeTotal').innerText = coffee;
+      document.getElementById('liveGrandTotal').innerText = total;
+
+      if(records.length === 0) {
+          listEl.innerHTML = `<p style="text-align:center; padding:12px; color:#74777F; font-size:0.85rem;">No records found for this selection.</p>`;
+          return;
+      }
+
+      if(typeVal === 'regular') {
+          listEl.innerHTML = records.map(l => `
+              <div style="background:white; border-left:3px solid #0A56D0; margin:4px 0; padding:8px; border-radius:6px; font-size:0.85rem; display:flex; justify-content:space-between; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                  <div><strong>${safeStr(l.employeeName)}</strong> <span style="color:#64748B;">(${l.session})</span><br><small style="color:#44474E;">Item: ${l.drink}</small></div>
+                  <div style="text-align:right;"><small style="color:#0A56D0;">🧑‍🍳 ${safeStr(l.pantryName)}</small></div>
+              </div>
+          `).join('');
+      } else {
+          listEl.innerHTML = records.map(l => `
+              <div style="background:white; border-left:3px solid #D97706; margin:4px 0; padding:8px; border-radius:6px; font-size:0.85rem; display:flex; justify-content:space-between; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                  <div><strong>${safeStr(l.employeeName)}</strong> <span style="color:#D97706; font-weight:bold;">[${l.qty} Cups]</span><br><small style="color:#44474E;">${l.drink} | ${l.remarks || 'No Reason'}</small></div>
+                  <div style="text-align:right;"><small style="color:#0A56D0;">🧑‍🍳 ${safeStr(l.pantryName)}</small></div>
+              </div>
+          `).join('');
+      }
+  };
+
   db.ref('sessionDevices').on('value', snap => { cloudSessions = snap.val() || {}; renderIfNeeded(); });
   db.ref('adminSecurityConfig').on('value', snap => { if(snap.exists()) adminSecurity = snap.val(); else db.ref('adminSecurityConfig').set({password:"admin123"}); });
   db.ref('employees').on('value', snap => { employeeList = snap.exists() ? Object.values(snap.val()) : []; renderIfNeeded(); });
@@ -840,7 +788,8 @@
             if(adminScreen.classList.contains('hidden')) renderAdminConsole();
             if (activeAdminTab && !document.getElementById('adminContentArea').classList.contains('hidden')) {
               if(activeAdminTab === 'events') window.populateSharedEventSectionDataViews?.('admEvt');
-              else if(activeAdminTab !== 'reports' && activeAdminTab !== 'bin' && activeAdminTab !== 'settings') renderAdminTab(activeAdminTab);
+              else if(activeAdminTab === 'reports') { window.renderAdminLiveRecords?.(); }
+              else if(activeAdminTab !== 'bin' && activeAdminTab !== 'settings') renderAdminTab(activeAdminTab);
             }
           } else if (currentUser.role === 'pantry') {
             if(pantryScreen.classList.contains('hidden')) renderPantryDashboard();
@@ -1021,10 +970,60 @@
     } else if(tab === 'events') {
       window.renderCentralizedEventSectionUI('adminContent', 'admEvt');
     } else if(tab === 'reports') {
-      cont.innerHTML = `<div class="card"><h4 style="margin-bottom:16px; color:#0A56D0;">📅 Reports Portal</h4><label style="font-size:0.85rem; color:#44474E;">Select Month</label><input type="month" id="reportMonth" value="${new Date().toISOString().slice(0,7)}"><div style="border-top:1px solid #E2E8F0; padding-top:16px;"><h5 style="color:#44474E; margin-bottom:8px;">1. Regular Daily Tea Report</h5><select id="reportCategory" style="margin-bottom:8px;"><option value="All">All Categories</option><option>Faculty</option><option>Staff</option><option>Law</option><option>Outsourced</option></select><button id="exportRegularBtn" class="success report-btn">📊 Download</button></div><div style="border-top:1px solid #E2E8F0; padding-top:16px; margin-top:8px;"><h5 style="color:#D97706; margin-bottom:8px;">2. Extra Tea Report</h5><button id="exportExtraBtn" class="btn report-btn" style="background:#D97706;">📊 Download</button></div><div style="border-top:1px solid #E2E8F0; padding-top:16px; margin-top:8px;"><h5 style="color:#0A56D0; margin-bottom:8px;">3. Meeting Refreshment Report</h5><button id="exportMeetingBtn" class="btn report-btn" style="background:#0A56D0;">📊 Download</button></div></div>`;
+      const todayYMD = new Date().toISOString().split('T')[0];
+      let pOptions = `<option value="All">All Pantry Staff</option>` + pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+
+      cont.innerHTML = `
+        <div class="card" style="border: 2px solid #0A56D0; background: #F8FAFC;">
+          <h4 style="margin-bottom:12px; color:#0A56D0;">📡 Live Entry Records</h4>
+          <div style="display:flex; gap:8px; margin-bottom:8px;">
+            <input type="date" id="liveReportDate" value="${todayYMD}" style="flex:1;">
+            <select id="liveReportType" style="flex:1;">
+              <option value="regular">Regular Entries</option>
+              <option value="extra">Extra Logs</option>
+            </select>
+          </div>
+          <select id="liveReportPantry" style="margin-bottom:12px;">${pOptions}</select>
+          
+          <div style="display:flex; justify-content:space-around; background:white; padding:10px; border-radius:8px; border:1px solid #CBD5E1; margin-bottom:12px; text-align:center;">
+              <div><div id="liveTeaTotal" style="font-size:1.2rem; font-weight:700; color:#0A56D0;">0</div><div style="font-size:0.7rem; color:#64748B;">TEA</div></div>
+              <div><div id="liveCoffeeTotal" style="font-size:1.2rem; font-weight:700; color:#0A56D0;">0</div><div style="font-size:0.7rem; color:#64748B;">COFFEE</div></div>
+              <div><div id="liveGrandTotal" style="font-size:1.2rem; font-weight:700; color:#146C43;">0</div><div style="font-size:0.7rem; color:#64748B;">TOTAL</div></div>
+          </div>
+          <div id="liveReportList" class="scroll-list-box" style="max-height: 250px;"></div>
+        </div>
+
+        <div class="card">
+          <h4 style="margin-bottom:16px; color:#44474E;">📥 Download Excel Reports</h4>
+          <label style="font-size:0.85rem; color:#44474E;">Select Month</label>
+          <input type="month" id="reportMonth" value="${new Date().toISOString().slice(0,7)}">
+          <div style="border-top:1px solid #E2E8F0; padding-top:16px;">
+            <h5 style="color:#44474E; margin-bottom:8px;">1. Regular Daily Tea Report</h5>
+            <select id="reportCategory" style="margin-bottom:8px;">
+              <option value="All">All Categories</option><option value="Faculty">Faculty</option><option value="Staff">Staff</option><option value="Law">Law</option><option value="Outsourced">Outsourced</option>
+            </select>
+            <button id="exportRegularBtn" class="success report-btn">📊 Download</button>
+          </div>
+          <div style="border-top:1px solid #E2E8F0; padding-top:16px; margin-top:8px;">
+            <h5 style="color:#D97706; margin-bottom:8px;">2. Extra Tea Report</h5>
+            <button id="exportExtraBtn" class="btn report-btn" style="background:#D97706;">📊 Download</button>
+          </div>
+          <div style="border-top:1px solid #E2E8F0; padding-top:16px; margin-top:8px;">
+            <h5 style="color:#0A56D0; margin-bottom:8px;">3. Meeting Refreshment Report</h5>
+            <button id="exportMeetingBtn" class="btn report-btn" style="background:#0A56D0;">📊 Download</button>
+          </div>
+        </div>
+      `;
+
       document.getElementById('exportRegularBtn').onclick = () => exportIndividualReport('regular');
       document.getElementById('exportExtraBtn').onclick = () => exportIndividualReport('extra');
       document.getElementById('exportMeetingBtn').onclick = () => exportIndividualReport('meeting');
+      
+      const liveEls = ['liveReportDate', 'liveReportType', 'liveReportPantry'];
+      liveEls.forEach(id => document.getElementById(id).addEventListener('change', window.renderAdminLiveRecords));
+      
+      window.renderAdminLiveRecords();
+
     } else if(tab === 'locations') {
       cont.innerHTML = `
         <div class="card"><h4 style="margin-bottom:12px; color:#0A56D0;">📍 Add Meeting Venue / Campus Location</h4><input id="venueNameInput" placeholder="Enter Location Name (e.g., Faculty Block 1, CEP Lab)" style="text-align:left;"><button id="saveVenueBtn" class="success" style="width:100%;">Add Location Node</button></div>
@@ -1187,7 +1186,16 @@
   function renderAdminCanteens() {
     const c = document.getElementById('canteenListContainer'); if(!c) return;
     if(canteenList.length === 0) { c.innerHTML = `<p style="padding:12px; color:#74777F; font-size:0.9rem; text-align:center;">No canteens added.</p>`; return; }
-    c.innerHTML = canteenList.map(cnt => `<div class="employee-item" style="margin:6px 4px;"><span>🏢 <strong>${cnt.name}</strong></span><button onclick="window.pantryDeleteHandler('canteen','${cnt.id}')" style="background:transparent; border:none; color:#DC3545; cursor:pointer; font-size:1.1rem; padding:8px;">🗑</button></div>`).join('');
+    
+    c.innerHTML = canteenList.map(cnt => `
+        <div class="employee-item" style="margin:6px 4px; display:flex; justify-content:space-between; align-items:center;">
+            <span>🏢 <strong>${cnt.name}</strong></span>
+            <span style="display:flex; gap:4px; align-items:center;">
+                <button onclick="window.editCanteen('${cnt.id}', '${safeStr(cnt.name).replace(/'/g, "\\'")}')" style="background:transparent; border:none; cursor:pointer; font-size:1.1rem; padding:8px; color:#0A56D0;" title="Edit">✏️</button>
+                <button onclick="window.pantryDeleteHandler('canteen','${cnt.id}')" style="background:transparent; border:none; color:#DC3545; cursor:pointer; font-size:1.1rem; padding:8px;" title="Delete">🗑</button>
+            </span>
+        </div>
+    `).join('');
   }
   
   function renderRecycleBinLists() {
@@ -1203,21 +1211,62 @@
   function exportIndividualReport(type) {
     const month = document.getElementById('reportMonth')?.value; if(!month) return appAlert('Error', 'Select month');
     const wb = XLSX.utils.book_new();
+    
     if(type === 'regular') {
       const cat = document.getElementById('reportCategory').value;
-      const data = [['Employee Name','Category','Morning Regular','Afternoon Regular','Grand Total']];
-      employeeList.filter(e => cat === 'All' || e.category === cat).forEach(emp => {
-        const m = logsData.filter(l => l.employeeId === emp.id && l.session === 'Morning' && parseDMYToYMD(l.date).startsWith(month)).length;
-        const a = logsData.filter(l => l.employeeId === emp.id && l.session === 'Afternoon' && parseDMYToYMD(l.date).startsWith(month)).length;
-        data.push([emp.name, emp.category, m, a, m+a]);
+      
+      let categoriesToProcess = [];
+      if (cat === 'All') {
+          // Identify unique categories existing in employee list dynamically
+          categoriesToProcess = [...new Set(employeeList.map(e => (e.category||'').trim()).filter(Boolean))];
+          if(categoriesToProcess.length === 0) categoriesToProcess = ['Faculty', 'Staff', 'Law', 'Outsourced'];
+      } else {
+          categoriesToProcess = [cat.trim()];
+      }
+
+      categoriesToProcess.forEach(cName => {
+          const data = [['Employee Name', 'Tea', 'Coffee', 'Green Tea', 'Lemon Tea', 'Black Tea', 'Black Coffee']];
+          let sumT=0, sumC=0, sumGT=0, sumLT=0, sumBT=0, sumBC=0;
+
+          // Make match exactly ignoring spaces/case
+          const empsInCategory = employeeList.filter(e => (e.category || '').trim().toLowerCase() === cName.toLowerCase());
+
+          empsInCategory.forEach(emp => {
+            let t=0, c=0, gt=0, lt=0, bt=0, bc=0;
+            
+            logsData.filter(l => l.employeeId === emp.id && parseDMYToYMD(l.date).startsWith(month)).forEach(log => {
+                const d = (log.drink || '').toLowerCase().trim();
+                if(d === 'tea') t++;
+                else if(d === 'coffee') c++;
+                else if(d === 'green tea') gt++;
+                else if(d === 'lemon tea') lt++;
+                else if(d === 'black tea') bt++;
+                else if(d === 'black coffee') bc++;
+            });
+            
+            sumT += t; sumC += c; sumGT += gt; sumLT += lt; sumBT += bt; sumBC += bc;
+            
+            data.push([emp.name, t, c, gt, lt, bt, bc]);
+          });
+          
+          // Bottom Grand Total Row Added
+          data.push(['GRAND TOTAL', sumT, sumC, sumGT, sumLT, sumBT, sumBC]);
+          
+          const ws = XLSX.utils.aoa_to_sheet(data); 
+          ws['!cols'] = [{wch: 26}, {wch: 8}, {wch: 8}, {wch: 12}, {wch: 12}, {wch: 12}, {wch: 14}];
+          
+          let sheetName = cName.substring(0, 31).replace(/[\\/*?:\[\]]/g, '');
+          XLSX.utils.book_append_sheet(wb, ws, sheetName || 'Report'); 
       });
-      const ws = XLSX.utils.aoa_to_sheet(data); ws['!cols'] = [{wch: 26}, {wch: 15}, {wch: 24}, {wch: 24}, {wch: 26}];
-      XLSX.utils.book_append_sheet(wb, ws, 'Regular Daily Tea'); XLSX.writeFile(wb, `Daily_Regular_Tea_Report_${month}.xlsx`);
+
+      XLSX.writeFile(wb, `Daily_Regular_Tea_Report_${month}.xlsx`);
+      
     } else if(type === 'extra') {
       const data = [['Log ID','Employee Name','Choice','Quantity','Remarks','Date','Served By']];
       extraLogsData.filter(ex => ex.date && parseDMYToYMD(ex.date).startsWith(month)).forEach(ex => data.push([ex.id, ex.employeeName, ex.drink, ex.qty, ex.remarks || 'None', ex.date, ex.pantryName]));
       const ws = XLSX.utils.aoa_to_sheet(data); ws['!cols'] = [{wch: 16}, {wch: 24}, {wch: 18}, {wch: 18}, {wch: 32}, {wch: 14}, {wch: 20}];
       XLSX.utils.book_append_sheet(wb, ws, 'Extra Tea Entries'); XLSX.writeFile(wb, `Extra_Tea_Allocation_Report_${month}.xlsx`);
+      
     } else if(type === 'meeting') {
       const data = [['Log ID', 'Canteen Vendor', 'Ordered By', 'Event Title', 'Date', 'Time', 'Venue Location', 'Detailed Dynamic Items', 'Grand Total (₹)', 'Log Operator']];
       eventLogsData.filter(ev => ev.date && parseDMYToYMD(ev.date).startsWith(month)).forEach(ev => {
@@ -1294,14 +1343,33 @@
       const selectedDateDMY = convertYMDtoDMY(selectedDateYMD);
       const baseTimestamp = Date.now();
       const activeRows = document.querySelectorAll('.bulk-entry-row');
+      
       if(activeRows.length === 0) return appAlert('Notification', 'No staff to process.');
+      
       activeRows.forEach((row, rowIndex) => {
         const empId = row.dataset.id, empName = row.dataset.name;
-        const morn = row.querySelector('.mornDrink').value, aft = row.querySelector('.aftDrink').value;
-        if(morn && morn !== "Served") { const logIdM = 'log_' + (baseTimestamp + (rowIndex * 2)) + '_' + Math.floor(Math.random() * 10000); db.ref('logs/' + logIdM).set({ id: logIdM, employeeId: empId, employeeName: empName, drink: morn, session: 'Morning', date: selectedDateDMY, pantryId: currentUser.id, pantryName: currentUser.name }); saved++; }
-        if(aft && aft !== "Served") { const logIdA = 'log_' + (baseTimestamp + (rowIndex * 2) + 1) + '_' + Math.floor(Math.random() * 10000); db.ref('logs/' + logIdA).set({ id: logIdA, employeeId: empId, employeeName: empName, drink: aft, session: 'Afternoon', date: selectedDateDMY, pantryId: currentUser.id, pantryName: currentUser.name }); saved++; }
+        const mornEl = row.querySelector('.mornDrink');
+        const aftEl = row.querySelector('.aftDrink');
+        
+        // Strict logic: Check if element exists, is NOT disabled, has value, and is not just empty "-"
+        if(mornEl && !mornEl.disabled && mornEl.value && mornEl.value !== "-" && mornEl.value !== "Served") { 
+            const logIdM = 'log_' + (baseTimestamp + (rowIndex * 2)) + '_' + Math.floor(Math.random() * 10000); 
+            db.ref('logs/' + logIdM).set({ id: logIdM, employeeId: empId, employeeName: empName, drink: mornEl.value, session: 'Morning', date: selectedDateDMY, pantryId: currentUser.id, pantryName: currentUser.name }); 
+            saved++; 
+        }
+        
+        if(aftEl && !aftEl.disabled && aftEl.value && aftEl.value !== "-" && aftEl.value !== "Served") { 
+            const logIdA = 'log_' + (baseTimestamp + (rowIndex * 2) + 1) + '_' + Math.floor(Math.random() * 10000); 
+            db.ref('logs/' + logIdA).set({ id: logIdA, employeeId: empId, employeeName: empName, drink: aftEl.value, session: 'Afternoon', date: selectedDateDMY, pantryId: currentUser.id, pantryName: currentUser.name }); 
+            saved++; 
+        }
       });
-      if(saved > 0) { setTimeout(() => { appAlert('Logged', `✅ ${saved} Entries saved directly to Live Cloud!`); }, 100); } else { appAlert('Error', 'No drinks selected.'); }
+      
+      if(saved > 0) { 
+          setTimeout(() => { appAlert('Logged', `✅ ${saved} New Entries saved directly to Live Cloud!`); }, 100); 
+      } else { 
+          appAlert('No Action', 'All valid entries are already saved or no drink selected.'); 
+      }
     };
   }
   
