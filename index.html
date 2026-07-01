@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- ===== META ===== -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -12,13 +11,11 @@
   <link rel="apple-touch-icon" href="https://iili.io/Cf1HIm7.png" />
   <title>DAU Pantry · HD Live App</title>
 
-  <!-- ===== LIBS ===== -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
 
-  <!-- ===== FORCE CACHE UPDATE ===== -->
   <script>
     (async function forceLiveAppUpdate() {
       try {
@@ -74,9 +71,10 @@
     input:focus, select:focus, textarea:focus { border:2px solid #0A56D0; padding:13px 15px; }
 
     /* ===== LOGIN UNIFORM BOX ===== */
-    .login-uniform-box { max-width:260px; width:100%; margin:8px auto 16px; display:flex; align-items:center; gap:10px; background:#fff; border:1px solid #74777F; padding:12px 16px; border-radius:8px; cursor:pointer; box-sizing:border-box; }
+    .login-uniform-box { width:100%; margin:8px auto 16px; display:flex; align-items:center; gap:10px; background:#fff; border:1px solid #74777F; padding:14px 16px; border-radius:12px; cursor:pointer; box-sizing:border-box; }
     .login-uniform-box span:first-child { flex:1; font-weight:500; color:#1F1F1F; font-size:1rem; text-align:center; }
-    .pin-container { display:flex; flex-direction:column; align-items:center; margin:8px 0; width:100%; }
+    .pin-container { display:flex; flex-direction:column; align-items:stretch; margin:8px 0; width:100%; text-align: center; }
+    .pin-container label { text-align: center; }
     .small-pin-input { text-align:center; letter-spacing:4px; font-size:1.2rem; padding:14px 16px; }
 
     /* ===== FILTER ROW ===== */
@@ -1552,7 +1550,7 @@
         <table class="print-table">
           <thead>
             <tr><th colspan="9" style="border:none; font-size:18px; text-decoration:underline; padding-bottom:20px; text-align:center;">${title}</th></tr>
-            <tr><th class="sr-col">SR.<br>NO.</th><th class="left-align name-col">EMPLOYEE NAME</th><th class="drink-col">TEA</th><th class="drink-col">COFFEE</th><th class="drink-col">GREEN<br>TEA</th><th class="drink-col">LEMON<br>TEA</th><th class="drink-col">BLACK<br>TEA</th><th class="drink-col">BLACK<br>COFFEE</th><th class="sign-col">SIGNATURE</th></tr>
+            <tr><th class="sr-col">SR.<br>NO.</th><th class="name-col">NAME</th><th class="drink-col">TEA</th><th class="drink-col">COFFEE</th><th class="drink-col">GREEN<br>TEA</th><th class="drink-col">LEMON<br>TEA</th><th class="drink-col">BLACK<br>TEA</th><th class="drink-col">BLACK<br>COFFEE</th><th class="sign-col">SIGNATURE</th></tr>
           </thead>
           <tbody>${trs}</tbody>
           <tbody class="total-row-grp">
@@ -1572,7 +1570,7 @@
       html = `
         <table class="print-table">
           <thead><tr><th colspan="7" style="border:none; font-size:18px; text-decoration:underline; padding-bottom:20px; text-align:center;">${title}</th></tr>
-          <tr><th>LOG ID</th><th class="left-align">EMPLOYEE NAME</th><th>CHOICE</th><th>QUANTITY</th><th class="left-align">REMARKS</th><th>DATE</th><th>SERVED BY</th></tr></thead>
+          <tr><th>LOG ID</th><th>NAME</th><th>CHOICE</th><th>QUANTITY</th><th class="left-align">REMARKS</th><th>DATE</th><th>SERVED BY</th></tr></thead>
           <tbody>${trs}</tbody>
         </table>
       `;
@@ -1644,7 +1642,7 @@
         const row1 = [{ v: titleStr, s: titleStyle }, '', '', '', '', '', '', '', ''];
         const row2 = [
           { v: 'SR. NO.', s: headerStyle },
-          { v: 'EMPLOYEE NAME', s: headerStyle },
+          { v: 'NAME', s: headerStyle },
           { v: 'TEA', s: headerStyle },
           { v: 'COFFEE', s: headerStyle },
           { v: 'GREEN\nTEA', s: headerStyle },
@@ -1706,7 +1704,7 @@
       const titleStr = `EXTRA TEA ALLOCATION REPORT (${monthStr})`;
       const titleStyle = { font: { bold: true, sz: 14, underline: true }, alignment: { horizontal:'center', vertical:'center' } };
       const row1 = [{ v: titleStr, s: titleStyle }, '', '', '', '', '', ''];
-      const row2 = ['LOG ID','EMPLOYEE NAME','CHOICE','QUANTITY','REMARKS','DATE','SERVED BY'].map(h => ({ v: h, s: headerStyle }));
+      const row2 = ['LOG ID','NAME','CHOICE','QUANTITY','REMARKS','DATE','SERVED BY'].map(h => ({ v: h, s: headerStyle }));
       const data = [row1, row2];
       extraLogsData.filter(ex => ex.date && parseDMYToYMD(ex.date).startsWith(month)).forEach(ex => {
         data.push([
