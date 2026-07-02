@@ -1203,6 +1203,7 @@
               <input type="text" class="item-name" placeholder="Item Name" style="flex:2; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
               <input type="number" class="item-qty" placeholder="Qty" min="1" value="1" style="flex:.8; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
               <input type="number" class="item-rate" placeholder="₹ Rate" min="0" value="" style="flex:.9; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
+              <input type="text" class="item-vendor" placeholder="Vendor" style="flex:1.2; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
               <input type="time" class="item-time" value="${now}" style="flex:1.1; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
               <button type="button" class="remove-item-btn" style="padding:8px 12px; border-radius:8px; margin:0; font-size:1rem; min-height:34px;">X</button>
             `;
@@ -1246,9 +1247,10 @@
                     const qty = Number(row.querySelector('.item-qty').value) || 0;
                     const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
                     const itemTime = row.querySelector('.item-time').value || t;
+                    const iVendor = row.querySelector('.item-vendor') ? row.querySelector('.item-vendor').value.trim() : '';
                     if (iName && qty > 0) {
                         const amt = qty * rate;
-                        items.push({ type, name: iName, qty, rate, amount: amt, time: itemTime });
+                        items.push({ type, name: iName, qty, rate, amount: amt, time: itemTime, vendor: iVendor });
                         totalAmt += amt;
                         summary.push(`${qty} ${iName} (${itemTime})`);
                     }
@@ -1315,6 +1317,7 @@
                   <input type="text" class="item-name" value="${item}" placeholder="Item Name" style="flex:2; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
                   <input type="number" class="item-qty" value="${qty}" placeholder="Qty" min="1" style="flex:.8; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
                   <input type="number" class="item-rate" placeholder="₹ Rate" min="0" value="" style="flex:.9; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
+                  <input type="text" class="item-vendor" placeholder="Vendor" style="flex:1.2; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
                   <input type="time" class="item-time" value="${now}" style="flex:1.1; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
                   <button type="button" class="remove-item-btn" style="padding:8px 12px; border-radius:8px; margin:0; font-size:1rem; min-height:34px;">X</button>
                 `;
@@ -1358,6 +1361,7 @@
                       <input type="text" class="item-name" value="${itemName.replace(/"/g, '&quot;')}" placeholder="Item Name" style="flex:2; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
                       <input type="number" class="item-qty" value="${qty}" placeholder="Qty" min="1" style="flex:.8; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
                       <input type="number" class="item-rate" value="${rate}" placeholder="₹ Rate" min="0" style="flex:.9; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
+                      <input type="text" class="item-vendor" placeholder="Vendor" style="flex:1.2; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
                       <input type="time" class="item-time" value="${rowTime}" style="flex:1.1; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
                       <button type="button" class="remove-item-btn" style="padding:8px 12px; border-radius:8px; margin:0; font-size:1rem; min-height:34px;">X</button>
                     `;
@@ -1495,7 +1499,7 @@
                             let itemsStr = '';
                             if (ev.items && Array.isArray(ev.items)) {
                                 itemsStr = ev.items.map(i =>
-                                    `${i.name} (Qty:${i.qty}, Time:${i.time||'N/A'}${i.rate?`, Rate:₹${i.rate}`:''})`
+                                    `${i.name} (Qty:${i.qty}, Time:${i.time||'N/A'}${i.rate?`, Rate:₹${i.rate}`:''}${i.vendor?`, Vendor:${i.vendor}`:''})`
                                     ).join(' | ');
                             }
                             return `
@@ -1766,7 +1770,7 @@
                         cont.innerHTML = `
                   <div class="merged-filter-row">
                     <input id="employeeSearch" placeholder="🔍 Search employees...">
-                    <select id="categoryFilter"><option value="">All Categories</option><option>Faculty</option><option>Staff</option><option>Law</option><option>Outsourced</option></select>
+                    <select id="categoryFilter"><option value="">All Categories</option><option>Faculty</option><option>Staff</option><option>Law</option><option>Outsourced Staff</option></select>
                     <select id="pantryFilter"><option value="">All Pantry</option>${pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}</select>
                   </div>
                   <div style="display:flex; gap:8px; margin-bottom:14px; flex-shrink:0;">
@@ -1867,7 +1871,7 @@
                     <input type="month" id="reportMonth" value="${new Date().toISOString().slice(0,7)}" style="padding:12px; border-radius:10px; border:1px solid #CBD5E1;">
                     <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:6px;">
                       <h5 style="color:#44474E; margin-bottom:8px; font-size:.9rem;">1. Regular Daily Tea Report</h5>
-                      <select id="reportCategory" style="margin-bottom:8px; padding:12px; border-radius:10px; border:1px solid #CBD5E1;"><option value="All">All Categories</option><option>Faculty</option><option>Staff</option><option>Law</option><option>Outsourced</option></select>
+                      <select id="reportCategory" style="margin-bottom:8px; padding:12px; border-radius:10px; border:1px solid #CBD5E1;"><option value="All">All Categories</option><option>Faculty</option><option>Staff</option><option>Law</option><option>Outsourced Staff</option></select>
                       <button id="previewRegularBtn" class="success report-btn">👁️ Preview & Print</button>
                     </div>
                     <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:8px;">
@@ -2014,7 +2018,7 @@
                 <option value="Faculty" ${existing?.category==='Faculty'?'selected':''}>Faculty</option>
                 <option value="Staff" ${existing?.category==='Staff'?'selected':''}>Staff</option>
                 <option value="Law" ${existing?.category==='Law'?'selected':''}>Law</option>
-                <option value="Outsourced" ${existing?.category==='Outsourced'?'selected':''}>Outsourced</option>
+                <option value="Outsourced Staff" ${existing?.category==='Outsourced Staff'?'selected':''}>Outsourced Staff</option>
               </select>
               <label style="font-size:.85rem; color:#44474E; display:block; font-weight:500;">Assign Pantry Boy:</label>
               <select id="empPantryAssign" style="margin-top:4px; margin-bottom:12px; padding:14px; border-radius:10px; border:1px solid #CBD5E1;"><option value="">-- Unassigned --</option>${pantryOpts}</select>
@@ -2324,7 +2328,7 @@
                 if (type === 'regular') {
                     const cat = document.getElementById('reportCategory').value;
                     if (cat === 'All') return appAlert('Notice',
-                    'Please select a specific category (Faculty, Staff, Law, Outsourced).');
+                    'Please select a specific category (Faculty, Staff, Law, Outsourced Staff).');
 
                     const isDAU = (cat.toLowerCase() === 'faculty' || cat.toLowerCase() === 'staff') ? 'DAU ' : '';
                     const title = `MONTHLY TEA OF ${isDAU}${cat.toUpperCase()} (${monthStr})`;
@@ -2403,7 +2407,7 @@
                         let itemsStr = '';
                         if (ev.items && Array.isArray(ev.items)) {
                             itemsStr = ev.items.map(i =>
-                                `${i.name} (Qty:${i.qty}, Time:${i.time||'N/A'}, Rate:₹${i.rate})`).join(
+                                `${i.name} (Qty:${i.qty}, Time:${i.time||'N/A'}, Rate:₹${i.rate||0}${i.vendor?`, Vendor:${i.vendor}`:''})`).join(
                                 ' | ');
                         }
                         trs +=
@@ -2458,7 +2462,7 @@
                     let categories = [];
                     if (cat === 'All') {
                         categories = [...new Set(employeeList.map(e => (e.category || '').trim()).filter(Boolean))];
-                        if (!categories.length) categories = ['Faculty', 'Staff', 'Law', 'Outsourced'];
+                        if (!categories.length) categories = ['Faculty', 'Staff', 'Law', 'Outsourced Staff'];
                     } else categories = [cat.trim()];
 
                     categories.forEach(cName => {
@@ -2587,7 +2591,7 @@
                         let itemsStr = '';
                         if (ev.items && Array.isArray(ev.items)) {
                             itemsStr = ev.items.map(i =>
-                                `${i.name} (Qty:${i.qty}, Time:${i.time||'N/A'}, Rate:₹${i.rate})`).join(
+                                `${i.name} (Qty:${i.qty}, Time:${i.time||'N/A'}, Rate:₹${i.rate||0}${i.vendor?`, Vendor:${i.vendor}`:''})`).join(
                                 ' | ');
                         }
                         data.push([
@@ -2757,7 +2761,7 @@
                 </div>
                 <div class="merged-filter-row" style="flex-shrink:0;">
                   <input id="pantryStaffSearch" placeholder="🔍 Search...">
-                  <select id="entryCategory"><option value="All">All</option><option value="Faculty">Faculty</option><option value="Staff">Staff</option><option value="Law">Law</option><option value="Outsourced">Outsourced</option></select>
+                  <select id="entryCategory"><option value="All">All</option><option value="Faculty">Faculty</option><option value="Staff">Staff</option><option value="Law">Law</option><option value="Outsourced Staff">Outsourced Staff</option></select>
                 </div>
                 <div class="table-row table-header"><div>Name</div><div style="text-align:center;">Morning</div><div style="text-align:center;">Afternoon</div></div>
                 <div id="bulkServeList" style="flex:1; overflow-y:auto; margin-bottom:14px;"></div>
@@ -2776,29 +2780,39 @@
                     if (!rows.length) return appAlert('Notice', 'No staff to process.');
                     let saved = 0;
                     const base = Date.now();
+                    
                     rows.forEach((row, idx) => {
                         const empId = row.dataset.id;
                         const empName = row.dataset.name;
-                        const m = row.querySelector('.mornDrink').value;
-                        const a = row.querySelector('.aftDrink').value;
-                        if (m && m !== "Served") {
+                        
+                        const mornEl = row.querySelector('.mornDrink');
+                        const aftEl = row.querySelector('.aftDrink');
+                        
+                        const m = mornEl ? mornEl.value : "";
+                        const a = aftEl ? aftEl.value : "";
+                        
+                        if (m && m !== "-" && m !== "Served" && !mornEl.disabled) {
                             const id = 'log_' + (base + idx * 2) + '_' + Math.floor(Math.random() * 10000);
                             db.ref('logs/' + id).set({ id, employeeId: empId, employeeName: empName,
                                 drink: m, session: 'Morning', date: selectedDateDMY,
                                 pantryId: currentUser.id, pantryName: currentUser.name });
                             saved++;
                         }
-                        if (a && a !== "Served") {
-                            const id = 'log_' + (base + idx * 2 + 1) + '_' + Math.floor(Math.random() *
-                            10000);
+                        
+                        if (a && a !== "-" && a !== "Served" && !aftEl.disabled) {
+                            const id = 'log_' + (base + idx * 2 + 1) + '_' + Math.floor(Math.random() * 10000);
                             db.ref('logs/' + id).set({ id, employeeId: empId, employeeName: empName,
                                 drink: a, session: 'Afternoon', date: selectedDateDMY,
                                 pantryId: currentUser.id, pantryName: currentUser.name });
                             saved++;
                         }
                     });
-                    if (saved) { appAlert('Logged', `✅ ${saved} entries saved!`); } else appAlert('Error',
-                        'No drinks selected.');
+                    
+                    if (saved) { 
+                        appAlert('Logged', `✅ ${saved} new entries saved!`); 
+                    } else { 
+                        appAlert('No Action', 'No new drinks selected or entries already saved.');
+                    }
                 };
             }
 
