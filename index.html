@@ -1930,14 +1930,21 @@
                 <h3 style="color:#0A56D0; margin-top:0; margin-bottom:12px; font-size:1.2rem;">${title}</h3>
                 <p style="margin-bottom:20px; color:#44474E; font-size:.95rem; line-height:1.5;">${message}</p>
                 <div style="display:flex; gap:12px; justify-content:center; width:100%;">
-                  ${isConfirm ? '<button id="modalCancelBtn" style="background:#E2E8F0; color:#1F1F1F; flex:1; border-radius:100px; min-height:44px;">Cancel</button>' : ''}
-                  <button id="modalOkBtn" class="success" style="flex:1; border-radius:100px; min-height:44px;">OK</button>
+                  ${isConfirm ? '<button class="modal-cancel-btn" style="background:#E2E8F0; color:#1F1F1F; flex:1; border-radius:100px; min-height:44px;">Cancel</button>' : ''}
+                  <button class="modal-ok-btn success" style="flex:1; border-radius:100px; min-height:44px;">OK</button>
                 </div>
               </div>
             `;
                 document.body.appendChild(modal);
-                if (isConfirm) document.getElementById('modalCancelBtn').onclick = () => modal.remove();
-                document.getElementById('modalOkBtn').onclick = () => { modal.remove(); if (onConfirm) onConfirm(); };
+                
+                // NAYA: ID ki jagah Class aur modal.querySelector use kiya hai
+                if (isConfirm) {
+                    modal.querySelector('.modal-cancel-btn').onclick = () => modal.remove();
+                }
+                modal.querySelector('.modal-ok-btn').onclick = () => { 
+                    modal.remove(); 
+                    if (onConfirm) onConfirm(); 
+                };
             }
 
             function appAlert(title, msg) { openAppModal(title, msg, false); }
@@ -1986,14 +1993,16 @@
                 ).join('');
 
                 let empDept = '';
-                let empCategory = '';
-                if (record) {
-                    const emp = getEmployeeById(record.employeeId);
-                    if (emp) {
-                        empDept = emp.department || '';
-                        empCategory = emp.category || '';
-                    }
-                }
+        let empCategory = '';
+        let empName = ''; // <-- Naya variable add kiya
+        if (record) {
+            const emp = getEmployeeById(record.employeeId);
+            if (emp) {
+                empDept = emp.department || '';
+                empCategory = emp.category || '';
+                empName = emp.name || ''; // <-- Name fetch kiya
+            }
+        }
 
                 container.innerHTML = `
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
@@ -2008,10 +2017,11 @@
               </div>
               <div style="margin-top:6px;">
                 <label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">👤 Employee</label>
-                <select id="extraTeaEmployee" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;">
-                  <option value="">-- Select Employee --</option>
-                  ${employeeOpts}
-                </select>
+                <div class="autocomplete-wrap" style="width:100%;">
+                  <input type="text" id="extraTeaEmpSearch" value="${record ? safeStr(empName) : ''}" placeholder="🔍 Type 2-3 letters of name..." style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; width:100%; box-sizing:border-box;">
+                  <input type="hidden" id="extraTeaEmployee" value="${record ? record.employeeId : ''}">
+                  <div class="autocomplete-dropdown" id="ac_extraTeaEmp"></div>
+                </div>
               </div>
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:6px;">
                 <div>
@@ -2050,17 +2060,47 @@
               </div>
             `;
 
-                document.getElementById('extraTeaEmployee').addEventListener('change', function() {
-                    const empId = this.value;
-                    const emp = getEmployeeById(empId);
-                    if (emp) {
-                        document.getElementById('extraTeaDept').value = emp.department || '';
-                        document.getElementById('extraTeaCategory').value = emp.category || '';
-                    } else {
-                        document.getElementById('extraTeaDept').value = '';
-                        document.getElementById('extraTeaCategory').value = '';
+                const searchInput = document.getElementById('extraTeaEmpSearch');
+                const hiddenInput = document.getElementById('extraTeaEmployee');
+                const dropdown = document.getElementById('ac_extraTeaEmp');
+
+                searchInput.addEventListener('input', function() {
+                    const q = this.value.toLowerCase().trim();
+                    if (q.length < 2) { 
+                        dropdown.classList.remove('active'); 
+                        hiddenInput.value = "";
+                        document.getElementById('extraTeaDept').value = "";
+                        document.getElementById('extraTeaCategory').value = "";
+                        return; 
+                    }
+                    
+                    const matches = employeeList.filter(e => (e.name || '').toLowerCase().includes(q)).slice(0, 10);
+                    if (!matches.length) { 
+                        dropdown.classList.remove('active'); 
+                        return; 
+                    }
+                    
+                    dropdown.innerHTML = matches.map(e => 
+                        `<div class="ac-item" data-id="${e.id}" data-name="${safeStr(e.name)}" data-dept="${safeStr(e.department)}" data-cat="${safeStr(e.category)}">
+                            ${safeStr(e.name)} <span style="color:#64748B;font-size:.7rem;">[${safeStr(e.category)}]</span>
+                         </div>`
+                    ).join('');
+                    dropdown.classList.add('active');
+                });
+
+                dropdown.addEventListener('click', function(e) {
+                    const item = e.target.closest('.ac-item');
+                    if (item) {
+                        searchInput.value = item.dataset.name;
+                        hiddenInput.value = item.dataset.id;
+                        document.getElementById('extraTeaDept').value = item.dataset.dept || '';
+                        document.getElementById('extraTeaCategory').value = item.dataset.cat || '';
+                        dropdown.classList.remove('active');
                     }
                 });
+
+                searchInput.addEventListener('blur', () => setTimeout(() => dropdown.classList.remove('active'), 200));
+                searchInput.addEventListener('focus', function() { if (this.value.length >= 2) this.dispatchEvent(new Event('input')); });
 
                 document.getElementById('extraTeaSaveBtn').onclick = function() {
                     const dateVal = document.getElementById('extraTeaDate').value;
@@ -2762,10 +2802,14 @@
             window.addMeetingItemRow = function(prefix) {
                 const container = document.getElementById(prefix + 'MeetingItemsContainer');
                 if (!container) return;
+                
+                // Naya Unique ID datalist ke dropdown ke liye
+                const rowId = 'dl_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+                
                 const row = document.createElement('div');
                 row.className = 'dynamic-item-row';
-                const vendorOpts = canteenList.map(c => `<option value="${safeStr(c.name)}">${safeStr(c.name)}</option>`)
-                    .join('');
+                const vendorOpts = canteenList.map(c => `<option value="${safeStr(c.name)}">${safeStr(c.name)}</option>`).join('');
+                
                 row.innerHTML = `
               <select class="item-vendor" style="flex:1.2; padding:10px; font-size:.75rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
                 <option value="">-- Vendor --</option>${vendorOpts}
@@ -2773,7 +2817,11 @@
               <select class="item-type" style="flex:1; padding:10px; font-size:.75rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
                 <option>☕ Tea/Coffee</option><option>🍪 Snacks/Food</option><option>🥤 Other</option>
               </select>
-              <input type="text" class="item-name" placeholder="Item Name" style="flex:1.5; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
+              
+              <!-- Naya Autocomplete Datalist add kiya -->
+              <input type="text" list="${rowId}" class="item-name" placeholder="Item Name (Select or Type)" style="flex:1.5; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
+              <datalist id="${rowId}"></datalist>
+              
               <input type="number" class="item-qty" placeholder="Qty" min="1" value="1" style="flex:.8; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
               <select class="item-unit" style="flex:.7; padding:8px; font-size:.75rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
                 <option value="–">–</option><option value="Nos">Nos</option><option value="Plates">Plates</option><option value="Cups">Cups</option><option value="Pkt">Pkt</option>
@@ -2782,22 +2830,50 @@
               <button type="button" class="remove-item-btn" style="padding:8px 12px; border-radius:8px; margin:0; font-size:1rem; min-height:34px;">X</button>
             `;
                 container.appendChild(row);
-                row.querySelector('.remove-item-btn').onclick = () => { row.remove();
-                    window.calcMeetingTotal(prefix); };
-                row.querySelectorAll('input').forEach(i => i.addEventListener('input', () => window.calcMeetingTotal(
-                prefix)));
-                row.querySelector('.item-vendor').addEventListener('change', function() {
-                    const vName = this.value;
-                    const iName = row.querySelector('.item-name').value.trim().toLowerCase();
+                
+                row.querySelector('.remove-item-btn').onclick = () => { 
+                    row.remove();
+                    window.calcMeetingTotal(prefix); 
+                };
+                
+                row.querySelectorAll('input').forEach(i => i.addEventListener('input', () => window.calcMeetingTotal(prefix)));
+                
+                // Dropdown aur Rate Auto-Fill Logic
+                const vendorSelect = row.querySelector('.item-vendor');
+                const nameInput = row.querySelector('.item-name');
+                const rateInput = row.querySelector('.item-rate');
+                const dataList = row.querySelector('#' + rowId);
+
+                function checkAndFillRate() {
+                    const vName = vendorSelect.value;
+                    const iName = nameInput.value.trim().toLowerCase();
                     if (vName && iName) {
                         const items = vendorItemsCatalog[vName.toLowerCase()] || [];
                         const match = items.find(it => it.name.toLowerCase() === iName);
                         if (match) {
-                            row.querySelector('.item-rate').value = match.rate;
+                            rateInput.value = match.rate;
                             window.calcMeetingTotal(prefix);
                         }
                     }
+                }
+
+                // Jaise hi Vendor select hoga, dropdown me uske items bhar jayenge
+                vendorSelect.addEventListener('change', function() {
+                    const vName = this.value;
+                    dataList.innerHTML = ''; // Pehle ki list saaf karein
+                    if (vName) {
+                        const items = vendorItemsCatalog[vName.toLowerCase()] || [];
+                        items.forEach(it => {
+                            const option = document.createElement('option');
+                            option.value = it.name;
+                            dataList.appendChild(option);
+                        });
+                    }
+                    checkAndFillRate();
                 });
+
+                // Name likhte ya select karte hi rate check karega
+                nameInput.addEventListener('input', checkAndFillRate);
                 window.calcMeetingTotal(prefix);
             };
 
@@ -2836,13 +2912,20 @@
                   <div><label>🔢 Sr. No.</label><div class="meeting-sr-box" id="${prefix}MeetingSrDisplay">${srNo}</div></div>
                 </div>
                 <div class="meeting-row">
-                  <div style="flex:2;"><label>👤 Requested By (Dept/Person)</label>
-                    <div class="autocomplete-wrap">
-                      <input type="text" id="${prefix}MeetingOrderedBy" placeholder="🔍 Type 2-3 characters..." style="margin:0; text-align:left; font-size:.9rem; padding:14px; border-radius:10px; border:1px solid #CBD5E1;">
-                      <div class="autocomplete-dropdown" id="ac_${prefix}MeetingOrderedBy"></div>
-                    </div>
-                  </div>
-                </div>
+  <div style="flex:1;"><label>👤 Requested By (Dept/Person)</label>
+    <div class="autocomplete-wrap">
+      <input type="text" id="${prefix}MeetingOrderedBy" placeholder="🔍 Type 2-3 characters..." style="margin:0; text-align:left; font-size:.9rem; padding:14px; border-radius:10px; border:1px solid #CBD5E1;">
+      <div class="autocomplete-dropdown" id="ac_${prefix}MeetingOrderedBy"></div>
+    </div>
+  </div>
+  <div style="flex:1;"><label>👨‍🍳 Served By (Pantry Boy)</label>
+    <select id="${prefix}MeetingServedBy" style="margin:0; padding:14px; border-radius:10px; border:1px solid #CBD5E1; width:100%;">
+      <option value="">-- Select Pantry Boy --</option>
+      <option value="General/Multiple">General / Multiple Staff</option>
+      ${pantryTeam.filter(p => !p.onLeave).map(p => `<option value="${safeStr(p.name)}">${safeStr(p.name)}</option>`).join('')}
+    </select>
+  </div>
+</div>
                 <div class="meeting-row">
                   <div style="flex:2;"><label>📝 Meeting Purpose</label>
                     <textarea id="${prefix}MeetingPurpose" placeholder="Brief description of the meeting/event..." rows="2" style="margin:0; font-size:.85rem; padding:12px; border:1px solid #CBD5E1; border-radius:10px; resize:vertical; width:100%;"></textarea>
@@ -2914,10 +2997,14 @@
                 }
 
                 document.getElementById(prefix + 'MeetingSubmitBtn').onclick = function() {
-                    const orderedBy = document.getElementById(prefix + 'MeetingOrderedBy').value.trim();
-                    const purpose = document.getElementById(prefix + 'MeetingPurpose').value.trim() ||
-                    'General Meeting';
-                    const dateVal = document.getElementById(prefix + 'MeetingDate').value;
+            const orderedBy = document.getElementById(prefix + 'MeetingOrderedBy').value.trim();
+            const servedBy = document.getElementById(prefix + 'MeetingServedBy').value.trim(); // <-- Naya field fetch kiya
+            
+            if (!servedBy) return appAlert('Error', 'Please select Served By (Pantry Boy).'); // <-- Validation lagaya
+            
+            const purpose = document.getElementById(prefix + 'MeetingPurpose').value.trim() ||
+            'General Meeting';
+            const dateVal = document.getElementById(prefix + 'MeetingDate').value;
                     const d = dateVal ? convertYMDtoDMY(dateVal) : getTodayInDMY();
                     const srNum = document.getElementById(prefix + 'MeetingSrDisplay')?.textContent || '1';
 
@@ -2951,6 +3038,7 @@
                         id,
                         canteenSource: vendorsUsed,
                         orderedBy: orderedBy || 'Not specified',
+                        servedByName: servedBy, // <-- Data yahan se Firebase me save hoga
                         eventName: purpose,
                         date: d,
                         time: new Date().toTimeString().slice(0, 5),
@@ -3600,17 +3688,21 @@
                         return;
                     }
 
-                    // Build professional monthly grid with sticky headers - FIXED: names stay visible while scrolling
+                    // Build professional monthly grid with sticky headers - COMPACT LAYOUT
                     let tableHtml =
-                        `<table><thead><tr><th rowspan="2" style="min-width:80px; position:sticky; left:0; z-index:6; background:#F1F5F9; top:0;">Date</th>`;
+                        `<table style="border-collapse:collapse;"><thead><tr><th rowspan="2" style="min-width:80px; position:sticky; left:0; z-index:6; background:#F1F5F9; top:0; padding:4px; border:1px solid #CBD5E1; border-bottom:2px solid #0A56D0;">Date</th>`;
                     myAssigned.forEach(emp => {
                         tableHtml +=
-                            `<th colspan="2" class="merged-header" style="min-width:100px; position:sticky; top:0; background:#F1F5F9; z-index:5;"><span class="emp-name">${safeStr(emp.name)}</span></th>`;
+                            `<th colspan="2" class="merged-header" style="min-width:100px; position:sticky; top:0; background:#F1F5F9; z-index:5; padding:4px 2px 2px 2px; border:1px solid #CBD5E1; border-bottom:1px solid #94A3B8;">
+                                <span class="emp-name" style="display:block; font-size:.78rem; margin-bottom:0;">${safeStr(emp.name)}</span>
+                            </th>`;
                     });
                     tableHtml += `</tr><tr>`;
                     myAssigned.forEach(() => {
+                        // "Morning" & "Afternoon" ko "Morn" & "Aft" kiya aur top:40px ko 24px kiya taaki height kam ho
                         tableHtml +=
-                            `<th class="session-label" style="position:sticky; top:40px; background:#F1F5F9; z-index:4;">Morning</th><th class="session-label" style="position:sticky; top:40px; background:#F1F5F9; z-index:4;">Afternoon</th>`;
+                            `<th class="session-label" style="position:sticky; top:24px; background:#F8FAFC; z-index:4; padding:2px; font-size:.65rem; border:1px solid #CBD5E1; border-top:none; border-bottom:2px solid #0A56D0;">Morn</th>
+                             <th class="session-label" style="position:sticky; top:24px; background:#F8FAFC; z-index:4; padding:2px; font-size:.65rem; border:1px solid #CBD5E1; border-top:none; border-bottom:2px solid #0A56D0;">Aft</th>`;
                     });
                     tableHtml += `</tr></thead><tbody>`;
 
@@ -3619,7 +3711,13 @@
                         const dd = String(d).padStart(2, '0');
                         const dmy = `${dd}/${monthPad}/${yy}`;
                         const dateDisplay = formatDateForGrid(d, mm, yy);
-                        tableHtml += `<tr><td class="date-cell">${dateDisplay}</td>`;
+                        
+                        // Copy Button aur Naya Delete Button dono add kiye
+                        const copyBtn = d > 1 ? `<button type="button" onclick="window.copyPrevDateRow(this)" style="background:transparent; border:none; cursor:pointer; font-size:1rem; padding:0 4px;" title="Copy from previous day">📋</button>` : '';
+                        const clearBtn = `<button type="button" onclick="window.clearDateRow(this)" style="background:transparent; border:none; cursor:pointer; font-size:1rem; padding:0 4px; color:#DC3545;" title="Clear this day's entry">🗑️</button>`;
+                        
+                        tableHtml += `<tr><td class="date-cell"><div style="display:flex; justify-content:space-between; align-items:center;"><span>${dateDisplay}</span><div style="display:flex; gap:4px;">${copyBtn}${clearBtn}</div></div></td>`;
+                        
                         myAssigned.forEach(emp => {
                             const mLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l
                                 .session === 'Morning');
@@ -3635,6 +3733,51 @@
                     }
                     tableHtml += '</tbody></table>';
                     content.innerHTML = tableHtml;
+
+                    // NAYA FUNCTION: Previous row ka data copy karne ke liye
+                    window.copyPrevDateRow = function(btn) {
+                        const currentRow = btn.closest('tr');
+                        const prevRow = currentRow.previousElementSibling;
+                        if (!prevRow) return;
+
+                        const prevSelects = prevRow.querySelectorAll('select');
+                        const currSelects = currentRow.querySelectorAll('select');
+                        
+                        let copied = false;
+                        prevSelects.forEach((sel, idx) => {
+                            if (currSelects[idx] && !currSelects[idx].disabled) {
+                                currSelects[idx].value = sel.value;
+                                copied = true;
+                            }
+                        });
+                        
+                        if (copied) {
+                            // Button icon change hoke feedback dega
+                            const originalIcon = btn.innerText;
+                            btn.innerText = "✅";
+                            setTimeout(() => { btn.innerText = originalIcon; }, 1000);
+                        }
+                    };
+
+                    // NAYA FUNCTION: Kisi bhi ek din ka data clear/delete karne ke liye
+                    window.clearDateRow = function(btn) {
+                        const currentRow = btn.closest('tr');
+                        const currSelects = currentRow.querySelectorAll('select');
+                        
+                        let cleared = false;
+                        currSelects.forEach(sel => {
+                            if (!sel.disabled) {
+                                sel.value = ""; // Dropdown ko empty (dash) pe set karega
+                                cleared = true;
+                            }
+                        });
+                        
+                        if (cleared) {
+                            const originalIcon = btn.innerText;
+                            btn.innerText = "✅";
+                            setTimeout(() => { btn.innerText = originalIcon; }, 1000);
+                        }
+                    };
 
                     document.getElementById('saveMonthlyGridPopup').onclick = function() {
                         const selects = content.querySelectorAll('select');
@@ -4579,6 +4722,27 @@
                     <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:8px;"><h5 style="color:#D97706; margin-bottom:8px; font-size:.9rem;">2. Extra Tea Report</h5><button id="previewExtraBtn" class="btn report-btn" style="background:#D97706;">👁️ Preview & Print</button></div>
                     <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:8px;"><h5 style="color:#0A56D0; margin-bottom:8px; font-size:.9rem;">3. Meeting Refreshment Report</h5><button id="previewMeetingBtn" class="btn report-btn" style="background:#0A56D0;">👁️ Preview & Print</button></div>
                     <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:8px;"><h5 style="color:#146C43; margin-bottom:8px; font-size:.9rem;">4. Regular Tea All Excel Download</h5><button id="downloadAllExcelBtn2" class="success report-btn" style="background:#146C43;">📊 Download All Categories Excel</button></div>
+                    
+                    <!-- NAYA: 5. Monthly Grid Export -->
+                    <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:8px;">
+                      <h5 style="color:#7C3AED; margin-bottom:8px; font-size:.9rem;">5. Monthly Grid Export (Admin)</h5>
+                      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <select id="gridExportPantrySelect" style="flex:1; min-width:120px; padding:10px; border-radius:8px; border:1px solid #CBD5E1;">
+                          <option value="All">All Pantry</option>
+                          ${pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+                        </select>
+                        <select id="gridExportCategorySelect" style="flex:1; min-width:120px; padding:10px; border-radius:8px; border:1px solid #CBD5E1;">
+                          <option value="All">All Categories</option>
+                          <option value="Faculty">Faculty</option>
+                          <option value="Staff">Staff</option>
+                          <option value="Law">Law</option>
+                          <option value="Outsourced">Outsourced</option>
+                        </select>
+                        <button id="downloadGridExcelBtn" class="success report-btn" style="background:#7C3AED; flex:1;">📗 Excel Export</button>
+                        <button id="printGridPdfBtn" class="btn report-btn" style="background:#6D28D9; flex:1;">📄 PDF / Print</button>
+                      </div>
+                    </div>
+
                   </div>
                 `;
                         document.getElementById('previewRegularBtn').onclick = () => window.previewIndividualReport(
@@ -4589,6 +4753,11 @@
                             'meeting');
                         document.getElementById('downloadAllExcelBtn2').onclick = () => window
                             .downloadAllCategoriesExcel();
+                            
+                        // Naye Monthly Grid Buttons ki Actions
+                        document.getElementById('downloadGridExcelBtn').onclick = () => window.adminExportMonthlyGrid('excel');
+                        document.getElementById('printGridPdfBtn').onclick = () => window.adminExportMonthlyGrid('print');
+
                         ['liveReportDate', 'liveReportType', 'liveReportPantry'].forEach(id => { document
                                 .getElementById(id).addEventListener('change', window.renderAdminLiveRecords); });
                         break;
@@ -5541,6 +5710,165 @@
 
                 XLSX.writeFile(wb, `All_Categories_Tea_Report_${month}.xlsx`);
                 appAlert('Downloaded', 'All categories combined Excel downloaded successfully!');
+            };
+
+            // NAYA FUNCTION: Admin Monthly Grid Export (With Pagination, Borders & Equal Sizes)
+            window.adminExportMonthlyGrid = function(format) {
+                const month = document.getElementById('reportMonth')?.value;
+                const pantryId = document.getElementById('gridExportPantrySelect').value;
+                const categoryVal = document.getElementById('gridExportCategorySelect').value;
+                
+                if (!month) return appAlert('Error', 'Select month from top.');
+
+                const [yy, mm] = month.split('-');
+                const daysInMonth = getDaysInMonth(yy, mm);
+                
+                let emps = employeeList;
+                if (pantryId !== 'All') {
+                    emps = emps.filter(e => e.assignedPantryId === pantryId);
+                }
+                
+                if (categoryVal !== 'All') {
+                    const catMatch = categoryVal.trim().toLowerCase();
+                    emps = emps.filter(e => {
+                        const c = (e.category || '').trim().toLowerCase();
+                        if (catMatch === 'outsourced' || catMatch === 'outsource') return c.includes('outsource');
+                        return c === catMatch;
+                    });
+                }
+                
+                if(!emps.length) return appAlert('Notice', 'No employees found for this selection.');
+
+                // ====== EXCEL EXPORT LOGIC ======
+                if (format === 'excel') {
+                    // Styles define karna Excel ke liye (Borders & Alignment)
+                    const bStyle = { style: 'thin', color: { rgb: "000000" } };
+                    const cellStyle = { alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle } };
+                    const headStyle = { font: { bold: true }, alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle }, fill: { fgColor: { rgb: "F1F5F9" } } };
+
+                    let headers1 = [{ v: 'Date', s: headStyle }];
+                    let headers2 = [{ v: '', s: headStyle }];
+                    
+                    const colWidths = [{ wch: 12 }]; // Date ki width fix
+                    const merges = [];
+
+                    emps.forEach((emp, i) => {
+                        const baseIdx = 1 + (i * 2);
+                        headers1.push({ v: emp.name, s: headStyle });
+                        headers1.push({ v: '', s: headStyle }); 
+                        
+                        headers2.push({ v: 'Morn', s: headStyle });
+                        headers2.push({ v: 'Aft', s: headStyle });
+                        
+                        colWidths.push({ wch: 10 }, { wch: 10 }); // Morn & Aft ki width EQUAL (10)
+                        merges.push({ s: { r: 0, c: baseIdx }, e: { r: 0, c: baseIdx + 1 } }); // Naam ko 2 cell me merge karna
+                    });
+
+                    let data = [headers1, headers2];
+
+                    for (let d = 1; d <= daysInMonth; d++) {
+                        const dmy = `${String(d).padStart(2,'0')}/${mm}/${yy}`;
+                        let row = [{ v: dmy, s: { font: { bold: true }, alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle } } }];
+                        
+                        emps.forEach(emp => {
+                            const mLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Morning');
+                            const aLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Afternoon');
+                            row.push({ v: mLog ? mLog.drink : '-', s: cellStyle }); // Sabme Border aur center align
+                            row.push({ v: aLog ? aLog.drink : '-', s: cellStyle });
+                        });
+                        data.push(row);
+                    }
+
+                    const wb = XLSX.utils.book_new();
+                    const ws = XLSX.utils.aoa_to_sheet(data);
+                    ws['!merges'] = merges;
+                    ws['!cols'] = colWidths;
+                    
+                    XLSX.utils.book_append_sheet(wb, ws, 'Monthly Grid');
+                    XLSX.writeFile(wb, `Monthly_Grid_${categoryVal}_${month}.xlsx`);
+                    appAlert('Downloaded', 'Monthly Grid Excel with borders downloaded successfully!');
+
+                } 
+                // ====== PDF / PRINT LOGIC (PAGINATED 8 NAMES PER PAGE) ======
+                else {
+                    let html = '';
+                    const chunkSize = 8; // Ek sheet par sirf 8 naam aayenge
+                    
+                    // Month ko text format me aur Category ko title me lene ka logic
+                    const dateObj = new Date(month + '-01');
+                    const monthStr = dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' }); // Ex: "July 2026"
+                    const displayCat = categoryVal === 'All' ? 'All Categories' : categoryVal;
+
+                    for (let i = 0; i < emps.length; i += chunkSize) {
+                        const chunkEmps = emps.slice(i, i + chunkSize);
+                        
+                        // Page Break aur Dynamic Title lagana
+                        html += `<div style="page-break-after: always; padding-bottom: 20px;">`;
+                        html += `<h2 style="text-align:center; color:#0A56D0; margin-bottom: 10px; font-family: sans-serif;">Monthly Grid Export - ${displayCat} - ${monthStr} (Page ${Math.floor(i/chunkSize) + 1})</h2>`;
+                        
+                        html += `<table class="print-table" style="font-size:10px; width:100%; text-align:center; border-collapse:collapse; table-layout:fixed; word-wrap:break-word; margin-bottom: 20px;"><thead><tr>`;
+                        
+                        // Header 1: Date (Width 80px se badha kar 95px kar di aur white-space:nowrap hata diya taaki text wrap ho sake)
+                        html += `<th rowspan="2" style="border:1px solid #000; padding:4px; background:#F1F5F9; width:95px;">Date</th>`;
+                        
+                        // Header 1: Names
+                        chunkEmps.forEach(emp => {
+                            html += `<th colspan="2" style="border:1px solid #000; padding:4px; background:#F1F5F9; overflow:hidden;">${safeStr(emp.name)}</th>`;
+                        });
+                        html += `</tr><tr>`;
+                        
+                        // Header 2: Morn / Aft (Equal Size)
+                        chunkEmps.forEach(() => {
+                            html += `<th style="border:1px solid #000; padding:4px; background:#F8FAFC; width:45px; min-width:45px; max-width:45px;">Morn</th>`;
+                            html += `<th style="border:1px solid #000; padding:4px; background:#F8FAFC; width:45px; min-width:45px; max-width:45px;">Aft</th>`;
+                        });
+                        html += `</tr></thead><tbody>`;
+                        
+                        // Data Rows
+                        for (let d = 1; d <= daysInMonth; d++) {
+                            const dmy = `${String(d).padStart(2,'0')}/${mm}/${yy}`;
+                            
+                            // NAYA LOGIC: Day (Monday, Tuesday) nikalne ke liye
+                            const currentDayDate = new Date(yy, mm - 1, d);
+                            const dayName = currentDayDate.toLocaleDateString('en-US', { weekday: 'long' });
+
+                            html += `<tr>`;
+                            // Date ke cell mein <br> laga kar uske neeche dayName daal diya. nowrap hata diya.
+                            html += `<td style="border:1px solid #000; padding:4px; font-weight:bold; line-height:1.3;">${dmy}<br><span style="font-size:8px; font-weight:normal; color:#44474E;">${dayName}</span></td>`;
+                            
+                            chunkEmps.forEach(emp => {
+                                const mLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Morning');
+                                const aLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Afternoon');
+                                // Data Cell with Equal Size
+                                html += `<td style="border:1px solid #000; padding:4px; width:45px; min-width:45px; max-width:45px; word-wrap:break-word;">${mLog ? mLog.drink : '-'}</td>`;
+                                html += `<td style="border:1px solid #000; padding:4px; width:45px; min-width:45px; max-width:45px; word-wrap:break-word;">${aLog ? aLog.drink : '-'}</td>`;
+                            });
+                            html += `</tr>`;
+                        }
+                        html += `</tbody></table></div>`;
+                    }
+                    
+                    const container = document.getElementById('printAreaContainer');
+                    container.innerHTML = `
+                      <div class="preview-card" style="max-width:100%; width:98vw; height:98vh;">
+                        <div class="preview-header hide-on-print">
+                          <button onclick="window.print()" class="success">🖨️ Print Landscape</button>
+                          <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger">✕ Close</button>
+                        </div>
+                        <div class="preview-content" style="overflow-x:auto;">
+                          ${html}
+                        </div>
+                      </div>
+                      <style>
+                        @media print {
+                          @page { size: A4 landscape; margin: 10mm; }
+                          body { -webkit-print-color-adjust: exact; }
+                          .print-table th, .print-table td { padding: 4px !important; font-size: 10px !important; }
+                        }
+                      </style>
+                    `;
+                    container.classList.remove('hidden');
+                }
             };
 
             // ============================================================
