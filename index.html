@@ -2806,42 +2806,50 @@
                 const container = document.getElementById(prefix + 'MeetingItemsContainer');
                 if (!container) return;
                 
-                // Naya Unique ID datalist ke dropdown ke liye
                 const rowId = 'dl_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
-                
                 const row = document.createElement('div');
                 row.className = 'dynamic-item-row';
                 const vendorOpts = canteenList.map(c => `<option value="${safeStr(c.name)}">${safeStr(c.name)}</option>`).join('');
                 
                 row.innerHTML = `
-              <select class="item-vendor" style="flex:1.2; padding:10px; font-size:.75rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
+              <select class="item-vendor" style="flex:1.1; padding:10px; font-size:.75rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
                 <option value="">-- Vendor --</option>${vendorOpts}
               </select>
-              <select class="item-type" style="flex:1; padding:10px; font-size:.75rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
-                <option>☕ Tea/Coffee</option><option>🍪 Snacks/Food</option><option>🥤 Other</option>
-              </select>
               
-              <!-- Naya Autocomplete Datalist add kiya -->
-              <input type="text" list="${rowId}" class="item-name" placeholder="Item Name (Select or Type)" style="flex:1.5; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
+              <!-- Checkbox for Optional Date Toggle -->
+              <div style="display:flex; align-items:center; gap:4px; flex:1; justify-content:center;">
+                <input type="checkbox" class="row-date-toggle" style="width:16px; height:16px; accent-color:#0A56D0;" title="Tick to specify custom date">
+                <input type="date" class="item-row-date" disabled style="width:100%; opacity:0.5; padding:6px; font-size:.75rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
+              </div>
+              
+              <input type="text" list="${rowId}" class="item-name" placeholder="Item Name" style="flex:1.5; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
               <datalist id="${rowId}"></datalist>
               
-              <input type="number" class="item-qty" placeholder="Qty" min="1" value="1" style="flex:.8; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
-              <select class="item-unit" style="flex:.7; padding:8px; font-size:.75rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
+              <input type="number" class="item-qty" placeholder="Qty" min="1" value="1" style="flex:.6; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
+              <select class="item-unit" style="flex:.6; padding:8px; font-size:.75rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
                 <option value="–">–</option><option value="Nos">Nos</option><option value="Plates">Plates</option><option value="Cups">Cups</option><option value="Pkt">Pkt</option>
               </select>
-              <input type="number" class="item-rate" placeholder="₹ Rate" min="0" value="" style="flex:.8; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
-              <button type="button" class="remove-item-btn" style="padding:8px 12px; border-radius:8px; margin:0; font-size:1rem; min-height:34px;">X</button>
+              <input type="number" class="item-rate" placeholder="₹ Rate" min="0" value="" style="flex:.7; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
+              <button type="button" class="remove-item-btn" style="background:#DC3545; color:#fff; padding:8px 12px; border-radius:8px; margin:0; font-size:1rem; min-height:34px;">X</button>
             `;
                 container.appendChild(row);
                 
+                // Toggle disable/enable on checkbox state change
+                const toggle = row.querySelector('.row-date-toggle');
+                const dateInp = row.querySelector('.item-row-date');
+                toggle.onchange = function() {
+                    dateInp.disabled = !this.checked;
+                    dateInp.style.opacity = this.checked ? "1" : "0.5";
+                    if(!this.checked) dateInp.value = "";
+                };
+
                 row.querySelector('.remove-item-btn').onclick = () => { 
-                    row.remove();
+                    row.remove(); 
                     window.calcMeetingTotal(prefix); 
                 };
                 
                 row.querySelectorAll('input').forEach(i => i.addEventListener('input', () => window.calcMeetingTotal(prefix)));
                 
-                // Dropdown aur Rate Auto-Fill Logic
                 const vendorSelect = row.querySelector('.item-vendor');
                 const nameInput = row.querySelector('.item-name');
                 const rateInput = row.querySelector('.item-rate');
@@ -2860,10 +2868,9 @@
                     }
                 }
 
-                // Jaise hi Vendor select hoga, dropdown me uske items bhar jayenge
                 vendorSelect.addEventListener('change', function() {
                     const vName = this.value;
-                    dataList.innerHTML = ''; // Pehle ki list saaf karein
+                    dataList.innerHTML = '';
                     if (vName) {
                         const items = vendorItemsCatalog[vName.toLowerCase()] || [];
                         items.forEach(it => {
@@ -2875,7 +2882,6 @@
                     checkAndFillRate();
                 });
 
-                // Name likhte ya select karte hi rate check karega
                 nameInput.addEventListener('input', checkAndFillRate);
                 window.calcMeetingTotal(prefix);
             };
@@ -2897,20 +2903,19 @@
                 if (!target) return;
                 const todayYMD = new Date().toISOString().split('T')[0];
                 const todayDMY = convertYMDtoDMY(todayYMD);
-                const todayDay = getDayOfWeek(todayDMY);
                 const monthStr = todayYMD.slice(0, 7);
                 const srNo = getMeetingSrForMonth(monthStr);
                 meetingSrCounter = srNo;
 
-                const userId = currentUser ? currentUser.id : 'unknown';
-                const userName = currentUser ? currentUser.name : 'Unknown';
+                const activePantryStaff = pantryTeam.filter(p => !p.onLeave);
+                const dynamicPantryOpts = activePantryStaff.map(p => `<option value="${safeStr(p.name)}">${safeStr(p.name)}</option>`).join('');
 
                 target.innerHTML = `
               <div class="card" style="border-top:4px solid #0A56D0; flex-shrink:0;">
                 <h3 style="color:#0A56D0; margin:0 0 16px 0; font-size:1.15rem; text-align:center;">🎪 Meeting & Guest Refreshments</h3>
                 <div class="meeting-row">
-                  <div><label>📅 Date</label><input type="date" id="${prefix}MeetingDate" value="${todayYMD}" style="margin:0;"></div>
-                  <div><label>📆 Day</label><div class="day-display" id="${prefix}MeetingDayDisplay">${todayDay}</div></div>
+                  <div><label>📅 Main Date (Optional)</label><input type="date" id="${prefix}MeetingDate" value="" style="margin:0;" placeholder="Optional"></div>
+                  <div><label>📆 Day</label><div class="day-display" id="${prefix}MeetingDayDisplay">—</div></div>
                   <div><label>🔢 Sr. No.</label><div class="meeting-sr-box" id="${prefix}MeetingSrDisplay">${srNo}</div></div>
                 </div>
                 <div class="meeting-row">
@@ -2923,20 +2928,24 @@
                   <div style="flex:1;"><label>👨‍🍳 Served By (Pantry Boy)</label>
                     <select id="${prefix}MeetingServedBy" style="margin:0; padding:14px; border-radius:10px; border:1px solid #CBD5E1; width:100%;">
                       <option value="">-- Select Pantry Boy --</option>
-                      <option value="General/Multiple">General / Multiple Staff</option>
-                      ${pantryTeam.filter(p => !p.onLeave).map(p => `<option value="${safeStr(p.name)}">${safeStr(p.name)}</option>`).join('')}
+                      <option value="Direct Order (Canteen Staff)">Direct Order (Canteen Staff)</option>
+                      <option value="General / Multiple Pantry Boys">General / Multiple Pantry Boys</option>
+                      ${dynamicPantryOpts}
                     </select>
+                    <div style="margin-top:6px; display:flex; align-items:center; gap:4px;">
+                        <input type="text" id="${prefix}CustomMultiPantry" placeholder="✍️ Or type multi names" style="margin:0; padding:8px 12px; font-size:.82rem; border-radius:8px; border:1px solid #CBD5E1; width:100%;">
+                    </div>
                   </div>
                 </div>
                 <div class="meeting-row">
-                  <div style="flex:2;"><label>📝 Meeting Purpose</label>
+                  <div style="flex:2;"><label>📝 Meeting Purpose / Event Name</label>
                     <textarea id="${prefix}MeetingPurpose" placeholder="Brief description of the meeting/event..." rows="2" style="margin:0; font-size:.85rem; padding:12px; border:1px solid #CBD5E1; border-radius:10px; resize:vertical; width:100%;"></textarea>
                   </div>
                 </div>
-                <div class="sub-section-title" style="margin-top:16px;">📋 Refreshment Items <span style="font-weight:400; color:#94A3B8; font-size:.75rem;">(Rate × Qty = Amount)</span></div>
+                <div class="sub-section-title" style="margin-top:16px;">📋 Refreshment Items</div>
                 <div id="${prefix}MeetingItemsContainer"></div>
-                <button type="button" onclick="window.addMeetingItemRow('${prefix}')" class="btn" style="background:#E2E8F0; color:#0A56D0; width:100%; margin-bottom:12px; font-weight:700; min-height:44px;">➕ Add Item Row</button>
-                                <div class="card" style="background:#F0F4F9; margin-top:0px; padding:14px; text-align:center; border:1px dashed #0A56D0; box-shadow:none;">
+                <button type="button" onclick="window.addMeetingItemRow('${prefix}')" class="btn" style="background:#E2E8F0; color:#0A56D0; width:100%; margin-bottom:12px; font-weight:700; min-height:44px; padding:4px;">➕ Add Item Row</button>
+                <div class="card" style="background:#F0F4F9; margin-top:0px; padding:14px; text-align:center; border:1px dashed #0A56D0; box-shadow:none;">
                   <span style="font-size:.85rem; color:#44474E; font-weight:700;">Grand Total Amount:</span>
                   <div id="${prefix}MeetingCalcDisplay" style="font-size:1.4rem; font-weight:700; color:#0A56D0;">₹ 0.00</div>
                 </div>
@@ -2945,7 +2954,6 @@
                   <label for="${prefix}ShowNotification" style="font-size:.85rem; font-weight:700; color:#1E3A8A; margin:0; cursor:pointer;">📢 Show Notification on Pantry Dashboard</label>
                 </div>
                 <button type="button" id="${prefix}MeetingSubmitBtn" class="success" style="width:100%; padding:14px; margin-top:8px; border-radius:12px; font-weight:700; min-height:50px;">📌 SAVE MEETING REFRESHMENT</button>
-
               </div>
               <div style="display:flex; justify-content:space-between; align-items:center; margin:16px 0 8px 4px;">
                 <h4 style="color:#1E293B; font-size:.95rem; font-weight:700; margin:0;">🏛️ Past Archives</h4>
@@ -2955,122 +2963,86 @@
 
                 const dateInput = document.getElementById(prefix + 'MeetingDate');
                 const dayDisplay = document.getElementById(prefix + 'MeetingDayDisplay');
-                const srDisplay = document.getElementById(prefix + 'MeetingSrDisplay');
+                const selectPantryBox = document.getElementById(prefix + 'MeetingServedBy');
+                const customPantryBox = document.getElementById(prefix + 'CustomMultiPantry');
+
                 if (dateInput && dayDisplay) {
                     dateInput.addEventListener('change', function() {
                         const ymd = this.value;
                         if (ymd) {
-                            const dmy = convertYMDtoDMY(ymd);
-                            dayDisplay.textContent = getDayOfWeek(dmy);
-                            const monthStr2 = ymd.slice(0, 7);
-                            const newSr = getMeetingSrForMonth(monthStr2);
-                            meetingSrCounter = newSr;
-                            if (srDisplay) srDisplay.textContent = newSr;
-                        } else { dayDisplay.textContent = '—'; if (srDisplay) srDisplay.textContent = '1'; }
-                    });
-                }
-
-                const orderedByInput = document.getElementById(prefix + 'MeetingOrderedBy');
-                if (orderedByInput) {
-                    const wrap = document.createElement('div');
-                    wrap.className = 'autocomplete-wrap';
-                    wrap.style.width = '100%';
-                    orderedByInput.parentNode.insertBefore(wrap, orderedByInput);
-                    wrap.appendChild(orderedByInput);
-                    const dropdown = document.createElement('div');
-                    dropdown.className = 'autocomplete-dropdown';
-                    dropdown.id = 'ac_' + prefix + 'MeetingOrderedBy';
-                    wrap.appendChild(dropdown);
-
-                    orderedByInput.addEventListener('input', function() {
-                        const q = this.value.toLowerCase().trim();
-                        const matches = employeeList.filter(e => (e.name || '').toLowerCase().includes(q) || (
-                            e.category || '').toLowerCase().includes(q)).slice(0, 12);
-                        if (!matches.length || q.length < 2) { dropdown.classList.remove('active'); return; }
-                        dropdown.innerHTML = matches.map(e =>
-                            `<div class="ac-item" data-value="${safeStr(e.name)} [${safeStr(e.category)}]">${safeStr(e.name)} <span style="color:#64748B;font-size:.8rem;">[${safeStr(e.category)}]</span></div>`
-                            ).join('');
-                        dropdown.classList.add('active');
-                    });
-                    orderedByInput.addEventListener('blur', function() { setTimeout(() => dropdown.classList.remove(
-                        'active'), 200); });
-                    orderedByInput.addEventListener('focus', function() { if (this.value.length >= 2) orderedByInput
-                            .dispatchEvent(new Event('input')); });
-                    dropdown.addEventListener('click', function(e) {
-                        const item = e.target.closest('.ac-item');
-                        if (item) { orderedByInput.value = item.dataset.value;
-                            dropdown.classList.remove('active'); }
+                            dayDisplay.textContent = getDayOfWeek(convertYMDtoDMY(ymd));
+                        } else { dayDisplay.textContent = '—'; }
                     });
                 }
 
                 document.getElementById(prefix + 'MeetingSubmitBtn').onclick = function() {
                     const orderedBy = document.getElementById(prefix + 'MeetingOrderedBy').value.trim();
-                    const servedBy = document.getElementById(prefix + 'MeetingServedBy').value.trim(); 
+                    let servedBy = customPantryBox.value.trim() || selectPantryBox.value.trim();
+                    if (!servedBy) return appAlert('Error', 'Please select Served By field.'); 
                     
-                    if (!servedBy) return appAlert('Error', 'Please select Served By (Pantry Boy).'); 
-                    
-                    const purpose = document.getElementById(prefix + 'MeetingPurpose').value.trim() ||
-                    'General Meeting';
-                    const dateVal = document.getElementById(prefix + 'MeetingDate').value;
-                    const d = dateVal ? convertYMDtoDMY(dateVal) : getTodayInDMY();
-                    const srNum = document.getElementById(prefix + 'MeetingSrDisplay')?.textContent || '1';
+                    const purpose = document.getElementById(prefix + 'MeetingPurpose').value.trim() || 'General Meeting';
+                    const mainDateVal = dateInput.value;
+                    const mainDateDMY = mainDateVal ? convertYMDtoDMY(mainDateVal) : '';
 
                     const container = document.getElementById(prefix + 'MeetingItemsContainer');
-                    if (!container) return;
                     const items = [];
                     let totalAmt = 0;
                     const summary = [];
 
                     container.querySelectorAll('.dynamic-item-row').forEach(row => {
                         const vendor = row.querySelector('.item-vendor').value.trim();
-                        const type = row.querySelector('.item-type').value;
+                        const isToggleChecked = row.querySelector('.row-date-toggle').checked;
+                        const rowDateVal = row.querySelector('.item-row-date').value;
+                        
+                        // Fallback check condition
+                        let finalRowDate = (isToggleChecked && rowDateVal) ? convertYMDtoDMY(rowDateVal) : (mainDateDMY ? mainDateDMY : getTodayInDMY());
+                        
                         const iName = row.querySelector('.item-name').value.trim();
                         const qty = Number(row.querySelector('.item-qty').value) || 0;
                         const unit = row.querySelector('.item-unit').value || '–';
                         const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
+                        
                         if (iName && qty > 0) {
                             const amt = qty * rate;
-                            items.push({ vendor, type, name: iName, qty, unit, rate, amount: amt });
+                            items.push({ 
+                                vendor, 
+                                type: '🍪 Snacks/Food', 
+                                name: iName, 
+                                qty, 
+                                unit, 
+                                rate, 
+                                amount: amt,
+                                itemSpecificDate: finalRowDate 
+                            });
                             totalAmt += amt;
-                            summary.push(`${qty} ${iName}`);
+                            summary.push(`${qty} ${iName} (${finalRowDate}) [${vendor}]`);
                         }
                     });
                     if (!items.length) return appAlert('Empty', 'Add at least one refreshment item.');
 
-                    const vendorsUsed = [...new Set(items.map(i => i.vendor).filter(Boolean))].join(', ') || 'Various';
                     const id = 'event_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-                    const showNotif = document.getElementById(prefix + 'ShowNotification').checked; 
-
                     db.ref('eventLogs/' + id).set({
                         id,
-                        canteenSource: vendorsUsed,
+                        canteenSource: [...new Set(items.map(i => i.vendor).filter(Boolean))].join(', ') || 'Various',
                         orderedBy: orderedBy || 'Not specified',
                         servedByName: servedBy, 
                         eventName: purpose,
-                        date: d,
+                        date: mainDateDMY ? mainDateDMY : getTodayInDMY(),
                         time: new Date().toTimeString().slice(0, 5),
-                        venue: "N/A",
                         items,
                         amount: totalAmt,
-                        pantryId: userId,
-                        pantryName: userName,
+                        pantryName: servedBy, 
                         refreshmentSummary: summary.join(', '),
-                        srNo: srNum,
-                        showNotification: showNotif 
+                        showNotification: document.getElementById(prefix + 'ShowNotification').checked 
                     });
 
-                    appAlert('Success', `Meeting refreshment saved! Sr. #${srNum}`);
-                    document.getElementById(prefix + 'MeetingPurpose').value = '';
-                    document.getElementById(prefix + 'MeetingOrderedBy').value = '';
+                    appAlert('Success', `Meeting saved successfully!`);
                     container.innerHTML = '';
+                    target.querySelectorAll('input, textarea').forEach(i => { if(i.type !== 'checkbox') i.value = ''; });
                     window.calcMeetingTotal(prefix);
-                    const newSr = getMeetingSrForMonth(dateVal ? dateVal.slice(0, 7) : new Date().toISOString().slice(
-                        0, 7));
-                    meetingSrCounter = newSr;
-                    if (srDisplay) srDisplay.textContent = newSr;
                 };
             };
-
+		
             // ============================================================
             //  WORKERS TEA SUPERVISOR SYSTEM
             // ============================================================
@@ -4680,16 +4652,6 @@
 
                     case 'meeting':
                         window.renderMeetingRefreshmentSection('adminContent', 'admMeet_');
-                        const histDiv = document.createElement('div');
-                        histDiv.style.marginTop = '20px';
-                        histDiv.innerHTML =
-                            `<h4 style="color:#1E293B; font-size:.95rem; font-weight:700; margin:0 0 12px 4px;">📊 Professional Event History</h4>`;
-                        const histTable = document.createElement('div');
-                        histTable.id = 'adminMeetingHistoryTable';
-                        histTable.className = 'pro-table-wrap';
-                        histDiv.appendChild(histTable);
-                        cont.appendChild(histDiv);
-                        renderAdminMeetingHistory();
                         break;
                     case 'plain_events':
                         window.renderPlainEventsAdmin();
@@ -4945,28 +4907,29 @@
             }
 
             // ============================================================
-            //  EDIT MEETING EVENT (FULLY EXPANDED)
+            //  EDIT MEETING EVENT (COMPATIBLE WITH DYNAMIC MULTI-SELECT DROPDOWNS)
+            // ============================================================
+            // ============================================================
+            //  EDIT MEETING EVENT (COMPATIBLE WITH SPLIT ROWS)
             // ============================================================
             window.editMeetingEvent = function(id) {
                 const ev = eventLogsData.find(e => e.id === id);
                 if (!ev) return appAlert('Error', 'Event not found.');
 
                 const ymdDate = parseDMYToYMD(ev.date) || '';
+                const currentServedVal = ev.servedByName || ev.pantryName || '';
                 
-                // Pantry Team dropdown options
-                const pantryOpts = pantryTeam.map(p => 
-                    `<option value="${safeStr(p.name)}" ${ev.servedByName === p.name || ev.pantryName === p.name ? 'selected' : ''}>${safeStr(p.name)}</option>`
-                ).join('');
+                const pantryOpts = pantryTeam.map(p => `<option value="${safeStr(p.name)}" ${currentServedVal === p.name ? 'selected' : ''}>${safeStr(p.name)}</option>`).join('');
 
                 const modal = document.createElement('div');
                 modal.className = 'popup-overlay';
+                modal.id = 'editMeetingPopupModal';
                 modal.innerHTML = `
-              <div class="popup-card" style="max-width:500px; max-height:85vh; overflow-y:auto;">
+              <div class="popup-card" style="max-width:600px; max-height:85vh; overflow-y:auto;">
                 <h3 style="color:#0A56D0; margin-top:0; margin-bottom:12px;">✏️ Edit Meeting Event</h3>
-                
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
                     <div>
-                        <label style="font-size:.8rem; font-weight:600; color:#44474E; display:block; margin-bottom:4px;">📅 Date</label>
+                        <label style="font-size:.8rem; font-weight:600; color:#44474E; display:block; margin-bottom:4px;">📅 Main Date</label>
                         <input type="date" id="editEvtDate" value="${ymdDate}" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; box-sizing:border-box;">
                     </div>
                     <div>
@@ -4974,7 +4937,6 @@
                         <input type="text" id="editEvtVendor" value="${safeStr(ev.canteenSource)}" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; box-sizing:border-box;">
                     </div>
                 </div>
-
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
                     <div>
                         <label style="font-size:.8rem; font-weight:600; color:#44474E; display:block; margin-bottom:4px;">👤 Requested By</label>
@@ -4983,23 +4945,25 @@
                     <div>
                         <label style="font-size:.8rem; font-weight:600; color:#44474E; display:block; margin-bottom:4px;">👨‍🍳 Served By (Pantry)</label>
                         <select id="editEvtServedBy" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; box-sizing:border-box;">
-                            <option value="">-- Select --</option>
-                            <option value="General/Multiple" ${ev.servedByName === 'General/Multiple' || ev.pantryName === 'General/Multiple' ? 'selected' : ''}>General / Multiple Staff</option>
+                            <option value="Direct Order (Canteen Staff)" ${currentServedVal === 'Direct Order (Canteen Staff)' ? 'selected' : ''}>Direct Order (Canteen Staff)</option>
+                            <option value="General / Multiple Pantry Boys" ${currentServedVal === 'General / Multiple Pantry Boys' ? 'selected' : ''}>General / Multiple Pantry Boys</option>
                             ${pantryOpts}
                         </select>
+                        <input type="text" id="editEvtCustomPantry" value="${currentServedVal}" placeholder="Multi profile selection" style="margin-top:4px; padding:6px; font-size:.78rem; border-radius:6px; border:1px solid #CBD5E1; width:100%; box-sizing:border-box;">
                     </div>
                 </div>
-
-                <label style="font-size:.8rem; font-weight:600; color:#44474E; display:block; margin-bottom:4px;">📝 Meeting Purpose / Event Name</label>
+                <label style="font-size:.8rem; font-weight:600; color:#44474E; display:block; margin-bottom:4px;">📝 Meeting Purpose</label>
                 <input type="text" id="editEvtName" value="${safeStr(ev.eventName)}" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; margin-bottom:10px; box-sizing:border-box;">
 
-                <label style="font-size:.8rem; font-weight:600; color:#44474E; display:block; margin-bottom:4px;">📋 Items Summary (Rate x Qty)</label>
-                <textarea id="editEvtItems" rows="3" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; margin-bottom:10px; resize:vertical; box-sizing:border-box;">${safeStr(ev.refreshmentSummary||'')}</textarea>
+                <div class="sub-section-title" style="margin-top:10px; font-weight:700; color:#0A56D0;">📋 Refreshment Items</div>
+                <div id="editEvtItemsContainer" style="margin-bottom:12px;"></div>
+                <button type="button" id="editEvtAddItemRowBtn" class="btn" style="background:#E2E8F0; color:#0A56D0; width:100%; margin-bottom:12px; font-weight:700; min-height:38px; padding:4px;">➕ Add Item Row</button>
 
-                <label style="font-size:.8rem; font-weight:600; color:#44474E; display:block; margin-bottom:4px;">💰 Total Amount (₹)</label>
-                <input type="number" id="editEvtAmount" value="${ev.amount||0}" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; margin-bottom:16px; box-sizing:border-box;">
-
-                <div style="display:flex; gap:8px;">
+                <div class="card" style="background:#F0F4F9; margin-top:5px; padding:12px; text-align:center; border:1px dashed #0A56D0; box-shadow:none;">
+                  <span style="font-size:.85rem; color:#44474E; font-weight:700;">Calculated Total Amount:</span>
+                  <div id="editEvtCalcDisplay" style="font-size:1.3rem; font-weight:700; color:#0A56D0;">₹ 0.00</div>
+                </div>
+                <div style="display:flex; gap:8px; margin-top:14px;">
                   <button onclick="this.closest('.popup-overlay').remove()" class="danger" style="flex:1; min-height:44px; border-radius:10px;">Cancel</button>
                   <button id="editEvtSaveBtn" class="success" style="flex:1; min-height:44px; border-radius:10px;">Save Changes</button>
                 </div>
@@ -5007,47 +4971,131 @@
             `;
                 document.body.appendChild(modal);
 
+                const selectBox = document.getElementById('editEvtServedBy');
+                const customInputBox = document.getElementById('editEvtCustomPantry');
+                if (selectBox && customInputBox) {
+                    selectBox.addEventListener('change', function() {
+                        if (this.value) customInputBox.value = this.value;
+                    });
+                }
+
+                const itemsContainer = document.getElementById('editEvtItemsContainer');
+
+                function insertEditItemRow(name = '', qty = 1, rate = 0, itemSpecificDate = '', rowVendor = '') {
+                    const row = document.createElement('div');
+                    row.className = 'dynamic-item-row-edit';
+                    row.style.cssText = 'display:flex; gap:6px; margin-bottom:6px; align-items:center; background:#F1F5F9; padding:6px; border-radius:8px; border:1px solid #E2E8F0;';
+                    
+                    const rowYMD = itemSpecificDate ? parseDMYToYMD(itemSpecificDate) : '';
+                    const hasCustomDate = itemSpecificDate ? 'checked' : '';
+
+                    row.innerHTML = `
+                        <select class="e-item-vendor" style="flex:1; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;">
+                            ${canteenList.map(c => `<option value="${c.name}" ${rowVendor === c.name ? 'selected' : ''}>${c.name}</option>`).join('')}
+                        </select>
+                        <div style="display:flex; align-items:center; gap:2px; flex:0.9;">
+                            <input type="checkbox" class="e-date-toggle" ${hasCustomDate} style="width:14px; height:16px;">
+                            <input type="date" class="e-item-date" value="${rowYMD}" ${itemSpecificDate ? '' : 'disabled'} style="width:100%; opacity:${itemSpecificDate ? '1':'0.5'}; padding:6px; font-size:.75rem; border:1px solid #CBD5E1; border-radius:6px;">
+                        </div>
+                        <input type="text" class="e-item-name" placeholder="Item Name" value="${name}" style="flex:1.2; padding:8px; font-size:.8rem; border:1px solid #CBD5E1; border-radius:6px;">
+                        <input type="number" class="e-item-qty" placeholder="Qty" min="1" value="${qty}" style="flex:0.5; padding:8px; font-size:.8rem; border:1px solid #CBD5E1; border-radius:6px;">
+                        <input type="number" class="e-item-rate" placeholder="Rate" min="0" step="0.01" value="${rate}" style="flex:0.6; padding:8px; font-size:.8rem; border:1px solid #CBD5E1; border-radius:6px;">
+                        <button type="button" class="e-remove-btn" style="background:#DC3545; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer;">X</button>
+                    `;
+                    itemsContainer.appendChild(row);
+                    
+                    const toggle = row.querySelector('.e-date-toggle');
+                    const dateInp = row.querySelector('.e-item-date');
+                    toggle.onchange = function() {
+                        dateInp.disabled = !this.checked;
+                        dateInp.style.opacity = this.checked ? "1" : "0.5";
+                        if(!this.checked) dateInp.value = "";
+                    };
+
+                    row.querySelector('.e-remove-btn').onclick = () => { row.remove(); updateEditModalTotal(); };
+                    row.querySelectorAll('input, select').forEach(i => i.addEventListener('input', updateEditModalTotal));
+                }
+
+                function updateEditModalTotal() {
+                    let total = 0;
+                    itemsContainer.querySelectorAll('.dynamic-item-row-edit').forEach(row => {
+                        const q = Number(row.querySelector('.e-item-qty').value) || 0;
+                        const r = parseFloat(row.querySelector('.e-item-rate').value) || 0;
+                        total += q * r;
+                    });
+                    document.getElementById('editEvtCalcDisplay').innerText = "₹ " + total.toFixed(2);
+                }
+
+                if (ev.items && Array.isArray(ev.items) && ev.items.length > 0) {
+                    ev.items.forEach(item => {
+                        insertEditItemRow(item.name, item.qty, item.rate, item.itemSpecificDate, item.vendor || ev.canteenSource);
+                    });
+                } else {
+                    insertEditItemRow();
+                }
+
+                updateEditModalTotal();
+                document.getElementById('editEvtAddItemRowBtn').onclick = () => insertEditItemRow();
+
                 document.getElementById('editEvtSaveBtn').onclick = function() {
                     const name = document.getElementById('editEvtName').value.trim();
-                    const amount = Number(document.getElementById('editEvtAmount').value) || 0;
-                    const summary = document.getElementById('editEvtItems').value.trim();
                     const orderedBy = document.getElementById('editEvtOrderedBy').value.trim();
+                    const mainDateVal = document.getElementById('editEvtDate').value;
+                    const mainDateDMY = mainDateVal ? convertYMDtoDMY(mainDateVal) : ev.date;
                     
-                    const dateVal = document.getElementById('editEvtDate').value;
-                    const dmyDate = dateVal ? convertYMDtoDMY(dateVal) : ev.date;
-                    
-                    const vendor = document.getElementById('editEvtVendor').value.trim();
-                    const servedBy = document.getElementById('editEvtServedBy').value.trim();
-
+                    let servedBy = document.getElementById('editEvtCustomPantry').value.trim() || document.getElementById('editEvtServedBy').value.trim();
                     if (!name) return appAlert('Error', 'Event name required.');
-                    
+
+                    const newItems = [];
+                    let finalTotalAmount = 0;
+                    const summarySegments = [];
+
+                    itemsContainer.querySelectorAll('.dynamic-item-row-edit').forEach(row => {
+                        const vdr = row.querySelector('.e-item-vendor').value;
+                        const isToggled = row.querySelector('.e-date-toggle').checked;
+                        const rDateVal = row.querySelector('.e-item-date').value;
+                        let finalRowDate = (isToggled && rDateVal) ? convertYMDtoDMY(rDateVal) : mainDateDMY;
+
+                        const iName = row.querySelector('.e-item-name').value.trim();
+                        const iQty = parseInt(row.querySelector('.e-item-qty').value, 10) || 0;
+                        const iRate = parseFloat(row.querySelector('.e-item-rate').value) || 0;
+
+                        if (iName && iQty > 0) {
+                            const itemAmt = iQty * iRate;
+                            finalTotalAmount += itemAmt;
+                            summarySegments.push(`${iQty} ${iName} (${finalRowDate}) [${vdr}]`);
+
+                            newItems.push({
+                                vendor: vdr,
+                                type: '🍪 Snacks/Food',
+                                name: iName,
+                                qty: iQty,
+                                unit: 'Nos',
+                                rate: iRate,
+                                amount: itemAmt,
+                                itemSpecificDate: finalRowDate
+                            });
+                        }
+                    });
+
                     db.ref('eventLogs/' + id).update({
                         eventName: name,
-                        amount: amount,
-                        refreshmentSummary: summary,
+                        amount: finalTotalAmount,
+                        refreshmentSummary: summarySegments.join(', '),
                         orderedBy: orderedBy,
-                        date: dmyDate,
-                        canteenSource: vendor,
+                        date: mainDateDMY,
+                        canteenSource: [...new Set(newItems.map(i => i.vendor))].join(', '),
                         servedByName: servedBy,
-                        pantryName: servedBy 
+                        pantryName: servedBy,
+                        items: newItems
                     });
                     
                     modal.remove();
-                    appAlert('Updated', 'Meeting Event updated successfully!');
-                    
-                    // Admin અને Pantry બંને ટેબલને રિફ્રેશ કરવા માટે 
-                    if (typeof renderAdminMeetingHistory === 'function') {
-                        renderAdminMeetingHistory();
-                    }
-                    
-                    const pantryHistoryModal = document.getElementById('eventHistoryModal');
-                    if (pantryHistoryModal && !pantryHistoryModal.classList.contains('hidden')) {
-                        if (typeof window.openEventHistoryModal === 'function') {
-                            window.openEventHistoryModal();
-                        }
-                    }
+                    appAlert('Updated', 'Entries split saved successfully!');
+                    if (typeof renderAdminMeetingHistory === 'function') renderAdminMeetingHistory();
+                    if (typeof window.openEventHistoryModal === 'function') window.openEventHistoryModal();
                 };
-            };
+            };           
 
             // ============================================================
             //  BACKUP & RESTORE
@@ -6254,162 +6302,106 @@
             };
 
 
-                        window.openEventHistoryModal = function() {
+            // ============================================================
+            // UNIFIED SPLIT-ROW ROW ARCHIVE LOGIC (DATE & VENDOR WISE SPLIT)
+            // ============================================================
+            window.generateSplitRowsTableHtml = function(dataSourceArray, canDelete = false) {
+                const flatRows = [];
+                dataSourceArray.forEach(ev => {
+                    if (ev.items && Array.isArray(ev.items) && ev.items.length > 0) {
+                        ev.items.forEach(item => {
+                            flatRows.push({
+                                parentId: ev.id,
+                                eventName: ev.eventName,
+                                reqBy: ev.orderedBy,
+                                pantry: ev.servedByName || ev.pantryName || '-',
+                                date: item.itemSpecificDate || ev.date,
+                                vendor: item.vendor || ev.canteenSource || 'Various',
+                                itemName: item.name,
+                                itemQty: item.qty,
+                                itemRate: item.rate,
+                                itemAmount: item.amount || (item.qty * item.rate)
+                            });
+                        });
+                    } else {
+                        flatRows.push({
+                            parentId: ev.id,
+                            eventName: ev.eventName,
+                            reqBy: ev.orderedBy,
+                            pantry: ev.servedByName || ev.pantryName || '-',
+                            date: ev.date,
+                            vendor: ev.canteenSource || '-',
+                            itemName: ev.refreshmentSummary || 'Details',
+                            itemQty: '-',
+                            itemRate: '-',
+                            itemAmount: ev.amount || 0
+                        });
+                    }
+                });
+
+                flatRows.sort((a,b) => parseDMYToYMD(b.date).localeCompare(parseDMYToYMD(a.date)));
+
+                if (!flatRows.length) {
+                    return `<p style="padding:20px; text-align:center; color:#64748B;">No record archives found.</p>`;
+                }
+
+                let html = `
+                  <table class="pro-table" style="width:100%; border-collapse:collapse; text-align:left; font-size:12px;">
+                    <thead>
+                        <tr style="background:#F1F5F9; border-bottom:2px solid #CBD5E1;">
+                            <th style="padding:8px; border:1px solid #CBD5E1;">Date</th>
+                            <th style="padding:8px; border:1px solid #CBD5E1;">Vendor</th>
+                            <th style="padding:8px; border:1px solid #CBD5E1;">Event Purpose</th>
+                            <th style="padding:8px; border:1px solid #CBD5E1;">Requested By</th>
+                            <th style="padding:8px; border:1px solid #CBD5E1;">Item Name</th>
+                            <th style="padding:8px; border:1px solid #CBD5E1; text-align:center;">Qty</th>
+                            <th style="padding:8px; border:1px solid #CBD5E1; text-align:center;">Rate</th>
+                            <th style="padding:8px; border:1px solid #CBD5E1; text-align:center;">Amount</th>
+                            <th style="padding:8px; border:1px solid #CBD5E1;">Served By</th>
+                            <th style="padding:8px; border:1px solid #CBD5E1; text-align:center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+                flatRows.forEach(row => {
+                    html += `
+                        <tr style="border-bottom:1px solid #E2E8F0;">
+                            <td style="padding:8px; border:1px solid #E2E8F0; font-weight:600; white-space:nowrap;">${safeStr(row.date)}</td>
+                            <td style="padding:8px; border:1px solid #E2E8F0; color:#0A56D0; font-weight:500;">${safeStr(row.vendor)}</td>
+                            <td style="padding:8px; border:1px solid #E2E8F0; font-weight:500;">${safeStr(row.eventName)}</td>
+                            <td style="padding:8px; border:1px solid #E2E8F0;">${safeStr(row.reqBy)}</td>
+                            <td style="padding:8px; border:1px solid #E2E8F0; font-weight:600; color:#334155;">${safeStr(row.itemName)}</td>
+                            <td style="padding:8px; border:1px solid #E2E8F0; text-align:center;">${row.itemQty}</td>
+                            <td style="padding:8px; border:1px solid #E2E8F0; text-align:center;">${row.itemRate !== '-' ? '₹'+row.itemRate : '-'}</td>
+                            <td style="padding:8px; border:1px solid #E2E8F0; text-align:center; font-weight:700; color:#1E293B;">₹${Number(row.itemAmount).toFixed(2)}</td>
+                            <td style="padding:8px; border:1px solid #E2E8F0; color:#475569;">${safeStr(row.pantry)}</td>
+                            <td style="padding:8px; border:1px solid #E2E8F0; text-align:center;">
+                                <div class="action-cell" style="justify-content:center;">
+                                    <button class="edit-btn" onclick="window.editMeetingEvent('${row.parentId}')">✏️</button>
+                                    ${canDelete ? `<button class="del-btn" onclick="window.pantryDeleteHandler('event','${row.parentId}')">🗑</button>` : ''}
+                                </div>
+                            </td>
+                        </tr>`;
+                });
+
+                html += `</tbody></table>`;
+                return html;
+            };
+
+            window.openEventHistoryModal = function() {
                 const modal = document.getElementById('eventHistoryModal');
                 const body = document.getElementById('eventHistoryModalBody');
-                modal.classList.remove('hidden');
-
-                // નવો અને સુધારેલો ફેરફાર: જો લોગીન કરેલા પેન્ટ્રી બોયનું નામ, ID અથવા 'Served By' નામ મેચ થાય તો જ બતાવો
-                let historyData = eventLogsData;
-                if (currentUser && currentUser.role === 'pantry') {
-                    historyData = eventLogsData.filter(ev => 
-                        ev.pantryId === currentUser.id || 
-                        ev.pantryName === currentUser.name || 
-                        ev.servedByName === currentUser.name
-                    );
-                }
-
-                // હવે ફિલ્ટર થયેલા ડેટાનો ઉપયોગ કરો
-                const sorted = [...historyData].sort((a, b) => parseDMYToYMD(b.date).localeCompare(parseDMYToYMD(a.date)));
+                if(!modal || !body) return;
                 
-                if (!sorted.length) { 
-                    body.innerHTML = `<p style="padding:20px; color:#64748B; text-align:center;">No meeting records found.</p>`; 
-                    return; 
+                modal.classList.remove('hidden');
+                let subset = [...eventLogsData];
+                
+                if (currentUser && currentUser.role === 'pantry') {
+                    subset = eventLogsData.filter(ev => ev.pantryId === currentUser.id || ev.pantryName === currentUser.name || ev.servedByName === currentUser.name);
                 }
-
-
-                let html =
-                    `<div class="table-toolbar">
-                <input type="text" id="eventHistorySearch" placeholder="🔍 Search events..." style="flex:2;">
-                <select id="eventHistorySortField" style="flex:1;">
-                  <option value="date">Sort by Date</option>
-                  <option value="eventName">Sort by Event</option>
-                  <option value="amount">Sort by Amount</option>
-                </select>
-                <button id="eventHistorySortDirBtn" class="toolbar-btn primary">⬇ Desc</button>
-              </div>
-              <table class="pro-table">
-                <thead><tr><th style="width:40px;"><input type="checkbox" id="eventHistorySelectAll"></th><th>#</th><th>Event</th><th>Date</th><th>Vendor</th><th>Items</th><th>Amount (₹)</th><th>Pantry Boy</th><th style="min-width:120px;">Actions</th></tr></thead>
-                <tbody>`;
-
-                let idx = 1;
-                let sortField = 'date';
-                let sortDir = 'desc';
-
-                function renderHistory() {
-                    const searchVal = document.getElementById('eventHistorySearch')?.value.toLowerCase().trim() || '';
-                    let filtered = sorted.filter(ev =>
-                        (ev.eventName || '').toLowerCase().includes(searchVal) ||
-                        (ev.canteenSource || '').toLowerCase().includes(searchVal) ||
-                        (ev.pantryName || '').toLowerCase().includes(searchVal) ||
-                        (ev.orderedBy || '').toLowerCase().includes(searchVal)
-                    );
-
-                    filtered.sort((a, b) => {
-                        const aVal = a[sortField] || '';
-                        const bVal = b[sortField] || '';
-                        if (sortField === 'date' || sortField === 'amount') {
-                            const aNum = sortField === 'date' ? parseDMYToYMD(aVal) : Number(aVal) || 0;
-                            const bNum = sortField === 'date' ? parseDMYToYMD(bVal) : Number(bVal) || 0;
-                            return sortDir === 'asc' ? (aNum > bNum ? 1 : -1) : (aNum < bNum ? 1 : -1);
-                        }
-                        return sortDir === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-                    });
-
-                    let htmlBody = '';
-                    let counter = 1;
-                    filtered.forEach(ev => {
-                        let itemsStr = '';
-                        if (ev.items && Array.isArray(ev.items)) {
-                            itemsStr = ev.items.map(i => `${i.name}(${i.qty})`).join(', ');
-                        }
-                        htmlBody += `<tr data-id="${ev.id}">
-                  <td><input type="checkbox" class="eventHistorySelect" data-id="${ev.id}"></td>
-                  <td>${counter++}</td>
-                  <td><strong>${safeStr(ev.eventName)}</strong></td>
-                  <td>${safeStr(ev.date)}</td>
-                  <td style="color:#0A56D0; cursor:pointer;" onclick="window.openVendorSheet('${ev.canteenSource}','${ev.canteenSource}')">${safeStr(ev.canteenSource||'-')}</td>
-                  <td style="font-size:.75rem;">${itemsStr || '-'}</td>
-                  <td>₹${(Number(ev.amount)||0).toFixed(2)}</td>
-                  <td>${safeStr(ev.pantryName||'-')}</td>
-                  <td>
-                    <div class="action-cell">
-                      <button class="edit-btn" onclick="window.editMeetingEvent('${ev.id}')">✏️</button>
-                      <button class="del-btn" onclick="window.pantryDeleteHandler('event','${ev.id}')">🗑</button>
-                    </div>
-                  </td>
-                </tr>`;
-                    });
-
-                    const tbody = document.querySelector('#eventHistoryModalBody tbody');
-                    if (tbody) tbody.innerHTML = htmlBody;
-
-                    const selectAll = document.getElementById('eventHistorySelectAll');
-                    if (selectAll) {
-                        selectAll.onchange = function() {
-                            document.querySelectorAll('.eventHistorySelect').forEach(cb => cb.checked = this
-                            .checked);
-                        };
-                    }
-
-                    const deleteBtn = document.querySelector('#eventHistoryModalBody .table-toolbar .toolbar-btn.danger');
-                    if (deleteBtn) {
-                        deleteBtn.onclick = function() {
-                            const selected = document.querySelectorAll('.eventHistorySelect:checked');
-                            if (!selected.length) return appAlert('Error', 'Select events to delete.');
-                            appConfirm('Delete Selected', `Delete ${selected.length} events?`, () => {
-                                selected.forEach(cb => {
-                                    const id = cb.dataset.id;
-                                    db.ref('eventLogs/' + id).remove();
-                                });
-                                appAlert('Deleted', `${selected.length} events removed.`);
-                                renderHistory();
-                            });
-                        };
-                    }
-                }
-
-                body.innerHTML = `
-              <div class="table-toolbar">
-                <input type="text" id="eventHistorySearch" placeholder="🔍 Search events..." style="flex:2;">
-                <select id="eventHistorySortField" style="flex:1;">
-                  <option value="date">Sort by Date</option>
-                  <option value="eventName">Sort by Event</option>
-                  <option value="amount">Sort by Amount</option>
-                </select>
-                <button id="eventHistorySortDirBtn" class="toolbar-btn primary">⬇ Desc</button>
-                <button id="eventHistoryDeleteSelected" class="toolbar-btn danger">🗑 Delete Selected</button>
-              </div>
-              <table class="pro-table">
-                <thead><tr><th style="width:40px;"><input type="checkbox" id="eventHistorySelectAll"></th><th>#</th><th>Event</th><th>Date</th><th>Vendor</th><th>Items</th><th>Amount (₹)</th><th>Pantry Boy</th><th style="min-width:120px;">Actions</th></tr></thead>
-                <tbody></tbody>
-              </table>
-            `;
-
-                document.getElementById('eventHistorySearch').addEventListener('input', renderHistory);
-                document.getElementById('eventHistorySortField').addEventListener('change', function() {
-                    sortField = this.value;
-                    renderHistory();
-                });
-                document.getElementById('eventHistorySortDirBtn').addEventListener('click', function() {
-                    sortDir = sortDir === 'asc' ? 'desc' : 'asc';
-                    this.textContent = sortDir === 'asc' ? '⬆ Asc' : '⬇ Desc';
-                    renderHistory();
-                });
-                document.getElementById('eventHistoryDeleteSelected').addEventListener('click', function() {
-                    const selected = document.querySelectorAll('.eventHistorySelect:checked');
-                    if (!selected.length) return appAlert('Error', 'Select events to delete.');
-                    appConfirm('Delete Selected', `Delete ${selected.length} events?`, () => {
-                        selected.forEach(cb => {
-                            const id = cb.dataset.id;
-                            db.ref('eventLogs/' + id).remove();
-                        });
-                        appAlert('Deleted', `${selected.length} events removed.`);
-                        renderHistory();
-                    });
-                });
-
-                renderHistory();
+                
+                // Yahan 'true' pass karne se Delete button wapas aa jayega
+                body.innerHTML = window.generateSplitRowsTableHtml(subset, true);
             };
 
             // ============================================================
