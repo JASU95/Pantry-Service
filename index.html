@@ -2943,10 +2943,10 @@
 
                                 <div style="margin-top: 50px; display: flex; justify-content: space-between; font-size: 13px; font-weight:700; color:#000;">
                                     <div style="text-align: center; width: 220px; border-top: 1px solid #000; padding-top: 5px;">
-                                        Verified By (DAU Pantry Admin)
+                                       
                                     </div>
                                     <div style="text-align: center; width: 220px; border-top: 1px solid #000; padding-top: 5px;">
-                                        Authorized Stamp & Sign (${vendorName})
+                                        Authorized Signature (${vendorName})
                                     </div>
                                 </div>
                             </div>
@@ -3042,10 +3042,11 @@
                     <input type="number" class="item-rate" placeholder="Rate" min="0" value="" style="width:100%; padding:8px; font-size:.8rem; border-radius:6px; border:1px solid #CBD5E1;">
                 </div>
                 <div style="flex:1.2; min-width:130px;">
-                    <label style="font-size:0.7rem; color:#64748B; font-weight:700;">Served By (Pantry)</label>
+                    <label style="font-size:0.7rem; color:#64748B; font-weight:700;">Served By </label>
                     <select class="item-served-by" style="width:100%; padding:8px; font-size:.8rem; border-radius:6px; border:1px solid #CBD5E1;">
                         <option value="">-- Pantry Boy --</option>
                         <option value="Direct Order (Canteen)">Direct Canteen</option>
+						<option value="Multiple Pantry Boy">Multi Staff</option>
                         ${pantryOpts}
                     </select>
                 </div>
@@ -3902,10 +3903,10 @@
 
                                 <div style="margin-top: 50px; display: flex; justify-content: space-between; font-size: 13px; font-weight:700; color:#000;">
                                     <div style="text-align: center; width: 220px; border-top: 1px solid #000; padding-top: 5px;">
-                                        Verified By (DAU Pantry Admin)
+                                        
                                     </div>
                                     <div style="text-align: center; width: 220px; border-top: 1px solid #000; padding-top: 5px;">
-                                        Authorized Stamp & Sign (${vendorName})
+                                        Authorized Signature (${vendorName})
                                     </div>
                                 </div>
                             </div>
@@ -5525,7 +5526,7 @@
                         <input type="text" id="editEvtOrderedBy" value="${safeStr(ev.orderedBy)}" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; box-sizing:border-box;">
                     </div>
                     <div>
-                        <label style="font-size:.8rem; font-weight:600; color:#44474E; display:block; margin-bottom:4px;">👨‍🍳 Served By (Pantry)</label>
+                        <label style="font-size:.8rem; font-weight:600; color:#44474E; display:block; margin-bottom:4px;">👨‍🍳 Served By </label>
                         <select id="editEvtServedBy" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; box-sizing:border-box;">
                             <option value="Direct Order (Canteen Staff)" ${currentServedVal === 'Direct Order (Canteen Staff)' ? 'selected' : ''}>Direct Order (Canteen Staff)</option>
                             <option value="General / Multiple Pantry Boys" ${currentServedVal === 'General / Multiple Pantry Boys' ? 'selected' : ''}>General / Multiple Pantry Boys</option>
