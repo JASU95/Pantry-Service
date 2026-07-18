@@ -2746,44 +2746,245 @@
                 const closeBtn = viewer.querySelector('.sheet-header button');
                 if (closeBtn) closeBtn.style.display = isExternal ? 'none' : 'inline-flex';
 
-                const records = eventLogsData.filter(ev => (ev.canteenSource || '').toLowerCase() === vendorName
-                .toLowerCase());
                 const allItems = [];
-                records.forEach(ev => {
+                eventLogsData.forEach(ev => {
                     if (ev.items && Array.isArray(ev.items)) {
                         ev.items.forEach(item => {
-                            allItems.push({
-                                date: ev.date,
-                                itemName: item.name || '',
-                                qty: item.qty || 0,
-                                rate: item.rate || 0,
-                                amount: (item.qty || 0) * (item.rate || 0),
-                                vendor: ev.canteenSource || '',
-                                requestedBy: ev.orderedBy || '',
-                                meeting: ev.eventName || ''
-                            });
+                            const itemVendor = (item.vendor || ev.canteenSource || '').toLowerCase();
+                            if (itemVendor === vendorName.toLowerCase()) {
+                                const purposeText = `${ev.eventName || ''} ${ev.orderedBy || ''}`.toLowerCase();
+                                let head = 'Office';
+                                if (purposeText.includes('school of law') || purposeText.includes('law') || purposeText.includes('llm')) {
+                                    head = 'SOL';
+                                } else if (purposeText.includes('admission')) {
+                                    head = 'Admissions';
+                                } else if (purposeText.includes('placement')) {
+                                    head = 'Placement';
+                                }
+
+                                allItems.push({
+                                    date: item.itemSpecificDate || ev.date,
+                                    itemName: item.name || '',
+                                    qty: item.qty || 0,
+                                    rate: item.rate || 0,
+                                    amount: item.amount || ((item.qty || 0) * (item.rate || 0)),
+                                    vendor: item.vendor || ev.canteenSource || '',
+                                    requestedBy: ev.orderedBy || '',
+                                    meeting: ev.eventName || '',
+                                    servedBy: item.servedBy || ev.servedByName || ev.pantryName || '-',
+                                    accountHead: head
+                                });
+                            }
                         });
                     }
                 });
+                
                 allItems.sort((a, b) => parseDMYToYMD(a.date).localeCompare(parseDMYToYMD(b.date)));
 
-                let html = '';
-                if (!allItems.length) html =
-                    `<p style="padding:40px; text-align:center; color:#64748B;">No records found for this vendor.</p>`;
-                else {
-                    let sr = 1;
-                    let grandTotal = 0;
-                    html =
-                        `<table class="vendor-desktop-table"><thead><tr><th>S.R.</th><th>Date</th><th>Item Name</th><th>Qty</th><th>Rate</th><th>Amount</th><th>Vendor</th><th>Requested By</th><th>Meeting/Event</th></tr></thead><tbody>`;
-                    allItems.forEach(row => {
-                        grandTotal += row.amount;
-                        html +=
-                            `<tr><td>${sr++}</td><td>${safeStr(row.date)}</td><td>${safeStr(row.itemName)}</td><td>${row.qty}</td><td>₹${row.rate}</td><td>₹${row.amount.toFixed(2)}</td><td>${safeStr(row.vendor)}</td><td>${safeStr(row.requestedBy)}</td><td>${safeStr(row.meeting)}</td></tr>`;
-                    });
-                    html +=
-                        `<tr style="font-weight:700; background:#F1F5F9;"><td colspan="5" style="text-align:right;">GRAND TOTAL</td><td>₹${grandTotal.toFixed(2)}</td><td colspan="3"></td></tr></tbody></table>`;
-                }
-                content.innerHTML = html;
+                window.renderFilteredVendorTable = function(selectedHead) {
+                    const filteredItems = selectedHead === 'All' ? allItems : allItems.filter(item => item.accountHead === selectedHead);
+                    
+                    let controlHtml = `
+                        <div class="merged-filter-row" style="margin-bottom:16px; background:#F8FAFC; padding:14px; border-radius:12px; border:1px solid #CBD5E1; display:flex; gap:16px; align-items:center; flex-wrap:wrap; flex-shrink:0;">
+                            <div style="flex:1; min-width:240px; text-align:left;">
+                                <label style="font-size:0.82rem; font-weight:700; color:#44474E; display:block; margin-bottom:4px;">📊 Select Department Head:</label>
+                                <select id="vendorAccountHeadFilter" style="margin:0; padding:11px; border-radius:8px; border:1px solid #CBD5E1; font-size:0.95rem; width:100%; font-weight:500;">
+                                    <option value="All" ${selectedHead==='All'?'selected':''}>All Combined View</option>
+                                    <option value="SOL" ${selectedHead==='SOL'?'selected':''}>SOL</option>
+                                    <option value="Admissions" ${selectedHead==='Admissions'?'selected':''}>Admissions</option>
+                                    <option value="Placement" ${selectedHead==='Placement'?'selected':''}>Placement</option>
+                                    <option value="Office" ${selectedHead==='Office'?'selected':''}>Office</option>
+                                </select>
+                            </div>
+                            <div style="padding-top:18px;">
+                                <button type="button" id="generateVendorBillBtn" class="success" style="min-height:44px; padding:0 24px; border-radius:8px; font-weight:700; background:#0A56D0; box-shadow:0 4px 10px rgba(10,86,208,0.2); font-size:0.9rem;">🧾 Generate Printable Bill for DAU</button>
+                            </div>
+                        </div>
+                    `;
+
+                    let tableHtml = '';
+                    if (!filteredItems.length) {
+                        tableHtml = `<p style="padding:40px; text-align:center; color:#64748B; font-weight:500;">No records found for the selected department.</p>`;
+                    } else {
+                        let sr = 1;
+                        let grandTotal = 0;
+                        tableHtml = `
+                            <table class="vendor-desktop-table" style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+                                <thead>
+                                    <tr>
+                                        <th>S.R.</th>
+                                        <th>Date</th>
+                                        <th>Item Name</th>
+                                        <th>Qty</th>
+                                        <th>Rate</th>
+                                        <th>Amount</th>
+                                        <th>Requested By</th>
+                                        <th>Meeting Purpose / Event</th>
+                                        <th>Department</th>
+                                        <th>Pantry Boy</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+                        filteredItems.forEach(row => {
+                            grandTotal += row.amount;
+                            let headBadgeColor = '#64748B';
+                            if(row.accountHead==='SOL') headBadgeColor='#7C3AED';
+                            if(row.accountHead==='Admissions') headBadgeColor='#D97706';
+                            if(row.accountHead==='Placement') headBadgeColor='#10B981';
+
+                            tableHtml += `
+                                <tr>
+                                    <td>${sr++}</td>
+                                    <td>${safeStr(row.date)}</td>
+                                    <td><strong>${safeStr(row.itemName)}</strong></td>
+                                    <td>${row.qty}</td>
+                                    <td>₹${row.rate}</td>
+                                    <td>₹${row.amount.toFixed(2)}</td>
+                                    <td>${safeStr(row.requestedBy)}</td>
+                                    <td>${safeStr(row.meeting)}</td>
+                                    <td><span style="background:${headBadgeColor}; color:#fff; padding:4px 12px; border-radius:100px; font-size:0.75rem; font-weight:700; display:inline-block; text-align:center;">${row.accountHead}</span></td>
+                                    <td>${safeStr(row.servedBy)}</td>
+                                </tr>`;
+                        });
+                        tableHtml += `
+                                <tr style="font-weight:700; background:#F1F5F9; font-size:0.95rem;">
+                                    <td colspan="5" style="text-align:right; padding-right:12px;">GRAND TOTAL</td>
+                                    <td style="color:#0A56D0; font-weight:800;">₹${grandTotal.toFixed(2)}</td>
+                                    <td colspan="4"></td>
+                                </tr>
+                                </tbody>
+                            </table>`;
+                    }
+
+                    content.innerHTML = controlHtml + tableHtml;
+
+                    document.getElementById('vendorAccountHeadFilter').onchange = function() {
+                        window.renderFilteredVendorTable(this.value);
+                    };
+
+                    document.getElementById('generateVendorBillBtn').onclick = function() {
+                        if(!filteredItems.length) return appAlert('No Data', 'No items available.');
+                        
+                        const vendorShort = vendorName.trim().slice(0, 3).toUpperCase();
+                        const reportMonthVal = document.getElementById('reportMonth')?.value || new Date().toISOString().slice(0,7);
+                        const [bYear, bMonth] = reportMonthVal.split('-');
+                        const bYY = bYear ? bYear.slice(-2) : '26';
+                        const bMM = bMonth || '07';
+
+                        const monthlyVendorEvents = eventLogsData.filter(ev => {
+                            const evYMD = parseDMYToYMD(ev.date);
+                            if (!evYMD || !evYMD.startsWith(reportMonthVal)) return false;
+                            return ev.items && ev.items.some(i => (i.vendor || ev.canteenSource || '').toLowerCase() === vendorName.toLowerCase());
+                        });
+                        const bCount = String(Math.max(1, monthlyVendorEvents.length)).padStart(2, '0');
+                        const invoiceNumber = `${vendorShort}/${bMM}/${bYY}/${bCount}`;
+
+                        let billRows = '';
+                        let billTotal = 0;
+                        let billSr = 1;
+
+                        filteredItems.forEach(item => {
+                            billTotal += item.amount;
+                            billRows += `
+                                <tr style="height:40px !important;">
+                                    <td style="border:1px solid #000 !important; text-align:center; padding:5px; font-size:13px !important; vertical-align:middle;">${billSr++}</td>
+                                    <td style="border:1px solid #000 !important; text-align:center; padding:5px; font-size:13px !important; vertical-align:middle; white-space:nowrap;">${item.date}</td>
+                                    <td style="border:1px solid #000 !important; text-align:left; padding:5px 10px; font-size:13px !important; vertical-align:middle; font-weight:600;">${item.itemName}</td>
+                                    <td style="border:1px solid #000 !important; text-align:center; padding:5px; font-size:13px !important; vertical-align:middle;">${item.qty}</td>
+                                    <td style="border:1px solid #000 !important; text-align:center; padding:5px; font-size:13px !important; vertical-align:middle;">₹${item.rate}</td>
+                                    <td style="border:1px solid #000 !important; text-align:center; padding:5px; font-size:13px !important; vertical-align:middle; font-weight:700;">₹${item.amount.toFixed(2)}</td>
+                                </tr>
+                            `;
+                        });
+
+                        let headTitle = selectedHead === 'All' ? 'ALL' : `${selectedHead.toUpperCase()}`;
+
+                        const billHtml = `
+                            <div class="dau-official-invoice-print-sheet" style="font-family: 'Inter', Arial, sans-serif; padding: 5px; color: #000; background:#fff;">
+                                <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px;">
+                                    <h1 style="margin: 0; font-size: 26px; font-weight:800; letter-spacing: 0.5px; color:#000;">${vendorName.toUpperCase()}</h1>
+                                    <p style="margin: 4px 0 0 0; font-size: 13px; color: #000; font-weight:600;">Official Refreshment Invoice / Food Bill</p>
+                                </div>
+                                
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 25px; font-size: 14px; line-height: 1.5; color:#000;">
+                                    <div style="text-align:left;">
+                                        <span style="color:#000; font-weight:800; font-size:0.85rem; display:block; margin-bottom:2px;">BILLED TO:</span>
+                                        <span style="font-size:16px; font-weight: 800; color:#000;">DAU (Dhirubhai Ambani University)</span><br>
+                                        <span style="font-weight:500; color:#000;">Gandhinagar, Gujarat, India</span>
+                                    </div>
+                                    <div style="text-align: right; color:#000;">
+                                        <span style="color:#000; font-weight:800; font-size:0.85rem; display:block; margin-bottom:2px;">BILL DETAILS:</span>
+                                        <b>Invoice No:</b> <span style="font-family:monospace; font-weight:800; color:#0A56D0; font-size:14px;">${invoiceNumber}</span><br>
+                                        <b>Department:</b> ${headTitle}<br>
+                                        <b>Billing Date:</b> ${getTodayInDMY()}<br>
+                                        <b>Payment Mode:</b> Institutional Account
+                                    </div>
+                                </div>
+
+                                <table style="width: 100%; border-collapse: collapse; margin-top: 10px; border:1px solid #000 !important; color:#000;">
+                                    <thead>
+                                        <tr style="background: #E2E8F0 !important; height:40px !important;">
+                                            <th style="border:1px solid #000 !important; width: 8%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">S.R.</th>
+                                            <th style="border:1px solid #000 !important; width: 15%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Date</th>
+                                            <th style="border:1px solid #000 !important; width: 45%; font-weight:700; font-size:13px !important; text-align:left; padding-left:10px; color:#000;">Item Description</th>
+                                            <th style="border:1px solid #000 !important; width: 10%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Qty</th>
+                                            <th style="border:1px solid #000 !important; width: 11%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Rate</th>
+                                            <th style="border:1px solid #000 !important; width: 11%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${billRows}
+                                        <tr style="background: #FFF !important; font-weight: bold; height:40px !important;">
+                                            <td colspan="5" style="border:1px solid #000 !important; text-align: right; padding-right: 12px; font-size:13px !important; vertical-align:middle; font-weight:700; color:#000;">GRAND TOTAL AMOUNT DUE</td>
+                                            <td style="border:1px solid #000 !important; text-align:center; font-size: 14px !important; color: #000; vertical-align:middle; font-weight:800;">₹${billTotal.toFixed(2)}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <div style="margin-top: 50px; display: flex; justify-content: space-between; font-size: 13px; font-weight:700; color:#000;">
+                                    <div style="text-align: center; width: 220px; border-top: 1px solid #000; padding-top: 5px;">
+                                        Verified By (DAU Pantry Admin)
+                                    </div>
+                                    <div style="text-align: center; width: 220px; border-top: 1px solid #000; padding-top: 5px;">
+                                        Authorized Stamp & Sign (${vendorName})
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                        const printContainer = document.getElementById('printAreaContainer');
+                        printContainer.style.zIndex = "100000005"; 
+                        printContainer.innerHTML = `
+                            <div class="preview-card" style="max-width:920px; width:95vw; height:90vh;">
+                              <div class="preview-header hide-on-print">
+                                <button onclick="window.print()" class="success" style="font-size:.9rem; padding:10px 20px; border-radius:8px; min-height:40px; font-weight:700; cursor:pointer;">🖨️ Print Bill / Save PDF</button>
+                                <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger" style="font-size:.9rem; padding:10px 20px; border-radius:8px; min-height:40px; font-weight:700; cursor:pointer;">✕ Close Preview</button>
+                              </div>
+                              <div class="preview-content" style="background:#fff; padding:25px;">
+                                ${billHtml}
+                              </div>
+                            </div>
+                            <style id="dauInvoiceGlobalPrintOverrideCSS">
+                                @media print {
+                                    html, body { overflow: visible !important; height: auto !important; max-height: none !important; }
+                                    body * { visibility: hidden !important; background: transparent !important; }
+                                    #printAreaContainer, #printAreaContainer * { visibility: visible !important; }
+                                    #printAreaContainer { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; height: auto !important; z-index: 99999999 !important; background: #fff !important; display: block !important; overflow: visible !important; }
+                                    .preview-card { box-shadow: none !important; border: none !important; width: 100% !important; height: auto !important; max-height: none !important; display: block !important; overflow: visible !important; margin: 0 !important; padding: 0 !important; }
+                                    .preview-content { padding: 0 !important; margin: 0 !important; overflow: visible !important; background: #fff !important; }
+                                    .preview-header { display: none !important; }
+                                    .dau-official-invoice-print-sheet { width: 100% !important; background: #fff !important; color: #000 !important; }
+                                    table { border-collapse: collapse !important; width: 100% !important; overflow: visible !important; }
+                                    th, td { border: 1px solid #000 !important; padding: 6px !important; font-size: 13px !important; color: #000 !important; background: #fff !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+                                    tr { page-break-inside: avoid !important; page-break-after: auto !important; }
+                                }
+                            </style>
+                        `;
+                        printContainer.classList.remove('hidden');
+                    };
+                };
+
+                window.renderFilteredVendorTable('All');
                 viewer.classList.add('active');
             };
 
@@ -2809,40 +3010,51 @@
                 const rowId = 'dl_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
                 const row = document.createElement('div');
                 row.className = 'dynamic-item-row';
+                row.style.cssText = "display:flex; flex-wrap:wrap; gap:8px; align-items:center; background:#F8FAFC; padding:10px; border-radius:10px; border:1px solid #E2E8F0; margin-bottom:8px;";
+                
                 const vendorOpts = canteenList.map(c => `<option value="${safeStr(c.name)}">${safeStr(c.name)}</option>`).join('');
+                const activePantryStaff = pantryTeam.filter(p => !p.onLeave);
+                const pantryOpts = activePantryStaff.map(p => `<option value="${safeStr(p.name)}">${safeStr(p.name)}</option>`).join('');
+                const todayYMD = new Date().toISOString().split('T')[0];
                 
                 row.innerHTML = `
-              <select class="item-vendor" style="flex:1.1; padding:10px; font-size:.75rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
-                <option value="">-- Vendor --</option>${vendorOpts}
-              </select>
-              
-              <!-- Checkbox for Optional Date Toggle -->
-              <div style="display:flex; align-items:center; gap:4px; flex:1; justify-content:center;">
-                <input type="checkbox" class="row-date-toggle" style="width:16px; height:16px; accent-color:#0A56D0;" title="Tick to specify custom date">
-                <input type="date" class="item-row-date" disabled style="width:100%; opacity:0.5; padding:6px; font-size:.75rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
-              </div>
-              
-              <input type="text" list="${rowId}" class="item-name" placeholder="Item Name" style="flex:1.5; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
-              <datalist id="${rowId}"></datalist>
-              
-              <input type="number" class="item-qty" placeholder="Qty" min="1" value="1" style="flex:.6; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
-              <select class="item-unit" style="flex:.6; padding:8px; font-size:.75rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
-                <option value="–">–</option><option value="Nos">Nos</option><option value="Plates">Plates</option><option value="Cups">Cups</option><option value="Pkt">Pkt</option>
-              </select>
-              <input type="number" class="item-rate" placeholder="₹ Rate" min="0" value="" style="flex:.7; padding:10px; font-size:.8rem; margin:0; border-radius:8px; border:1px solid #CBD5E1;">
-              <button type="button" class="remove-item-btn" style="background:#DC3545; color:#fff; padding:8px 12px; border-radius:8px; margin:0; font-size:1rem; min-height:34px;">X</button>
-            `;
+                <div style="flex:1; min-width:120px;">
+                    <label style="font-size:0.7rem; color:#64748B; font-weight:700;">Date</label>
+                    <input type="date" class="item-row-date" value="${todayYMD}" style="width:100%; padding:8px; font-size:.8rem; border-radius:6px; border:1px solid #CBD5E1;">
+                </div>
+                <div style="flex:1; min-width:120px;">
+                    <label style="font-size:0.7rem; color:#64748B; font-weight:700;">Vendor / Canteen</label>
+                    <select class="item-vendor" style="width:100%; padding:8px; font-size:.8rem; border-radius:6px; border:1px solid #CBD5E1;">
+                        <option value="">-- Vendor --</option>${vendorOpts}
+                    </select>
+                </div>
+                <div style="flex:1.5; min-width:150px;">
+                    <label style="font-size:0.7rem; color:#64748B; font-weight:700;">Item Name</label>
+                    <input type="text" list="${rowId}" class="item-name" placeholder="Item Name" style="width:100%; padding:8px; font-size:.8rem; border-radius:6px; border:1px solid #CBD5E1;">
+                    <datalist id="${rowId}"></datalist>
+                </div>
+                <div style="flex:0.6; min-width:60px;">
+                    <label style="font-size:0.7rem; color:#64748B; font-weight:700;">Qty</label>
+                    <input type="number" class="item-qty" placeholder="Qty" min="1" value="1" style="width:100%; padding:8px; font-size:.8rem; border-radius:6px; border:1px solid #CBD5E1;">
+                </div>
+                <div style="flex:0.8; min-width:80px;">
+                    <label style="font-size:0.7rem; color:#64748B; font-weight:700;">Rate (₹)</label>
+                    <input type="number" class="item-rate" placeholder="Rate" min="0" value="" style="width:100%; padding:8px; font-size:.8rem; border-radius:6px; border:1px solid #CBD5E1;">
+                </div>
+                <div style="flex:1.2; min-width:130px;">
+                    <label style="font-size:0.7rem; color:#64748B; font-weight:700;">Served By (Pantry)</label>
+                    <select class="item-served-by" style="width:100%; padding:8px; font-size:.8rem; border-radius:6px; border:1px solid #CBD5E1;">
+                        <option value="">-- Pantry Boy --</option>
+                        <option value="Direct Order (Canteen)">Direct Canteen</option>
+                        ${pantryOpts}
+                    </select>
+                </div>
+                <div style="display:flex; align-items:flex-end;">
+                    <button type="button" class="remove-item-btn" style="background:#DC3545; color:#fff; border:none; padding:8px 12px; border-radius:6px; font-size:1rem; cursor:pointer; margin-top:14px;" title="Remove Item">X</button>
+                </div>
+                `;
                 container.appendChild(row);
                 
-                // Toggle disable/enable on checkbox state change
-                const toggle = row.querySelector('.row-date-toggle');
-                const dateInp = row.querySelector('.item-row-date');
-                toggle.onchange = function() {
-                    dateInp.disabled = !this.checked;
-                    dateInp.style.opacity = this.checked ? "1" : "0.5";
-                    if(!this.checked) dateInp.value = "";
-                };
-
                 row.querySelector('.remove-item-btn').onclick = () => { 
                     row.remove(); 
                     window.calcMeetingTotal(prefix); 
@@ -2898,62 +3110,55 @@
                 });
                 display.innerText = "₹ " + total.toFixed(2);
             };
-                window.renderMeetingRefreshmentSection = function(containerId, prefix) {
+
+            window.renderMeetingRefreshmentSection = function(containerId, prefix) {
                 const target = document.getElementById(containerId);
                 if (!target) return;
+                
                 const todayYMD = new Date().toISOString().split('T')[0];
-                const todayDMY = convertYMDtoDMY(todayYMD);
                 const monthStr = todayYMD.slice(0, 7);
                 const srNo = getMeetingSrForMonth(monthStr);
                 meetingSrCounter = srNo;
 
-                const activePantryStaff = pantryTeam.filter(p => !p.onLeave);
-                const dynamicPantryOpts = activePantryStaff.map(p => `<option value="${safeStr(p.name)}">${safeStr(p.name)}</option>`).join('');
-
                 target.innerHTML = `
               <div class="card" style="border-top:4px solid #0A56D0; flex-shrink:0;">
-                <h3 style="color:#0A56D0; margin:0 0 16px 0; font-size:1.15rem; text-align:center;">🎪 Meeting & Guest Refreshments</h3>
-                <div class="meeting-row">
-                  <div><label>📅 Main Date (Optional)</label><input type="date" id="${prefix}MeetingDate" value="" style="margin:0;" placeholder="Optional"></div>
-                  <div><label>📆 Day</label><div class="day-display" id="${prefix}MeetingDayDisplay">—</div></div>
-                  <div><label>🔢 Sr. No.</label><div class="meeting-sr-box" id="${prefix}MeetingSrDisplay">${srNo}</div></div>
-                </div>
-                <div class="meeting-row">
-                  <div style="flex:1;"><label>👤 Requested By (Dept/Person)</label>
+                <h3 style="color:#0A56D0; margin:0 0 16px 0; font-size:1.15rem; text-align:center;">🎪 Multi-Day / Multi-Item Meeting</h3>
+                
+                <div class="meeting-row" style="background:#F1F5F9; padding:12px; border-radius:10px; margin-bottom:16px; border:1px solid #CBD5E1;">
+                  <div style="flex:1; min-width:200px;">
+                    <label>👤 Organizer / Requested By</label>
                     <div class="autocomplete-wrap">
-                      <input type="text" id="${prefix}MeetingOrderedBy" placeholder="🔍 Type 2-3 characters..." style="margin:0; text-align:left; font-size:.9rem; padding:14px; border-radius:10px; border:1px solid #CBD5E1;">
+                      <input type="text" id="${prefix}MeetingOrderedBy" placeholder="Dept or Person Name..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1;">
                       <div class="autocomplete-dropdown" id="ac_${prefix}MeetingOrderedBy"></div>
                     </div>
                   </div>
-                  <div style="flex:1;"><label>👨‍🍳 Served By (Pantry Boy)</label>
-                    <select id="${prefix}MeetingServedBy" style="margin:0; padding:14px; border-radius:10px; border:1px solid #CBD5E1; width:100%;">
-                      <option value="">-- Select Pantry Boy --</option>
-                      <option value="Direct Order (Canteen Staff)">Direct Order (Canteen Staff)</option>
-                      <option value="General / Multiple Pantry Boys">General / Multiple Pantry Boys</option>
-                      ${dynamicPantryOpts}
-                    </select>
-                    <div style="margin-top:6px; display:flex; align-items:center; gap:4px;">
-                        <input type="text" id="${prefix}CustomMultiPantry" placeholder="✍️ Or type multi names" style="margin:0; padding:8px 12px; font-size:.82rem; border-radius:8px; border:1px solid #CBD5E1; width:100%;">
-                    </div>
+                  <div style="flex:2; min-width:200px;">
+                    <label>📝 Meeting Purpose / Event Name</label>
+                    <input type="text" id="${prefix}MeetingPurpose" placeholder="E.g. NAAC Peer Team Visit, Audit Meeting..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1;">
+                  </div>
+                  <div style="flex:0.5; min-width:80px;">
+                    <label>🔢 Sr. No.</label>
+                    <div class="meeting-sr-box" id="${prefix}MeetingSrDisplay" style="min-height:40px; padding:10px;">${srNo}</div>
                   </div>
                 </div>
-                <div class="meeting-row">
-                  <div style="flex:2;"><label>📝 Meeting Purpose / Event Name</label>
-                    <textarea id="${prefix}MeetingPurpose" placeholder="Brief description of the meeting/event..." rows="2" style="margin:0; font-size:.85rem; padding:12px; border:1px solid #CBD5E1; border-radius:10px; resize:vertical; width:100%;"></textarea>
-                  </div>
+
+                <div class="sub-section-title" style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
+                    <span>📋 Add Refreshment Items</span>
+                    <button type="button" onclick="window.addMeetingItemRow('${prefix}')" class="success sm" style="border-radius:100px; padding:6px 14px;">➕ Add Item</button>
                 </div>
-                <div class="sub-section-title" style="margin-top:16px;">📋 Refreshment Items</div>
-                <div id="${prefix}MeetingItemsContainer"></div>
-                <button type="button" onclick="window.addMeetingItemRow('${prefix}')" class="btn" style="background:#E2E8F0; color:#0A56D0; width:100%; margin-bottom:12px; font-weight:700; min-height:44px; padding:4px;">➕ Add Item Row</button>
-                <div class="card" style="background:#F0F4F9; margin-top:0px; padding:14px; text-align:center; border:1px dashed #0A56D0; box-shadow:none;">
-                  <span style="font-size:.85rem; color:#44474E; font-weight:700;">Grand Total Amount:</span>
-                  <div id="${prefix}MeetingCalcDisplay" style="font-size:1.4rem; font-weight:700; color:#0A56D0;">₹ 0.00</div>
+                
+                <div id="${prefix}MeetingItemsContainer" style="margin-top:10px;"></div>
+                
+                <div class="card" style="background:#EFF6FF; margin-top:12px; padding:14px; text-align:center; border:2px dashed #0A56D0; box-shadow:none;">
+                  <span style="font-size:.9rem; color:#1E3A8A; font-weight:700;">Grand Total Amount:</span>
+                  <div id="${prefix}MeetingCalcDisplay" style="font-size:1.6rem; font-weight:800; color:#0A56D0;">₹ 0.00</div>
                 </div>
-                <div style="margin-top:12px; background:#EFF6FF; padding:10px; border-radius:8px; border:1px solid #93C5FD; display:flex; align-items:center; gap:8px;">
+                
+                <div style="margin-top:12px; background:#F8FAFC; padding:10px; border-radius:8px; border:1px solid #E2E8F0; display:flex; align-items:center; gap:8px;">
                   <input type="checkbox" id="${prefix}ShowNotification" style="width:18px; height:18px; accent-color:#0A56D0;">
-                  <label for="${prefix}ShowNotification" style="font-size:.85rem; font-weight:700; color:#1E3A8A; margin:0; cursor:pointer;">📢 Show Notification on Pantry Dashboard</label>
+                  <label for="${prefix}ShowNotification" style="font-size:.85rem; font-weight:700; color:#44474E; margin:0; cursor:pointer;">📢 Show Notification on Pantry Dashboard</label>
                 </div>
-                <button type="button" id="${prefix}MeetingSubmitBtn" class="success" style="width:100%; padding:14px; margin-top:8px; border-radius:12px; font-weight:700; min-height:50px;">📌 SAVE MEETING REFRESHMENT</button>
+                <button type="button" id="${prefix}MeetingSubmitBtn" class="success" style="width:100%; padding:16px; margin-top:12px; border-radius:12px; font-weight:800; font-size:1.1rem; box-shadow:0 4px 12px rgba(20,108,67,0.3);">📌 SAVE MEETING & REFRESHMENTS</button>
               </div>
               <div style="display:flex; justify-content:space-between; align-items:center; margin:16px 0 8px 4px;">
                 <h4 style="color:#1E293B; font-size:.95rem; font-weight:700; margin:0;">🏛️ Past Archives</h4>
@@ -2961,85 +3166,84 @@
               <button onclick="window.openEventHistoryModal()" class="btn" style="width:100%; margin-top:10px; background:#1E293B;">📊 Open Event History Stream</button>
             `;
 
-                const dateInput = document.getElementById(prefix + 'MeetingDate');
-                const dayDisplay = document.getElementById(prefix + 'MeetingDayDisplay');
-                const selectPantryBox = document.getElementById(prefix + 'MeetingServedBy');
-                const customPantryBox = document.getElementById(prefix + 'CustomMultiPantry');
-
-                if (dateInput && dayDisplay) {
-                    dateInput.addEventListener('change', function() {
-                        const ymd = this.value;
-                        if (ymd) {
-                            dayDisplay.textContent = getDayOfWeek(convertYMDtoDMY(ymd));
-                        } else { dayDisplay.textContent = '—'; }
-                    });
-                }
+                // Add one blank row by default
+                window.addMeetingItemRow(prefix);
 
                 document.getElementById(prefix + 'MeetingSubmitBtn').onclick = function() {
                     const orderedBy = document.getElementById(prefix + 'MeetingOrderedBy').value.trim();
-                    let servedBy = customPantryBox.value.trim() || selectPantryBox.value.trim();
-                    if (!servedBy) return appAlert('Error', 'Please select Served By field.'); 
-                    
                     const purpose = document.getElementById(prefix + 'MeetingPurpose').value.trim() || 'General Meeting';
-                    const mainDateVal = dateInput.value;
-                    const mainDateDMY = mainDateVal ? convertYMDtoDMY(mainDateVal) : '';
+                    
+                    if (!orderedBy) return appAlert('Error', 'Please enter Organizer / Requested By.');
 
                     const container = document.getElementById(prefix + 'MeetingItemsContainer');
                     const items = [];
                     let totalAmt = 0;
                     const summary = [];
 
-                    container.querySelectorAll('.dynamic-item-row').forEach(row => {
+                    let hasError = false;
+
+                    container.querySelectorAll('.dynamic-item-row').forEach((row, index) => {
+                        const dateVal = row.querySelector('.item-row-date').value;
                         const vendor = row.querySelector('.item-vendor').value.trim();
-                        const isToggleChecked = row.querySelector('.row-date-toggle').checked;
-                        const rowDateVal = row.querySelector('.item-row-date').value;
-                        
-                        // Fallback check condition
-                        let finalRowDate = (isToggleChecked && rowDateVal) ? convertYMDtoDMY(rowDateVal) : (mainDateDMY ? mainDateDMY : getTodayInDMY());
-                        
                         const iName = row.querySelector('.item-name').value.trim();
                         const qty = Number(row.querySelector('.item-qty').value) || 0;
-                        const unit = row.querySelector('.item-unit').value || '–';
                         const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
+                        const servedBy = row.querySelector('.item-served-by').value.trim();
                         
                         if (iName && qty > 0) {
+                            if (!dateVal) { appAlert('Error', `Select Date for item ${index+1}`); hasError = true; }
+                            if (!vendor) { appAlert('Error', `Select Vendor for item ${index+1}`); hasError = true; }
+                            if (!servedBy) { appAlert('Error', `Select Pantry Boy for item ${index+1}`); hasError = true; }
+                            
+                            const finalRowDate = convertYMDtoDMY(dateVal);
                             const amt = qty * rate;
+                            
                             items.push({ 
-                                vendor, 
+                                vendor: vendor, 
                                 type: '🍪 Snacks/Food', 
                                 name: iName, 
-                                qty, 
-                                unit, 
-                                rate, 
+                                qty: qty, 
+                                unit: 'Nos', 
+                                rate: rate, 
                                 amount: amt,
-                                itemSpecificDate: finalRowDate 
+                                itemSpecificDate: finalRowDate,
+                                servedBy: servedBy
                             });
                             totalAmt += amt;
-                            summary.push(`${qty} ${iName} (${finalRowDate}) [${vendor}]`);
+                            summary.push(`${qty} ${iName}`);
                         }
                     });
-                    if (!items.length) return appAlert('Empty', 'Add at least one refreshment item.');
+                    
+                    if (hasError) return;
+                    if (!items.length) return appAlert('Empty', 'Add at least one refreshment item with a valid quantity.');
 
                     const id = 'event_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+                    // Extract unique vendors and pantry boys for the header level summary
+                    const uniqueVendors = [...new Set(items.map(i => i.vendor).filter(Boolean))].join(', ');
+                    const uniquePantryBoys = [...new Set(items.map(i => i.servedBy).filter(Boolean))].join(', ');
+                    const mainDate = items[0].itemSpecificDate; // Take the date of the first item as the main date
+
                     db.ref('eventLogs/' + id).set({
                         id,
-                        canteenSource: [...new Set(items.map(i => i.vendor).filter(Boolean))].join(', ') || 'Various',
-                        orderedBy: orderedBy || 'Not specified',
-                        servedByName: servedBy, 
+                        canteenSource: uniqueVendors, // Summary
+                        orderedBy: orderedBy,
+                        servedByName: uniquePantryBoys, // Summary
                         eventName: purpose,
-                        date: mainDateDMY ? mainDateDMY : getTodayInDMY(),
+                        date: mainDate,
                         time: new Date().toTimeString().slice(0, 5),
-                        items,
+                        items: items,
                         amount: totalAmt,
-                        pantryName: servedBy, 
+                        pantryName: uniquePantryBoys, // Summary
                         refreshmentSummary: summary.join(', '),
                         showNotification: document.getElementById(prefix + 'ShowNotification').checked 
+                    }).then(() => {
+                        appAlert('Success', `Meeting saved successfully!`);
+                        document.getElementById(prefix + 'MeetingOrderedBy').value = '';
+                        document.getElementById(prefix + 'MeetingPurpose').value = '';
+                        container.innerHTML = '';
+                        window.addMeetingItemRow(prefix);
+                        window.calcMeetingTotal(prefix);
                     });
-
-                    appAlert('Success', `Meeting saved successfully!`);
-                    container.innerHTML = '';
-                    target.querySelectorAll('input, textarea').forEach(i => { if(i.type !== 'checkbox') i.value = ''; });
-                    window.calcMeetingTotal(prefix);
                 };
             };
 		
@@ -3487,7 +3691,7 @@
             }
 
             // ============================================================
-            //  VENDOR VIEW (No login, view only)
+            //  VENDOR VIEW (No login, view only) - WITH LIVE BILLING ENGINE
             // ============================================================
             function renderVendorView(vendorName) {
                 const appDiv = document.getElementById('app');
@@ -3501,50 +3705,245 @@
 
                 appDiv.innerHTML = `
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
-                <h2 style="color:#0A56D0; font-size:1.3rem; margin:0;">📋 ${vendorName} — Statement</h2>
-                <button onclick="window.location.href='${BASE_URL}'" style="background:#E2E8F0; color:#1E293B; border:none; padding:8px 20px; border-radius:8px; font-size:.9rem; min-height:40px;">✕ Exit</button>
+                <h2 style="color:#0A56D0; font-size:1.3rem; margin:0;">📋 ${vendorName} — Statement Portal</h2>
+                <button onclick="window.location.href='${BASE_URL}'" style="background:#E2E8F0; color:#1E293B; border:none; padding:8px 20px; border-radius:8px; font-size:.9rem; min-height:40px; cursor:pointer;">✕ Exit</button>
               </div>
               <div id="vendorViewContent" style="background:#fff; border-radius:8px; border:1px solid #CBD5E1; overflow:auto; padding:16px;"></div>
             `;
 
-                const records = eventLogsData.filter(ev => (ev.canteenSource || '').toLowerCase() === vendorName
-                .toLowerCase());
+                const content = document.getElementById('vendorViewContent');
                 const allItems = [];
-                records.forEach(ev => {
+                eventLogsData.forEach(ev => {
                     if (ev.items && Array.isArray(ev.items)) {
                         ev.items.forEach(item => {
-                            allItems.push({
-                                date: ev.date,
-                                itemName: item.name || '',
-                                qty: item.qty || 0,
-                                rate: item.rate || 0,
-                                amount: (item.qty || 0) * (item.rate || 0),
-                                vendor: ev.canteenSource || '',
-                                requestedBy: ev.orderedBy || '',
-                                meeting: ev.eventName || ''
-                            });
+                            const itemVendor = (item.vendor || ev.canteenSource || '').toLowerCase();
+                            if (itemVendor === vendorName.toLowerCase()) {
+                                const purposeText = `${ev.eventName || ''} ${ev.orderedBy || ''}`.toLowerCase();
+                                let head = 'Office';
+                                if (purposeText.includes('school of law') || purposeText.includes('law') || purposeText.includes('llm')) {
+                                    head = 'SOL';
+                                } else if (purposeText.includes('admission')) {
+                                    head = 'Admissions';
+                                } else if (purposeText.includes('placement')) {
+                                    head = 'Placement';
+                                }
+
+                                allItems.push({
+                                    date: item.itemSpecificDate || ev.date,
+                                    itemName: item.name || '',
+                                    qty: item.qty || 0,
+                                    rate: item.rate || 0,
+                                    amount: item.amount || ((item.qty || 0) * (item.rate || 0)),
+                                    vendor: item.vendor || ev.canteenSource || '',
+                                    requestedBy: ev.orderedBy || '',
+                                    meeting: ev.eventName || '',
+                                    servedBy: item.servedBy || ev.servedByName || ev.pantryName || '-',
+                                    accountHead: head
+                                });
+                            }
                         });
                     }
                 });
+                
                 allItems.sort((a, b) => parseDMYToYMD(a.date).localeCompare(parseDMYToYMD(b.date)));
 
-                let html = '';
-                if (!allItems.length) html =
-                    `<p style="padding:40px; text-align:center; color:#64748B;">No records found for this vendor.</p>`;
-                else {
-                    let sr = 1;
-                    let grandTotal = 0;
-                    html =
-                        `<table class="vendor-desktop-table"><thead><tr><th>S.R.</th><th>Date</th><th>Item Name</th><th>Qty</th><th>Rate</th><th>Amount</th><th>Requested By</th><th>Meeting/Event</th></tr></thead><tbody>`;
-                    allItems.forEach(row => {
-                        grandTotal += row.amount;
-                        html +=
-                            `<tr><td>${sr++}</td><td>${safeStr(row.date)}</td><td>${safeStr(row.itemName)}</td><td>${row.qty}</td><td>₹${row.rate}</td><td>₹${row.amount.toFixed(2)}</td><td>${safeStr(row.requestedBy)}</td><td>${safeStr(row.meeting)}</td></tr>`;
-                    });
-                    html +=
-                        `<tr style="font-weight:700; background:#F1F5F9;"><td colspan="5" style="text-align:right;">GRAND TOTAL</td><td>₹${grandTotal.toFixed(2)}</td><td colspan="2"></td></tr></tbody></table>`;
-                }
-                document.getElementById('vendorViewContent').innerHTML = html;
+                window.renderExternalVendorTable = function(selectedHead) {
+                    const filteredItems = selectedHead === 'All' ? allItems : allItems.filter(item => item.accountHead === selectedHead);
+                    
+                    let controlHtml = `
+                        <div class="merged-filter-row" style="margin-bottom:16px; background:#F8FAFC; padding:14px; border-radius:12px; border:1px solid #CBD5E1; display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+                            <div style="flex:1; min-width:240px; text-align:left;">
+                                <label style="font-size:0.82rem; font-weight:700; color:#44474E; display:block; margin-bottom:4px;">📊 Select Department Head:</label>
+                                <select id="extVendorAccountHeadFilter" style="margin:0; padding:11px; border-radius:8px; border:1px solid #CBD5E1; font-size:0.95rem; width:100%; font-weight:500;">
+                                    <option value="All" ${selectedHead==='All'?'selected':''}>All Combined View</option>
+                                    <option value="SOL" ${selectedHead==='SOL'?'selected':''}>SOL</option>
+                                    <option value="Admissions" ${selectedHead==='Admissions'?'selected':''}>Admissions</option>
+                                    <option value="Placement" ${selectedHead==='Placement'?'selected':''}>Placement</option>
+                                    <option value="Office" ${selectedHead==='Office'?'selected':''}>Office</option>
+                                </select>
+                            </div>
+                            <div style="padding-top:18px;">
+                                <button type="button" id="extGenerateVendorBillBtn" class="success" style="min-height:44px; padding:0 24px; border-radius:8px; font-weight:700; background:#0A56D0; box-shadow:0 4px 10px rgba(10,86,208,0.2); font-size:0.9rem; cursor:pointer;">🧾 Generate Printable Invoice for DAU</button>
+                            </div>
+                        </div>
+                    `;
+
+                    let tableHtml = '';
+                    if (!filteredItems.length) {
+                        tableHtml = `<p style="padding:40px; text-align:center; color:#64748B; font-weight:500;">No records found for the selected department.</p>`;
+                    } else {
+                        let sr = 1;
+                        let grandTotal = 0;
+                        tableHtml = `
+                            <table class="vendor-desktop-table" style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+                                <thead>
+                                    <tr>
+                                        <th>S.R.</th>
+                                        <th>Date</th>
+                                        <th>Item Name</th>
+                                        <th>Qty</th>
+                                        <th>Rate</th>
+                                        <th>Amount</th>
+                                        <th>Requested By</th>
+                                        <th>Meeting / Event Purpose</th>
+                                        <th>Department</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+                        filteredItems.forEach(row => {
+                            grandTotal += row.amount;
+                            tableHtml += `
+                                <tr>
+                                    <td>${sr++}</td>
+                                    <td>${safeStr(row.date)}</td>
+                                    <td><strong>${safeStr(row.itemName)}</strong></td>
+                                    <td>${row.qty}</td>
+                                    <td>₹${row.rate}</td>
+                                    <td>₹${row.amount.toFixed(2)}</td>
+                                    <td>${safeStr(row.requestedBy)}</td>
+                                    <td>${safeStr(row.meeting)}</td>
+                                    <td><span style="background:#0A56D0; color:#fff; padding:3px 12px; border-radius:100px; font-size:0.75rem; font-weight:600;">${row.accountHead}</span></td>
+                                </tr>`;
+                        });
+                        tableHtml += `
+                                <tr style="font-weight:700; background:#F1F5F9; font-size:0.95rem;">
+                                    <td colspan="5" style="text-align:right; padding-right:12px;">GRAND TOTAL</td>
+                                    <td style="color:#0A56D0; font-weight:800;">₹${grandTotal.toFixed(2)}</td>
+                                    <td colspan="3"></td>
+                                </tr>
+                                </tbody>
+                            </table>`;
+                    }
+
+                    content.innerHTML = controlHtml + tableHtml;
+
+                    document.getElementById('extVendorAccountHeadFilter').onchange = function() {
+                        window.renderExternalVendorTable(this.value);
+                    };
+
+                    document.getElementById('extGenerateVendorBillBtn').onclick = function() {
+                        if(!filteredItems.length) return appAlert('No Data', 'No items available.');
+                        
+                        const vendorShort = vendorName.trim().slice(0, 3).toUpperCase();
+                        const currentMonthYMD = new Date().toISOString().slice(0,7);
+                        const [bYear, bMonth] = currentMonthYMD.split('-');
+                        const bYY = bYear ? bYear.slice(-2) : '26';
+                        const bMM = bMonth || '07';
+
+                        const monthlyVendorEvents = eventLogsData.filter(ev => {
+                            const evYMD = parseDMYToYMD(ev.date);
+                            if (!evYMD || !evYMD.startsWith(currentMonthYMD)) return false;
+                            return ev.items && ev.items.some(i => (i.vendor || ev.canteenSource || '').toLowerCase() === vendorName.toLowerCase());
+                        });
+                        const bCount = String(Math.max(1, monthlyVendorEvents.length)).padStart(2, '0');
+                        const invoiceNumber = `${vendorShort}/${bMM}/${bYY}/${bCount}`;
+
+                        let billRows = '';
+                        let billTotal = 0;
+                        let billSr = 1;
+
+                        filteredItems.forEach(item => {
+                            billTotal += item.amount;
+                            billRows += `
+                                <tr style="height:40px !important;">
+                                    <td style="border:1px solid #000 !important; text-align:center; padding:5px; font-size:13px !important; vertical-align:middle;">${billSr++}</td>
+                                    <td style="border:1px solid #000 !important; text-align:center; padding:5px; font-size:13px !important; vertical-align:middle; white-space:nowrap;">${item.date}</td>
+                                    <td style="border:1px solid #000 !important; text-align:left; padding:5px 10px; font-size:13px !important; vertical-align:middle; font-weight:600;">${item.itemName}</td>
+                                    <td style="border:1px solid #000 !important; text-align:center; padding:5px; font-size:13px !important; vertical-align:middle;">${item.qty}</td>
+                                    <td style="border:1px solid #000 !important; text-align:center; padding:5px; font-size:13px !important; vertical-align:middle;">₹${item.rate}</td>
+                                    <td style="border:1px solid #000 !important; text-align:center; padding:5px; font-size:13px !important; vertical-align:middle; font-weight:700;">₹${item.amount.toFixed(2)}</td>
+                                </tr>
+                            `;
+                        });
+
+                        let headTitle = selectedHead === 'All' ? 'STATEMENT' : `${selectedHead.toUpperCase()}`;
+
+                        const billHtml = `
+                            <div class="dau-official-invoice-print-sheet" style="font-family: 'Inter', Arial, sans-serif; padding: 5px; color: #000; background:#fff;">
+                                <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px;">
+                                    <h1 style="margin: 0; font-size: 26px; font-weight:800; letter-spacing: 0.5px; color:#000;">${vendorName.toUpperCase()}</h1>
+                                    <p style="margin: 4px 0 0 0; font-size: 13px; color: #000; font-weight:600;">Official Refreshment Invoice / Food Bill</p>
+                                </div>
+                                
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 25px; font-size: 14px; line-height: 1.5; color:#000;">
+                                    <div style="text-align:left;">
+                                        <span style="color:#000; font-weight:800; font-size:0.85rem; display:block; margin-bottom:2px;">BILLED TO:</span>
+                                        <span style="font-size:16px; font-weight: 800; color:#000;">DAU (Dhirubhai Ambani University)</span><br>
+                                        <span style="font-weight:500; color:#000;">Gandhinagar, Gujarat, India</span>
+                                    </div>
+                                    <div style="text-align: right; color:#000;">
+                                        <span style="color:#000; font-weight:800; font-size:0.85rem; display:block; margin-bottom:2px;">BILL DETAILS:</span>
+                                        <b>Invoice No:</b> <span style="font-family:monospace; font-weight:800; color:#0A56D0; font-size:14px;">${invoiceNumber}</span><br>
+                                        <b>Department:</b> ${headTitle}<br>
+                                        <b>Billing Date:</b> ${getTodayInDMY()}<br>
+                                        <b>Payment Mode:</b> Institutional Account
+                                    </div>
+                                </div>
+
+                                <table style="width: 100%; border-collapse: collapse; margin-top: 10px; border:1px solid #000 !important; color:#000;">
+                                    <thead>
+                                        <tr style="background: #E2E8F0 !important; height:40px !important;">
+                                            <th style="border:1px solid #000 !important; width: 8%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">S.R.</th>
+                                            <th style="border:1px solid #000 !important; width: 15%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Date</th>
+                                            <th style="border:1px solid #000 !important; width: 45%; font-weight:700; font-size:13px !important; text-align:left; padding-left:10px; color:#000;">Item Description</th>
+                                            <th style="border:1px solid #000 !important; width: 10%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Qty</th>
+                                            <th style="border:1px solid #000 !important; width: 11%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Rate</th>
+                                            <th style="border:1px solid #000 !important; width: 11%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${billRows}
+                                        <tr style="background: #FFF !important; font-weight: bold; height:40px !important;">
+                                            <td colspan="5" style="border:1px solid #000 !important; text-align: right; padding-right: 12px; font-size:13px !important; vertical-align:middle; font-weight:700; color:#000;">GRAND TOTAL AMOUNT DUE</td>
+                                            <td style="border:1px solid #000 !important; text-align:center; font-size: 14px !important; color: #000; vertical-align:middle; font-weight:800;">₹${billTotal.toFixed(2)}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <div style="margin-top: 50px; display: flex; justify-content: space-between; font-size: 13px; font-weight:700; color:#000;">
+                                    <div style="text-align: center; width: 220px; border-top: 1px solid #000; padding-top: 5px;">
+                                        Verified By (DAU Pantry Admin)
+                                    </div>
+                                    <div style="text-align: center; width: 220px; border-top: 1px solid #000; padding-top: 5px;">
+                                        Authorized Stamp & Sign (${vendorName})
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                        const printContainer = document.getElementById('printAreaContainer');
+                        printContainer.style.zIndex = "100000005";
+                        printContainer.innerHTML = `
+                            <div class="preview-card" style="max-width:920px; width:95vw; height:90vh;">
+                              <div class="preview-header hide-on-print">
+                                <button onclick="window.print()" class="success" style="font-size:.9rem; padding:10px 20px; border-radius:8px; min-height:40px; font-weight:700; cursor:pointer;">🖨️ Print Invoice / Save PDF</button>
+                                <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger" style="font-size:.9rem; padding:10px 20px; border-radius:8px; min-height:40px; font-weight:700; cursor:pointer;">✕ Close Preview</button>
+                              </div>
+                              <div class="preview-content" style="background:#fff; padding:25px;">
+                                ${billHtml}
+                              </div>
+                            </div>
+                            <style id="dauInvoiceExternalPrintOverrideCSS">
+                                @media print {
+                                    html, body { overflow: visible !important; height: auto !important; max-height: none !important; }
+                                    body * { visibility: hidden !important; background: transparent !important; }
+                                    #printAreaContainer, #printAreaContainer * { visibility: visible !important; }
+                                    #printAreaContainer { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; height: auto !important; z-index: 99999999 !important; background: #fff !important; display: block !important; overflow: visible !important; }
+                                    .preview-card { box-shadow: none !important; border: none !important; width: 100% !important; height: auto !important; max-height: none !important; display: block !important; overflow: visible !important; margin: 0 !important; padding: 0 !important; }
+                                    .preview-content { padding: 0 !important; margin: 0 !important; overflow: visible !important; background: #fff !important; }
+                                    .preview-header { display: none !important; }
+                                    .dau-official-invoice-print-sheet { width: 100% !important; background: #fff !important; color: #000 !important; }
+                                    table { border-collapse: collapse !important; width: 100% !important; overflow: visible !important; }
+                                    th, td { border: 1px solid #000 !important; padding: 6px !important; font-size: 13px !important; color: #000 !important; background: #fff !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+                                    tr { page-break-inside: avoid !important; page-break-after: auto !important; }
+                                }
+                            </style>
+                        `;
+                        printContainer.classList.remove('hidden');
+                    };
+                };
+
+                window.renderExternalVendorTable('All');
             }
 
             // ============================================================
@@ -4680,15 +5079,15 @@
                     </div>
                     <div id="liveReportList" class="scroll-list-box" style="max-height:250px;"></div>
                   </div>
+                  
                   <div class="card">
                     <h4 style="margin-bottom:14px; color:#44474E; font-size:1rem;">📥 Download & Print Reports</h4>
-                    <label style="font-size:.85rem; color:#44474E;">Select Month</label><input type="month" id="reportMonth" value="${new Date().toISOString().slice(0,7)}" style="padding:12px; border-radius:10px; border:1px solid #CBD5E1;">
+                    <label style="font-size:.85rem; color:#44474E;">Select Month</label><input type="month" id="reportMonth" value="${new Date().toISOString().slice(0,7)}" style="padding:12px; border-radius:10px; border:1px solid #CBD5E1; margin-bottom:10px;">
                     <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:6px;"><h5 style="color:#44474E; margin-bottom:8px; font-size:.9rem;">1. Regular Daily Tea Report</h5><select id="reportCategory" style="margin-bottom:8px; padding:12px; border-radius:10px; border:1px solid #CBD5E1;"><option value="All">All Categories</option><option>Faculty</option><option>Staff</option><option>Law</option><option>Outsourced</option></select><button id="previewRegularBtn" class="success report-btn">👁️ Preview & Print</button></div>
                     <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:8px;"><h5 style="color:#D97706; margin-bottom:8px; font-size:.9rem;">2. Extra Tea Report</h5><button id="previewExtraBtn" class="btn report-btn" style="background:#D97706;">👁️ Preview & Print</button></div>
                     <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:8px;"><h5 style="color:#0A56D0; margin-bottom:8px; font-size:.9rem;">3. Meeting Refreshment Report</h5><button id="previewMeetingBtn" class="btn report-btn" style="background:#0A56D0;">👁️ Preview & Print</button></div>
                     <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:8px;"><h5 style="color:#146C43; margin-bottom:8px; font-size:.9rem;">4. Regular Tea All Excel Download</h5><button id="downloadAllExcelBtn2" class="success report-btn" style="background:#146C43;">📊 Download All Categories Excel</button></div>
                     
-                    <!-- NAYA: 5. Monthly Grid Export -->
                     <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:8px;">
                       <h5 style="color:#7C3AED; margin-bottom:8px; font-size:.9rem;">5. Monthly Grid Export (Admin)</h5>
                       <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -4708,23 +5107,209 @@
                       </div>
                     </div>
 
+                    <!-- 6. NEW IA CATERERS DAILY TEA BILL VERIFICATION MODULE -->
+                    <div style="border-top:3px double #0A56D0; padding-top:16px; margin-top:16px; background:#F0FDF4; border-radius:12px; padding:14px; border:1px solid #BBF7D0;">
+                      <h5 style="color:#15803D; margin-bottom:4px; font-size:1rem; font-weight:700; display:flex; align-items:center; gap:6px;">🏪 IA Caterers - Daily Tea Bill Verification</h5>
+                      <p style="font-size:0.78rem; color:#166534; margin-bottom:12px;">Compare and verify contractor's tax bill based on monthly regular tea and coffee data.</p>
+                      
+                      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                        <div>
+                            <label style="font-size:0.75rem; font-weight:600; color:#374151;">Select Billing Department</label>
+                            <select id="iaBillDepartment" style="padding:10px; border-radius:8px; border:1px solid #CBD5E1; margin:4px 0 0 0; background:#fff; font-weight:600;">
+                                <option value="Faculty">Faculty</option>
+                                <option value="Staff">Staff</option>
+                                <option value="SoL">SoL (School of Law)</option>
+                                <option value="Outsource">Outsource (Outsourced Personnel)</option>
+                            </select>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <div style="flex:1;">
+                                <label style="font-size:0.75rem; font-weight:600; color:#374151;">CGST (%)</label>
+                                <input type="number" id="iaCGSTPercentage" value="2.5" min="0" step="0.1" style="padding:10px; border-radius:8px; border:1px solid #CBD5E1; margin:4px 0 0 0; text-align:center;">
+                            </div>
+                            <div style="flex:1;">
+                                <label style="font-size:0.75rem; font-weight:600; color:#374151;">SGST (%)</label>
+                                <input type="number" id="iaSGSTPercentage" value="2.5" min="0" step="0.1" style="padding:10px; border-radius:8px; border:1px solid #CBD5E1; margin:4px 0 0 0; text-align:center;">
+                            </div>
+                        </div>
+                      </div>
+                      <button type="button" id="generateIACaterersBillBtn" class="success" style="width:100%; min-height:44px; font-weight:700; background:#166534; font-size:0.9rem; border-radius:8px; box-shadow:0 4px 10px rgba(22,101,52,0.2);">🧾 Verify & Print IA Caterers Bill</button>
+                    </div>
+
                   </div>
                 `;
-                        document.getElementById('previewRegularBtn').onclick = () => window.previewIndividualReport(
-                            'regular');
-                        document.getElementById('previewExtraBtn').onclick = () => window.previewIndividualReport(
-                            'extra');
-                        document.getElementById('previewMeetingBtn').onclick = () => window.previewIndividualReport(
-                            'meeting');
-                        document.getElementById('downloadAllExcelBtn2').onclick = () => window
-                            .downloadAllCategoriesExcel();
-                            
-                        // Naye Monthly Grid Buttons ki Actions
+                        document.getElementById('previewRegularBtn').onclick = () => window.previewIndividualReport('regular');
+                        document.getElementById('previewExtraBtn').onclick = () => window.previewIndividualReport('extra');
+                        document.getElementById('previewMeetingBtn').onclick = () => window.previewIndividualReport('meeting');
+                        document.getElementById('downloadAllExcelBtn2').onclick = () => window.downloadAllCategoriesExcel();
                         document.getElementById('downloadGridExcelBtn').onclick = () => window.adminExportMonthlyGrid('excel');
                         document.getElementById('printGridPdfBtn').onclick = () => window.adminExportMonthlyGrid('print');
 
-                        ['liveReportDate', 'liveReportType', 'liveReportPantry'].forEach(id => { document
-                                .getElementById(id).addEventListener('change', window.renderAdminLiveRecords); });
+                        // IA Caterers બિલ જનરેશન કનેક્શન
+                        document.getElementById('generateIACaterersBillBtn').onclick = function() {
+                            const month = document.getElementById('reportMonth').value;
+                            if(!month) return appAlert('Error', 'Select month from the option above.');
+                            
+                            const dept = document.getElementById('iaBillDepartment').value;
+                            const cgstPct = parseFloat(document.getElementById('iaCGSTPercentage').value) || 0;
+                            const sgstPct = parseFloat(document.getElementById('iaSGSTPercentage').value) || 0;
+
+                            const dateObj = new Date(month + '-01');
+                            const monthStr = dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
+
+                            // ડેટા ફિલ્ટરિંગ લોજીક ચારેય બજેટ હેડ માટે
+                            let filteredLogs = logsData.filter(l => l.date && parseDMYToYMD(l.date).startsWith(month));
+                            
+                            filteredLogs = filteredLogs.filter(l => {
+                                const emp = employeeList.find(e => e.id === l.employeeId);
+                                if (!emp) return false;
+                                const c = (emp.category || '').trim().toLowerCase();
+                                const d = (emp.department || '').trim().toLowerCase();
+
+                                if (dept === 'Faculty') return c === 'faculty';
+                                if (dept === 'Staff') return c === 'staff';
+                                if (dept === 'SoL') return (c === 'law' || d === 'law' || d === 'sol' || c === 'sol');
+                                if (dept === 'Outsource') return (c.includes('outsource') || d.includes('outsource'));
+                                return false;
+                            });
+
+                            // આઇટમ ક્વોન્ટિટી કાઉન્ટર
+                            let qtyTea = 0, qtyCoffee = 0, qtyGreen = 0, qtyLemon = 0, qtyBlackTea = 0, qtyBlackCoffee = 0;
+                            filteredLogs.forEach(l => {
+                                const d = (l.drink || '').toLowerCase().trim();
+                                if (d === 'tea') qtyTea++;
+                                else if (d === 'coffee') qtyCoffee++;
+                                else if (d === 'green tea') qtyGreen++;
+                                else if (d === 'lemon tea') qtyLemon++;
+                                else if (d === 'black tea') qtyBlackTea++;
+                                else if (d === 'black coffee') qtyBlackCoffee++;
+                            });
+
+                            const amtTea = qtyTea * 15;
+                            const amtCoffee = qtyCoffee * 15;
+                            const amtGreen = qtyGreen * 10;
+                            const amtLemon = qtyLemon * 10;
+                            const amtBlackTea = qtyBlackTea * 10;
+                            const amtBlackCoffee = qtyBlackCoffee * 10;
+
+                            const subTotal = amtTea + amtCoffee + amtGreen + amtLemon + amtBlackTea + amtBlackCoffee;
+                            if (subTotal === 0) return appAlert('No Data', `No consumption logs found for ${dept} in ${monthStr}`);
+
+                            const cgstAmt = subTotal * (cgstPct / 100);
+                            const sgstAmt = subTotal * (sgstPct / 100);
+                            const grandTotal = subTotal + cgstAmt + sgstAmt;
+
+                            // ઇન્વોઇસ નંબરિંગ સિસ્ટમ
+                            const deptShort = dept.toUpperCase();
+                            const [yy, mm] = month.split('-');
+                            const iaInvoiceNo = `IA/${deptShort}/${mm}/${yy.slice(-2)}`;
+
+                            let tableRowsHtml = '';
+                            let sr = 1;
+
+                            if (qtyTea > 0) tableRowsHtml += `<tr style="height:48px;"><td style="border:1px solid #000; text-align:center;">${sr++}</td><td style="border:1px solid #000; text-align:left; padding-left:12px; font-weight:600;">Tea</td><td style="border:1px solid #000; text-align:center;">${qtyTea} Cups</td><td style="border:1px solid #000; text-align:center;">₹15.00</td><td style="border:1px solid #000; text-align:center; font-weight:700;">₹${amtTea.toFixed(2)}</td></tr>`;
+                            if (qtyCoffee > 0) tableRowsHtml += `<tr style="height:48px;"><td style="border:1px solid #000; text-align:center;">${sr++}</td><td style="border:1px solid #000; text-align:left; padding-left:12px; font-weight:600;">Coffee</td><td style="border:1px solid #000; text-align:center;">${qtyCoffee} Cups</td><td style="border:1px solid #000; text-align:center;">₹15.00</td><td style="border:1px solid #000; text-align:center; font-weight:700;">₹${amtCoffee.toFixed(2)}</td></tr>`;
+                            if (qtyGreen > 0) tableRowsHtml += `<tr style="height:48px;"><td style="border:1px solid #000; text-align:center;">${sr++}</td><td style="border:1px solid #000; text-align:left; padding-left:12px; font-weight:600;">Green Tea</td><td style="border:1px solid #000; text-align:center;">${qtyGreen} Cups</td><td style="border:1px solid #000; text-align:center;">₹10.00</td><td style="border:1px solid #000; text-align:center; font-weight:700;">₹${amtGreen.toFixed(2)}</td></tr>`;
+                            if (qtyLemon > 0) tableRowsHtml += `<tr style="height:48px;"><td style="border:1px solid #000; text-align:center;">${sr++}</td><td style="border:1px solid #000; text-align:left; padding-left:12px; font-weight:600;">Lemon Tea</td><td style="border:1px solid #000; text-align:center;">${qtyLemon} Cups</td><td style="border:1px solid #000; text-align:center;">₹10.00</td><td style="border:1px solid #000; text-align:center; font-weight:700;">₹${amtLemon.toFixed(2)}</td></tr>`;
+                            if (qtyBlackTea > 0) tableRowsHtml += `<tr style="height:48px;"><td style="border:1px solid #000; text-align:center;">${sr++}</td><td style="border:1px solid #000; text-align:left; padding-left:12px; font-weight:600;">Black Tea</td><td style="border:1px solid #000; text-align:center;">${qtyBlackTea} Cups</td><td style="border:1px solid #000; text-align:center;">₹10.00</td><td style="border:1px solid #000; text-align:center; font-weight:700;">₹${amtBlackTea.toFixed(2)}</td></tr>`;
+                            if (qtyBlackCoffee > 0) tableRowsHtml += `<tr style="height:48px;"><td style="border:1px solid #000; text-align:center;">${sr++}</td><td style="border:1px solid #000; text-align:left; padding-left:12px; font-weight:600;">Black Coffee</td><td style="border:1px solid #000; text-align:center;">${qtyBlackCoffee} Cups</td><td style="border:1px solid #000; text-align:center;">₹10.00</td><td style="border:1px solid #000; text-align:center; font-weight:700;">₹${amtBlackCoffee.toFixed(2)}</td></tr>`;
+
+                            const billFormHtml = `
+                                <div class="dau-official-invoice-print-sheet" style="font-family: 'Inter', Arial, sans-serif; padding: 5px; color: #000; background:#fff;">
+                                    <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px;">
+                                        <h1 style="margin: 0; font-size: 26px; font-weight:800; letter-spacing: 0.5px; color:#000;">IA CATERERS</h1>
+                                        <p style="margin: 4px 0 0 0; font-size: 13px; color: #000; font-weight:600;">Monthly Institutional Beverage Verification Invoice</p>
+                                    </div>
+                                    
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px; line-height: 1.5; color:#000;">
+                                        <div style="text-align:left;">
+                                            <span style="color:#000; font-weight:800; font-size:0.85rem; display:block; margin-bottom:2px;">BILLED TO:</span>
+                                            <span style="font-size:16px; font-weight: 800; color:#000;">DAU (Dhirubhai Ambani University)</span><br>
+                                            <span style="font-weight:500; color:#000;">Gandhinagar, Gujarat, India</span>
+                                        </div>
+                                        <div style="text-align: right; color:#000;">
+                                            <span style="color:#000; font-weight:800; font-size:0.85rem; display:block; margin-bottom:2px;">VERIFICATION DETAILS:</span>
+                                            <b>Verification ID:</b> <span style="font-family:monospace; font-weight:800; color:#0A56D0; font-size:14px;">${iaInvoiceNo}</span><br>
+                                            <b>Billing Category:</b> <span style="font-weight:700; color:#000;">${dept === 'SoL' ? 'SoL (School of Law)' : dept}</span><br>
+                                            <b>Consumption Period:</b> ${monthStr}<br>
+                                            <b>Generated Date:</b> ${getTodayInDMY()}
+                                        </div>
+                                    </div>
+
+                                    <table style="width: 100%; border-collapse: collapse; margin-top: 10px; border:1px solid #000 !important; color:#000;">
+                                        <thead>
+                                            <tr style="background: #E2E8F0 !important; height:40px !important;">
+                                                <th style="border:1px solid #000 !important; width: 8%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">S.R.</th>
+                                                <th style="border:1px solid #000 !important; width: 47%; font-weight:700; font-size:13px !important; text-align:left; padding-left:12px; color:#000;">Item Description (Monthly Consumption)</th>
+                                                <th style="border:1px solid #000 !important; width: 15%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Total Qty</th>
+                                                <th style="border:1px solid #000 !important; width: 15%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Fixed Rate</th>
+                                                <th style="border:1px solid #000 !important; width: 15%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Taxable Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${tableRowsHtml}
+                                            <tr style="height:36px; background:#fff;">
+                                                <td colspan="4" style="border:1px solid #000; text-align:right; padding-right:12px; font-weight:600;">Sub Total (Taxable Value):</td>
+                                                <td style="border:1px solid #000; text-align:center; font-weight:700;">₹${subTotal.toFixed(2)}</td>
+                                            </tr>
+                                            <tr style="height:36px; background:#fff;">
+                                                <td colspan="4" style="border:1px solid #000; text-align:right; padding-right:12px; color:#444;">CGST (${cgstPct}%):</td>
+                                                <td style="border:1px solid #000; text-align:center; color:#444;">₹${cgstAmt.toFixed(2)}</td>
+                                            </tr>
+                                            <tr style="height:36px; background:#fff;">
+                                                <td colspan="4" style="border:1px solid #000; text-align:right; padding-right:12px; color:#444;">SGST (${sgstPct}%):</td>
+                                                <td style="border:1px solid #000; text-align:center; color:#444;">₹${sgstAmt.toFixed(2)}</td>
+                                            </tr>
+                                            <tr style="background: #F1F5F9 !important; font-weight: bold; height:42px !important;">
+                                                <td colspan="4" style="border:1px solid #000 !important; text-align: right; padding-right: 12px; font-size:13px !important; vertical-align:middle; font-weight:700; color:#000;">FINAL VERIFIED AMOUNT DUE (WITH GST)</td>
+                                                <td style="border:1px solid #000 !important; text-align:center; font-size: 15px !important; color: #166534; vertical-align:middle; font-weight:800; background:#DCFCE7 !important;">₹${grandTotal.toFixed(2)}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+
+                                    <div style="margin-top: 50px; display: flex; justify-content: space-between; font-size: 13px; font-weight:700; color:#000;">
+                                        <div style="text-align: center; width: 220px; border-top: 1px solid #000; padding-top: 5px;">
+                                            
+                                        </div>
+                                        <div style="text-align: center; width: 220px; border-top: 1px solid #000; padding-top: 5px;">
+                                            Checked Stamp & Sign (IA Caterers)
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+
+                            const printContainer = document.getElementById('printAreaContainer');
+                            printContainer.style.zIndex = "100000005";
+                            printContainer.innerHTML = `
+                                <div class="preview-card" style="max-width:920px; width:95vw; height:90vh;">
+                                  <div class="preview-header hide-on-print">
+                                    <button onclick="window.print()" class="success" style="font-size:.9rem; padding:10px 20px; border-radius:8px; min-height:40px; font-weight:700; cursor:pointer; background:#166534;">🖨️ Print Bill Overview</button>
+                                    <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger" style="font-size:.9rem; padding:10px 20px; border-radius:8px; min-height:40px; font-weight:700; cursor:pointer;">✕ Close Preview</button>
+                                  </div>
+                                  <div class="preview-content" style="background:#fff; padding:25px;">
+                                    ${billFormHtml}
+                                  </div>
+                                </div>
+                                <style>
+                                    @media print {
+                                        body * { visibility: hidden !important; background: transparent !important; }
+                                        #printAreaContainer, #printAreaContainer * { visibility: visible !important; }
+                                        #printAreaContainer { position: fixed !important; left: 0 !important; top: 0 !important; width: 100% !important; height: auto !important; z-index: 99999999 !important; background: #fff !important; display: block !important; overflow: visible !important; }
+                                        .preview-card { box-shadow: none !important; border: none !important; width: 100% !important; height: auto !important; max-height: none !important; display: block !important; overflow: visible !important; margin: 0 !important; padding: 0 !important; }
+                                        .preview-content { padding: 0 !important; margin: 0 !important; overflow: visible !important; background: #fff !important; }
+                                        .preview-header { display: none !important; }
+                                        table { border-collapse: collapse !important; width: 100% !important; }
+                                        th, td { border: 1px solid #000 !important; padding: 6px !important; font-size: 13px !important; color: #000 !important; background: #fff !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+                                    }
+                                </style>
+                            `;
+                            printContainer.classList.remove('hidden');
+                        };
+
+                        ['liveReportDate', 'liveReportType', 'liveReportPantry'].forEach(id => { 
+                            document.getElementById(id).addEventListener('change', window.renderAdminLiveRecords); 
+                        });
+                        window.renderAdminLiveRecords();
                         break;
 
                     case 'locations':
@@ -4905,10 +5490,7 @@
 
                 renderTable();
             }
-
-            // ============================================================
-            //  EDIT MEETING EVENT (COMPATIBLE WITH DYNAMIC MULTI-SELECT DROPDOWNS)
-            // ============================================================
+			
             // ============================================================
             //  EDIT MEETING EVENT (COMPATIBLE WITH SPLIT ROWS)
             // ============================================================
@@ -5367,19 +5949,18 @@
                 const filtered = canteenList.filter(cnt => cnt.name.toLowerCase() !== 'main kitchen');
                 if (!filtered.length) { c.innerHTML =
                     `<p style="padding:12px; color:#74777F; font-size:.9rem; text-align:center;">No canteens.</p>`; return; }
-                const baseUrl = window.location.origin + window.location.pathname;
 
                 c.innerHTML = filtered.map(cnt => {
                     const items = getVendorItems(cnt.name);
                     const itemsHtml = items.length ?
-                        `<div class="vendor-items-details" style="margin-top:8px;"><details><summary>🛒 View Items & Rates ▼</summary><table style="width:100%; border-collapse:collapse; margin-top:6px;"><thead><tr><th style="border:1px solid #CBD5E1; padding:4px;">Item</th><th style="border:1px solid #CBD5E1; padding:4px;">Rate (₹)</th></tr></thead><tbody>${items.map(it => `<tr><td style="border:1px solid #CBD5E1; padding:4px;">${safeStr(it.name)}</td><td style="border:1px solid #CBD5E1; padding:4px;">₹${it.rate||0}</td></tr>`).join('')}</tbody></table></details></div>` :
+                        `<div class="vendor-items-details" style="margin-top:8px;"><details><summary>🛒 View Items & Rates ▼</summary><table style="width:100%; border-collapse:collapse; margin-top:6px; background:#fff;"><thead><tr style="background:#F1F5F9;"><th style="border:1px solid #CBD5E1; padding:6px; text-align:left;">Item Name</th><th style="border:1px solid #CBD5E1; padding:6px; text-align:center; width:90px;">Rate (₹)</th><th style="border:1px solid #CBD5E1; padding:6px; text-align:center; width:90px;">Actions</th></tr></thead><tbody>${items.map((it, idx) => `<tr><td style="border:1px solid #CBD5E1; padding:6px; text-align:left; font-weight:600;">${safeStr(it.name)}</td><td style="border:1px solid #CBD5E1; padding:6px; text-align:center; font-weight:700; color:#1E293B;">₹${it.rate||0}</td><td style="border:1px solid #CBD5E1; padding:6px; text-align:center;"><button type="button" onclick="window.editVendorItem('${cnt.name.replace(/'/g, "\\'")}', ${idx})" style="background:transparent; border:none; color:#0A56D0; cursor:pointer; font-size:1rem; padding:0 4px;" title="Edit Item">✏️</button><button type="button" onclick="window.removeVendorItem('${cnt.name.replace(/'/g, "\\'")}', ${idx})" style="background:transparent; border:none; color:#DC3545; cursor:pointer; font-size:1rem; padding:0 4px;" title="Delete Item">🗑️</button></td></tr>`).join('')}</tbody></table></details></div>` :
                         '';
                     return `
               <div class="employee-item" style="margin:6px 4px; flex-direction:column; align-items:stretch;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <span style="cursor:pointer; color:#0A56D0; font-weight:600; text-decoration:underline;" onclick="window.openVendorSheet('${cnt.id}','${cnt.name}')">🏢 ${safeStr(cnt.name)}</span>
+                  <span style="cursor:pointer; color:#0A56D0; font-weight:600; text-decoration:underline;" onclick="window.openVendorSheet('${cnt.id}','${cnt.name.replace(/'/g, "\\'")}')">🏢 ${safeStr(cnt.name)}</span>
                   <span style="display:flex; gap:4px; align-items:center;">
-                    <button onclick="window.editCanteen('${cnt.id}','${cnt.name}')" style="background:transparent; border:none; cursor:pointer; font-size:1.1rem; padding:6px 4px; color:#0A56D0; border-radius:8px;">✏️</button>
+                    <button onclick="window.editCanteen('${cnt.id}','${cnt.name.replace(/'/g, "\\'")}')" style="background:transparent; border:none; cursor:pointer; font-size:1.1rem; padding:6px 4px; color:#0A56D0; border-radius:8px;">✏️</button>
                     <button onclick="window.pantryDeleteHandler('canteen','${cnt.id}')" style="background:transparent; border:none; color:#DC3545; cursor:pointer; font-size:1.1rem; padding:6px 4px; border-radius:8px;">🗑</button>
                   </span>
                 </div>
@@ -5404,16 +5985,74 @@
                 if (!items.length) { container.innerHTML =
                     `<p style="padding:8px; color:#74777F; font-size:.8rem;">No items for this vendor.</p>`; return; }
                 container.innerHTML = items.map((it, idx) =>
-                    `<div style="display:flex; justify-content:space-between; align-items:center; padding:4px 8px; border-bottom:1px solid #E2E8F0;"><span>${safeStr(it.name)} <span style="color:#64748B; font-size:.75rem;">₹${it.rate||0}</span></span><button onclick="window.removeVendorItem('${vendor}','${idx}')" style="background:transparent; border:none; color:#DC3545; cursor:pointer; font-size:.9rem;">✕</button></div>`
+                    `<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 8px; border-bottom:1px solid #E2E8F0; background:#fff; margin-bottom:4px; border-radius:6px;"><span><strong>${safeStr(it.name)}</strong> <span style="color:#64748B; font-size:.8rem; margin-left:6px;">(₹${it.rate||0})</span></span><div style="display:flex; gap:8px; align-items:center;"><button type="button" onclick="window.editVendorItem('${vendor.replace(/'/g, "\\'")}', ${idx})" style="background:transparent; border:none; color:#0A56D0; cursor:pointer; font-size:1rem;">✏️</button><button type="button" onclick="window.removeVendorItem('${vendor.replace(/'/g, "\\'")}','${idx}')" style="background:transparent; border:none; color:#DC3545; cursor:pointer; font-size:1rem;">✕</button></div></div>`
                     ).join('');
             }
 
-            window.removeVendorItem = function(vendor, idx) {
+            window.editVendorItem = function(vendor, idx) {
                 const key = vendor.toLowerCase().trim();
                 const items = vendorItemsCatalog[key] || [];
-                if (idx >= 0 && idx < items.length) { items.splice(idx, 1);
-                    db.ref('vendorItems/' + key).set(items); }
+                const item = items[idx];
+                if (!item) return;
+
+                const modal = document.createElement('div');
+                modal.className = 'popup-overlay';
+                modal.id = 'editVendorItemModal';
+                modal.style.zIndex = "200000010"; // પ્રિન્ટ ઓવરલેની પણ ઉપર પોપઅપ સેટ
+                modal.innerHTML = `
+                    <div class="popup-card" style="text-align:center; max-width:400px; padding:20px; border-radius:16px;">
+                        <h3 style="color:#0A56D0; margin-top:0; margin-bottom:6px; font-size:1.15rem;">✏️ Edit Vendor Item</h3>
+                        <p style="font-size:0.8rem; color:#64748B; margin-bottom:14px; font-weight:500;">Vendor: ${vendor}</p>
+                        
+                        <div style="text-align:left; margin-bottom:12px;">
+                            <label style="font-size:0.8rem; font-weight:700; color:#44474E; display:block; margin-bottom:4px;">Item Name</label>
+                            <input type="text" id="editCanteenItemName" value="${item.name}" style="margin:0; padding:10px; border-radius:8px; border:1px solid #CBD5E1; width:100%; box-sizing:border-box; font-size:0.95rem;">
+                        </div>
+                        <div style="text-align:left; margin-bottom:18px;">
+                            <label style="font-size:0.8rem; font-weight:700; color:#44474E; display:block; margin-bottom:4px;">Rate (₹ Price)</label>
+                            <input type="number" id="editCanteenItemRate" value="${item.rate}" min="0" step="0.01" style="margin:0; padding:10px; border-radius:8px; border:1px solid #CBD5E1; width:100%; box-sizing:border-box; font-size:0.95rem;">
+                        </div>
+                        
+                        <div style="display:flex; gap:12px; justify-content:center; width:100%;">
+                            <button type="button" onclick="document.getElementById('editVendorItemModal').remove()" class="danger" style="flex:1; border-radius:100px; min-height:40px; padding:6px;">Cancel</button>
+                            <button type="button" id="saveCanteenItemEditBtn" class="success" style="flex:1; border-radius:100px; min-height:40px; padding:6px; font-weight:700;">Save Changes</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+
+                document.getElementById('saveCanteenItemEditBtn').onclick = function() {
+                    const newName = document.getElementById('editCanteenItemName').value.trim();
+                    const newRate = parseFloat(document.getElementById('editCanteenItemRate').value);
+
+                    if (!newName) return appAlert('Error', 'Item name cannot be blank.');
+                    if (isNaN(newRate) || newRate < 0) return appAlert('Error', 'Please enter a valid price rate.');
+
+                    // આઇટમ અપડેટ લોજીક
+                    items[idx] = { name: newName, rate: newRate };
+                    db.ref('vendorItems/' + key).set(items).then(() => {
+                        modal.remove();
+                        appAlert('Success', 'Item updated successfully!');
+                        // લિસ્ટ લાઈવ રિફ્રેશ કરો
+                        renderAdminCanteens();
+                        renderVendorItemsList();
+                    });
+                };
             };
+
+            window.removeVendorItem = function(vendor, idx) {
+                appConfirm('Delete Item', `Are you sure you want to delete this item from ${vendor}?`, () => {
+                    const key = vendor.toLowerCase().trim();
+                    const items = vendorItemsCatalog[key] || [];
+                    if (idx >= 0 && idx < items.length) { 
+                        items.splice(idx, 1);
+                        db.ref('vendorItems/' + key).set(items).then(() => {
+                            renderAdminCanteens();
+                            renderVendorItemsList();
+                        }); 
+                    }
+                });
+            };;
 
             function renderAdminVenues() {
                 const c = document.getElementById('venueListContainer');
@@ -6314,7 +6953,7 @@
                                 parentId: ev.id,
                                 eventName: ev.eventName,
                                 reqBy: ev.orderedBy,
-                                pantry: ev.servedByName || ev.pantryName || '-',
+                                pantry: item.servedBy || ev.servedByName || ev.pantryName || '-',
                                 date: item.itemSpecificDate || ev.date,
                                 vendor: item.vendor || ev.canteenSource || 'Various',
                                 itemName: item.name,
@@ -6357,7 +6996,7 @@
                             <th style="padding:8px; border:1px solid #CBD5E1; text-align:center;">Qty</th>
                             <th style="padding:8px; border:1px solid #CBD5E1; text-align:center;">Rate</th>
                             <th style="padding:8px; border:1px solid #CBD5E1; text-align:center;">Amount</th>
-                            <th style="padding:8px; border:1px solid #CBD5E1;">Served By</th>
+                            <th style="padding:8px; border:1px solid #CBD5E1;">Pantry Boy</th>
                             <th style="padding:8px; border:1px solid #CBD5E1; text-align:center;">Actions</th>
                         </tr>
                     </thead>
@@ -6367,17 +7006,17 @@
                     html += `
                         <tr style="border-bottom:1px solid #E2E8F0;">
                             <td style="padding:8px; border:1px solid #E2E8F0; font-weight:600; white-space:nowrap;">${safeStr(row.date)}</td>
-                            <td style="padding:8px; border:1px solid #E2E8F0; color:#0A56D0; font-weight:500;">${safeStr(row.vendor)}</td>
-                            <td style="padding:8px; border:1px solid #E2E8F0; font-weight:500;">${safeStr(row.eventName)}</td>
+                            <td style="padding:8px; border:1px solid #E2E8F0; color:#0A56D0; font-weight:500; cursor:pointer;" onclick="window.openVendorSheet('${row.vendor}','${row.vendor}')"><u>${safeStr(row.vendor)}</u></td>
+                            <td style="padding:8px; border:1px solid #E2E8F0; font-weight:700;">${safeStr(row.eventName)}</td>
                             <td style="padding:8px; border:1px solid #E2E8F0;">${safeStr(row.reqBy)}</td>
                             <td style="padding:8px; border:1px solid #E2E8F0; font-weight:600; color:#334155;">${safeStr(row.itemName)}</td>
                             <td style="padding:8px; border:1px solid #E2E8F0; text-align:center;">${row.itemQty}</td>
                             <td style="padding:8px; border:1px solid #E2E8F0; text-align:center;">${row.itemRate !== '-' ? '₹'+row.itemRate : '-'}</td>
-                            <td style="padding:8px; border:1px solid #E2E8F0; text-align:center; font-weight:700; color:#1E293B;">₹${Number(row.itemAmount).toFixed(2)}</td>
-                            <td style="padding:8px; border:1px solid #E2E8F0; color:#475569;">${safeStr(row.pantry)}</td>
+                            <td style="padding:8px; border:1px solid #E2E8F0; text-align:center; font-weight:800; color:#1E293B;">₹${Number(row.itemAmount).toFixed(2)}</td>
+                            <td style="padding:8px; border:1px solid #E2E8F0; color:#0A56D0; font-weight:600;">${safeStr(row.pantry)}</td>
                             <td style="padding:8px; border:1px solid #E2E8F0; text-align:center;">
                                 <div class="action-cell" style="justify-content:center;">
-                                    <button class="edit-btn" onclick="window.editMeetingEvent('${row.parentId}')">✏️</button>
+                                    <button class="edit-btn" onclick="window.editMeetingEvent('${row.parentId}')">✏️ Edit Main</button>
                                     ${canDelete ? `<button class="del-btn" onclick="window.pantryDeleteHandler('event','${row.parentId}')">🗑</button>` : ''}
                                 </div>
                             </td>
@@ -6388,7 +7027,215 @@
                 return html;
             };
 
-            window.openEventHistoryModal = function() {
+            window.editMeetingEvent = function(id) {
+                const existingModal = document.getElementById('editMeetingPopupModal');
+                if (existingModal) existingModal.remove();
+
+                const ev = eventLogsData.find(e => e.id === id);
+                if (!ev) return appAlert('Error', 'Event not found.');
+
+                const modal = document.createElement('div');
+                modal.className = 'popup-overlay';
+                modal.id = 'editMeetingPopupModal';
+                modal.innerHTML = `
+              <div class="popup-card full" style="width: 95vw; max-width: 1150px; height: 88vh; max-height: 88vh; display: flex; flex-direction: column; border-radius: 20px; padding: 24px; box-shadow: 0 24px 64px rgba(0,0,0,0.35);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-shrink:0;">
+                    <h3 style="color:#0A56D0; margin:0; font-size:1.3rem;">🎪 Edit Multi-Day Meeting Event & Refreshments</h3>
+                    <button onclick="this.closest('.popup-overlay').remove()" class="danger sm" style="min-height:32px; padding:4px 14px; border-radius:8px;">✕ Close</button>
+                </div>
+                
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px; background: #F1F5F9; padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid #E2E8F0; flex-shrink:0;">
+                    <div>
+                        <label style="font-size:.8rem; font-weight:700; color:#44474E; display:block; margin-bottom:4px;">👤 Organizer / Requested By</label>
+                        <input type="text" id="editEvtOrderedBy" value="${safeStr(ev.orderedBy)}" style="width:100%; padding:11px; border-radius:8px; border:1px solid #CBD5E1; box-sizing:border-box; font-size:0.95rem;">
+                    </div>
+                    <div>
+                        <label style="font-size:.8rem; font-weight:700; color:#44474E; display:block; margin-bottom:4px;">📝 Meeting Purpose / Event Name</label>
+                        <input type="text" id="editEvtName" value="${safeStr(ev.eventName)}" style="width:100%; padding:11px; border-radius:8px; border:1px solid #CBD5E1; box-sizing:border-box; font-size:0.95rem;">
+                    </div>
+                </div>
+
+                <div class="sub-section-title" style="margin-top:0; font-weight:700; color:#0A56D0; font-size:1.05rem; margin-bottom:8px; flex-shrink:0;">📋 Refreshment Items Allocation</div>
+                
+                <!-- Items Box Container with Independent Scroll -->
+                <div id="editEvtItemsContainer" style="flex: 1; overflow-y: auto; margin-bottom: 14px; border: 1px solid #CBD5E1; padding: 12px; border-radius: 12px; background: #FFFFFF;"></div>
+                
+                <button type="button" id="editEvtAddItemRowBtn" class="success outline" style="width:100%; margin-bottom:14px; font-weight:700; min-height:44px; border-radius:10px; border:2px solid #146C43; color:#146C43; background:#F0FDF4; flex-shrink:0; font-size:0.95rem;">➕ Add New Refreshment / Day Row</button>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; background:#EFF6FF; padding:16px; border-radius:12px; border:2px dashed #0A56D0; flex-shrink:0; gap:16px; flex-wrap:wrap;">
+                  <div style="text-align:left;">
+                    <span style="font-size:.9rem; color:#1E3A8A; font-weight:700; display:block;">Calculated Grand Total:</span>
+                    <div id="editEvtCalcDisplay" style="font-size:1.7rem; font-weight:800; color:#0A56D0; margin-top:2px;">₹ 0.00</div>
+                  </div>
+                  <div style="display:flex; gap:12px; flex:1; justify-content:flex-end; min-width:260px;">
+                    <button onclick="this.closest('.popup-overlay').remove()" class="danger" style="padding:12px 24px; border-radius:10px; font-weight:700; min-height:48px; min-width:120px;">Cancel</button>
+                    <button id="editEvtSaveBtn" class="success" style="padding:12px 32px; border-radius:10px; font-weight:800; font-size:1.05rem; min-height:48px; box-shadow:0 4px 12px rgba(20,108,67,0.2);">💾 Save All Changes</button>
+                  </div>
+                </div>
+              </div>
+            `;
+                document.body.appendChild(modal);
+
+                const itemsContainer = document.getElementById('editEvtItemsContainer');
+                const activePantryStaff = pantryTeam.filter(p => !p.onLeave);
+
+                function insertEditItemRow(name = '', qty = 1, rate = 0, dateDMY = '', vendor = '', servedBy = '') {
+                    const row = document.createElement('div');
+                    row.className = 'dynamic-item-row-edit';
+                    
+                    // ડેસ્કટોપ પર સરસ કોલમ વાળી ગ્રીડ દેખાશે જે ક્યારેય દબાશે નહિ
+                    row.style.cssText = "display: grid; grid-template-columns: 1.2fr 1.3fr 1.8fr 0.6fr 0.8fr 1.4fr auto; gap: 10px; align-items: center; background: #F8FAFC; padding: 12px; border-radius: 10px; border: 1px solid #CBD5E1; margin-bottom: 10px;";
+                    
+                    const rowYMD = dateDMY ? parseDMYToYMD(dateDMY) : parseDMYToYMD(ev.date);
+                    
+                    const vendorOpts = canteenList.map(c => `<option value="${safeStr(c.name)}" ${vendor === c.name ? 'selected' : ''}>${safeStr(c.name)}</option>`).join('');
+                    const missingVendorOpt = (vendor && !canteenList.some(c => c.name === vendor)) ? `<option value="${vendor}" selected>${vendor}</option>` : '';
+
+                    const pantryOpts = activePantryStaff.map(p => `<option value="${safeStr(p.name)}" ${servedBy === p.name ? 'selected' : ''}>${safeStr(p.name)}</option>`).join('');
+                    const missingPantryOpt = (servedBy && servedBy !== 'Direct Order (Canteen)' && !activePantryStaff.some(p => p.name === servedBy)) ? `<option value="${servedBy}" selected>${servedBy}</option>` : '';
+
+                    row.innerHTML = `
+                        <div>
+                            <label style="font-size:0.65rem; color:#64748B; font-weight:700; display:block; margin-bottom:2px;">Date</label>
+                            <input type="date" class="e-item-date" value="${rowYMD}" style="width:100%; padding:8px; font-size:.85rem; border-radius:6px; border:1px solid #CBD5E1; box-sizing:border-box;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.65rem; color:#64748B; font-weight:700; display:block; margin-bottom:2px;">Vendor</label>
+                            <select class="e-item-vendor" style="width:100%; padding:8px; font-size:.85rem; border-radius:6px; border:1px solid #CBD5E1; box-sizing:border-box;">
+                                <option value="">-- Vendor --</option>
+                                ${vendorOpts}
+                                ${missingVendorOpt}
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:0.65rem; color:#64748B; font-weight:700; display:block; margin-bottom:2px;">Item Name</label>
+                            <input type="text" class="e-item-name" placeholder="Item Name" value="${safeStr(name)}" style="width:100%; padding:8px; font-size:.85rem; border:1px solid #CBD5E1; border-radius:6px; box-sizing:border-box;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.65rem; color:#64748B; font-weight:700; display:block; margin-bottom:2px;">Qty</label>
+                            <input type="number" class="e-item-qty" placeholder="Qty" min="1" value="${qty}" style="width:100%; padding:8px; font-size:.85rem; border:1px solid #CBD5E1; border-radius:6px; box-sizing:border-box;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.65rem; color:#64748B; font-weight:700; display:block; margin-bottom:2px;">Rate (₹)</label>
+                            <input type="number" class="e-item-rate" placeholder="Rate" min="0" step="0.01" value="${rate}" style="width:100%; padding:8px; font-size:.85rem; border:1px solid #CBD5E1; border-radius:6px; box-sizing:border-box;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.65rem; color:#64748B; font-weight:700; display:block; margin-bottom:2px;">Served By</label>
+                            <select class="e-item-served-by" style="width:100%; padding:8px; font-size:.85rem; border-radius:6px; border:1px solid #CBD5E1; box-sizing:border-box;">
+                                <option value="">-- Pantry Boy --</option>
+                                <option value="Direct Order (Canteen)" ${servedBy === 'Direct Order (Canteen)' ? 'selected' : ''}>Direct Canteen</option>
+                                ${pantryOpts}
+                                ${missingPantryOpt}
+                            </select>
+                        </div>
+                        <div style="display:flex; justify-content:center; align-items:center;">
+                            <button type="button" class="e-remove-btn" style="background:#DC3545; color:#fff; border:none; padding:7px 12px; border-radius:6px; font-size:0.85rem; cursor:pointer; margin-top:14px; font-weight:bold;" title="Remove Row">✕</button>
+                        </div>
+                    `;
+                    itemsContainer.appendChild(row);
+                    row.querySelector('.e-remove-btn').onclick = () => { row.remove(); updateEditModalTotal(); };
+                    row.querySelectorAll('input, select').forEach(i => i.addEventListener('input', updateEditModalTotal));
+                }
+
+                function updateEditModalTotal() {
+                    let total = 0;
+                    itemsContainer.querySelectorAll('.dynamic-item-row-edit').forEach(row => {
+                        const q = Number(row.querySelector('.e-item-qty').value) || 0;
+                        const r = parseFloat(row.querySelector('.e-item-rate').value) || 0;
+                        total += q * r;
+                    });
+                    document.getElementById('editEvtCalcDisplay').innerText = "₹ " + total.toFixed(2);
+                }
+
+                if (ev.items && Array.isArray(ev.items) && ev.items.length > 0) {
+                    ev.items.forEach(item => {
+                        insertEditItemRow(item.name, item.qty, item.rate, item.itemSpecificDate, item.vendor || ev.canteenSource, item.servedBy || ev.servedByName || ev.pantryName);
+                    });
+                } else {
+                    insertEditItemRow(ev.refreshmentSummary, 1, ev.amount, ev.date, ev.canteenSource, ev.servedByName || ev.pantryName);
+                }
+
+                updateEditModalTotal();
+                document.getElementById('editEvtAddItemRowBtn').onclick = () => insertEditItemRow();
+
+                document.getElementById('editEvtSaveBtn').onclick = function() {
+                    const name = document.getElementById('editEvtName').value.trim();
+                    const orderedBy = document.getElementById('editEvtOrderedBy').value.trim();
+                    if (!name || !orderedBy) return appAlert('Error', 'Organizer and Event Purpose are required.');
+
+                    const newItems = [];
+                    let finalTotalAmount = 0;
+                    const summarySegments = [];
+                    let hasError = false;
+
+                    itemsContainer.querySelectorAll('.dynamic-item-row-edit').forEach((row, index) => {
+                        const dateVal = row.querySelector('.e-item-date').value;
+                        const vdr = row.querySelector('.e-item-vendor').value.trim();
+                        const iName = row.querySelector('.e-item-name').value.trim();
+                        const iQty = parseInt(row.querySelector('.e-item-qty').value, 10) || 0;
+                        const iRate = parseFloat(row.querySelector('.e-item-rate').value) || 0;
+                        const srv = row.querySelector('.e-item-served-by').value.trim();
+
+                        if (iName && iQty > 0) {
+                            if (!dateVal) { appAlert('Error', `Select Date for item ${index+1}`); hasError = true; }
+                            if (!vdr) { appAlert('Error', `Select Vendor for item ${index+1}`); hasError = true; }
+                            if (!srv) { appAlert('Error', `Select Pantry Boy for item ${index+1}`); hasError = true; }
+
+                            const finalRowDate = convertYMDtoDMY(dateVal);
+                            const itemAmt = iQty * iRate;
+                            
+                            finalTotalAmount += itemAmt;
+                            summarySegments.push(`${iQty} ${iName}`);
+
+                            newItems.push({
+                                vendor: vdr,
+                                type: '🍪 Snacks/Food',
+                                name: iName,
+                                qty: iQty,
+                                unit: 'Nos',
+                                rate: iRate,
+                                amount: itemAmt,
+                                itemSpecificDate: finalRowDate,
+                                servedBy: srv
+                            });
+                        }
+                    });
+
+                    if (hasError) return;
+                    if (!newItems.length) return appAlert('Error', 'Please add at least one valid item.');
+
+                    const uniqueVendors = [...new Set(newItems.map(i => i.vendor).filter(Boolean))].join(', ');
+                    const uniquePantryBoys = [...new Set(newItems.map(i => i.servedBy).filter(Boolean))].join(', ');
+                    const mainDate = newItems[0].itemSpecificDate;
+
+                    db.ref('eventLogs/' + id).update({
+                        eventName: name,
+                        orderedBy: orderedBy,
+                        amount: finalTotalAmount,
+                        refreshmentSummary: summarySegments.join(', '),
+                        date: mainDate,
+                        canteenSource: uniqueVendors,
+                        servedByName: uniquePantryBoys,
+                        pantryName: uniquePantryBoys,
+                        items: newItems
+                    }).then(() => {
+                        modal.remove();
+                        appAlert('Updated', 'Meeting Event completely updated!');
+                        
+                        setTimeout(() => {
+                            if (typeof renderAdminMeetingHistory === 'function' && document.getElementById('adminMeetingHistoryTable')) {
+                                renderAdminMeetingHistory();
+                            }
+                            if (typeof window.openEventHistoryModal === 'function') {
+                                window.openEventHistoryModal();
+                            }
+                        }, 300);
+                    }).catch(err => {
+                        appAlert('Error', 'Update failed: ' + err.message);
+                    });
+                };
+            };
+                    window.openEventHistoryModal = function() {
                 const modal = document.getElementById('eventHistoryModal');
                 const body = document.getElementById('eventHistoryModalBody');
                 if(!modal || !body) return;
@@ -6397,13 +7244,18 @@
                 let subset = [...eventLogsData];
                 
                 if (currentUser && currentUser.role === 'pantry') {
-                    subset = eventLogsData.filter(ev => ev.pantryId === currentUser.id || ev.pantryName === currentUser.name || ev.servedByName === currentUser.name);
+                    // પેન્ટ્રી બોય માટે ફિલ્ટર - જો મેઈન ઈવેન્ટમાં નામ હોય અથવા અંદરની કોઈ આઇટમમાં નામ હોય
+                    subset = eventLogsData.filter(ev => {
+                        if (ev.pantryId === currentUser.id || (ev.pantryName && ev.pantryName.includes(currentUser.name)) || (ev.servedByName && ev.servedByName.includes(currentUser.name))) return true;
+                        if (ev.items && Array.isArray(ev.items)) {
+                            return ev.items.some(item => item.servedBy === currentUser.name);
+                        }
+                        return false;
+                    });
                 }
                 
-                // Yahan 'true' pass karne se Delete button wapas aa jayega
                 body.innerHTML = window.generateSplitRowsTableHtml(subset, true);
             };
-
             // ============================================================
             //  FIREBASE LISTENERS
             // ============================================================
