@@ -2753,9 +2753,9 @@
                             const itemVendor = (item.vendor || ev.canteenSource || '').toLowerCase();
                             if (itemVendor === vendorName.toLowerCase()) {
                                 const purposeText = `${ev.eventName || ''} ${ev.orderedBy || ''}`.toLowerCase();
-                                let head = 'Office';
-                                if (purposeText.includes('school of law') || purposeText.includes('law') || purposeText.includes('llm')) {
-                                    head = 'SOL';
+                                let head = 'Office'; // Default fallback
+                                if (purposeText.includes('school of law') || purposeText.includes('law') || purposeText.includes('llm') || purposeText.includes('sol')) {
+                                    head = 'SoL';
                                 } else if (purposeText.includes('admission')) {
                                     head = 'Admissions';
                                 } else if (purposeText.includes('placement')) {
@@ -2782,22 +2782,40 @@
                 allItems.sort((a, b) => parseDMYToYMD(a.date).localeCompare(parseDMYToYMD(b.date)));
 
                 window.renderFilteredVendorTable = function(selectedHead) {
-                    const filteredItems = selectedHead === 'All' ? allItems : allItems.filter(item => item.accountHead === selectedHead);
+                    // ફિલ્ટર બદલતી વખતે ઓલરેડી લખેલી બેંક ડિટેલ્સ મેમરીમાં સેવ રાખો જેથી ગાયબ ના થાય
+                    const savedBankName = document.getElementById('iaBankName')?.value || '';
+                    const savedBankAcc = document.getElementById('iaBankAccountNo')?.value || '';
+                    const savedBankIfsc = document.getElementById('iaBankIFSC')?.value || '';
+                    const savedBankBranch = document.getElementById('iaBankBranch')?.value || '';
+
+                    const isAll = selectedHead.toLowerCase() === 'all' || selectedHead === '';
+                    const filteredItems = isAll ? allItems : allItems.filter(item => item.accountHead.toLowerCase() === selectedHead.toLowerCase());
                     
                     let controlHtml = `
                         <div class="merged-filter-row" style="margin-bottom:16px; background:#F8FAFC; padding:14px; border-radius:12px; border:1px solid #CBD5E1; display:flex; gap:16px; align-items:center; flex-wrap:wrap; flex-shrink:0;">
                             <div style="flex:1; min-width:240px; text-align:left;">
                                 <label style="font-size:0.82rem; font-weight:700; color:#44474E; display:block; margin-bottom:4px;">📊 Select Department Head:</label>
-                                <select id="vendorAccountHeadFilter" style="margin:0; padding:11px; border-radius:8px; border:1px solid #CBD5E1; font-size:0.95rem; width:100%; font-weight:500;">
+                                <select id="vendorAccountHeadFilter" style="margin:0; padding:11px; border-radius:8px; border:1px solid #CBD5E1; font-size:0.95rem; width:100%; font-weight:500; background:#fff; cursor:pointer;">
                                     <option value="All" ${selectedHead==='All'?'selected':''}>All Combined View</option>
-                                    <option value="SOL" ${selectedHead==='SOL'?'selected':''}>SOL</option>
+                                    <option value="SoL" ${selectedHead==='SoL'?'selected':''}>SoL</option>
                                     <option value="Admissions" ${selectedHead==='Admissions'?'selected':''}>Admissions</option>
                                     <option value="Placement" ${selectedHead==='Placement'?'selected':''}>Placement</option>
                                     <option value="Office" ${selectedHead==='Office'?'selected':''}>Office</option>
                                 </select>
                             </div>
-                            <div style="padding-top:18px;">
+                            <div style="padding-top:18px; display:flex; gap:10px;">
+                                <button type="button" id="printRawStatementBtn" class="btn" style="min-height:44px; padding:0 24px; border-radius:8px; background:#1E293B; font-weight:700; font-size:0.9rem;">🖨️ Print Statement Table</button>
                                 <button type="button" id="generateVendorBillBtn" class="success" style="min-height:44px; padding:0 24px; border-radius:8px; font-weight:700; background:#0A56D0; box-shadow:0 4px 10px rgba(10,86,208,0.2); font-size:0.9rem;">🧾 Generate Printable Bill for DAU</button>
+                            </div>
+                        </div>
+                        
+                        <div class="card" style="margin-bottom:16px; padding:14px; border:1px dashed #CBD5E1; background:#FAFAFA; text-align:left; flex-shrink:0;">
+                            <span style="font-size:0.8rem; font-weight:700; color:#1E3A8A; display:block; margin-bottom:8px;">🏦 Optional Bank Remittance Details (For Invoice Printing):</span>
+                            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:8px;">
+                                <input type="text" id="iaBankName" placeholder="Bank Name" style="padding:8px; font-size:0.82rem; margin:0; border-radius:6px; border:1px solid #CBD5E1;">
+                                <input type="text" id="iaBankAccountNo" placeholder="Account Number" style="padding:8px; font-size:0.82rem; margin:0; border-radius:6px; border:1px solid #CBD5E1;">
+                                <input type="text" id="iaBankIFSC" placeholder="IFSC Code" style="padding:8px; font-size:0.82rem; margin:0; border-radius:6px; border:1px solid #CBD5E1; text-transform:uppercase;">
+                                <input type="text" id="iaBankBranch" placeholder="Branch Name" style="padding:8px; font-size:0.82rem; margin:0; border-radius:6px; border:1px solid #CBD5E1;">
                             </div>
                         </div>
                     `;
@@ -2809,7 +2827,7 @@
                         let sr = 1;
                         let grandTotal = 0;
                         tableHtml = `
-                            <table class="vendor-desktop-table" style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+                            <table class="vendor-desktop-table" id="rawVendorPrintableTargetTable" style="width:100%; border-collapse:collapse; font-size:0.9rem;">
                                 <thead>
                                     <tr>
                                         <th>S.R.</th>
@@ -2828,7 +2846,7 @@
                         filteredItems.forEach(row => {
                             grandTotal += row.amount;
                             let headBadgeColor = '#64748B';
-                            if(row.accountHead==='SOL') headBadgeColor='#7C3AED';
+                            if(row.accountHead==='SoL') headBadgeColor='#7C3AED';
                             if(row.accountHead==='Admissions') headBadgeColor='#D97706';
                             if(row.accountHead==='Placement') headBadgeColor='#10B981';
 
@@ -2858,8 +2876,35 @@
 
                     content.innerHTML = controlHtml + tableHtml;
 
+                    // જૂની લખેલી બેંક વિગતો પાછી ડ્રોપડાઉન બદલાયા પછી ફોર્મમાં ભરી દો
+                    if(document.getElementById('iaBankName')) {
+                        document.getElementById('iaBankName').value = savedBankName;
+                        document.getElementById('iaBankAccountNo').value = savedBankAcc;
+                        document.getElementById('iaBankIFSC').value = savedBankIfsc;
+                        document.getElementById('iaBankBranch').value = savedBankBranch;
+                    }
+
                     document.getElementById('vendorAccountHeadFilter').onchange = function() {
                         window.renderFilteredVendorTable(this.value);
+                    };
+
+                    document.getElementById('printRawStatementBtn').onclick = function() {
+                        const targetHtml = document.getElementById('rawVendorPrintableTargetTable').outerHTML;
+                        const printContainer = document.getElementById('printAreaContainer');
+                        printContainer.style.zIndex = "100000005";
+                        printContainer.innerHTML = `
+                            <div class="preview-card" style="max-width:1050px; width:95vw; height:90vh;">
+                              <div class="preview-header hide-on-print">
+                                <button onclick="window.print()" class="success">🖨️ Print Statement Table</button>
+                                <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger">✕ Close</button>
+                              </div>
+                              <div class="preview-content" style="background:#fff; padding:20px;">
+                                <h2 style="text-align:center; margin-bottom:15px; font-family:sans-serif;">${vendorName.toUpperCase()} - REVENUE STATEMENT REPORT</h2>
+                                <table class="print-table">${targetHtml}</table>
+                              </div>
+                            </div>
+                        `;
+                        printContainer.classList.remove('hidden');
                     };
 
                     document.getElementById('generateVendorBillBtn').onclick = function() {
@@ -2897,7 +2942,44 @@
                             `;
                         });
 
-                        let headTitle = selectedHead === 'All' ? 'ALL' : `${selectedHead.toUpperCase()}`;
+                        let headTitle = selectedHead.toLowerCase() === 'all' || selectedHead === '' ? 'STATEMENT' : `${selectedHead.toUpperCase()}`;
+
+                        // બેંક માહિતી રીડ કરો અને IFSC કોડમાં ઓટો-પોઝિશન શૂન્ય પ્રોટેક્શન લોજીક
+                        const bName = document.getElementById('iaBankName').value.trim();
+                        const bAcc = document.getElementById('iaBankAccountNo').value.trim();
+                        let bIfsc = document.getElementById('iaBankIFSC').value.trim();
+                        const bBranch = document.getElementById('iaBankBranch').value.trim();
+
+                        if (bIfsc.includes('0')) {
+                            const ordinals = ["", "First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth", "Ninth", "Tenth", "Eleventh", "Twelfth"];
+                            let zeroPositions = [];
+                            for (let idx = 0; idx < bIfsc.length; idx++) {
+                                if (bIfsc[idx] === '0') {
+                                    const pos = idx + 1;
+                                    if (pos < ordinals.length) {
+                                        zeroPositions.push(ordinals[pos]);
+                                    } else {
+                                        zeroPositions.push(pos + "th");
+                                    }
+                                }
+                            }
+                            if (zeroPositions.length > 0) {
+                                bIfsc = bIfsc + " (" + zeroPositions.join(", ") + " character is zero)";
+                            }
+                        }
+
+                        let bankDetailsHtmlBlock = '';
+                        if (bName || bAcc || bIfsc) {
+                            bankDetailsHtmlBlock = `
+                                <div style="margin-top:20px; padding:10px; border:1px solid #000; font-size:12px; background:#FAFAFA; text-align:left; line-height:1.5;">
+                                    <span style="font-weight:800; display:block; text-decoration:underline; margin-bottom:4px; font-size:12.5px;">BANK REMITTANCE DETAILS (OPTIONAL):</span>
+                                    <b>Bank Name:</b> ${bName || '-'}<br>
+                                    <b>Account Number:</b> ${bAcc || '-'}<br>
+                                    <b>IFSC Code:</b> <span style="font-family:monospace; font-weight:bold; font-size:13px;">${bIfsc || '-'}</span><br>
+                                    <b>Branch Name:</b> ${bBranch || '-'}
+                                </div>
+                            `;
+                        }
 
                         const billHtml = `
                             <div class="dau-official-invoice-print-sheet" style="font-family: 'Inter', Arial, sans-serif; padding: 5px; color: #000; background:#fff;">
@@ -2917,7 +2999,7 @@
                                         <b>Invoice No:</b> <span style="font-family:monospace; font-weight:800; color:#0A56D0; font-size:14px;">${invoiceNumber}</span><br>
                                         <b>Department:</b> ${headTitle}<br>
                                         <b>Billing Date:</b> ${getTodayInDMY()}<br>
-                                        <b>Payment Mode:</b> Institutional Account
+                                        
                                     </div>
                                 </div>
 
@@ -2941,13 +3023,10 @@
                                     </tbody>
                                 </table>
 
+                                ${bankDetailsHtmlBlock}
+
                                 <div style="margin-top: 50px; display: flex; justify-content: space-between; font-size: 13px; font-weight:700; color:#000;">
-                                    <div style="text-align: center; width: 220px; border-top: 1px solid #000; padding-top: 5px;">
-                                       
-                                    </div>
-                                    <div style="text-align: center; width: 220px; border-top: 1px solid #000; padding-top: 5px;">
-                                        Authorized Signature (${vendorName})
-                                    </div>
+                               
                                 </div>
                             </div>
                         `;
@@ -3157,6 +3236,22 @@
                   <span style="font-size:.9rem; color:#1E3A8A; font-weight:700;">Grand Total Amount:</span>
                   <div id="${prefix}MeetingCalcDisplay" style="font-size:1.6rem; font-weight:800; color:#0A56D0;">₹ 0.00</div>
                 </div>
+
+                <!-- Live Meeting Documents Checklist Tracker -->
+                <div class="card" style="background:#FFFBEB; border:1px solid #FCD34D; padding:12px; margin-top:12px;">
+                    <h5 style="color:#D97706; margin:0 0 8px 0; font-size:0.85rem; font-weight:700;">📋 Meeting Document Checklist</h5>
+                    <div style="display:flex; flex-direction:column; gap:6px; text-align:left;">
+                        <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; font-weight:500; color:#1F2937; margin:0; cursor:pointer;">
+                            <input type="checkbox" id="${prefix}CheckGuestSlipCreated" style="width:16px; height:16px; accent-color:#D97706;"> Guest Slip Created?
+                        </label>
+                        <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; font-weight:500; color:#1F2937; margin:0; cursor:pointer;">
+                            <input type="checkbox" id="${prefix}CheckGuestSlipSigned" style="width:16px; height:16px; accent-color:#D97706;"> Guest Slip Signed?
+                        </label>
+                        <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; font-weight:500; color:#1F2937; margin:0; cursor:pointer;">
+                            <input type="checkbox" id="${prefix}CheckGuestSlipReturned" style="width:16px; height:16px; accent-color:#D97706;"> Guest Slip Returned to Vendor?
+                        </label>
+                    </div>
+                </div>
                 
                 <div style="margin-top:12px; background:#F8FAFC; padding:10px; border-radius:8px; border:1px solid #E2E8F0; display:flex; align-items:center; gap:8px;">
                   <input type="checkbox" id="${prefix}ShowNotification" style="width:18px; height:18px; accent-color:#0A56D0;">
@@ -3170,6 +3265,63 @@
               <button onclick="window.openEventHistoryModal()" class="btn" style="width:100%; margin-top:10px; background:#1E293B;">📊 Open Event History Stream</button>
             `;
 
+                window.addMeetingItemRow = function(pref) {
+                    const container = document.getElementById(pref + 'MeetingItemsContainer');
+                    if (!container) return;
+                    const rowId = 'dl_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+                    const locListId = 'loc_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+                    const row = document.createElement('div');
+                    row.className = 'dynamic-item-row';
+                    row.style.cssText = "display:flex; flex-wrap:wrap; gap:6px; align-items:center; background:#F8FAFC; padding:8px; border-radius:10px; border:1px solid #E2E8F0; margin-bottom:8px;";
+                    
+                    const vendorOpts = canteenList.map(c => `<option value="${safeStr(c.name)}">${safeStr(c.name)}</option>`).join('');
+                    const pantryOpts = pantryTeam.filter(p => !p.onLeave).map(p => `<option value="${safeStr(p.name)}">${safeStr(p.name)}</option>`).join('');
+                    const todayYMD = new Date().toISOString().split('T')[0];
+                    
+                    row.innerHTML = `
+                    <div style="flex:1; min-width:95px;"><label style="font-size:0.65rem; color:#64748B; font-weight:700;">Date</label><input type="date" class="item-row-date" value="${todayYMD}" style="width:100%; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;"></div>
+                    <div style="flex:1; min-width:110px;"><label style="font-size:0.65rem; color:#64748B; font-weight:700;">Location Venue</label><input type="text" list="${locListId}" class="item-row-location" placeholder="Search/Type Venue" style="width:100%; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;"><datalist id="${locListId}">${venueList.map(v => `<option value="${safeStr(v.name)}">`).join('')}</datalist></div>
+                    <div style="flex:1; min-width:110px;"><label style="font-size:0.65rem; color:#64748B; font-weight:700;">Vendor</label><select class="item-vendor" style="width:100%; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;"><option value="">-- Vendor --</option>${vendorOpts}</select></div>
+                    <div style="flex:1.4; min-width:130px;"><label style="font-size:0.65rem; color:#64748B; font-weight:700;">Item Name</label><input type="text" list="${rowId}" class="item-name" placeholder="Item Name" style="width:100%; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;"><datalist id="${rowId}"></datalist></div>
+                    <div style="flex:0.5; min-width:50px;"><label style="font-size:0.65rem; color:#64748B; font-weight:700;">Qty</label><input type="number" class="item-qty" placeholder="Qty" min="1" value="1" style="width:100%; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;"></div>
+                    <div style="flex:0.6; min-width:60px;"><label style="font-size:0.65rem; color:#64748B; font-weight:700;">Rate</label><input type="number" class="item-rate" placeholder="₹ Rate" min="0" value="" style="width:100%; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;"></div>
+                    <div style="flex:1.1; min-width:120px;"><label style="font-size:0.65rem; color:#64748B; font-weight:700;">Served By</label><select class="item-served-by" style="width:100%; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;"><option value="">-- Pantry Boy --</option><option value="Direct Order (Canteen)">Direct Canteen</option>${pantryOpts}</select></div>
+                    <div style="display:flex; align-items:flex-end;"><button type="button" class="remove-item-btn" style="background:#DC3545; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-size:0.8rem; cursor:pointer; margin-top:14px;">X</button></div>
+                    `;
+                    container.appendChild(row);
+                    row.querySelector('.remove-item-btn').onclick = () => { row.remove(); window.calcMeetingTotal(pref); };
+                    row.querySelectorAll('input, select').forEach(i => i.addEventListener('input', () => window.calcMeetingTotal(pref)));
+                    
+                    const vendorSelect = row.querySelector('.item-vendor');
+                    const nameInput = row.querySelector('.item-name');
+                    const rateInput = row.querySelector('.item-rate');
+                    const dataList = row.querySelector('#' + rowId);
+
+                    function checkAndFillRate() {
+                        const vName = vendorSelect.value;
+                        const iName = nameInput.value.trim().toLowerCase();
+                        if (vName && iName) {
+                            const items = vendorItemsCatalog[vName.toLowerCase()] || [];
+                            const match = items.find(it => it.name.toLowerCase() === iName);
+                            if (match) { rateInput.value = match.rate; window.calcMeetingTotal(pref); }
+                        }
+                    }
+                    vendorSelect.addEventListener('change', function() {
+                        const vName = this.value; dataList.innerHTML = '';
+                        if (vName) {
+                            const items = vendorItemsCatalog[vName.toLowerCase()] || [];
+                            items.forEach(it => { 
+                                const op = document.createElement('option'); 
+                                op.value = it.name; 
+                                dataList.appendChild(op); 
+                            });
+                        }
+                        checkAndFillRate();
+                    });
+                    nameInput.addEventListener('input', checkAndFillRate);
+                    window.calcMeetingTotal(pref);
+                };
+
                 window.addMeetingItemRow(prefix);
 
                 const dateInput = document.getElementById(prefix + 'MeetingDate');
@@ -3178,36 +3330,19 @@
                 if (dateInput && dayDisplay) {
                     dateInput.addEventListener('change', function() {
                         const ymd = this.value;
-                        if (ymd) {
-                            dayDisplay.textContent = getDayOfWeek(convertYMDtoDMY(ymd));
-                        } else { dayDisplay.textContent = '—'; }
+                        if (ymd) { dayDisplay.textContent = getDayOfWeek(convertYMDtoDMY(ymd)); } else { dayDisplay.textContent = '—'; }
                     });
                 }
 
-                // Live autocomplete search handler for the input field
                 const orderedByInput = document.getElementById(prefix + 'MeetingOrderedBy');
                 const orderedByDropdown = document.getElementById('ac_' + prefix + 'MeetingOrderedBy');
 
                 if (orderedByInput && orderedByDropdown) {
                     orderedByInput.addEventListener('input', function() {
                         const q = this.value.toLowerCase().trim();
-                        if (q.length < 2) {
-                            orderedByDropdown.classList.remove('active');
-                            orderedByDropdown.innerHTML = '';
-                            return;
-                        }
-                        
-                        const matches = employeeList.filter(e => 
-                            (e.name || '').toLowerCase().includes(q) || 
-                            (e.department || '').toLowerCase().includes(q)
-                        ).slice(0, 10);
-                        
-                        if (!matches.length) {
-                            orderedByDropdown.classList.remove('active');
-                            orderedByDropdown.innerHTML = '';
-                            return;
-                        }
-                        
+                        if (q.length < 2) { orderedByDropdown.classList.remove('active'); orderedByDropdown.innerHTML = ''; return; }
+                        const matches = employeeList.filter(e => (e.name || '').toLowerCase().includes(q) || (e.department || '').toLowerCase().includes(q)).slice(0, 10);
+                        if (!matches.length) { orderedByDropdown.classList.remove('active'); orderedByDropdown.innerHTML = ''; return; }
                         orderedByDropdown.innerHTML = matches.map(e => {
                             const deptStr = e.department ? ` (${e.department})` : '';
                             return `<div class="ac-item" data-name="${safeStr(e.name)}" style="padding: 10px; cursor: pointer; border-bottom: 1px solid #E2E8F0; text-align: left;">
@@ -3216,28 +3351,17 @@
                         }).join('');
                         orderedByDropdown.classList.add('active');
                     });
-
                     orderedByDropdown.addEventListener('click', function(e) {
                         const item = e.target.closest('.ac-item');
-                        if (item) {
-                            orderedByInput.value = item.dataset.name;
-                            orderedByDropdown.classList.remove('active');
-                        }
+                        if (item) { orderedByInput.value = item.dataset.name; orderedByDropdown.classList.remove('active'); }
                     });
-
-                    orderedByInput.addEventListener('blur', () => {
-                        setTimeout(() => orderedByDropdown.classList.remove('active'), 250);
-                    });
-                    
-                    orderedByInput.addEventListener('focus', function() {
-                        if (this.value.length >= 2) this.dispatchEvent(new Event('input'));
-                    });
+                    orderedByInput.addEventListener('blur', () => { setTimeout(() => orderedByDropdown.classList.remove('active'), 250); });
+                    orderedByInput.addEventListener('focus', function() { if (this.value.length >= 2) this.dispatchEvent(new Event('input')); });
                 }
 
                 document.getElementById(prefix + 'MeetingSubmitBtn').onclick = function() {
                     const orderedBy = orderedByInput.value.trim();
                     const purpose = document.getElementById(prefix + 'MeetingPurpose').value.trim() || 'General Meeting';
-                    
                     if (!orderedBy) return appAlert('Error', 'Please enter Organizer / Requested By.');
 
                     const container = document.getElementById(prefix + 'MeetingItemsContainer');
@@ -3248,6 +3372,7 @@
 
                     container.querySelectorAll('.dynamic-item-row').forEach((row, index) => {
                         const dateVal = row.querySelector('.item-row-date').value;
+                        const locationVal = row.querySelector('.item-row-location').value.trim();
                         const vendor = row.querySelector('.item-vendor').value.trim();
                         const iName = row.querySelector('.item-name').value.trim();
                         const qty = Number(row.querySelector('.item-qty').value) || 0;
@@ -3256,12 +3381,25 @@
                         
                         if (iName && qty > 0) {
                             if (!dateVal) { appAlert('Error', `Select Date for item ${index+1}`); hasError = true; }
+                            if (!locationVal) { appAlert('Error', `Enter Location Venue for item ${index+1}`); hasError = true; }
                             if (!vendor) { appAlert('Error', `Select Vendor for item ${index+1}`); hasError = true; }
                             if (!servedBy) { appAlert('Error', `Select Pantry Boy for item ${index+1}`); hasError = true; }
                             
                             const finalRowDate = convertYMDtoDMY(dateVal);
                             const amt = qty * rate;
                             
+                            if (locationVal && !venueList.some(v => v.name.toLowerCase() === locationVal.toLowerCase())) {
+                                const vId = 'vnu_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+                                db.ref('venues/' + vId).set({ id: vId, name: locationVal });
+                            }
+
+                            const vKey = vendor.toLowerCase().trim();
+                            const currentCatalog = vendorItemsCatalog[vKey] || [];
+                            if (!currentCatalog.some(it => it.name.toLowerCase() === iName.toLowerCase())) {
+                                currentCatalog.push({ name: iName, rate: iRate });
+                                db.ref('vendorItems/' + vKey).set(currentCatalog);
+                            }
+
                             items.push({ 
                                 vendor: vendor, 
                                 type: '🍪 Snacks/Food', 
@@ -3271,15 +3409,16 @@
                                 rate: rate, 
                                 amount: amt,
                                 itemSpecificDate: finalRowDate,
-                                servedBy: servedBy
+                                servedBy: servedBy,
+                                locationNode: locationVal
                             });
                             totalAmt += amt;
-                            summary.push(`${qty} ${iName}`);
+                            summary.push(`${qty} ${iName} (${locationVal})`);
                         }
                     });
                     
                     if (hasError) return;
-                    if (!items.length) return appAlert('Empty', 'Add at least one refreshment item with a valid quantity.');
+                    if (!items.length) return appAlert('Empty', 'Add at least one refreshment item.');
 
                     const id = 'event_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
                     const uniqueVendors = [...new Set(items.map(i => i.vendor).filter(Boolean))].join(', ');
@@ -3298,7 +3437,10 @@
                         amount: totalAmt,
                         pantryName: uniquePantryBoys,
                         refreshmentSummary: summary.join(', '),
-                        showNotification: document.getElementById(prefix + 'ShowNotification').checked 
+                        showNotification: document.getElementById(prefix + 'ShowNotification').checked,
+                        guestSlipCreated: document.getElementById(prefix + 'CheckGuestSlipCreated').checked,
+                        guestSlipSigned: document.getElementById(prefix + 'CheckGuestSlipSigned').checked,
+                        guestSlipReturned: document.getElementById(prefix + 'CheckGuestSlipReturned').checked
                     }).then(() => {
                         appAlert('Success', `Meeting saved successfully!`);
                         orderedByInput.value = '';
@@ -3784,7 +3926,7 @@
                                 const purposeText = `${ev.eventName || ''} ${ev.orderedBy || ''}`.toLowerCase();
                                 let head = 'Office';
                                 if (purposeText.includes('school of law') || purposeText.includes('law') || purposeText.includes('llm')) {
-                                    head = 'SOL';
+                                    head = 'SoL';
                                 } else if (purposeText.includes('admission')) {
                                     head = 'Admissions';
                                 } else if (purposeText.includes('placement')) {
@@ -3819,7 +3961,7 @@
                                 <label style="font-size:0.82rem; font-weight:700; color:#44474E; display:block; margin-bottom:4px;">📊 Select Department Head:</label>
                                 <select id="extVendorAccountHeadFilter" style="margin:0; padding:11px; border-radius:8px; border:1px solid #CBD5E1; font-size:0.95rem; width:100%; font-weight:500;">
                                     <option value="All" ${selectedHead==='All'?'selected':''}>All Combined View</option>
-                                    <option value="SOL" ${selectedHead==='SOL'?'selected':''}>SOL</option>
+                                    <option value="SoL" ${selectedHead==='SoL'?'selected':''}>SoL</option>
                                     <option value="Admissions" ${selectedHead==='Admissions'?'selected':''}>Admissions</option>
                                     <option value="Placement" ${selectedHead==='Placement'?'selected':''}>Placement</option>
                                     <option value="Office" ${selectedHead==='Office'?'selected':''}>Office</option>
@@ -3939,7 +4081,6 @@
                                         <b>Invoice No:</b> <span style="font-family:monospace; font-weight:800; color:#0A56D0; font-size:14px;">${invoiceNumber}</span><br>
                                         <b>Department:</b> ${headTitle}<br>
                                         <b>Billing Date:</b> ${getTodayInDMY()}<br>
-                                        <b>Payment Mode:</b> Institutional Account
                                     </div>
                                 </div>
 
@@ -5188,11 +5329,11 @@
                         <div style="display:flex; gap:6px;">
                             <div style="flex:1;">
                                 <label style="font-size:0.75rem; font-weight:600; color:#374151;">CGST (%)</label>
-                                <input type="number" id="iaCGSTPercentage" value="2.5" min="0" step="0.1" style="padding:10px; border-radius:8px; border:1px solid #CBD5E1; margin:4px 0 0 0; text-align:center;">
+                                <input type="number" id="iaCGSTPercentage" value="0" min="0" step="0.1" style="padding:10px; border-radius:8px; border:1px solid #CBD5E1; margin:4px 0 0 0; text-align:center;">
                             </div>
                             <div style="flex:1;">
                                 <label style="font-size:0.75rem; font-weight:600; color:#374151;">SGST (%)</label>
-                                <input type="number" id="iaSGSTPercentage" value="2.5" min="0" step="0.1" style="padding:10px; border-radius:8px; border:1px solid #CBD5E1; margin:4px 0 0 0; text-align:center;">
+                                <input type="number" id="iaSGSTPercentage" value="0" min="0" step="0.1" style="padding:10px; border-radius:8px; border:1px solid #CBD5E1; margin:4px 0 0 0; text-align:center;">
                             </div>
                         </div>
                       </div>
@@ -6339,23 +6480,87 @@
                 </table>`;
                 } else if (type === 'meeting') {
                     const title = `MEETING & GUEST REFRESHMENT REPORT (${monthStr})`;
-                    let trs = '';
-                    let count = 0;
-                    eventLogsData.filter(ev => ev.date && parseDMYToYMD(ev.date).startsWith(month)).forEach(ev => {
-                        let itemsStr = '';
-                        if (ev.items && Array.isArray(ev.items)) itemsStr = ev.items.map(i =>
-                            `${i.name} (Qty:${i.qty}, Rate:₹${i.rate})`).join(' | ');
-                        trs +=
-                            `<tr><td>${ev.id.slice(-5)}</td><td class="left-align">${ev.canteenSource||'-'}</td><td class="left-align">${ev.orderedBy||'-'}</td><td class="left-align" style="white-space:pre-wrap;">${ev.eventName}</td><td>${ev.date}</td><td class="left-align">${itemsStr}</td><td>${ev.amount}</td><td>${ev.pantryName}</td></tr>`;
-                        count++;
+                    const subset = eventLogsData.filter(ev => ev.date && parseDMYToYMD(ev.date).startsWith(month));
+                    
+                    if (!subset.length) return appAlert('No Data', 'No meeting records found for this month.');
+                    
+                    const flatRows = [];
+                    subset.forEach(ev => {
+                        const checkInfo = `[Slip State: Created: ${ev.guestSlipCreated?'Yes':'No'} \| Signed: ${ev.guestSlipSigned?'Yes':'No'} \| Returned: ${ev.guestSlipReturned?'Yes':'No'}]`;
+                        if (ev.items && Array.isArray(ev.items) && ev.items.length > 0) {
+                            ev.items.forEach(item => {
+                                flatRows.push({
+                                    id: ev.id.slice(-5),
+                                    date: item.itemSpecificDate || ev.date,
+                                    vendor: item.vendor || ev.canteenSource || 'Various',
+                                    purpose: ev.eventName,
+                                    orderedBy: ev.orderedBy,
+                                    itemName: item.name,
+                                    qty: item.qty + ' Nos',
+                                    rate: '₹' + item.rate,
+                                    amount: '₹' + (item.amount || (item.qty * item.rate)).toFixed(2),
+                                    pantry: item.servedBy || ev.servedByName || '-',
+                                    location: item.locationNode || '-',
+                                    chk: checkInfo
+                                });
+                            });
+                        } else {
+                            flatRows.push({
+                                id: ev.id.slice(-5),
+                                date: ev.date,
+                                vendor: ev.canteenSource || '-',
+                                purpose: ev.eventName,
+                                orderedBy: ev.orderedBy,
+                                itemName: ev.refreshmentSummary || 'Details',
+                                qty: '-',
+                                rate: '-',
+                                amount: '₹' + (ev.amount || 0).toFixed(2),
+                                pantry: ev.servedByName || '-',
+                                location: '-',
+                                chk: checkInfo
+                            });
+                        }
                     });
-                    if (!count) return appAlert('No Data', 'No meeting records for this month.');
+
+                    flatRows.sort((a,b) => parseDMYToYMD(a.date).localeCompare(parseDMYToYMD(b.date)));
+
+                    let tableBodyRows = '';
+                    flatRows.forEach(r => {
+                        tableBodyRows += `
+                            <tr style="height:48px !important;">
+                                <td style="border:1px solid #000; text-align:center;">${r.date}</td>
+                                <td style="border:1px solid #000; text-align:left; padding-left:6px;">${r.vendor}</td>
+                                <td style="border:1px solid #000; text-align:left; padding-left:6px;"><b>${r.purpose}</b><br><small style="color:#444;font-size:10px;">${r.chk}</small></td>
+                                <td style="border:1px solid #000; text-align:left; padding-left:6px;">${r.orderedBy}</td>
+                                <td style="border:1px solid #000; text-align:left; padding-left:6px; font-weight:600;">${r.itemName}</td>
+                                <td style="border:1px solid #000; text-align:center; font-weight:600;">${r.location}</td>
+                                <td style="border:1px solid #000; text-align:center;">${r.qty}</td>
+                                <td style="border:1px solid #000; text-align:center;">${r.rate}</td>
+                                <td style="border:1px solid #000; text-align:center; font-weight:700;">${r.amount}</td>
+                                <td style="border:1px solid #000; text-align:center;">${r.pantry}</td>
+                            </tr>
+                        `;
+                    });
+
                     html = `
-                <table class="print-table">
-                  <thead><tr><th colspan="8" style="border:none; font-size:18px; text-decoration:underline; padding-bottom:20px; text-align:center;">${title}</th></tr>
-                  <tr><th>LOG ID</th><th class="left-align">CANTEEN VENDOR</th><th class="left-align">ORDERED BY</th><th class="left-align">MEETING PURPOSE</th><th>DATE</th><th class="left-align">DETAILED ITEMS</th><th>TOTAL (₹)</th><th>PANTRY BOY</th></tr></thead>
-                  <tbody>${trs}</tbody>
-                </table>`;
+                        <table class="print-table" style="width:100%; border-collapse:collapse; font-size:12px;">
+                          <thead>
+                            <tr><th colspan="10" style="border:none; font-size:18px; text-decoration:underline; padding-bottom:20px; text-align:center; background:#fff !important; color:#000;">${title}</th></tr>
+                            <tr style="background:#F1F5F9; height:44px;">
+                                <th style="border:1px solid #000;">Date</th>
+                                <th style="border:1px solid #000; text-align:left; padding-left:6px;">Vendor</th>
+                                <th style="border:1px solid #000; text-align:left; padding-left:6px;">Meeting Purpose & Checklist</th>
+                                <th style="border:1px solid #000; text-align:left; padding-left:6px;">Requested By</th>
+                                <th style="border:1px solid #000; text-align:left; padding-left:6px;">Item Description</th>
+                                <th style="border:1px solid #000;">Location</th>
+                                <th style="border:1px solid #000;">Qty</th>
+                                <th style="border:1px solid #000;">Rate</th>
+                                <th style="border:1px solid #000;">Amount</th>
+                                <th style="border:1px solid #000;">Served By</th>
+                            </tr>
+                          </thead>
+                          <tbody>${tableBodyRows}</tbody>
+                        </table>`;
                 }
 
                 function showPreview(htmlContent) {
@@ -7101,13 +7306,13 @@
                 modal.className = 'popup-overlay';
                 modal.id = 'editMeetingPopupModal';
                 modal.innerHTML = `
-              <div class="popup-card full" style="width: 95vw; max-width: 1150px; height: 88vh; max-height: 88vh; display: flex; flex-direction: column; border-radius: 20px; padding: 24px; box-shadow: 0 24px 64px rgba(0,0,0,0.35);">
+              <div class="popup-card full" style="width: 95vw; max-width: 1250px; height: 90vh; max-height: 90vh; display: flex; flex-direction: column; border-radius: 20px; padding: 24px; box-shadow: 0 24px 64px rgba(0,0,0,0.35);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-shrink:0;">
                     <h3 style="color:#0A56D0; margin:0; font-size:1.3rem;">🎪 Edit Multi-Day Meeting Event & Refreshments</h3>
                     <button onclick="this.closest('.popup-overlay').remove()" class="danger sm" style="min-height:32px; padding:4px 14px; border-radius:8px;">✕ Close</button>
                 </div>
                 
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px; background: #F1F5F9; padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid #E2E8F0; flex-shrink:0;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px; background: #F1F5F9; padding: 16px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #E2E8F0; flex-shrink:0;">
                     <div>
                         <label style="font-size:.8rem; font-weight:700; color:#44474E; display:block; margin-bottom:4px;">👤 Organizer / Requested By</label>
                         <input type="text" id="editEvtOrderedBy" value="${safeStr(ev.orderedBy)}" style="width:100%; padding:11px; border-radius:8px; border:1px solid #CBD5E1; box-sizing:border-box; font-size:0.95rem;">
@@ -7120,10 +7325,17 @@
 
                 <div class="sub-section-title" style="margin-top:0; font-weight:700; color:#0A56D0; font-size:1.05rem; margin-bottom:8px; flex-shrink:0;">📋 Refreshment Items Allocation</div>
                 
-                <!-- Items Box Container with Independent Scroll -->
                 <div id="editEvtItemsContainer" style="flex: 1; overflow-y: auto; margin-bottom: 14px; border: 1px solid #CBD5E1; padding: 12px; border-radius: 12px; background: #FFFFFF;"></div>
                 
                 <button type="button" id="editEvtAddItemRowBtn" class="success outline" style="width:100%; margin-bottom:14px; font-weight:700; min-height:44px; border-radius:10px; border:2px solid #146C43; color:#146C43; background:#F0FDF4; flex-shrink:0; font-size:0.95rem;">➕ Add New Refreshment / Day Row</button>
+
+                <!-- Documents Checklist Inside Edit Mode -->
+                <div style="background:#FFFBEB; border:1px solid #FCD34D; padding:12px; border-radius:12px; margin-bottom:14px; display:flex; gap:20px; align-items:center; flex-shrink:0;">
+                    <span style="font-weight:700; color:#D97706; font-size:0.85rem;">📋 Checklist Tracker:</span>
+                    <label style="display:flex; align-items:center; gap:6px; font-size:0.85rem; font-weight:600; cursor:pointer;"><input type="checkbox" id="editEvtGuestSlipCreated" ${ev.guestSlipCreated?'checked':''} style="width:16px; height:16px;"> Guest Slip Created?</label>
+                    <label style="display:flex; align-items:center; gap:6px; font-size:0.85rem; font-weight:600; cursor:pointer;"><input type="checkbox" id="editEvtGuestSlipSigned" ${ev.guestSlipSigned?'checked':''} style="width:16px; height:16px;"> Guest Slip Signed?</label>
+                    <label style="display:flex; align-items:center; gap:6px; font-size:0.85rem; font-weight:600; cursor:pointer;"><input type="checkbox" id="editEvtGuestSlipReturned" ${ev.guestSlipReturned?'checked':''} style="width:16px; height:16px;"> Returned to vendor?</label>
+                </div>
 
                 <div style="display:flex; justify-content:space-between; align-items:center; background:#EFF6FF; padding:16px; border-radius:12px; border:2px dashed #0A56D0; flex-shrink:0; gap:16px; flex-wrap:wrap;">
                   <div style="text-align:left;">
@@ -7142,32 +7354,32 @@
                 const itemsContainer = document.getElementById('editEvtItemsContainer');
                 const activePantryStaff = pantryTeam.filter(p => !p.onLeave);
 
-                function insertEditItemRow(name = '', qty = 1, rate = 0, dateDMY = '', vendor = '', servedBy = '') {
+                function insertEditItemRow(name = '', qty = 1, rate = 0, dateDMY = '', vendor = '', servedBy = '', rowLocation = '') {
                     const row = document.createElement('div');
                     row.className = 'dynamic-item-row-edit';
                     
-                    // ડેસ્કટોપ પર સરસ કોલમ વાળી ગ્રીડ દેખાશે જે ક્યારેય દબાશે નહિ
-                    row.style.cssText = "display: grid; grid-template-columns: 1.2fr 1.3fr 1.8fr 0.6fr 0.8fr 1.4fr auto; gap: 10px; align-items: center; background: #F8FAFC; padding: 12px; border-radius: 10px; border: 1px solid #CBD5E1; margin-bottom: 10px;";
+                    row.style.cssText = "display: grid; grid-template-columns: 1.1fr 1.2fr 1.2fr 1.6fr 0.5fr 0.7fr 1.3fr auto; gap: 8px; align-items: center; background: #F8FAFC; padding: 10px; border-radius: 10px; border: 1px solid #CBD5E1; margin-bottom: 10px;";
                     
                     const rowYMD = dateDMY ? parseDMYToYMD(dateDMY) : parseDMYToYMD(ev.date);
-                    
                     const vendorOpts = canteenList.map(c => `<option value="${safeStr(c.name)}" ${vendor === c.name ? 'selected' : ''}>${safeStr(c.name)}</option>`).join('');
-                    const missingVendorOpt = (vendor && !canteenList.some(c => c.name === vendor)) ? `<option value="${vendor}" selected>${vendor}</option>` : '';
-
                     const pantryOpts = activePantryStaff.map(p => `<option value="${safeStr(p.name)}" ${servedBy === p.name ? 'selected' : ''}>${safeStr(p.name)}</option>`).join('');
-                    const missingPantryOpt = (servedBy && servedBy !== 'Direct Order (Canteen)' && !activePantryStaff.some(p => p.name === servedBy)) ? `<option value="${servedBy}" selected>${servedBy}</option>` : '';
+                    const locListId = 'editloc_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
 
                     row.innerHTML = `
                         <div>
                             <label style="font-size:0.65rem; color:#64748B; font-weight:700; display:block; margin-bottom:2px;">Date</label>
-                            <input type="date" class="e-item-date" value="${rowYMD}" style="width:100%; padding:8px; font-size:.85rem; border-radius:6px; border:1px solid #CBD5E1; box-sizing:border-box;">
+                            <input type="date" class="e-item-date" value="${rowYMD}" style="width:100%; padding:8px; font-size:.8rem; border-radius:6px; border:1px solid #CBD5E1; box-sizing:border-box;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.65rem; color:#64748B; font-weight:700; display:block; margin-bottom:2px;">Location Venue</label>
+                            <input type="text" list="${locListId}" class="e-item-location" value="${safeStr(rowLocation)}" placeholder="Search/Type Venue" style="width:100%; padding:8px; font-size:.8rem; border:1px solid #CBD5E1; border-radius:6px; box-sizing:border-box;">
+                            <datalist id="${locListId}">${venueList.map(v => `<option value="${safeStr(v.name)}">`).join('')}</datalist>
                         </div>
                         <div>
                             <label style="font-size:0.65rem; color:#64748B; font-weight:700; display:block; margin-bottom:2px;">Vendor</label>
-                            <select class="e-item-vendor" style="width:100%; padding:8px; font-size:.85rem; border-radius:6px; border:1px solid #CBD5E1; box-sizing:border-box;">
+                            <select class="e-item-vendor" style="width:100%; padding:8px; font-size:.8rem; border-radius:6px; border:1px solid #CBD5E1; box-sizing:border-box;">
                                 <option value="">-- Vendor --</option>
                                 ${vendorOpts}
-                                ${missingVendorOpt}
                             </select>
                         </div>
                         <div>
@@ -7188,11 +7400,10 @@
                                 <option value="">-- Pantry Boy --</option>
                                 <option value="Direct Order (Canteen)" ${servedBy === 'Direct Order (Canteen)' ? 'selected' : ''}>Direct Canteen</option>
                                 ${pantryOpts}
-                                ${missingPantryOpt}
                             </select>
                         </div>
                         <div style="display:flex; justify-content:center; align-items:center;">
-                            <button type="button" class="e-remove-btn" style="background:#DC3545; color:#fff; border:none; padding:7px 12px; border-radius:6px; font-size:0.85rem; cursor:pointer; margin-top:14px; font-weight:bold;" title="Remove Row">✕</button>
+                            <button type="button" class="e-remove-btn" style="background:#DC3545; color:#fff; border:none; padding:7px 12px; border-radius:6px; font-size:0.85rem; cursor:pointer; margin-top:14px; font-weight:bold;">✕</button>
                         </div>
                     `;
                     itemsContainer.appendChild(row);
@@ -7212,10 +7423,10 @@
 
                 if (ev.items && Array.isArray(ev.items) && ev.items.length > 0) {
                     ev.items.forEach(item => {
-                        insertEditItemRow(item.name, item.qty, item.rate, item.itemSpecificDate, item.vendor || ev.canteenSource, item.servedBy || ev.servedByName || ev.pantryName);
+                        insertEditItemRow(item.name, item.qty, item.rate, item.itemSpecificDate, item.vendor || ev.canteenSource, item.servedBy || ev.servedByName || ev.pantryName, item.locationNode || '');
                     });
                 } else {
-                    insertEditItemRow(ev.refreshmentSummary, 1, ev.amount, ev.date, ev.canteenSource, ev.servedByName || ev.pantryName);
+                    insertEditItemRow(ev.refreshmentSummary, 1, ev.amount, ev.date, ev.canteenSource, ev.servedByName || ev.pantryName, '');
                 }
 
                 updateEditModalTotal();
@@ -7233,6 +7444,7 @@
 
                     itemsContainer.querySelectorAll('.dynamic-item-row-edit').forEach((row, index) => {
                         const dateVal = row.querySelector('.e-item-date').value;
+                        const locVal = row.querySelector('.e-item-location').value.trim();
                         const vdr = row.querySelector('.e-item-vendor').value.trim();
                         const iName = row.querySelector('.e-item-name').value.trim();
                         const iQty = parseInt(row.querySelector('.e-item-qty').value, 10) || 0;
@@ -7241,6 +7453,7 @@
 
                         if (iName && iQty > 0) {
                             if (!dateVal) { appAlert('Error', `Select Date for item ${index+1}`); hasError = true; }
+                            if (!locVal) { appAlert('Error', `Enter Location for item ${index+1}`); hasError = true; }
                             if (!vdr) { appAlert('Error', `Select Vendor for item ${index+1}`); hasError = true; }
                             if (!srv) { appAlert('Error', `Select Pantry Boy for item ${index+1}`); hasError = true; }
 
@@ -7248,7 +7461,19 @@
                             const itemAmt = iQty * iRate;
                             
                             finalTotalAmount += itemAmt;
-                            summarySegments.push(`${iQty} ${iName}`);
+                            summarySegments.push(`${iQty} ${iName} (${locVal})`);
+
+                            if (locVal && !venueList.some(v => v.name.toLowerCase() === locVal.toLowerCase())) {
+                                const vId = 'vnu_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+                                db.ref('venues/' + vId).set({ id: vId, name: locVal });
+                            }
+
+                            const vKey = vdr.toLowerCase().trim();
+                            const currentCatalog = vendorItemsCatalog[vKey] || [];
+                            if (!currentCatalog.some(it => it.name.toLowerCase() === iName.toLowerCase())) {
+                                currentCatalog.push({ name: iName, rate: iRate });
+                                db.ref('vendorItems/' + vKey).set(currentCatalog);
+                            }
 
                             newItems.push({
                                 vendor: vdr,
@@ -7259,7 +7484,8 @@
                                 rate: iRate,
                                 amount: itemAmt,
                                 itemSpecificDate: finalRowDate,
-                                servedBy: srv
+                                servedBy: srv,
+                                locationNode: locVal
                             });
                         }
                     });
@@ -7280,7 +7506,10 @@
                         canteenSource: uniqueVendors,
                         servedByName: uniquePantryBoys,
                         pantryName: uniquePantryBoys,
-                        items: newItems
+                        items: newItems,
+                        guestSlipCreated: document.getElementById('editEvtGuestSlipCreated').checked,
+                        guestSlipSigned: document.getElementById('editEvtGuestSlipSigned').checked,
+                        guestSlipReturned: document.getElementById('editEvtGuestSlipReturned').checked
                     }).then(() => {
                         modal.remove();
                         appAlert('Updated', 'Meeting Event completely updated!');
