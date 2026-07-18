@@ -2942,7 +2942,7 @@
                             `;
                         });
 
-                        let headTitle = selectedHead.toLowerCase() === 'all' || selectedHead === '' ? 'STATEMENT' : `${selectedHead.toUpperCase()}`;
+                        let headTitle = selectedHead.toLowerCase() === 'all' || selectedHead === '' ? 'ALL' : `${selectedHead.toUpperCase()}`;
 
                         // બેંક માહિતી રીડ કરો અને IFSC કોડમાં ઓટો-પોઝિશન શૂન્ય પ્રોટેક્શન લોજીક
                         const bName = document.getElementById('iaBankName').value.trim();
@@ -3925,8 +3925,8 @@
                             if (itemVendor === vendorName.toLowerCase()) {
                                 const purposeText = `${ev.eventName || ''} ${ev.orderedBy || ''}`.toLowerCase();
                                 let head = 'Office';
-                                if (purposeText.includes('school of law') || purposeText.includes('law') || purposeText.includes('llm')) {
-                                    head = 'SoL';
+                                if (purposeText.includes('school of law') || purposeText.includes('law') || purposeText.includes('llm') || purposeText.includes('sol')) {
+                                    head = 'SOL';
                                 } else if (purposeText.includes('admission')) {
                                     head = 'Admissions';
                                 } else if (purposeText.includes('placement')) {
@@ -3953,22 +3953,38 @@
                 allItems.sort((a, b) => parseDMYToYMD(a.date).localeCompare(parseDMYToYMD(b.date)));
 
                 window.renderExternalVendorTable = function(selectedHead) {
-                    const filteredItems = selectedHead === 'All' ? allItems : allItems.filter(item => item.accountHead === selectedHead);
+                    const savedBankName = document.getElementById('extBankName')?.value || '';
+                    const savedBankAcc = document.getElementById('extBankAccountNo')?.value || '';
+                    const savedBankIfsc = document.getElementById('extBankIFSC')?.value || '';
+                    const savedBankBranch = document.getElementById('extBankBranch')?.value || '';
+
+                    const isAll = selectedHead.toLowerCase() === 'all' || selectedHead === '';
+                    const filteredItems = isAll ? allItems : allItems.filter(item => item.accountHead.toLowerCase() === selectedHead.toLowerCase());
                     
                     let controlHtml = `
                         <div class="merged-filter-row" style="margin-bottom:16px; background:#F8FAFC; padding:14px; border-radius:12px; border:1px solid #CBD5E1; display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
                             <div style="flex:1; min-width:240px; text-align:left;">
                                 <label style="font-size:0.82rem; font-weight:700; color:#44474E; display:block; margin-bottom:4px;">📊 Select Department Head:</label>
-                                <select id="extVendorAccountHeadFilter" style="margin:0; padding:11px; border-radius:8px; border:1px solid #CBD5E1; font-size:0.95rem; width:100%; font-weight:500;">
+                                <select id="extVendorAccountHeadFilter" style="margin:0; padding:11px; border-radius:8px; border:1px solid #CBD5E1; font-size:0.95rem; width:100%; font-weight:500; background:#fff; cursor:pointer;">
                                     <option value="All" ${selectedHead==='All'?'selected':''}>All Combined View</option>
-                                    <option value="SoL" ${selectedHead==='SoL'?'selected':''}>SoL</option>
+                                    <option value="SOL" ${selectedHead==='SOL'?'selected':''}>SOL</option>
                                     <option value="Admissions" ${selectedHead==='Admissions'?'selected':''}>Admissions</option>
                                     <option value="Placement" ${selectedHead==='Placement'?'selected':''}>Placement</option>
                                     <option value="Office" ${selectedHead==='Office'?'selected':''}>Office</option>
                                 </select>
                             </div>
-                            <div style="padding-top:18px;">
+                            <div style="padding-top:18px; display:flex; gap:10px;">
+                                <button type="button" id="extPrintStatementBtn" class="btn" style="min-height:44px; padding:0 24px; border-radius:8px; background:#1E293B; font-weight:700; font-size:0.9rem; cursor:pointer;">🖨️ Print Statement Table</button>
                                 <button type="button" id="extGenerateVendorBillBtn" class="success" style="min-height:44px; padding:0 24px; border-radius:8px; font-weight:700; background:#0A56D0; box-shadow:0 4px 10px rgba(10,86,208,0.2); font-size:0.9rem; cursor:pointer;">🧾 Generate Printable Invoice for DAU</button>
+                            </div>
+                            <div style="margin-top:14px; padding-top:12px; border-top:1px dashed #CBD5E1; text-align:left; width:100%;">
+                                <span style="font-size:0.8rem; font-weight:700; color:#1E3A8A; display:block; margin-bottom:8px;">🏦 Optional Bank Remittance Details (For Invoice Output):</span>
+                                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:8px;">
+                                    <input type="text" id="extBankName" placeholder="Bank Name" style="padding:8px; font-size:0.82rem; margin:0; border-radius:6px; border:1px solid #CBD5E1;">
+                                    <input type="text" id="extBankAccountNo" placeholder="Account Number" style="padding:8px; font-size:0.82rem; margin:0; border-radius:6px; border:1px solid #CBD5E1;">
+                                    <input type="text" id="extBankIFSC" placeholder="IFSC Code" style="padding:8px; font-size:0.82rem; margin:0; border-radius:6px; border:1px solid #CBD5E1; text-transform:uppercase;">
+                                    <input type="text" id="extBankBranch" placeholder="Branch Name" style="padding:8px; font-size:0.82rem; margin:0; border-radius:6px; border:1px solid #CBD5E1;">
+                                </div>
                             </div>
                         </div>
                     `;
@@ -3980,7 +3996,7 @@
                         let sr = 1;
                         let grandTotal = 0;
                         tableHtml = `
-                            <table class="vendor-desktop-table" style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+                            <table class="vendor-desktop-table" id="extTargetPrintableStatementTable" style="width:100%; border-collapse:collapse; font-size:0.9rem;">
                                 <thead>
                                     <tr>
                                         <th>S.R.</th>
@@ -4022,8 +4038,34 @@
 
                     content.innerHTML = controlHtml + tableHtml;
 
+                    if(document.getElementById('extBankName')) {
+                        document.getElementById('extBankName').value = savedBankName;
+                        document.getElementById('extBankAccountNo').value = savedBankAcc;
+                        document.getElementById('extBankIFSC').value = savedBankIfsc;
+                        document.getElementById('extBankBranch').value = savedBankBranch;
+                    }
+
                     document.getElementById('extVendorAccountHeadFilter').onchange = function() {
                         window.renderExternalVendorTable(this.value);
+                    };
+
+                    document.getElementById('extPrintStatementBtn').onclick = function() {
+                        const targetHtml = document.getElementById('extTargetPrintableStatementTable').outerHTML;
+                        const printContainer = document.getElementById('printAreaContainer');
+                        printContainer.style.zIndex = "100000005";
+                        printContainer.innerHTML = `
+                            <div class="preview-card" style="max-width:1050px; width:95vw; height:90vh;">
+                              <div class="preview-header hide-on-print">
+                                <button onclick="window.print()" class="success">🖨️ Print Statement Table</button>
+                                <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger">✕ Close</button>
+                              </div>
+                              <div class="preview-content" style="background:#fff; padding:20px;">
+                                <h2 style="text-align:center; margin-bottom:15px;">${vendorName.toUpperCase()} - STATEMENT REVENUE</h2>
+                                <table class="print-table">${targetHtml}</table>
+                              </div>
+                            </div>
+                        `;
+                        printContainer.classList.remove('hidden');
                     };
 
                     document.getElementById('extGenerateVendorBillBtn').onclick = function() {
@@ -4061,7 +4103,43 @@
                             `;
                         });
 
-                        let headTitle = selectedHead === 'All' ? 'STATEMENT' : `${selectedHead.toUpperCase()}`;
+                        let headTitle = selectedHead.toLowerCase() === 'all' || selectedHead === '' ? 'ALL' : `${selectedHead.toUpperCase()}`;
+
+                        const bName = document.getElementById('extBankName').value.trim();
+                        const bAcc = document.getElementById('extBankAccountNo').value.trim();
+                        let bIfsc = document.getElementById('extBankIFSC').value.trim();
+                        const bBranch = document.getElementById('extBankBranch').value.trim();
+
+                        if (bIfsc.includes('0')) {
+                            const ordinals = ["", "First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth", "Ninth", "Tenth", "Eleventh", "Twelfth"];
+                            let zeroPositions = [];
+                            for (let idx = 0; idx < bIfsc.length; idx++) {
+                                if (bIfsc[idx] === '0') {
+                                    const pos = idx + 1;
+                                    if (pos < ordinals.length) {
+                                        zeroPositions.push(ordinals[pos]);
+                                    } else {
+                                        zeroPositions.push(pos + "th");
+                                    }
+                                }
+                            }
+                            if (zeroPositions.length > 0) {
+                                bIfsc = bIfsc + " (" + zeroPositions.join(", ") + " character is zero)";
+                            }
+                        }
+
+                        let bankDetailsHtmlBlock = '';
+                        if (bName || bAcc || bIfsc) {
+                            bankDetailsHtmlBlock = `
+                                <div style="margin-top:20px; padding:10px; border:1px solid #000; font-size:12px; background:#FAFAFA; text-align:left; line-height:1.5;">
+                                    <span style="font-weight:800; display:block; text-decoration:underline; margin-bottom:4px; font-size:12.5px;">BANK REMITTANCE DETAILS (OPTIONAL):</span>
+                                    <b>Bank Name:</b> ${bName || '-'}<br>
+                                    <b>Account Number:</b> ${bAcc || '-'}<br>
+                                    <b>IFSC Code:</b> <span style="font-family:monospace; font-weight:bold; font-size:13px;">${bIfsc || '-'}</span><br>
+                                    <b>Branch Name:</b> ${bBranch || '-'}
+                                </div>
+                            `;
+                        }
 
                         const billHtml = `
                             <div class="dau-official-invoice-print-sheet" style="font-family: 'Inter', Arial, sans-serif; padding: 5px; color: #000; background:#fff;">
@@ -4081,6 +4159,7 @@
                                         <b>Invoice No:</b> <span style="font-family:monospace; font-weight:800; color:#0A56D0; font-size:14px;">${invoiceNumber}</span><br>
                                         <b>Department:</b> ${headTitle}<br>
                                         <b>Billing Date:</b> ${getTodayInDMY()}<br>
+                                        <b>Payment Mode:</b> Institutional Account
                                     </div>
                                 </div>
 
@@ -4104,12 +4183,14 @@
                                     </tbody>
                                 </table>
 
+                                ${bankDetailsHtmlBlock}
+
                                 <div style="margin-top: 50px; display: flex; justify-content: space-between; font-size: 13px; font-weight:700; color:#000;">
                                     <div style="text-align: center; width: 220px; border-top: 1px solid #000; padding-top: 5px;">
-                                        
+                                        Verified By (DAU Pantry Admin)
                                     </div>
                                     <div style="text-align: center; width: 220px; border-top: 1px solid #000; padding-top: 5px;">
-                                        Authorized Signature (${vendorName})
+                                        Authorized Stamp & Sign (${vendorName})
                                     </div>
                                 </div>
                             </div>
