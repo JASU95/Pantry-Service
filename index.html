@@ -3121,6 +3121,9 @@
                 const srNo = getMeetingSrForMonth(monthStr);
                 meetingSrCounter = srNo;
 
+                const activePantryStaff = pantryTeam.filter(p => !p.onLeave);
+                const dynamicPantryOpts = activePantryStaff.map(p => `<option value="${safeStr(p.name)}">${safeStr(p.name)}</option>`).join('');
+
                 target.innerHTML = `
               <div class="card" style="border-top:4px solid #0A56D0; flex-shrink:0;">
                 <h3 style="color:#0A56D0; margin:0 0 16px 0; font-size:1.15rem; text-align:center;">🎪 Multi-Day / Multi-Item Meeting</h3>
@@ -3167,11 +3170,72 @@
               <button onclick="window.openEventHistoryModal()" class="btn" style="width:100%; margin-top:10px; background:#1E293B;">📊 Open Event History Stream</button>
             `;
 
-                // Add one blank row by default
                 window.addMeetingItemRow(prefix);
 
+                const dateInput = document.getElementById(prefix + 'MeetingDate');
+                const dayDisplay = document.getElementById(prefix + 'MeetingDayDisplay');
+
+                if (dateInput && dayDisplay) {
+                    dateInput.addEventListener('change', function() {
+                        const ymd = this.value;
+                        if (ymd) {
+                            dayDisplay.textContent = getDayOfWeek(convertYMDtoDMY(ymd));
+                        } else { dayDisplay.textContent = '—'; }
+                    });
+                }
+
+                // Live autocomplete search handler for the input field
+                const orderedByInput = document.getElementById(prefix + 'MeetingOrderedBy');
+                const orderedByDropdown = document.getElementById('ac_' + prefix + 'MeetingOrderedBy');
+
+                if (orderedByInput && orderedByDropdown) {
+                    orderedByInput.addEventListener('input', function() {
+                        const q = this.value.toLowerCase().trim();
+                        if (q.length < 2) {
+                            orderedByDropdown.classList.remove('active');
+                            orderedByDropdown.innerHTML = '';
+                            return;
+                        }
+                        
+                        const matches = employeeList.filter(e => 
+                            (e.name || '').toLowerCase().includes(q) || 
+                            (e.department || '').toLowerCase().includes(q)
+                        ).slice(0, 10);
+                        
+                        if (!matches.length) {
+                            orderedByDropdown.classList.remove('active');
+                            orderedByDropdown.innerHTML = '';
+                            return;
+                        }
+                        
+                        orderedByDropdown.innerHTML = matches.map(e => {
+                            const deptStr = e.department ? ` (${e.department})` : '';
+                            return `<div class="ac-item" data-name="${safeStr(e.name)}" style="padding: 10px; cursor: pointer; border-bottom: 1px solid #E2E8F0; text-align: left;">
+                                <strong>${safeStr(e.name)}</strong><span style="color:#64748B; font-size:0.75rem;">${deptStr} [${safeStr(e.category)}]</span>
+                            </div>`;
+                        }).join('');
+                        orderedByDropdown.classList.add('active');
+                    });
+
+                    orderedByDropdown.addEventListener('click', function(e) {
+                        const item = e.target.closest('.ac-item');
+                        if (item) {
+                            orderedByInput.value = item.dataset.name;
+                            orderedByDropdown.classList.remove('active');
+                        }
+                    });
+
+                    orderedByInput.addEventListener('blur', () => {
+                        setTimeout(() => orderedByDropdown.classList.remove('active'), 250);
+                    });
+                    
+                    orderedByInput.addEventListener('focus', function() {
+                        if (this.value.length >= 2) this.dispatchEvent(new Event('input'));
+                    });
+                }
+
                 document.getElementById(prefix + 'MeetingSubmitBtn').onclick = function() {
-                    const orderedBy = document.getElementById(prefix + 'MeetingOrderedBy').value.trim();
+                    const orderedBy = orderedByInput.value.trim();
                     const purpose = document.getElementById(prefix + 'MeetingPurpose').value.trim() || 'General Meeting';
                     
                     if (!orderedBy) return appAlert('Error', 'Please enter Organizer / Requested By.');
@@ -3180,7 +3244,6 @@
                     const items = [];
                     let totalAmt = 0;
                     const summary = [];
-
                     let hasError = false;
 
                     container.querySelectorAll('.dynamic-item-row').forEach((row, index) => {
@@ -3219,27 +3282,26 @@
                     if (!items.length) return appAlert('Empty', 'Add at least one refreshment item with a valid quantity.');
 
                     const id = 'event_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-                    // Extract unique vendors and pantry boys for the header level summary
                     const uniqueVendors = [...new Set(items.map(i => i.vendor).filter(Boolean))].join(', ');
                     const uniquePantryBoys = [...new Set(items.map(i => i.servedBy).filter(Boolean))].join(', ');
-                    const mainDate = items[0].itemSpecificDate; // Take the date of the first item as the main date
+                    const mainDate = items[0].itemSpecificDate;
 
                     db.ref('eventLogs/' + id).set({
                         id,
-                        canteenSource: uniqueVendors, // Summary
+                        canteenSource: uniqueVendors,
                         orderedBy: orderedBy,
-                        servedByName: uniquePantryBoys, // Summary
+                        servedByName: uniquePantryBoys,
                         eventName: purpose,
                         date: mainDate,
                         time: new Date().toTimeString().slice(0, 5),
                         items: items,
                         amount: totalAmt,
-                        pantryName: uniquePantryBoys, // Summary
+                        pantryName: uniquePantryBoys,
                         refreshmentSummary: summary.join(', '),
                         showNotification: document.getElementById(prefix + 'ShowNotification').checked 
                     }).then(() => {
                         appAlert('Success', `Meeting saved successfully!`);
-                        document.getElementById(prefix + 'MeetingOrderedBy').value = '';
+                        orderedByInput.value = '';
                         document.getElementById(prefix + 'MeetingPurpose').value = '';
                         container.innerHTML = '';
                         window.addMeetingItemRow(prefix);
