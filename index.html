@@ -9,7 +9,7 @@
     <meta name="theme-color" content="#1976d2" />
     <link rel="manifest" href="manifest.json?v=1.0.9" />
     <link rel="apple-touch-icon" href="https://iili.io/Cf1HIm7.png" />
-    <title>DAU Pantry · HD Live App</title>
+    <title>DAU Pantry Service</title>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js">
     </script>
@@ -145,7 +145,7 @@
             align-items: center;
         }
         .logo-img {
-            width: 130px;
+            width: 180px;
             height: auto;
             margin-bottom: 6px;
             display: block;
@@ -1818,7 +1818,21 @@
             //  HELPERS
             // ============================================================
             function safeStr(v) { return v || ''; }
-
+             // મોબાઈલમાં .bin પ્રોબ્લેમ રોકવા માટેનું ઓફિશિયલ એક્સેલ ડાઉનલોડર
+window.pantryDownloadExcelFile = function(wb, filename) {
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename.endsWith('.xlsx') ? filename : filename + '.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+    }, 150);
+};
             function getTodayInDMY() {
                 const d = new Date();
                 return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
@@ -1911,6 +1925,8 @@
             let supervisorLinksData = {};
             let vendorLinksData = {};
             let replacementAssignments = {};
+            let weekendDutiesData = {};
+            let publicHolidaysData = {};
 
             const BEVERAGE_OPTIONS = ['Tea', 'Coffee', 'Green Tea', 'Lemon Tea', 'Black Tea', 'Black Coffee'];
             const EXTRA_BEVERAGE_OPTIONS = ['Tea', 'Coffee', 'Green Tea', 'Lemon Tea', 'Lemon Tea', 'Black Coffee'];
@@ -2522,7 +2538,7 @@
                     `Extra_Tea_Records_${currentUser.name}_${new Date().toISOString().slice(0,10)}.xlsx` :
                     `All_Extra_Tea_Records_${new Date().toISOString().slice(0,10)}.xlsx`;
 
-                XLSX.writeFile(wb, fileName);
+                window.pantryDownloadExcelFile(wb, fileName);
                 appAlert('Downloaded', `Excel file "${fileName}" downloaded successfully!`);
             }
 
@@ -3758,19 +3774,46 @@
                 document.getElementById('genLinkSecurity').onclick = () => genSupervisorLink('Security');
                 document.getElementById('genLinkOutsourcing').onclick = () => genSupervisorLink('Outsourcing');
 
-                window.shareLink = function(link, dept) {
-                    if (navigator.share) {
-                        navigator.share({
-                            title: `DAU Pantry - ${dept} Tea Entry`,
-                            text: `Please fill daily tea consumption using this secure link (valid 24 hours):`,
-                            url: link
-                        }).catch(() => {});
-                    } else {
-                        appAlert('Share Unavailable',
-                            'Your browser does not support the native share feature. Please use the Copy button instead.'
-                            );
-                    }
-                };
+                // ============================================================
+//  SMART MOBILE SHARING WITH AUTOMATIC WHATSAPP FALLBACK
+// ============================================================
+window.pantrySmartShare = function(link, titleText, whatsappText) {
+    const fullMessage = `${whatsappText}\n\n🔗 Link: ${link}`;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: titleText,
+            text: whatsappText,
+            url: link
+        }).catch(() => {
+            window.openWhatsAppFallback(link, fullMessage);
+        });
+    } else {
+        window.openWhatsAppFallback(link, fullMessage);
+    }
+};
+
+window.openWhatsAppFallback = function(link, fullMessage) {
+    navigator.clipboard.writeText(link).then(() => {
+        appAlert('Link Copied', 'લિંક કોપી થઈ ગઈ છે! હવે વૉટ્સએપ ઓપન થશે, ત્યાં ડાયરેક્ટ પેસ્ટ (Paste) કરી દો.');
+        setTimeout(() => {
+            const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(fullMessage)}`;
+            window.open(waUrl, '_blank');
+        }, 1500);
+    }).catch(() => {
+        const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(fullMessage)}`;
+        window.open(waUrl, '_blank');
+    });
+};
+
+window.shareLink = function(link, dept) {
+    window.pantrySmartShare(link, `DAU Pantry - ${dept}`, `Please fill daily tea consumption for ${dept} using this secure link (valid 24 hours):`);
+};
+
+window.shareVendorLink = function(link, vendor) {
+    window.pantrySmartShare(link, `DAU Pantry - ${vendor}`, `Official ${vendor} Statement Portal Link. View and verify live refreshment records here:`);
+};
+
 
                 setTimeout(() => {
                     const month = document.getElementById('workersTeaMonthPicker').value;
@@ -4237,6 +4280,20 @@
             function renderServeEntry() {
                 activePantryTab = 'serve';
                 const todayYMD = new Date().toISOString().split('T')[0];
+                    // ડ્યુટી લોકિંગ રૂલ
+    const dutyCheck = window.checkPantryBoyDutyAccessToday(currentUser.id);
+    if(!dutyCheck.allowed) {
+        const container = document.getElementById('pantryContent');
+        container.innerHTML = `
+            <div class="card" style="text-align:center; padding:32px 16px; border:2px solid #DC3545; background:#FEF2F2; border-radius:12px; margin-top:20px;">
+                <span style="font-size:2.5rem;">🔒</span>
+                <h3 style="color:#DC3545; margin:10px 0 6px 0; font-size:1.1rem; font-weight:700;">Entry Screen Restricted</h3>
+                <p style="font-size:13px; color:#475569; line-height:1.5;">આજે <b>${dutyCheck.type}</b> હોવાના કારણે એડમિને તમને સ્પેશિયલ ડ્યુટી ફાળવી નથી. તેથી તમે આજે ડેટા એન્ટ્રી કરી શકશો નહીં.</p>
+                <p style="font-size:11px; color:#94A3B8; margin-top:10px;">જો તમારી ડ્યુટી ચાલુ હોય, તો કૃપા કરીને વેરિફિકેશન માટે એડમિનનો સંપર્ક કરો.</p>
+            </div>
+        `;
+        return;
+    }
                 const container = document.getElementById('pantryContent');
                 container.innerHTML = `
               <div class="card" style="padding:16px; margin-bottom:16px; display:flex; flex-direction:column; overflow:hidden; max-height:100%;">
@@ -4688,7 +4745,7 @@
                 ws2['!cols'] = [{ wch: 24 }, { wch: 12 }, { wch: 16 }];
                 XLSX.utils.book_append_sheet(wb, ws2, 'Logs');
 
-                XLSX.writeFile(wb, `My_Records_${selectedDMY.replace(/\//g,'-')}_${currentUser.name}.xlsx`);
+                window.pantryDownloadExcelFile(wb, `My_Records_${selectedDMY.replace(/\//g,'-')}_${currentUser.name}.xlsx`);
                 appAlert('Downloaded', 'Excel report generated!');
             };
 
@@ -5161,6 +5218,7 @@
                   <button class="dash-btn" data-tab="locations" style="color:#0A56D0; border-color:#CBD5E1; background:#F0F7FF;"><span class="icon">📍</span><span class="label">Locations</span></button>
                   <button class="dash-btn" data-tab="workers" style="color:#8B5CF6; border-color:#C4B5FD; background:#F5F3FF;"><span class="icon">👷</span><span class="label">Workers Tea</span></button>
                   <button class="dash-btn" data-tab="bin" style="color:#DC3545; border-color:#FECACA; background:#FEF2F2;"><span class="icon">🗑️</span><span class="label">Recycle Bin</span></button>
+                  <button class="dash-btn" data-tab="weekend_duty" style="color:#1E3A8A; border-color:#BFDBFE; background:#EFF6FF;"><span class="icon">📅</span><span class="label">Weekend/Holiday Duty</span></button>
                   <button class="dash-btn" data-tab="settings" style="color:#44474E; border-color:#E2E8F0; background:#F8FAFC;"><span class="icon">⚙️</span><span class="label">Settings</span></button>
                 </div>
               </div>
@@ -5557,7 +5615,7 @@
                                             
                                         </div>
                                         <div style="text-align: center; width: 220px; border-top: 1px solid #000; padding-top: 5px;">
-                                            Checked Stamp & Sign (IA Caterers)
+                                            
                                         </div>
                                     </div>
                                 </div>
@@ -5638,6 +5696,59 @@
                                     'recycleBin').remove();
                                 appAlert('Purged', 'Bin emptied.'); });
                         };
+                        break;
+                    case 'weekend_duty':
+                        cont.innerHTML = `
+                          <div class="card" style="border:2px solid #1E3A8A; background:#F0F7FF;">
+                            <h4 style="color:#1E3A8A; margin:0 0 10px 0; font-size:1rem;">📅 Weekend & Holiday Duty Allocation</h4>
+                            <p style="font-size:.8rem; color:#475569; margin-bottom:12px;">Allocate here which pantry boy will be present for which employee on Saturday, Sunday or public holiday.</p>
+                            
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:10px;">
+                                <div>
+                                    <label style="font-size:11px; font-weight:700; color:#44474E;">1. Select Pantry Boy</label>
+                                    <select id="wDutyPantrySelect" style="padding:10px; font-size:13px; border-radius:8px; border:1px solid #CBD5E1; margin:4px 0 0 0; background:#fff;">
+                                        <option value="">-- Select Staff --</option>
+                                        ${pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size:11px; font-weight:700; color:#44474E;">2. Select Duty Day</label>
+                                    <select id="wDutyDayType" style="padding:10px; font-size:13px; border-radius:8px; border:1px solid #CBD5E1; margin:4px 0 0 0; background:#fff;">
+                                        <option value="Saturday">Saturday Duty</option>
+                                        <option value="Sunday">Sunday Duty</option>
+                                        <option value="Holiday">Public Holiday Duty</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom:10px;">
+                                <label style="font-size:11px; font-weight:700; color:#44474E;">🔍 Search Employees Working on this Day</label>
+                                <input type="text" id="wDutyEmpSearch" placeholder="Type name to filter..." style="padding:10px; font-size:13px; border-radius:8px; border:1px solid #CBD5E1; margin:4px 0 0 0;">
+                            </div>
+
+                            <div style="display:flex; align-items:center; margin-bottom:6px; padding:0 4px;">
+                                <input type="checkbox" id="wDutySelectAll" style="width:16px; height:16px; margin-right:6px; accent-color:#0A56D0;">
+                                <label for="wDutySelectAll" style="font-size:12px; font-weight:600; color:#44474E;">Select All Visible</label>
+                            </div>
+
+                            <div id="wDutyEmployeeList" class="scroll-list-box" style="max-height:220px; background:#fff;"></div>
+                            <button id="saveWeekendDutyBtn" class="success" style="width:100%; min-height:44px; margin-top:10px; font-size:14px; font-weight:700; border-radius:8px;">💾 allot Selected Employees</button>
+                          </div>
+
+                          <!-- જાહેર રજાઓ (Public Holidays) સેટ કરવાનું કેલેન્ડર બોક્સ -->
+                          <div class="card" style="margin-top:14px; border:1px solid #CBD5E1;">
+                            <h4 style="color:#44474E; font-size:0.9rem; margin:0 0 8px 0;">🎉 Manage Public Holiday Dates</h4>
+                            <div style="display:flex; gap:6px; align-items:center;">
+                                <input type="date" id="newHolidayDate" style="margin:0; padding:10px; font-size:13px; flex:1.5;">
+                                <input type="text" id="newHolidayName" placeholder="Holiday Name (e.g. Diwali)" style="margin:0; padding:10px; font-size:13px; flex:2;">
+                                <button id="addHolidayDateBtn" class="success sm" style="min-height:40px; padding:0 14px; border-radius:8px; font-size:12px;">➕ Add</button>
+                            </div>
+                            <div id="adminHolidaysList" style="margin-top:10px; max-height:150px; overflow-y:auto; font-size:12px; border-top:1px dashed #CBD5E1; padding-top:8px;"></div>
+                          </div>
+                        `;
+
+                        // ઇન્ટરનલ ફંક્શન લોજિક લોડ કરવું
+                        window.renderWeekendDutyInterface();
                         break;
 
                     case 'settings':
@@ -6755,7 +6866,7 @@
                     ws['!rows'] = data.map(() => ({ hpt: 48 })); 
                     
                     XLSX.utils.book_append_sheet(wb, ws, cName.substring(0, 31).replace(/[\\/*?:\[\]]/g, '') || 'Report');
-                    XLSX.writeFile(wb, filename);
+                    window.pantryDownloadExcelFile(wb, filename);
                     appAlert('Downloaded', 'The Excel report has been downloaded.');
                     return; 
                 }
@@ -6966,7 +7077,7 @@
                         /[\\/*?:\[\]]/g, '') || 'Report');
                 });
 
-                XLSX.writeFile(wb, `All_Categories_Tea_Report_${month}.xlsx`);
+                window.pantryDownloadExcelFile(wb, `All_Categories_Tea_Report_${month}.xlsx`);
                 appAlert('Downloaded', 'All categories combined Excel downloaded successfully!');
             };
 
@@ -7048,85 +7159,83 @@
 
                 } 
                 // ====== PDF / PRINT LOGIC (PAGINATED 8 NAMES PER PAGE) ======
-                else {
-                    let html = '';
-                    const chunkSize = 8; // Ek sheet par sirf 8 naam aayenge
-                    
-                    // Month ko text format me aur Category ko title me lene ka logic
-                    const dateObj = new Date(month + '-01');
-                    const monthStr = dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' }); // Ex: "July 2026"
-                    const displayCat = categoryVal === 'All' ? 'All Categories' : categoryVal;
+                        else {
+            let html = '';
+            const chunkSize = 8; // એક શીટ પર વધુમાં વધુ 8 નામ આવશે
+            
+            const dateObj = new Date(month + '-01');
+            const monthStr = dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' }); 
+            const displayCat = categoryVal === 'All' ? 'All Categories' : categoryVal;
 
-                    for (let i = 0; i < emps.length; i += chunkSize) {
-                        const chunkEmps = emps.slice(i, i + chunkSize);
-                        
-                        // Page Break aur Dynamic Title lagana
-                        html += `<div style="page-break-after: always; padding-bottom: 20px;">`;
-                        html += `<h2 style="text-align:center; color:#0A56D0; margin-bottom: 10px; font-family: sans-serif;">Monthly Grid Export - ${displayCat} - ${monthStr} (Page ${Math.floor(i/chunkSize) + 1})</h2>`;
-                        
-                        html += `<table class="print-table" style="font-size:10px; width:100%; text-align:center; border-collapse:collapse; table-layout:fixed; word-wrap:break-word; margin-bottom: 20px;"><thead><tr>`;
-                        
-                        // Header 1: Date (Width 80px se badha kar 95px kar di aur white-space:nowrap hata diya taaki text wrap ho sake)
-                        html += `<th rowspan="2" style="border:1px solid #000; padding:4px; background:#F1F5F9; width:95px;">Date</th>`;
-                        
-                        // Header 1: Names
-                        chunkEmps.forEach(emp => {
-                            html += `<th colspan="2" style="border:1px solid #000; padding:4px; background:#F1F5F9; overflow:hidden;">${safeStr(emp.name)}</th>`;
-                        });
-                        html += `</tr><tr>`;
-                        
-                        // Header 2: Morn / Aft (Equal Size)
-                        chunkEmps.forEach(() => {
-                            html += `<th style="border:1px solid #000; padding:4px; background:#F8FAFC; width:45px; min-width:45px; max-width:45px;">Morn</th>`;
-                            html += `<th style="border:1px solid #000; padding:4px; background:#F8FAFC; width:45px; min-width:45px; max-width:45px;">Aft</th>`;
-                        });
-                        html += `</tr></thead><tbody>`;
-                        
-                        // Data Rows
-                        for (let d = 1; d <= daysInMonth; d++) {
-                            const dmy = `${String(d).padStart(2,'0')}/${mm}/${yy}`;
-                            
-                            // NAYA LOGIC: Day (Monday, Tuesday) nikalne ke liye
-                            const currentDayDate = new Date(yy, mm - 1, d);
-                            const dayName = currentDayDate.toLocaleDateString('en-US', { weekday: 'long' });
-
-                            html += `<tr>`;
-                            // Date ke cell mein <br> laga kar uske neeche dayName daal diya. nowrap hata diya.
-                            html += `<td style="border:1px solid #000; padding:4px; font-weight:bold; line-height:1.3;">${dmy}<br><span style="font-size:8px; font-weight:normal; color:#44474E;">${dayName}</span></td>`;
-                            
-                            chunkEmps.forEach(emp => {
-                                const mLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Morning');
-                                const aLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Afternoon');
-                                // Data Cell with Equal Size
-                                html += `<td style="border:1px solid #000; padding:4px; width:45px; min-width:45px; max-width:45px; word-wrap:break-word;">${mLog ? mLog.drink : '-'}</td>`;
-                                html += `<td style="border:1px solid #000; padding:4px; width:45px; min-width:45px; max-width:45px; word-wrap:break-word;">${aLog ? aLog.drink : '-'}</td>`;
-                            });
-                            html += `</tr>`;
-                        }
-                        html += `</tbody></table></div>`;
-                    }
+            for (let i = 0; i < emps.length; i += chunkSize) {
+                const chunkEmps = emps.slice(i, i + chunkSize);
+                
+                html += `<div style="page-break-after: always; padding-bottom: 20px;">`;
+                html += `<h2 style="text-align:center; color:#0A56D0; margin-bottom: 12px; font-family: sans-serif; font-size: 16px;">Monthly Grid Export - ${displayCat} - ${monthStr} (Page ${Math.floor(i/chunkSize) + 1})</h2>`;
+                
+                // ટેબલને સચોટ પહોળાઈ (min-width: 880px) આપી જેથી મોબાઈલમાં અક્ષરો ભેગા ન થાય
+                html += `<table class="print-table" style="font-size:11px; width:100%; min-width:880px; text-align:center; border-collapse:collapse; table-layout:fixed; margin-bottom: 20px;"><thead><tr>`;
+                
+                // ડેટ કોલમ
+                html += `<th rowspan="2" style="border:1px solid #000; padding:6px 4px; background:#F1F5F9; width:95px; font-weight:700;">Date</th>`;
+                
+                // કર્મચારીઓના નામ (મોબાઈલમાં આડા અને કલીન વંચાશે)
+                chunkEmps.forEach(emp => {
+                    html += `<th colspan="2" style="border:1px solid #000; padding:6px 4px; background:#F1F5F9; font-size:11px; line-height:1.3; word-break:normal;">${safeStr(emp.name)}</th>`;
+                });
+                html += `</tr><tr>`;
+                
+                // મોર્નિંગ / આફ્ટરનૂન હેડર્સ
+                chunkEmps.forEach(() => {
+                    html += `<th style="border:1px solid #000; padding:4px; background:#F8FAFC; width:49px; min-width:49px; max-width:49px; font-weight:600;">Morn</th>`;
+                    html += `<th style="border:1px solid #000; padding:4px; background:#F8FAFC; width:49px; min-width:49px; max-width:49px; font-weight:600;">Aft</th>`;
+                });
+                html += `</tr></thead><tbody>`;
+                
+                // ડેટા રો અને દિવસોનું લોજિક
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dmy = `${String(d).padStart(2,'0')}/${mm}/${yy}`;
                     
-                    const container = document.getElementById('printAreaContainer');
-                    container.innerHTML = `
-                      <div class="preview-card" style="max-width:100%; width:98vw; height:98vh;">
-                        <div class="preview-header hide-on-print">
-                          <button onclick="window.print()" class="success">🖨️ Print Landscape</button>
-                          <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger">✕ Close</button>
-                        </div>
-                        <div class="preview-content" style="overflow-x:auto;">
-                          ${html}
-                        </div>
-                      </div>
-                      <style>
-                        @media print {
-                          @page { size: A4 landscape; margin: 10mm; }
-                          body { -webkit-print-color-adjust: exact; }
-                          .print-table th, .print-table td { padding: 4px !important; font-size: 10px !important; }
-                        }
-                      </style>
-                    `;
-                    container.classList.remove('hidden');
+                    const currentDayDate = new Date(yy, mm - 1, d);
+                    const dayName = currentDayDate.toLocaleDateString('en-US', { weekday: 'long' });
+
+                    html += `<tr>`;
+                    html += `<td style="border:1px solid #000; padding:6px 4px; font-weight:bold; line-height:1.3; background:#F8FAFC;">${dmy}<br><span style="font-size:9px; font-weight:normal; color:#44474E;">${dayName}</span></td>`;
+                    
+                    chunkEmps.forEach(emp => {
+                        const mLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Morning');
+                        const aLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Afternoon');
+                        
+                        html += `<td style="border:1px solid #000; padding:4px; width:49px; min-width:49px; max-width:49px;">${mLog ? mLog.drink : '-'}</td>`;
+                        html += `<td style="border:1px solid #000; padding:4px; width:49px; min-width:49px; max-width:49px;">${aLog ? aLog.drink : '-'}</td>`;
+                    });
+                    html += `</tr>`;
                 }
+                html += `</tbody></table></div>`;
+            }
+            
+            const container = document.getElementById('printAreaContainer');
+            container.innerHTML = `
+              <div class="preview-card" style="max-width:100%; width:98vw; height:95vh; max-height:95vh;">
+                <div class="preview-header hide-on-print">
+                  <button onclick="window.print()" class="success">🖨️ Print Landscape</button>
+                  <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger">✕ Close</button>
+                </div>
+                <div class="preview-content" style="overflow-x:auto; -webkit-overflow-scrolling:touch; padding: 10px; background:#fff;">
+                  ${html}
+                </div>
+              </div>
+              <style>
+                @media print {
+                  @page { size: A4 landscape; margin: 8mm; }
+                  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background:#fff !important; }
+                  .print-table { min-width: 100% !important; width: 100% !important; table-layout: fixed !important; }
+                  .print-table th, .print-table td { padding: 4px !important; font-size: 10px !important; }
+                }
+              </style>
+            `;
+            container.classList.remove('hidden');
+        }
             };
 
             // ============================================================
@@ -7668,6 +7777,8 @@
                 renderIfNeeded(); });
             db.ref('vendorLinks').on('value', snap => { vendorLinksData = snap.val() || {};
                 renderIfNeeded(); });
+db.ref('weekendDuties').on('value', snap => { weekendDutiesData = snap.val() || {}; renderIfNeeded(); });
+db.ref('publicHolidays').on('value', snap => { publicHolidaysData = snap.val() || {}; renderIfNeeded(); });
 
             // ============================================================
             //  RENDER COORDINATOR
@@ -7771,6 +7882,147 @@
                     isRendering = false;
                 }, 300);
             }
+// ============================================================
+//  WEEKEND / HOLIDAY DUTY ENGINE LOGIC
+// ============================================================
+window.renderWeekendDutyInterface = function() {
+    const pSelect = document.getElementById('wDutyPantrySelect');
+    const dSelect = document.getElementById('wDutyDayType');
+    const searchInp = document.getElementById('wDutyEmpSearch');
+    const selectAll = document.getElementById('wDutySelectAll');
+    const listContainer = document.getElementById('wDutyEmployeeList');
+
+    function populateList() {
+        const pId = pSelect.value;
+        const dayType = dSelect.value;
+        const q = searchInp.value.toLowerCase().trim();
+
+        if(!pId) {
+            listContainer.innerHTML = '<p style="padding:12px; text-align:center; color:#64748B; font-size:12px;">Please choose the pantry boy first.</p>';
+            return;
+        }
+
+        const filtered = employeeList.filter(e => !q || (e.name || '').toLowerCase().includes(q));
+        if(!filtered.length) {
+            listContainer.innerHTML = '<p style="padding:12px; text-align:center; color:#64748B; font-size:12px;">No employees match search.</p>';
+            return;
+        }
+
+        listContainer.innerHTML = filtered.map(emp => {
+            const currentAllottedPantry = weekendDutiesData[dayType]?.[emp.id] || '';
+            const isChecked = currentAllottedPantry === pId ? 'checked' : '';
+            const otherPantryName = currentAllottedPantry && currentAllottedPantry !== pId ? 
+                ` (Allotted to: ${pantryTeam.find(p=>p.id===currentAllottedPantry)?.name || 'Other'})` : '';
+
+            return `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 8px; border-bottom:1px solid #E2E8F0; font-size:12px;">
+                    <span><strong>${safeStr(emp.name)}</strong> <small style="color:#64748B;">[${emp.category}]${otherPantryName}</small></span>
+                    <input type="checkbox" class="w-emp-duty-check" data-id="${emp.id}" ${isChecked} style="width:16px; height:16px; accent-color:#0A56D0;">
+                </div>
+            `;
+        }).join('');
+    }
+
+    pSelect.onchange = populateList;
+    dSelect.onchange = populateList;
+    searchInp.oninput = populateList;
+    selectAll.onchange = function() {
+        document.querySelectorAll('.w-emp-duty-check').forEach(cb => cb.checked = this.checked);
+    };
+
+    document.getElementById('saveWeekendDutyBtn').onclick = function() {
+        const pId = pSelect.value;
+        const dayType = dSelect.value;
+        if(!pId) return appAlert('Error', 'Please select a Pantry Boy.');
+
+        const checks = listContainer.querySelectorAll('.w-emp-duty-check');
+        const updates = {};
+
+        checks.forEach(cb => {
+            const empId = cb.dataset.id;
+            if(cb.checked) {
+                updates[`weekendDuties/${dayType}/${empId}`] = pId;
+            } else {
+                // જો અનચેક કર્યું હોય અને આ જ પેન્ટ્રી બોય પાસે અગાઉ સેવ હતું, તો જ કાઢો
+                if(weekendDutiesData[dayType]?.[empId] === pId) {
+                    updates[`weekendDuties/${dayType}/${empId}`] = null;
+                }
+            }
+        });
+
+        db.ref().update(updates).then(() => {
+            appAlert('Success', 'Duty Roster updated in cloud database!');
+            populateList();
+        });
+    };
+
+    // હોલિડે લિસ્ટ મેનેજમેન્ટ
+    document.getElementById('addHolidayDateBtn').onclick = function() {
+        const hDate = document.getElementById('newHolidayDate').value;
+        const hName = document.getElementById('newHolidayName').value.trim();
+        if(!hDate || !hName) return appAlert('Error', 'Date and Holiday Name both required.');
+
+        db.ref('publicHolidays/' + hDate).set(hName).then(() => {
+            document.getElementById('newHolidayDate').value = '';
+            document.getElementById('newHolidayName').value = '';
+            renderHolidaysAdminList();
+        });
+    };
+
+    window.deleteHolidayDate = function(dateKey) {
+        appConfirm('Delete Holiday', 'Remove this holiday date?', () => {
+            db.ref('publicHolidays/' + dateKey).remove().then(() => renderHolidaysAdminList());
+        });
+    };
+
+    function renderHolidaysAdminList() {
+        const listEl = document.getElementById('adminHolidaysList');
+        if(!listEl) return;
+        const keys = Object.keys(publicHolidaysData).sort();
+        if(!keys.length) {
+            listEl.innerHTML = '<span style="color:#94A3B8;">No public holidays configured yet.</span>';
+            return;
+        }
+        listEl.innerHTML = keys.map(k => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#F8FAFC; padding:4px 8px; border-radius:6px; margin-bottom:4px; border:1px solid #E2E8F0;">
+                <span>📅 <b>${convertYMDtoDMY(k)}</b> — ${publicHolidaysData[k]}</span>
+                <button onclick="window.deleteHolidayDate('${k}')" style="background:transparent; border:none; color:#DC3545; font-size:12px; cursor:pointer; font-weight:bold;">✕</button>
+            </div>
+        `).join('');
+    }
+
+    populateList();
+    renderHolidaysAdminList();
+};
+
+// 🔒 પેન્ટ્રી બોય લોકિંગ એન્જિન હૂક - જેને ડ્યુટી નથી એને એન્ટ્રી ના કરવા દેવી
+window.checkPantryBoyDutyAccessToday = function(pantryId) {
+    const today = new Date();
+    const dayNum = today.getDay(); // 0 = Sunday, 6 = Saturday
+    const ymdToday = today.toISOString().split('T')[0];
+
+    let currentDayType = '';
+    if (publicHolidaysData[ymdToday]) {
+        currentDayType = 'Holiday';
+    } else if (dayNum === 6) {
+        currentDayType = 'Saturday';
+    } else if (dayNum === 0) {
+        currentDayType = 'Sunday';
+    }
+
+    // જો આજનો દિવસ નોર્મલ ચાલુ દિવસ હોય (સોમ થી શુક્ર) તો ઓપન રાખવું
+    if(!currentDayType) return { allowed: true };
+
+    // જો શનિ/રવિ/રજા હોય, તો ચેક કરો કે આ પેન્ટ્રી બોય પાસે કોઈ એમ્પ્લોયી અલોટ થયેલો છે?
+    const dayDuties = weekendDutiesData[currentDayType] || {};
+    const isAssigned = Object.values(dayDuties).includes(pantryId);
+
+    if(isAssigned) {
+        return { allowed: true, type: currentDayType };
+    } else {
+        return { allowed: false, type: currentDayType };
+    }
+};
 
             renderLogin();
                         window.renderPlainEventsAdmin = function() {
