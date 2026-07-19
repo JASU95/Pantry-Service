@@ -7377,237 +7377,215 @@
             };
 
             window.editMeetingEvent = function(id) {
-                const existingModal = document.getElementById('editMeetingPopupModal');
-                if (existingModal) existingModal.remove();
+    const existingModal = document.getElementById('editMeetingPopupModal');
+    if (existingModal) existingModal.remove();
 
-                const ev = eventLogsData.find(e => e.id === id);
-                if (!ev) return appAlert('Error', 'Event not found.');
+    const ev = eventLogsData.find(e => e.id === id);
+    if (!ev) return appAlert('Error', 'Event not found.');
 
-                const modal = document.createElement('div');
-                modal.className = 'popup-overlay';
-                modal.id = 'editMeetingPopupModal';
-                modal.innerHTML = `
-              <div class="popup-card full" style="width: 95vw; max-width: 1250px; height: 90vh; max-height: 90vh; display: flex; flex-direction: column; border-radius: 20px; padding: 24px; box-shadow: 0 24px 64px rgba(0,0,0,0.35);">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-shrink:0;">
-                    <h3 style="color:#0A56D0; margin:0; font-size:1.3rem;">🎪 Edit Multi-Day Meeting Event & Refreshments</h3>
-                    <button onclick="this.closest('.popup-overlay').remove()" class="danger sm" style="min-height:32px; padding:4px 14px; border-radius:8px;">✕ Close</button>
-                </div>
+    const modal = document.createElement('div');
+    modal.className = 'popup-overlay';
+    modal.id = 'editMeetingPopupModal';
+    
+    // મોબાઈલ સ્ક્રીન માટે પર્ફેક્ટ સાઈઝ (મેક્સિમમ જગ્યા આઇટમ્સ માટે મળશે)
+    modal.innerHTML = `
+  <div class="popup-card full" style="width: 96vw; max-width: 450px; height: 95vh; max-height: 95vh; display: flex; flex-direction: column; border-radius: 16px; padding: 12px; box-shadow: 0 20px 48px rgba(0,0,0,0.3);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-shrink:0;">
+        <h3 style="color:#0A56D0; margin:0; font-size:1rem; font-weight: 700;">🎪 Edit Meeting Items</h3>
+        <button onclick="this.closest('.popup-overlay').remove()" class="danger sm" style="min-height:28px; padding:2px 10px; border-radius:6px; font-size:12px;">✕ Close</button>
+    </div>
+    
+    <!-- ઉપરના ઓર્ગેનાઇઝર ખાના એકદમ નાના અને સાઇડ-બાય-સાઇડ સેટ કર્યા -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #F1F5F9; padding: 8px; border-radius: 10px; margin-bottom: 8px; border: 1px solid #E2E8F0; flex-shrink:0;">
+        <div>
+            <label style="font-size:11px; font-weight:700; color:#44474E; display:block;">👤 Organizer</label>
+            <input type="text" id="editEvtOrderedBy" value="${safeStr(ev.orderedBy)}" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #CBD5E1; margin:2px 0 0 0; font-size:12px; box-sizing:border-box;">
+        </div>
+        <div>
+            <label style="font-size:11px; font-weight:700; color:#44474E; display:block;">📝 Purpose</label>
+            <input type="text" id="editEvtName" value="${safeStr(ev.eventName)}" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #CBD5E1; margin:2px 0 0 0; font-size:12px; box-sizing:border-box;">
+        </div>
+    </div>
+
+    <div class="sub-section-title" style="margin-top:0; font-weight:700; color:#0A56D0; font-size:0.85rem; margin-bottom:4px; padding-bottom:2px; flex-shrink:0;">📋 Refreshment Items Allocation</div>
+    
+    <!-- આઇટમ્સનું મોટું કન્ટેનર જે મોબાઈલમાં આખું ખુલશે -->
+    <div id="editEvtItemsContainer" style="flex: 1; overflow-y: auto; min-height: 180px; margin-bottom: 8px; border: 1px solid #CBD5E1; padding: 6px; border-radius: 10px; background: #FFFFFF;"></div>
+    
+    <button type="button" id="editEvtAddItemRowBtn" class="success outline" style="width:100%; margin-bottom:8px; font-weight:700; min-height:34px; padding: 4px; border-radius:8px; border:1.5px solid #146C43; color:#146C43; background:#F0FDF4; flex-shrink:0; font-size:12px;">➕ Add New Row</button>
+
+    <!-- સિંગલ લાઈન કૉમ્પેક્ટ ચેકલિસ્ટ ટ્રેકર -->
+    <div style="background:#FFFBEB; border:1px solid #FCD34D; padding:6px 8px; border-radius:10px; margin-bottom:8px; display:flex; flex-wrap:wrap; gap:6px; justify-content:space-between; align-items:center; flex-shrink:0; font-size:11px;">
+        <span style="font-weight:700; color:#D97706;">📋 Slip:</span>
+        <label style="display:flex; align-items:center; gap:4px; font-weight:600; cursor:pointer; margin:0;"><input type="checkbox" id="editEvtGuestSlipCreated" ${ev.guestSlipCreated?'checked':''} style="width:14px; height:14px;"> Created</label>
+        <label style="display:flex; align-items:center; gap:4px; font-weight:600; cursor:pointer; margin:0;"><input type="checkbox" id="editEvtGuestSlipSigned" ${ev.guestSlipSigned?'checked':''} style="width:14px; height:14px;"> Signed</label>
+        <label style="display:flex; align-items:center; gap:4px; font-weight:600; cursor:pointer; margin:0;"><input type="checkbox" id="editEvtGuestSlipReturned" ${ev.guestSlipReturned?'checked':''} style="width:14px; height:14px;"> Returned</label>
+    </div>
+
+    <!-- નીચેના બટન્સ - મોટી અમાઉન્ટ હટાવી દીધી અને બટન નાના કર્યા -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; width:100%; flex-shrink:0; margin-top: auto;">
+        <button type="button" onclick="this.closest('.popup-overlay').remove()" class="danger" style="padding:6px; border-radius:8px; font-weight:700; min-height:38px; font-size:13px; width:100%;">Cancel</button>
+        <button type="button" id="editEvtSaveBtn" class="success" style="padding:6px; border-radius:8px; font-weight:800; font-size:13px; min-height:38px; width:100%;">💾 Save Changes</button>
+    </div>
+  </div>
+  `;
+    document.body.appendChild(modal);
+
+    const itemsContainer = document.getElementById('editEvtItemsContainer');
+    const activePantryStaff = pantryTeam.filter(p => !p.onLeave);
+
+    // કોઈપણ કન્ફ્લિક્ટ વિના બેકએન્ડ લોજિક જાળવી રાખવા માટે ખાલી ફંક્શન
+    const updateEditModalTotal = () => { };
+
+    // અંદરના એડિટિંગ ખાનાઓને પણ મોબાઈલ ફ્રેન્ડલી અને કૉમ્પેક્ટ કાર્ડમાં સેટ કર્યા
+    function insertEditItemRow(name = '', qty = 1, rate = 0, dateDMY = '', vendor = '', servedBy = '', rowLocation = '') {
+        const row = document.createElement('div');
+        row.className = 'dynamic-item-row-edit';
+        row.style.cssText = "display: flex; flex-direction: column; gap: 4px; background: #F8FAFC; padding: 6px; border-radius: 8px; border: 1px solid #CBD5E1; margin-bottom: 6px; position: relative;";
+        
+        const rowYMD = dateDMY ? parseDMYToYMD(dateDMY) : parseDMYToYMD(ev.date);
+        const vendorOpts = canteenList.map(c => `<option value="${safeStr(c.name)}" ${vendor === c.name ? 'selected' : ''}>${safeStr(c.name)}</option>`).join('');
+        const pantryOpts = activePantryStaff.map(p => `<option value="${safeStr(p.name)}" ${servedBy === p.name ? 'selected' : ''}>${safeStr(p.name)}</option>`).join('');
+        const locListId = 'editloc_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+
+        row.innerHTML = `
+            <!-- રો ૧: તારીખ અને વેન્યુ સાઇડ-બાય-સાઇડ -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+                <input type="date" class="e-item-date" value="${rowYMD}" style="padding:5px; font-size:11px; border-radius:4px; border:1px solid #CBD5E1; width:100%; box-sizing:border-box;">
+                <input type="text" list="${locListId}" class="e-item-location" value="${safeStr(rowLocation)}" placeholder="Venue Location" style="padding:5px; font-size:11px; border:1px solid #CBD5E1; border-radius:4px; width:100%; box-sizing:border-box;">
+                <datalist id="${locListId}">${venueList.map(v => `<option value="${safeStr(v.name)}">`).join('')}</datalist>
+            </div>
+            <!-- રો ૨: વેન્ડર અને પેન્ટ્રી બોય સાઇડ-બાય-સાઇડ -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+                <select class="e-item-vendor" style="padding:5px; font-size:11px; border-radius:4px; border:1px solid #CBD5E1; width:100%; box-sizing:border-box;">
+                    <option value="">-- Vendor --</option>
+                    ${vendorOpts}
+                </select>
+                <select class="e-item-served-by" style="padding:5px; font-size:11px; border-radius:4px; border:1px solid #CBD5E1; width:100%; box-sizing:border-box;">
+                    <option value="">-- Served By --</option>
+                    <option value="Direct Order (Canteen)" ${servedBy === 'Direct Order (Canteen)' ? 'selected' : ''}>Direct Canteen</option>
+                    ${pantryOpts}
+                </select>
+            </div>
+            <!-- રો ૩: આઇટમ નામ, Qty, કિંમત અને રીમુવ બટન એક જ લાઈનમાં ફિટ -->
+            <div style="display: grid; grid-template-columns: 2fr 0.8fr 1fr auto; gap: 4px; align-items: center;">
+                <input type="text" class="e-item-name" placeholder="Item Name" value="${safeStr(name)}" style="padding:5px; font-size:11px; border:1px solid #CBD5E1; border-radius:4px; width:100%; box-sizing:border-box;">
+                <input type="number" class="e-item-qty" placeholder="Qty" min="1" value="${qty}" style="padding:5px; font-size:11px; border:1px solid #CBD5E1; border-radius:4px; width:100%; box-sizing:border-box;">
+                <input type="number" class="e-item-rate" placeholder="₹ Rate" min="0" step="0.01" value="${rate}" style="padding:5px; font-size:11px; border:1px solid #CBD5E1; border-radius:4px; width:100%; box-sizing:border-box;">
+                <button type="button" class="e-remove-btn" style="background:#DC3545; color:#fff; border:none; padding:4px 6px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:bold; height:24px;">✕</button>
+            </div>
+        `;
+        itemsContainer.appendChild(row);
+
+        row.querySelector('.e-remove-btn').onclick = () => { row.remove(); };
+    }
+
+    if (ev.items && Array.isArray(ev.items) && ev.items.length > 0) {
+        ev.items.forEach(item => {
+            insertEditItemRow(item.name, item.qty, item.rate, item.itemSpecificDate, item.vendor || ev.canteenSource, item.servedBy || ev.servedByName || ev.pantryName, item.locationNode || '');
+        });
+    } else {
+        insertEditItemRow(ev.refreshmentSummary, 1, ev.amount, ev.date, ev.canteenSource, ev.servedByName || ev.pantryName, '');
+    }
+
+    document.getElementById('editEvtAddItemRowBtn').onclick = () => insertEditItemRow();
+
+    document.getElementById('editEvtSaveBtn').onclick = function() {
+        const name = document.getElementById('editEvtName').value.trim();
+        const orderedBy = document.getElementById('editEvtOrderedBy').value.trim();
+        if (!name || !orderedBy) return appAlert('Error', 'Organizer and Event Purpose are required.');
+
+        const newItems = [];
+        let finalTotalAmount = 0;
+        const summarySegments = [];
+        let hasError = false;
+
+        itemsContainer.querySelectorAll('.dynamic-item-row-edit').forEach((row, index) => {
+            const dateVal = row.querySelector('.e-item-date').value;
+            const locVal = row.querySelector('.e-item-location').value.trim();
+            const vdr = row.querySelector('.e-item-vendor').value.trim();
+            const iName = row.querySelector('.e-item-name').value.trim();
+            const iQty = parseInt(row.querySelector('.e-item-qty').value, 10) || 0;
+            const iRate = parseFloat(row.querySelector('.e-item-rate').value) || 0;
+            const srv = row.querySelector('.e-item-served-by').value.trim();
+
+            if (iName && iQty > 0) {
+                if (!dateVal) { appAlert('Error', `Select Date for item ${index+1}`); hasError = true; }
+                if (!locVal) { appAlert('Error', `Enter Location for item ${index+1}`); hasError = true; }
+                if (!vdr) { appAlert('Error', `Select Vendor for item ${index+1}`); hasError = true; }
+                if (!srv) { appAlert('Error', `Select Pantry Boy for item ${index+1}`); hasError = true; }
+
+                const finalRowDate = convertYMDtoDMY(dateVal);
+                const itemAmt = iQty * iRate;
                 
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px; background: #F1F5F9; padding: 16px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #E2E8F0; flex-shrink:0;">
-                    <div>
-                        <label style="font-size:.8rem; font-weight:700; color:#44474E; display:block; margin-bottom:4px;">👤 Organizer / Requested By</label>
-                        <input type="text" id="editEvtOrderedBy" value="${safeStr(ev.orderedBy)}" style="width:100%; padding:11px; border-radius:8px; border:1px solid #CBD5E1; box-sizing:border-box; font-size:0.95rem;">
-                    </div>
-                    <div>
-                        <label style="font-size:.8rem; font-weight:700; color:#44474E; display:block; margin-bottom:4px;">📝 Meeting Purpose / Event Name</label>
-                        <input type="text" id="editEvtName" value="${safeStr(ev.eventName)}" style="width:100%; padding:11px; border-radius:8px; border:1px solid #CBD5E1; box-sizing:border-box; font-size:0.95rem;">
-                    </div>
-                </div>
+                finalTotalAmount += itemAmt;
+                summarySegments.push(`${iQty} ${iName} (${locVal})`);
 
-                <div class="sub-section-title" style="margin-top:0; font-weight:700; color:#0A56D0; font-size:1.05rem; margin-bottom:8px; flex-shrink:0;">📋 Refreshment Items Allocation</div>
-                
-                <div id="editEvtItemsContainer" style="flex: 1; overflow-y: auto; margin-bottom: 14px; border: 1px solid #CBD5E1; padding: 12px; border-radius: 12px; background: #FFFFFF;"></div>
-                
-                <button type="button" id="editEvtAddItemRowBtn" class="success outline" style="width:100%; margin-bottom:14px; font-weight:700; min-height:44px; border-radius:10px; border:2px solid #146C43; color:#146C43; background:#F0FDF4; flex-shrink:0; font-size:0.95rem;">➕ Add New Refreshment / Day Row</button>
-
-                <!-- Documents Checklist Inside Edit Mode -->
-                <div style="background:#FFFBEB; border:1px solid #FCD34D; padding:12px; border-radius:12px; margin-bottom:14px; display:flex; gap:20px; align-items:center; flex-shrink:0;">
-                    <span style="font-weight:700; color:#D97706; font-size:0.85rem;">📋 Checklist Tracker:</span>
-                    <label style="display:flex; align-items:center; gap:6px; font-size:0.85rem; font-weight:600; cursor:pointer;"><input type="checkbox" id="editEvtGuestSlipCreated" ${ev.guestSlipCreated?'checked':''} style="width:16px; height:16px;"> Guest Slip Created?</label>
-                    <label style="display:flex; align-items:center; gap:6px; font-size:0.85rem; font-weight:600; cursor:pointer;"><input type="checkbox" id="editEvtGuestSlipSigned" ${ev.guestSlipSigned?'checked':''} style="width:16px; height:16px;"> Guest Slip Signed?</label>
-                    <label style="display:flex; align-items:center; gap:6px; font-size:0.85rem; font-weight:600; cursor:pointer;"><input type="checkbox" id="editEvtGuestSlipReturned" ${ev.guestSlipReturned?'checked':''} style="width:16px; height:16px;"> Returned to vendor?</label>
-                </div>
-
-                <div style="display:flex; justify-content:space-between; align-items:center; background:#EFF6FF; padding:16px; border-radius:12px; border:2px dashed #0A56D0; flex-shrink:0; gap:16px; flex-wrap:wrap;">
-                  <div style="text-align:left;">
-                    <span style="font-size:.9rem; color:#1E3A8A; font-weight:700; display:block;">Calculated Grand Total:</span>
-                    <div id="editEvtCalcDisplay" style="font-size:1.7rem; font-weight:800; color:#0A56D0; margin-top:2px;">₹ 0.00</div>
-                  </div>
-                  <div style="display:flex; gap:12px; flex:1; justify-content:flex-end; min-width:260px;">
-                    <button onclick="this.closest('.popup-overlay').remove()" class="danger" style="padding:12px 24px; border-radius:10px; font-weight:700; min-height:48px; min-width:120px;">Cancel</button>
-                    <button id="editEvtSaveBtn" class="success" style="padding:12px 32px; border-radius:10px; font-weight:800; font-size:1.05rem; min-height:48px; box-shadow:0 4px 12px rgba(20,108,67,0.2);">💾 Save All Changes</button>
-                  </div>
-                </div>
-              </div>
-            `;
-                document.body.appendChild(modal);
-
-                const itemsContainer = document.getElementById('editEvtItemsContainer');
-                const activePantryStaff = pantryTeam.filter(p => !p.onLeave);
-
-                function insertEditItemRow(name = '', qty = 1, rate = 0, dateDMY = '', vendor = '', servedBy = '', rowLocation = '') {
-                    const row = document.createElement('div');
-                    row.className = 'dynamic-item-row-edit';
-                    
-                    row.style.cssText = "display: grid; grid-template-columns: 1.1fr 1.2fr 1.2fr 1.6fr 0.5fr 0.7fr 1.3fr auto; gap: 8px; align-items: center; background: #F8FAFC; padding: 10px; border-radius: 10px; border: 1px solid #CBD5E1; margin-bottom: 10px;";
-                    
-                    const rowYMD = dateDMY ? parseDMYToYMD(dateDMY) : parseDMYToYMD(ev.date);
-                    const vendorOpts = canteenList.map(c => `<option value="${safeStr(c.name)}" ${vendor === c.name ? 'selected' : ''}>${safeStr(c.name)}</option>`).join('');
-                    const pantryOpts = activePantryStaff.map(p => `<option value="${safeStr(p.name)}" ${servedBy === p.name ? 'selected' : ''}>${safeStr(p.name)}</option>`).join('');
-                    const locListId = 'editloc_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
-
-                    row.innerHTML = `
-                        <div>
-                            <label style="font-size:0.65rem; color:#64748B; font-weight:700; display:block; margin-bottom:2px;">Date</label>
-                            <input type="date" class="e-item-date" value="${rowYMD}" style="width:100%; padding:8px; font-size:.8rem; border-radius:6px; border:1px solid #CBD5E1; box-sizing:border-box;">
-                        </div>
-                        <div>
-                            <label style="font-size:0.65rem; color:#64748B; font-weight:700; display:block; margin-bottom:2px;">Location Venue</label>
-                            <input type="text" list="${locListId}" class="e-item-location" value="${safeStr(rowLocation)}" placeholder="Search/Type Venue" style="width:100%; padding:8px; font-size:.8rem; border:1px solid #CBD5E1; border-radius:6px; box-sizing:border-box;">
-                            <datalist id="${locListId}">${venueList.map(v => `<option value="${safeStr(v.name)}">`).join('')}</datalist>
-                        </div>
-                        <div>
-                            <label style="font-size:0.65rem; color:#64748B; font-weight:700; display:block; margin-bottom:2px;">Vendor</label>
-                            <select class="e-item-vendor" style="width:100%; padding:8px; font-size:.8rem; border-radius:6px; border:1px solid #CBD5E1; box-sizing:border-box;">
-                                <option value="">-- Vendor --</option>
-                                ${vendorOpts}
-                            </select>
-                        </div>
-                        <div>
-                            <label style="font-size:0.65rem; color:#64748B; font-weight:700; display:block; margin-bottom:2px;">Item Name</label>
-                            <input type="text" class="e-item-name" placeholder="Item Name" value="${safeStr(name)}" style="width:100%; padding:8px; font-size:.85rem; border:1px solid #CBD5E1; border-radius:6px; box-sizing:border-box;">
-                        </div>
-                        <div>
-                            <label style="font-size:0.65rem; color:#64748B; font-weight:700; display:block; margin-bottom:2px;">Qty</label>
-                            <input type="number" class="e-item-qty" placeholder="Qty" min="1" value="${qty}" style="width:100%; padding:8px; font-size:.85rem; border:1px solid #CBD5E1; border-radius:6px; box-sizing:border-box;">
-                        </div>
-                        <div>
-                            <label style="font-size:0.65rem; color:#64748B; font-weight:700; display:block; margin-bottom:2px;">Rate (₹)</label>
-                            <input type="number" class="e-item-rate" placeholder="Rate" min="0" step="0.01" value="${rate}" style="width:100%; padding:8px; font-size:.85rem; border:1px solid #CBD5E1; border-radius:6px; box-sizing:border-box;">
-                        </div>
-                        <div>
-                            <label style="font-size:0.65rem; color:#64748B; font-weight:700; display:block; margin-bottom:2px;">Served By</label>
-                            <select class="e-item-served-by" style="width:100%; padding:8px; font-size:.85rem; border-radius:6px; border:1px solid #CBD5E1; box-sizing:border-box;">
-                                <option value="">-- Pantry Boy --</option>
-                                <option value="Direct Order (Canteen)" ${servedBy === 'Direct Order (Canteen)' ? 'selected' : ''}>Direct Canteen</option>
-                                ${pantryOpts}
-                            </select>
-                        </div>
-                        <div style="display:flex; justify-content:center; align-items:center;">
-                            <button type="button" class="e-remove-btn" style="background:#DC3545; color:#fff; border:none; padding:7px 12px; border-radius:6px; font-size:0.85rem; cursor:pointer; margin-top:14px; font-weight:bold;">✕</button>
-                        </div>
-                    `;
-                    itemsContainer.appendChild(row);
-                    row.querySelector('.e-remove-btn').onclick = () => { row.remove(); updateEditModalTotal(); };
-                    row.querySelectorAll('input, select').forEach(i => i.addEventListener('input', updateEditModalTotal));
+                if (locVal && !venueList.some(v => v.name.toLowerCase() === locVal.toLowerCase())) {
+                    const vId = 'vnu_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+                    db.ref('venues/' + vId).set({ id: vId, name: locVal });
                 }
 
-                function updateEditModalTotal() {
-                    let total = 0;
-                    itemsContainer.querySelectorAll('.dynamic-item-row-edit').forEach(row => {
-                        const q = Number(row.querySelector('.e-item-qty').value) || 0;
-                        const r = parseFloat(row.querySelector('.e-item-rate').value) || 0;
-                        total += q * r;
-                    });
-                    document.getElementById('editEvtCalcDisplay').innerText = "₹ " + total.toFixed(2);
+                const vKey = vdr.toLowerCase().trim();
+                const currentCatalog = vendorItemsCatalog[vKey] || [];
+                if (!currentCatalog.some(it => it.name.toLowerCase() === iName.toLowerCase())) {
+                    currentCatalog.push({ name: iName, rate: iRate });
+                    db.ref('vendorItems/' + vKey).set(currentCatalog);
                 }
 
-                if (ev.items && Array.isArray(ev.items) && ev.items.length > 0) {
-                    ev.items.forEach(item => {
-                        insertEditItemRow(item.name, item.qty, item.rate, item.itemSpecificDate, item.vendor || ev.canteenSource, item.servedBy || ev.servedByName || ev.pantryName, item.locationNode || '');
-                    });
-                } else {
-                    insertEditItemRow(ev.refreshmentSummary, 1, ev.amount, ev.date, ev.canteenSource, ev.servedByName || ev.pantryName, '');
+                newItems.push({
+                    vendor: vdr,
+                    type: '🍪 Snacks/Food',
+                    name: iName,
+                    qty: iQty,
+                    unit: 'Nos',
+                    rate: iRate,
+                    amount: itemAmt,
+                    itemSpecificDate: finalRowDate,
+                    servedBy: srv,
+                    locationNode: locVal
+                });
+            }
+        });
+
+        if (hasError) return;
+        if (!newItems.length) return appAlert('Error', 'Please add at least one valid item.');
+
+        const uniqueVendors = [...new Set(newItems.map(i => i.vendor).filter(Boolean))].join(', ');
+        const uniquePantryBoys = [...new Set(newItems.map(i => i.servedBy).filter(Boolean))].join(', ');
+        const mainDate = newItems[0].itemSpecificDate;
+
+        db.ref('eventLogs/' + id).update({
+            eventName: name,
+            orderedBy: orderedBy,
+            amount: finalTotalAmount,
+            refreshmentSummary: summarySegments.join(', '),
+            date: mainDate,
+            canteenSource: uniqueVendors,
+            servedByName: uniquePantryBoys,
+            pantryName: uniquePantryBoys,
+            items: newItems,
+            guestSlipCreated: document.getElementById('editEvtGuestSlipCreated').checked,
+            guestSlipSigned: document.getElementById('editEvtGuestSlipSigned').checked,
+            guestSlipReturned: document.getElementById('editEvtGuestSlipReturned').checked
+        }).then(() => {
+            modal.remove();
+            appAlert('Updated', 'Meeting Event completely updated!');
+            
+            setTimeout(() => {
+                if (typeof renderAdminMeetingHistory === 'function' && document.getElementById('adminMeetingHistoryTable')) {
+                    renderAdminMeetingHistory();
                 }
+                if (typeof window.openEventHistoryModal === 'function') {
+                    window.openEventHistoryModal();
+                }
+            }, 300);
+        }).catch(err => {
+            appAlert('Error', 'Update failed: ' + err.message);
+        });
+    };
+};
 
-                updateEditModalTotal();
-                document.getElementById('editEvtAddItemRowBtn').onclick = () => insertEditItemRow();
-
-                document.getElementById('editEvtSaveBtn').onclick = function() {
-                    const name = document.getElementById('editEvtName').value.trim();
-                    const orderedBy = document.getElementById('editEvtOrderedBy').value.trim();
-                    if (!name || !orderedBy) return appAlert('Error', 'Organizer and Event Purpose are required.');
-
-                    const newItems = [];
-                    let finalTotalAmount = 0;
-                    const summarySegments = [];
-                    let hasError = false;
-
-                    itemsContainer.querySelectorAll('.dynamic-item-row-edit').forEach((row, index) => {
-                        const dateVal = row.querySelector('.e-item-date').value;
-                        const locVal = row.querySelector('.e-item-location').value.trim();
-                        const vdr = row.querySelector('.e-item-vendor').value.trim();
-                        const iName = row.querySelector('.e-item-name').value.trim();
-                        const iQty = parseInt(row.querySelector('.e-item-qty').value, 10) || 0;
-                        const iRate = parseFloat(row.querySelector('.e-item-rate').value) || 0;
-                        const srv = row.querySelector('.e-item-served-by').value.trim();
-
-                        if (iName && iQty > 0) {
-                            if (!dateVal) { appAlert('Error', `Select Date for item ${index+1}`); hasError = true; }
-                            if (!locVal) { appAlert('Error', `Enter Location for item ${index+1}`); hasError = true; }
-                            if (!vdr) { appAlert('Error', `Select Vendor for item ${index+1}`); hasError = true; }
-                            if (!srv) { appAlert('Error', `Select Pantry Boy for item ${index+1}`); hasError = true; }
-
-                            const finalRowDate = convertYMDtoDMY(dateVal);
-                            const itemAmt = iQty * iRate;
-                            
-                            finalTotalAmount += itemAmt;
-                            summarySegments.push(`${iQty} ${iName} (${locVal})`);
-
-                            if (locVal && !venueList.some(v => v.name.toLowerCase() === locVal.toLowerCase())) {
-                                const vId = 'vnu_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-                                db.ref('venues/' + vId).set({ id: vId, name: locVal });
-                            }
-
-                            const vKey = vdr.toLowerCase().trim();
-                            const currentCatalog = vendorItemsCatalog[vKey] || [];
-                            if (!currentCatalog.some(it => it.name.toLowerCase() === iName.toLowerCase())) {
-                                currentCatalog.push({ name: iName, rate: iRate });
-                                db.ref('vendorItems/' + vKey).set(currentCatalog);
-                            }
-
-                            newItems.push({
-                                vendor: vdr,
-                                type: '🍪 Snacks/Food',
-                                name: iName,
-                                qty: iQty,
-                                unit: 'Nos',
-                                rate: iRate,
-                                amount: itemAmt,
-                                itemSpecificDate: finalRowDate,
-                                servedBy: srv,
-                                locationNode: locVal
-                            });
-                        }
-                    });
-
-                    if (hasError) return;
-                    if (!newItems.length) return appAlert('Error', 'Please add at least one valid item.');
-
-                    const uniqueVendors = [...new Set(newItems.map(i => i.vendor).filter(Boolean))].join(', ');
-                    const uniquePantryBoys = [...new Set(newItems.map(i => i.servedBy).filter(Boolean))].join(', ');
-                    const mainDate = newItems[0].itemSpecificDate;
-
-                    db.ref('eventLogs/' + id).update({
-                        eventName: name,
-                        orderedBy: orderedBy,
-                        amount: finalTotalAmount,
-                        refreshmentSummary: summarySegments.join(', '),
-                        date: mainDate,
-                        canteenSource: uniqueVendors,
-                        servedByName: uniquePantryBoys,
-                        pantryName: uniquePantryBoys,
-                        items: newItems,
-                        guestSlipCreated: document.getElementById('editEvtGuestSlipCreated').checked,
-                        guestSlipSigned: document.getElementById('editEvtGuestSlipSigned').checked,
-                        guestSlipReturned: document.getElementById('editEvtGuestSlipReturned').checked
-                    }).then(() => {
-                        modal.remove();
-                        appAlert('Updated', 'Meeting Event completely updated!');
-                        
-                        setTimeout(() => {
-                            if (typeof renderAdminMeetingHistory === 'function' && document.getElementById('adminMeetingHistoryTable')) {
-                                renderAdminMeetingHistory();
-                            }
-                            if (typeof window.openEventHistoryModal === 'function') {
-                                window.openEventHistoryModal();
-                            }
-                        }, 300);
-                    }).catch(err => {
-                        appAlert('Error', 'Update failed: ' + err.message);
-                    });
-                };
-            };
                     window.openEventHistoryModal = function() {
                 const modal = document.getElementById('eventHistoryModal');
                 const body = document.getElementById('eventHistoryModalBody');
