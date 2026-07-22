@@ -1927,9 +1927,11 @@ window.pantryDownloadExcelFile = function(wb, filename) {
             let replacementAssignments = {};
             let weekendDutiesData = {};
             let publicHolidaysData = {};
+			let dauPurchaseAccessData = {};
+           let CONTRACTOR_BEVERAGES = ['Tea', 'Coffee', 'Green Tea', 'Lemon Tea', 'Black Tea', 'Black Coffee'];
+           let DAU_PURCHASE_BEVERAGES = ['Tea', 'Coffee', 'Green Tea', 'Lemon Tea', 'Black Tea', 'Black Coffee', 'Special Soup', 'Cold Coffee'];
+           let BEVERAGE_OPTIONS = CONTRACTOR_BEVERAGES;
 
-            const BEVERAGE_OPTIONS = ['Tea', 'Coffee', 'Green Tea', 'Lemon Tea', 'Black Tea', 'Black Coffee'];
-            const EXTRA_BEVERAGE_OPTIONS = ['Tea', 'Coffee', 'Green Tea', 'Lemon Tea', 'Lemon Tea', 'Black Coffee'];
 
             const BASE_URL = window.location.origin + window.location.pathname;
 
@@ -2052,6 +2054,17 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                   <input type="text" id="extraTeaCategory" value="${record ? empCategory : ''}" readonly style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; background:#F1F5F9; color:#64748B;">
                 </div>
               </div>
+              <!-- 📦 Supply Source Selection (Direct Purchase Permission Check) -->
+              <div style="margin-top:6px;">
+                <label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">📦 Supply Source</label>
+                <select id="extraTeaSupplySource" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; font-weight:600; background:#fff;">
+                  <option value="Contractor" ${record && record.supplySource === 'Contractor' ? 'selected' : ''}>Contractor (IA Caterers)</option>
+                  ${(window.hasDauPurchasePermission && window.hasDauPurchasePermission(currentUser.id)) ? 
+                    `<option value="DAU Direct Purchase" ${record && record.supplySource === 'DAU Direct Purchase' ? 'selected' : ''} style="color:#059669; font-weight:bold;">🛒 DAU Direct Purchase (Unlimited Entry)</option>` 
+                    : ''}
+                </select>
+              </div>
+
               <div style="display:grid; grid-template-columns:2fr 1fr; gap:10px; margin-top:6px;">
                 <div>
                   <label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">🥤 Beverage</label>
@@ -2078,6 +2091,28 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                 <button id="extraTeaSaveBtn" class="success" style="flex:2; min-height:44px;">${record ? 'Update' : 'Save'} Record</button>
               </div>
             `;
+                // Supply Source બદલાય ત્યારે આપોઆપ બેવરેજ લિસ્ટ બદલાવવાનું લોજિક
+                const sourceSelect = document.getElementById('extraTeaSupplySource');
+                const bevSelect = document.getElementById('extraTeaBeverage');
+
+                function updateBeverageDropdownOptions() {
+                    if (!sourceSelect || !bevSelect) return;
+                    const selectedSource = sourceSelect.value;
+                    const activeList = selectedSource === 'DAU Direct Purchase' ? DAU_PURCHASE_BEVERAGES : CONTRACTOR_BEVERAGES;
+
+                    const currVal = bevSelect.value;
+                    bevSelect.innerHTML = '<option value="">-- Select --</option>' + 
+                        activeList.map(b => `<option value="${b}" ${record && record.beverage === b ? 'selected' : ''}>${b}</option>`).join('');
+                    
+                    if (currVal && activeList.includes(currVal)) {
+                        bevSelect.value = currVal;
+                    }
+                }
+
+                if (sourceSelect) {
+                    sourceSelect.onchange = updateBeverageDropdownOptions;
+                    updateBeverageDropdownOptions();
+                }
 
                 const searchInput = document.getElementById('extraTeaEmpSearch');
                 const hiddenInput = document.getElementById('extraTeaEmployee');
@@ -2135,6 +2170,8 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                     const reason = document.getElementById('extraTeaReason').value.trim() || 'Not specified';
                     const remarks = document.getElementById('extraTeaRemarks').value.trim() || '';
 
+                    const supplySourceVal = document.getElementById('extraTeaSupplySource') ? document.getElementById('extraTeaSupplySource').value : 'Contractor';
+
                     const emp = getEmployeeById(employeeId);
                     const empName = emp ? emp.name : 'Unknown';
                     const empDept = emp ? emp.department || '' : '';
@@ -2149,6 +2186,7 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                         id: recordId,
                         date: dateDMY,
                         time: time,
+                        supplySource: supplySourceVal,
                         employeeId: employeeId,
                         employeeName: empName,
                         department: empDept,
@@ -3141,8 +3179,7 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                     <select class="item-served-by" style="width:100%; padding:8px; font-size:.8rem; border-radius:6px; border:1px solid #CBD5E1;">
                         <option value="">-- Pantry Boy --</option>
                         <option value="Direct Order (Canteen)">Direct Canteen</option>
-						<option value="Multi Pantry Boys">Multi Pantry Boys</option>
-			
+						<option value="Multiple Pantry Boy">Multi Staff</option>
                         ${pantryOpts}
                     </select>
                 </div>
@@ -3302,7 +3339,7 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                     <div style="flex:1.4; min-width:130px;"><label style="font-size:0.65rem; color:#64748B; font-weight:700;">Item Name</label><input type="text" list="${rowId}" class="item-name" placeholder="Item Name" style="width:100%; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;"><datalist id="${rowId}"></datalist></div>
                     <div style="flex:0.5; min-width:50px;"><label style="font-size:0.65rem; color:#64748B; font-weight:700;">Qty</label><input type="number" class="item-qty" placeholder="Qty" min="1" value="1" style="width:100%; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;"></div>
                     <div style="flex:0.6; min-width:60px;"><label style="font-size:0.65rem; color:#64748B; font-weight:700;">Rate</label><input type="number" class="item-rate" placeholder="₹ Rate" min="0" value="" style="width:100%; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;"></div>
-                    <div style="flex:1.1; min-width:120px;"><label style="font-size:0.65rem; color:#64748B; font-weight:700;">Served By</label><select class="item-served-by" style="width:100%; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;"><option value="">-- Pantry Boy --</option><option value="Direct Order (Canteen)">Direct Canteen</option>${pantryOpts}</select></div><option value="Multi Pantry Boys">Multi Pantry Boys</option>${pantryOpts}</select></div>
+                    <div style="flex:1.1; min-width:120px;"><label style="font-size:0.65rem; color:#64748B; font-weight:700;">Served By</label><select class="item-served-by" style="width:100%; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;"><option value="">-- Pantry Boy --</option><option value="Direct Order (Canteen)">Direct Canteen</option>${pantryOpts}</select></div>
                     <div style="display:flex; align-items:flex-end;"><button type="button" class="remove-item-btn" style="background:#DC3545; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-size:0.8rem; cursor:pointer; margin-top:14px;">X</button></div>
                     `;
                     container.appendChild(row);
@@ -5220,6 +5257,7 @@ window.shareVendorLink = function(link, vendor) {
                   <button class="dash-btn" data-tab="workers" style="color:#8B5CF6; border-color:#C4B5FD; background:#F5F3FF;"><span class="icon">👷</span><span class="label">Workers Tea</span></button>
                   <button class="dash-btn" data-tab="bin" style="color:#DC3545; border-color:#FECACA; background:#FEF2F2;"><span class="icon">🗑️</span><span class="label">Recycle Bin</span></button>
                   <button class="dash-btn" data-tab="weekend_duty" style="color:#1E3A8A; border-color:#BFDBFE; background:#EFF6FF;"><span class="icon">📅</span><span class="label">Weekend/Holiday Duty</span></button>
+				  <button class="dash-btn" data-tab="dau_purchase" style="color:#059669; border-color:#A7F3D0; background:#ECFDF5;"><span class="icon">🛒</span><span class="label">DAU Purchase Allotment</span></button>
                   <button class="dash-btn" data-tab="settings" style="color:#44474E; border-color:#E2E8F0; background:#F8FAFC;"><span class="icon">⚙️</span><span class="label">Settings</span></button>
                 </div>
               </div>
@@ -5732,8 +5770,16 @@ window.shareVendorLink = function(link, vendor) {
                                 <label for="wDutySelectAll" style="font-size:12px; font-weight:600; color:#44474E;">Select All Visible</label>
                             </div>
 
-                            <div id="wDutyEmployeeList" class="scroll-list-box" style="max-height:220px; background:#fff;"></div>
-                            <button id="saveWeekendDutyBtn" class="success" style="width:100%; min-height:44px; margin-top:10px; font-size:14px; font-weight:700; border-radius:8px;">💾 allot Selected Employees</button>
+                            <div id="wDutyEmployeeList" class="scroll-list-box" style="max-height:200px; background:#fff;"></div>
+                            <button id="saveWeekendDutyBtn" class="success" style="width:100%; min-height:44px; margin-top:10px; font-size:14px; font-weight:700; border-radius:8px;">💾 Allot Selected Employees</button>
+                          </div>
+
+                          <!-- 📋 નવું બોક્સ: હાલની ફાળવેલી ડ્યુટીઓનું લાઈવ સમરી બોક્સ -->
+                          <div class="card" style="margin-top:14px; border:2px solid #0A56D0; background:#FFF;">
+                            <h4 style="color:#0A56D0; font-size:0.95rem; margin:0 0 10px 0; display:flex; justify-content:space-between; align-items:center;">
+                                <span>📋 Current Duty Roster Summary</span>
+                            </h4>
+                            <div id="wDutyLiveSummaryContainer" style="max-height:300px; overflow-y:auto; font-size:12px;"></div>
                           </div>
 
                           <!-- જાહેર રજાઓ (Public Holidays) સેટ કરવાનું કેલેન્ડર બોક્સ -->
@@ -5748,22 +5794,63 @@ window.shareVendorLink = function(link, vendor) {
                           </div>
                         `;
 
-                        // ઇન્ટરનલ ફંક્શન લોજિક લોડ કરવું
                         window.renderWeekendDutyInterface();
                         break;
 
-                    case 'settings':
+                    case 'dau_purchase':
                         cont.innerHTML = `
-                  <div class="card"><h4 style="margin-bottom:12px; color:#44474E; font-size:1rem;">⚙️ Change Admin Password</h4><input type="password" id="newAdminPass" placeholder="New Password" value="${adminSecurity.password}" style="padding:14px; border-radius:10px; border:1px solid #CBD5E1;"><button id="saveAdminCreds" class="success" style="width:100%; min-height:44px;">Update Password</button></div>
-                  <div class="card backup-restore-box" style="margin-top:16px;">
-                    <h4 style="color:#0A56D0; margin-bottom:12px;">💾 Backup & Restore</h4>
-                    <p style="font-size:.85rem; color:#44474E; margin-bottom:16px;">Download a complete backup or restore from a previous backup file.</p>
-                    <div class="btn-group">
-                      <button id="backupBtn" class="success" style="background:#0A56D0;">📥 Download Backup</button>
-                      <button id="restoreBtn" class="btn" style="background:#D97706;">📤 Upload & Restore</button>
-                    </div>
-                  </div>
-                `;
+                          <div class="card" style="border:2px solid #059669; background:#ECFDF5;">
+                            <h4 style="color:#047857; margin:0 0 10px 0; font-size:1rem;">🛒 DAU Direct Purchase Access Allotment</h4>
+                            <p style="font-size:.8rem; color:#475569; margin-bottom:12px;">Grant permission to selected Pantry Staff to log items directly purchased by DAU University.</p>
+                            
+                            <div id="dauPurchasePantryList" class="scroll-list-box" style="min-height:140px; max-height:300px; background:#fff; padding:6px;"></div>
+                            <button id="saveDauPurchaseAccessBtn" class="success" style="width:100%; min-height:44px; margin-top:12px; font-size:14px; font-weight:700; border-radius:8px; background:#059669;">💾 Save Access Permissions</button>
+                          </div>
+                        `;
+
+                        setTimeout(() => {
+                            window.renderDauPurchaseAccessAdmin?.();
+                        }, 50);
+                        break;
+                        case 'dau_purchase':
+    window.renderDauPurchaseAccessAdmin?.();
+    break;
+					                    case 'settings':
+                        cont.innerHTML = `
+                          <div class="card"><h4 style="margin-bottom:12px; color:#44474E; font-size:1rem;">⚙️ Change Admin Password</h4><input type="password" id="newAdminPass" placeholder="New Password" value="${adminSecurity.password}" style="padding:14px; border-radius:10px; border:1px solid #CBD5E1;"><button id="saveAdminCreds" class="success" style="width:100%; min-height:44px;">Update Password</button></div>
+                          
+                          <!-- ☕ Card 1: IA Caterers / Contractor Beverage Master -->
+                          <div class="card" style="margin-top:16px; border:2px solid #0A56D0; background:#F8FAFC;">
+                            <h4 style="color:#0A56D0; margin-bottom:6px; font-size:1rem;">☕ IA Caterers (Contractor) Beverage List</h4>
+                            <p style="font-size:.78rem; color:#64748B; margin-bottom:10px;">Standard items available in regular daily entries and contractor orders.</p>
+                            <div style="display:flex; gap:8px; margin-bottom:10px;">
+                              <input type="text" id="newContractorDrinkInput" placeholder="Drink Name (e.g. Tea, Coffee)" style="margin:0; padding:10px; border-radius:8px; border:1px solid #CBD5E1; flex:2;">
+                              <button id="addContractorDrinkBtn" class="success" style="flex:1; min-height:38px; font-size:12px; font-weight:700;">➕ Add Item</button>
+                            </div>
+                            <div id="contractorDrinkList" style="max-height:180px; overflow-y:auto; border:1px solid #CBD5E1; border-radius:8px; padding:6px; background:#fff;"></div>
+                          </div>
+
+                          <!-- 🛒 Card 2: DAU Direct Purchase Beverage Master -->
+                          <div class="card" style="margin-top:16px; border:2px solid #059669; background:#ECFDF5;">
+                            <h4 style="color:#047857; margin-bottom:6px; font-size:1rem;">🛒 DAU Direct Purchase Items List</h4>
+                            <p style="font-size:.78rem; color:#047857; margin-bottom:10px;">Special items available ONLY when DAU Direct Purchase mode is selected.</p>
+                            <div style="display:flex; gap:8px; margin-bottom:10px;">
+                              <input type="text" id="newDauDrinkInput" placeholder="Item Name (e.g. Green Tea, Soup)" style="margin:0; padding:10px; border-radius:8px; border:1px solid #CBD5E1; flex:2;">
+                              <button id="addDauDrinkBtn" class="success" style="flex:1; min-height:38px; font-size:12px; font-weight:700; background:#059669;">➕ Add Item</button>
+                            </div>
+                            <div id="dauDrinkList" style="max-height:180px; overflow-y:auto; border:1px solid #CBD5E1; border-radius:8px; padding:6px; background:#fff;"></div>
+                          </div>
+
+                          <div class="card backup-restore-box" style="margin-top:16px;">
+                            <h4 style="color:#0A56D0; margin-bottom:12px;">💾 Backup & Restore</h4>
+                            <p style="font-size:.8rem; color:#44474E; margin-bottom:16px;">Download a complete backup or restore from a previous backup file.</p>
+                            <div class="btn-group">
+                              <button id="backupBtn" class="success" style="background:#0A56D0;">📥 Download Backup</button>
+                              <button id="restoreBtn" class="btn" style="background:#D97706;">📤 Upload & Restore</button>
+                            </div>
+                          </div>
+                        `;
+
                         document.getElementById('saveAdminCreds').onclick = () => {
                             const np = document.getElementById('newAdminPass').value.trim();
                             if (np) db.ref('adminSecurityConfig').set({ password: np });
@@ -5771,6 +5858,8 @@ window.shareVendorLink = function(link, vendor) {
                         };
                         document.getElementById('backupBtn').onclick = backupAllData;
                         document.getElementById('restoreBtn').onclick = restoreAllData;
+
+                        window.renderBeverageMasterAdmin();
                         break;
                 }
             }
@@ -7778,8 +7867,23 @@ window.shareVendorLink = function(link, vendor) {
                 renderIfNeeded(); });
             db.ref('vendorLinks').on('value', snap => { vendorLinksData = snap.val() || {};
                 renderIfNeeded(); });
+			db.ref('contractorBeverages').on('value', snap => {
+    if (snap.exists() && Array.isArray(snap.val()) && snap.val().length > 0) {
+        CONTRACTOR_BEVERAGES = snap.val();
+        BEVERAGE_OPTIONS = CONTRACTOR_BEVERAGES;
+    }
+    renderIfNeeded();
+});
+
+db.ref('dauPurchaseBeverages').on('value', snap => {
+    if (snap.exists() && Array.isArray(snap.val()) && snap.val().length > 0) {
+        DAU_PURCHASE_BEVERAGES = snap.val();
+    }
+    renderIfNeeded();
+});
 db.ref('weekendDuties').on('value', snap => { weekendDutiesData = snap.val() || {}; renderIfNeeded(); });
 db.ref('publicHolidays').on('value', snap => { publicHolidaysData = snap.val() || {}; renderIfNeeded(); });
+db.ref('dauPurchaseAccess').on('value', snap => { dauPurchaseAccessData = snap.val() || {}; renderIfNeeded(); });
 
             // ============================================================
             //  RENDER COORDINATOR
@@ -7858,6 +7962,12 @@ db.ref('publicHolidays').on('value', snap => { publicHolidaysData = snap.val() |
                                     case 'bin':
                                         renderRecycleBinLists();
                                         break;
+									case 'dau_purchase':
+                                        window.renderDauPurchaseAccessAdmin?.();
+                                        break;
+                                    case 'weekend_duty':
+                                        window.renderWeekendDutyInterface?.();
+                                        break;
                                 }
                             }
                         } else if (currentUser.role === 'pantry') {
@@ -7892,14 +8002,13 @@ window.renderWeekendDutyInterface = function() {
     const searchInp = document.getElementById('wDutyEmpSearch');
     const selectAll = document.getElementById('wDutySelectAll');
     const listContainer = document.getElementById('wDutyEmployeeList');
-
     function populateList() {
         const pId = pSelect.value;
         const dayType = dSelect.value;
         const q = searchInp.value.toLowerCase().trim();
 
         if(!pId) {
-            listContainer.innerHTML = '<p style="padding:12px; text-align:center; color:#64748B; font-size:12px;">Please choose the pantry boy first.</p>';
+            listContainer.innerHTML = '<p style="padding:12px; text-align:center; color:#64748B; font-size:12px;">Please select the pantry boy from above.</p>';
             return;
         }
 
@@ -7913,15 +8022,81 @@ window.renderWeekendDutyInterface = function() {
             const currentAllottedPantry = weekendDutiesData[dayType]?.[emp.id] || '';
             const isChecked = currentAllottedPantry === pId ? 'checked' : '';
             const otherPantryName = currentAllottedPantry && currentAllottedPantry !== pId ? 
-                ` (Allotted to: ${pantryTeam.find(p=>p.id===currentAllottedPantry)?.name || 'Other'})` : '';
+                ` <span style="color:#D97706; font-weight:bold;">(Allotted: ${pantryTeam.find(p=>p.id===currentAllottedPantry)?.name || 'Other'})</span>` : '';
 
             return `
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 8px; border-bottom:1px solid #E2E8F0; font-size:12px;">
-                    <span><strong>${safeStr(emp.name)}</strong> <small style="color:#64748B;">[${emp.category}]${otherPantryName}</small></span>
+                    <span><strong>${safeStr(emp.name)}</strong> <small style="color:#64748B;">[${emp.category}]</small>${otherPantryName}</span>
                     <input type="checkbox" class="w-emp-duty-check" data-id="${emp.id}" ${isChecked} style="width:16px; height:16px; accent-color:#0A56D0;">
                 </div>
             `;
         }).join('');
+    }
+
+    // 📋 લાઈવ સમરી બોર્ડ રેન્ડર કરવાનું ફંક્શન (નીચે લિસ્ટ બતાવશે)
+    function renderLiveDutySummary() {
+        const summaryContainer = document.getElementById('wDutyLiveSummaryContainer');
+        if(!summaryContainer) return;
+
+        const dayTypes = ['Saturday', 'Sunday', 'Holiday'];
+        let hasAnyData = false;
+        let html = '';
+
+        dayTypes.forEach(day => {
+            const dayDuties = weekendDutiesData[day] || {};
+            const empIds = Object.keys(dayDuties);
+
+            if(empIds.length > 0) {
+                hasAnyData = true;
+
+                // પેન્ટ્રી બોય વાઇઝ ગ્રુપ બનાવવું
+                const groupedByPantry = {};
+                empIds.forEach(empId => {
+                    const pId = dayDuties[empId];
+                    if(!groupedByPantry[pId]) groupedByPantry[pId] = [];
+                    const empObj = employeeList.find(e => e.id === empId);
+                    if(empObj) groupedByPantry[pId].push(empObj.name);
+                });
+
+                let dayBadgeBg = day === 'Saturday' ? '#3B82F6' : (day === 'Sunday' ? '#EF4444' : '#10B981');
+
+                html += `
+                    <div style="margin-bottom:12px; border:1px solid #E2E8F0; border-radius:8px; overflow:hidden;">
+                        <div style="background:${dayBadgeBg}; color:#fff; padding:6px 10px; font-weight:bold; font-size:12px;">
+                            📌 ${day} Duty Assignments
+                        </div>
+                        <div style="padding:6px 8px; background:#FAFAFA;">
+                `;
+
+                for (const pId in groupedByPantry) {
+                    const pantryName = pantryTeam.find(p => p.id === pId)?.name || 'Unknown Staff';
+                    const empsList = groupedByPantry[pId];
+
+                    html += `
+                        <div style="background:#fff; border:1px solid #CBD5E1; border-radius:6px; padding:8px; margin-bottom:6px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; border-bottom:1px dashed #CBD5E1; padding-bottom:4px;">
+                                <strong style="color:#0A56D0; font-size:13px;">🧑‍🍳 ${pantryName} <span style="color:#64748B; font-size:11px;">(${empsList.length} Employees)</span></strong>
+                                <div>
+                                    <button onclick="window.quickEditDutyRoster('${pId}', '${day}')" style="background:#E2E8F0; color:#0A56D0; border:none; padding:3px 8px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:bold; margin-right:4px;">✏️ Edit</button>
+                                    <button onclick="window.clearPantryDayDuty('${pId}', '${day}')" style="background:#FEE2E2; color:#DC3545; border:none; padding:3px 8px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:bold;">🗑 Clear</button>
+                                </div>
+                            </div>
+                            <div style="color:#334155; font-size:11px; line-height:1.4;">
+                                ${empsList.join(', ')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                html += `</div></div>`;
+            }
+        });
+
+        if(!hasAnyData) {
+            summaryContainer.innerHTML = '<p style="padding:12px; text-align:center; color:#94A3B8;">Currently, there are no duties allocated for Saturdays, Sundays, or holidays.</p>';
+        } else {
+            summaryContainer.innerHTML = html;
+        }
     }
 
     pSelect.onchange = populateList;
@@ -7944,7 +8119,6 @@ window.renderWeekendDutyInterface = function() {
             if(cb.checked) {
                 updates[`weekendDuties/${dayType}/${empId}`] = pId;
             } else {
-                // જો અનચેક કર્યું હોય અને આ જ પેન્ટ્રી બોય પાસે અગાઉ સેવ હતું, તો જ કાઢો
                 if(weekendDutiesData[dayType]?.[empId] === pId) {
                     updates[`weekendDuties/${dayType}/${empId}`] = null;
                 }
@@ -7952,48 +8126,94 @@ window.renderWeekendDutyInterface = function() {
         });
 
         db.ref().update(updates).then(() => {
-            appAlert('Success', 'Duty Roster updated in cloud database!');
+            appAlert('Success', 'Duty Roster updated successfully!');
             populateList();
+            renderLiveDutySummary();
         });
     };
 
-    // હોલિડે લિસ્ટ મેનેજમેન્ટ
-    document.getElementById('addHolidayDateBtn').onclick = function() {
-        const hDate = document.getElementById('newHolidayDate').value;
-        const hName = document.getElementById('newHolidayName').value.trim();
-        if(!hDate || !hName) return appAlert('Error', 'Date and Holiday Name both required.');
-
-        db.ref('publicHolidays/' + hDate).set(hName).then(() => {
-            document.getElementById('newHolidayDate').value = '';
-            document.getElementById('newHolidayName').value = '';
-            renderHolidaysAdminList();
-        });
+    // લિસ્ટમાંથી સીધું જ એડિટ મોડમાં જવાનું ફંક્શન
+    window.quickEditDutyRoster = function(pId, day) {
+        pSelect.value = pId;
+        dSelect.value = day;
+        populateList();
+        document.getElementById('adminContent').scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    window.deleteHolidayDate = function(dateKey) {
-        appConfirm('Delete Holiday', 'Remove this holiday date?', () => {
-            db.ref('publicHolidays/' + dateKey).remove().then(() => renderHolidaysAdminList());
+    // લિસ્ટમાંથી સીધી ડ્યુટી કાઢી નાખવાનું ફંક્શન
+    window.clearPantryDayDuty = function(pId, day) {
+        const pantryName = pantryTeam.find(p => p.id === pId)?.name || 'Staff';
+        appConfirm('Clear Duty', `Are you sure you want to remove all ${day} duties for ${pantryName}?`, () => {
+            const dayDuties = weekendDutiesData[day] || {};
+            const updates = {};
+            for (const empId in dayDuties) {
+                if (dayDuties[empId] === pId) {
+                    updates[`weekendDuties/${day}/${empId}`] = null;
+                }
+            }
+            db.ref().update(updates).then(() => {
+                appAlert('Cleared', 'Duties removed successfully.');
+                populateList();
+                renderLiveDutySummary();
+            });
         });
     };
+// ============================================================
+//  DAU DIRECT PURCHASE ACCESS MANAGEMENT (FAIL-SAFE)
+// ============================================================
+window.renderDauPurchaseAccessAdmin = function() {
+    const container = document.getElementById('dauPurchasePantryList');
+    if(!container) return;
 
-    function renderHolidaysAdminList() {
-        const listEl = document.getElementById('adminHolidaysList');
-        if(!listEl) return;
-        const keys = Object.keys(publicHolidaysData).sort();
-        if(!keys.length) {
-            listEl.innerHTML = '<span style="color:#94A3B8;">No public holidays configured yet.</span>';
-            return;
-        }
-        listEl.innerHTML = keys.map(k => `
-            <div style="display:flex; justify-content:space-between; align-items:center; background:#F8FAFC; padding:4px 8px; border-radius:6px; margin-bottom:4px; border:1px solid #E2E8F0;">
-                <span>📅 <b>${convertYMDtoDMY(k)}</b> — ${publicHolidaysData[k]}</span>
-                <button onclick="window.deleteHolidayDate('${k}')" style="background:transparent; border:none; color:#DC3545; font-size:12px; cursor:pointer; font-weight:bold;">✕</button>
-            </div>
-        `).join('');
+    // સેફટી ચેક: ડેટા ઓબ્જેક્ટ છે કે નહીં તે ચકાસવું
+    const accessMap = (typeof dauPurchaseAccessData === 'object' && dauPurchaseAccessData !== null) ? dauPurchaseAccessData : {};
+
+    if(!pantryTeam || !Array.isArray(pantryTeam) || pantryTeam.length === 0) {
+        container.innerHTML = '<p style="padding:16px; text-align:center; color:#64748B; font-size:13px;">No Pantry Staff found in database.</p>';
+        return;
     }
 
-    populateList();
-    renderHolidaysAdminList();
+    try {
+        container.innerHTML = pantryTeam.map(p => {
+            if (!p || !p.id) return '';
+            const hasAccess = accessMap[p.id] === true;
+            return `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #E2E8F0; font-size:13px; background:#fff; margin-bottom:4px; border-radius:6px;">
+                    <span><strong>🧑‍🍳 ${safeStr(p.name)}</strong> <small style="color:#64748B;">(${safeStr(p.mobile) || 'No Mobile'})</small></span>
+                    <label style="display:flex; align-items:center; gap:6px; font-weight:600; cursor:pointer; color:${hasAccess ? '#059669' : '#64748B'};">
+                        <input type="checkbox" class="dau-access-checkbox" data-id="${p.id}" ${hasAccess ? 'checked' : ''} style="width:18px; height:18px; accent-color:#059669;">
+                        Enable Access
+                    </label>
+                </div>
+            `;
+        }).join('');
+    } catch(e) {
+        console.error("DAU Purchase Render Error:", e);
+        container.innerHTML = '<p style="padding:16px; text-align:center; color:#DC3545; font-size:13px;">Error loading list.</p>';
+    }
+
+    const saveBtn = document.getElementById('saveDauPurchaseAccessBtn');
+    if (saveBtn) {
+        saveBtn.onclick = function() {
+            const checkboxes = container.querySelectorAll('.dau-access-checkbox');
+            const updates = {};
+
+            checkboxes.forEach(cb => {
+                const pId = cb.dataset.id;
+                if (pId) {
+                    updates['dauPurchaseAccess/' + pId] = cb.checked ? true : null;
+                }
+            });
+
+            db.ref().update(updates).then(() => {
+                appAlert('Success', 'DAU Purchase access permissions updated!');
+            }).catch(err => appAlert('Error', err.message));
+        };
+    }
+};
+
+
+    renderList();
 };
 
 // 🔒 પેન્ટ્રી બોય લોકિંગ એન્જિન હૂક - જેને ડ્યુટી નથી એને એન્ટ્રી ના કરવા દેવી
