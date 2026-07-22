@@ -3141,8 +3141,8 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                     <select class="item-served-by" style="width:100%; padding:8px; font-size:.8rem; border-radius:6px; border:1px solid #CBD5E1;">
                         <option value="">-- Pantry Boy --</option>
                         <option value="Direct Order (Canteen)">Direct Canteen</option>
-						<option value="Direct Order (Canteen)">Multi Pantry Boys</option>
-						<option value="Multiple Pantry Boy">Multi Staff</option>
+						<option value="Multi Pantry Boys">Multi Pantry Boys</option>
+			
                         ${pantryOpts}
                     </select>
                 </div>
@@ -3302,7 +3302,7 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                     <div style="flex:1.4; min-width:130px;"><label style="font-size:0.65rem; color:#64748B; font-weight:700;">Item Name</label><input type="text" list="${rowId}" class="item-name" placeholder="Item Name" style="width:100%; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;"><datalist id="${rowId}"></datalist></div>
                     <div style="flex:0.5; min-width:50px;"><label style="font-size:0.65rem; color:#64748B; font-weight:700;">Qty</label><input type="number" class="item-qty" placeholder="Qty" min="1" value="1" style="width:100%; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;"></div>
                     <div style="flex:0.6; min-width:60px;"><label style="font-size:0.65rem; color:#64748B; font-weight:700;">Rate</label><input type="number" class="item-rate" placeholder="₹ Rate" min="0" value="" style="width:100%; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;"></div>
-                    <div style="flex:1.1; min-width:120px;"><label style="font-size:0.65rem; color:#64748B; font-weight:700;">Served By</label><select class="item-served-by" style="width:100%; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;"><option value="">-- Pantry Boy --</option><option value="Direct Order (Canteen)">Direct Canteen</option>${pantryOpts}</select></div>
+                    <div style="flex:1.1; min-width:120px;"><label style="font-size:0.65rem; color:#64748B; font-weight:700;">Served By</label><select class="item-served-by" style="width:100%; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;"><option value="">-- Pantry Boy --</option><option value="Direct Order (Canteen)">Direct Canteen</option>${pantryOpts}</select></div><option value="Multi Pantry Boys">Multi Pantry Boys</option>${pantryOpts}</select></div>
                     <div style="display:flex; align-items:flex-end;"><button type="button" class="remove-item-btn" style="background:#DC3545; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-size:0.8rem; cursor:pointer; margin-top:14px;">X</button></div>
                     `;
                     container.appendChild(row);
