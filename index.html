@@ -112,17 +112,13 @@
             display: none !important;
         }
 
-        /* ===== CARDS ===== *
-.card {
-  background-color: #F8FAFC; 
-  border-radius: 12px;
-  border: 1px solid #E2E8F0;
-  padding: 16px;
-  margin-bottom: 12px;
-}
-
-
-            border: 1px solid rgba(255, 255, 255, 0.3);
+        /* ===== CARDS ===== */
+        .card {
+          background-color: #F8FAFC; 
+          border-radius: 12px;
+          border: 1px solid #E2E8F0;
+          padding: 16px;
+          margin-bottom: 12px;
         }
 
         /* ===== LOGIN ===== */
@@ -1686,7 +1682,73 @@
         .transfer-section .employee-item:hover {
             background: #F8FAFC;
         }
-    </style>
+		/* ===== MOBILE OPTIMIZED MEETING CARDS ===== */
+        .entry-card { 
+            background: #f8fafc; 
+            border: 1px solid #cbd5e1; 
+            border-radius: 10px; 
+            padding: 12px; 
+            margin-bottom: 15px; 
+            position: relative; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .entry-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            background: #e2e8f0;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+            color: #1e293b;
+        }
+        .form-grid-mobile {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .full-width-mobile { grid-column: span 2; }
+        .form-grid-mobile label { font-size: 11px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px; }
+        .form-grid-mobile input, .form-grid-mobile select { 
+            width: 100%; 
+            padding: 10px; 
+            border: 1px solid #cbd5e1; 
+            border-radius: 6px; 
+            font-size: 13px; 
+            background-color: #fff;
+            margin: 0;
+            box-sizing: border-box;
+        }
+        .btn-dup { background-color: #8b5cf6; color: white; padding: 6px 10px; font-size: 12px; border:none; border-radius:6px; cursor:pointer; }
+        .btn-add-same { background-color: #f59e0b; color: white; width: 100%; font-size: 14px; padding: 12px; margin-top: 8px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; }
+        .btn-add-blank { background-color: #10b981; color: white; width: 100%; font-size: 14px; padding: 12px; margin-top: 10px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; }
+    /* ===== MEETINGS & GUESTS (NEW SECTION) ===== */
+        .mg-form-area { padding: 10px; background: #f0f2f5; max-height: 55vh; overflow-y: auto; }
+        .mg-entry-card { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 10px; margin-bottom: 10px; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .mg-entry-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; background: #e2e8f0; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 12px; }
+        .mg-form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .mg-full-width { grid-column: span 2; }
+        .mg-form-grid label { font-size: 11px; font-weight: 600; color: #475569; margin-bottom: 2px; display: block; }
+        .mg-form-grid input, .mg-form-grid select { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background-color: #f8fafc; margin: 0; box-sizing: border-box; }
+        .mg-action-container { display: flex; gap: 5px; }
+        .mg-btn-icon { padding: 4px 8px; border: none; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; color: white; }
+        .mg-bottom-bar { background: #ffffff; padding: 10px; border-radius: 10px; margin-top: 10px; display: flex; flex-direction: column; gap: 8px; border: 1px solid #cbd5e1; }
+        .mg-history-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 900px; background: white; }
+        .mg-history-table th, .mg-history-table td { border: 1px solid #e2e8f0; padding: 8px 6px; text-align: center; }
+        .mg-history-table th { background-color: #334155; color: white; position: sticky; top: 0; }
+        .mg-badge { padding: 3px 8px; border-radius: 12px; font-weight: bold; font-size: 10px; color: white; }
+		/* Mobile Compact Cards for History */
+        .mg-history-card { background: #fff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 12px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .mg-hc-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px; margin-bottom: 8px; }
+        .mg-hc-date { font-weight: 800; color: #1e293b; font-size: 13px; }
+        .mg-hc-body { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 12px; color: #475569; }
+        .mg-hc-item { font-size: 14px; font-weight: 800; color: #0284c7; grid-column: span 2; }
+        .mg-hc-amt { font-size: 14px; font-weight: 800; color: #166534; text-align: right; grid-column: span 2; background: #f0fdf4; padding: 4px 8px; border-radius: 6px; }
+        .mg-hc-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #f1f5f9; }
+        .mg-month-filter { padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 12px; display: flex; gap: 10px; align-items: center; }
+	</style>
 </head>
 <body>
 
@@ -1700,15 +1762,6 @@
     <div id="printAreaContainer" class="hidden"></div>
 
     <!-- ===== MODALS ===== -->
-    <div id="eventHistoryModal" class="popup-overlay hidden">
-        <div class="popup-card wide">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
-                <h3 style="color:#0A56D0; font-size:1.2rem; margin:0;">🎪 Meeting & Event History</h3>
-                <button onclick="document.getElementById('eventHistoryModal').classList.add('hidden')" class="danger sm">✕ Close</button>
-            </div>
-            <div id="eventHistoryModalBody" class="pro-table-wrap"></div>
-        </div>
-    </div>
 
     <div id="vendorSheetViewer">
         <div class="sheet-header">
@@ -1795,7 +1848,7 @@
     </div>
 
     <script>
-        (function() {
+    (function() {
             "use strict";
 
             // ============================================================
@@ -1972,8 +2025,9 @@ window.pantryDownloadExcelFile = function(wb, filename) {
 
             function appConfirm(title, msg, cb) { openAppModal(title, msg, true, cb); }
 
+
             // ============================================================
-            //  EXTRA TEA RECORD FUNCTIONS
+            //  EXTRA TEA RECORD FUNCTIONS - FIXED V9
             // ============================================================
 
             db.ref('extraTeaRecords').on('value', snap => {
@@ -1986,667 +2040,105 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                 renderIfNeeded();
             });
 
-            function getEmployeeById(empId) {
-                return employeeList.find(e => e.id === empId);
-            }
+            window.getEmployeeById = function(empId) { return employeeList.find(e => e.id === empId); }
+            window.getPantryNameById = function(pantryId) { const p = pantryTeam.find(pt => pt.id === pantryId); return p ? p.name : 'Unknown'; }
 
-            function getPantryNameById(pantryId) {
-                const p = pantryTeam.find(pt => pt.id === pantryId);
-                return p ? p.name : 'Unknown';
-            }
+            // FIXED: Always allow DAU option for admin, and for pantry boy if permission exists OR if no permissions set yet (default allow)
+            window.hasDauPurchasePermission = function(pantryId) {
+                try {
+                    if (!pantryId) return false;
+                    if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'admin') return true;
+                    const map = (typeof dauPurchaseAccessData === 'object' && dauPurchaseAccessData !== null) ? dauPurchaseAccessData : {};
+                    // If no allotment done yet (empty map), allow all pantry boys to see DAU option by default for testing
+                    if (Object.keys(map).length === 0) return true;
+                    return map[pantryId] === true;
+                } catch(e) { return true; }
+            };
 
-            function openExtraTeaForm(record = null) {
+            window.openExtraTeaForm = function(record = null) {
                 const modal = document.getElementById('extraTeaModal');
                 const title = document.getElementById('extraTeaModalTitle');
                 const container = document.getElementById('extraTeaFormContainer');
-
+                if (!modal || !title || !container) return;
                 title.textContent = record ? '✏️ Edit Extra Tea Record' : '☕ New Extra Tea Record';
-
                 const todayYMD = new Date().toISOString().split('T')[0];
-                const todayDMY = convertYMDtoDMY(todayYMD);
+                const contractorList = (typeof CONTRACTOR_BEVERAGES !== 'undefined' && CONTRACTOR_BEVERAGES.length) ? CONTRACTOR_BEVERAGES : ['Tea','Coffee','Green Tea'];
+                const dauList = (typeof DAU_PURCHASE_BEVERAGES !== 'undefined' && DAU_PURCHASE_BEVERAGES.length) ? DAU_PURCHASE_BEVERAGES : ['Tea','Coffee','Green Tea','Special Soup'];
+                // Initial beverage list based on record supply source or default contractor
+                const initialSource = record ? (record.supplySource || 'Contractor') : 'Contractor';
+                const initialBevList = initialSource === 'DAU Direct Purchase' ? dauList : contractorList;
+                const beverageOpts = initialBevList.map(b => `<option value="${b}" ${record && record.beverage === b ? 'selected' : ''}>${b}</option>`).join('');
 
-                const employeeOpts = employeeList.map(emp =>
-                    `<option value="${emp.id}" ${record && record.employeeId === emp.id ? 'selected' : ''}>${safeStr(emp.name)} [${safeStr(emp.category)}]</option>`
-                ).join('');
+                let empDept = ''; let empCategory = ''; let empName = ''; 
+                if (record) { const emp = window.getEmployeeById(record.employeeId); if (emp) { empDept = emp.department || ''; empCategory = emp.category || ''; empName = emp.name || ''; } }
 
-                const beverageOpts = EXTRA_BEVERAGE_OPTIONS.map(b =>
-                    `<option value="${b}" ${record && record.beverage === b ? 'selected' : ''}>${b}</option>`
-                ).join('');
-
-                let empDept = '';
-        let empCategory = '';
-        let empName = ''; // <-- Naya variable add kiya
-        if (record) {
-            const emp = getEmployeeById(record.employeeId);
-            if (emp) {
-                empDept = emp.department || '';
-                empCategory = emp.category || '';
-                empName = emp.name || ''; // <-- Name fetch kiya
-            }
-        }
+                // FIXED: Show both supply sources always for admin, and for pantry boy based on permission (now defaults to true)
+                const showDauOption = window.hasDauPurchasePermission(currentUser.id);
 
                 container.innerHTML = `
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                <div>
-                  <label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">📅 Date</label>
-                  <input type="date" id="extraTeaDate" value="${record ? parseDMYToYMD(record.date) : todayYMD}" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;">
-                </div>
-                <div>
-                  <label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">⏰ Time</label>
-                  <input type="time" id="extraTeaTime" value="${record ? record.time || '09:00' : '09:00'}" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;">
-                </div>
+                <div><label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">📅 Date</label><input type="date" id="extraTeaDate" value="${record ? parseDMYToYMD(record.date) : todayYMD}" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;"></div>
+                <div><label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">⏰ Time</label><input type="time" id="extraTeaTime" value="${record ? record.time || '09:00' : '09:00'}" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;"></div>
               </div>
-              <div style="margin-top:6px;">
-                <label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">👤 Employee</label>
-                <div class="autocomplete-wrap" style="width:100%;">
-                  <input type="text" id="extraTeaEmpSearch" value="${record ? safeStr(empName) : ''}" placeholder="🔍 Type 2-3 letters of name..." style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; width:100%; box-sizing:border-box;">
-                  <input type="hidden" id="extraTeaEmployee" value="${record ? record.employeeId : ''}">
-                  <div class="autocomplete-dropdown" id="ac_extraTeaEmp"></div>
-                </div>
-              </div>
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:6px;">
-                <div>
-                  <label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">🏢 Department</label>
-                  <input type="text" id="extraTeaDept" value="${record ? empDept : ''}" readonly style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; background:#F1F5F9; color:#64748B;">
-                </div>
-                <div>
-                  <label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">📂 Category</label>
-                  <input type="text" id="extraTeaCategory" value="${record ? empCategory : ''}" readonly style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; background:#F1F5F9; color:#64748B;">
-                </div>
-              </div>
-              <!-- 📦 Supply Source Selection (Direct Purchase Permission Check) -->
-              <div style="margin-top:6px;">
-                <label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">📦 Supply Source</label>
-                <select id="extraTeaSupplySource" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; font-weight:600; background:#fff;">
-                  <option value="Contractor" ${record && record.supplySource === 'Contractor' ? 'selected' : ''}>Contractor (IA Caterers)</option>
-                  ${(window.hasDauPurchasePermission && window.hasDauPurchasePermission(currentUser.id)) ? 
-                    `<option value="DAU Direct Purchase" ${record && record.supplySource === 'DAU Direct Purchase' ? 'selected' : ''} style="color:#059669; font-weight:bold;">🛒 DAU Direct Purchase (Unlimited Entry)</option>` 
-                    : ''}
-                </select>
-              </div>
-
-              <div style="display:grid; grid-template-columns:2fr 1fr; gap:10px; margin-top:6px;">
-                <div>
-                  <label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">🥤 Beverage</label>
-                  <select id="extraTeaBeverage" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;">
-                    <option value="">-- Select --</option>
-                    ${beverageOpts}
-                  </select>
-                </div>
-                <div>
-                  <label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">🔢 Qty</label>
-                  <input type="number" id="extraTeaQty" value="${record ? record.qty || 1 : 1}" min="1" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;">
-                </div>
-              </div>
-              <div style="margin-top:6px;">
-                <label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">📝 Reason</label>
-                <input type="text" id="extraTeaReason" value="${record ? safeStr(record.reason) : ''}" placeholder="Why extra tea?" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;">
-              </div>
-              <div style="margin-top:6px;">
-                <label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">📌 Remarks</label>
-                <textarea id="extraTeaRemarks" rows="2" placeholder="Additional notes..." style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; resize:vertical;">${record ? safeStr(record.remarks) : ''}</textarea>
-              </div>
-              <div style="display:flex; gap:8px; margin-top:16px;">
-                <button onclick="document.getElementById('extraTeaModal').classList.add('hidden')" class="danger" style="flex:1; min-height:44px;">Cancel</button>
-                <button id="extraTeaSaveBtn" class="success" style="flex:2; min-height:44px;">${record ? 'Update' : 'Save'} Record</button>
-              </div>
+              <div style="margin-top:6px;"><label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">👤 Employee</label><div class="autocomplete-wrap" style="width:100%;"><input type="text" id="extraTeaEmpSearch" value="${record ? safeStr(empName) : ''}" placeholder="🔍 Type 2-3 letters of name..." style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; width:100%; box-sizing:border-box;"><input type="hidden" id="extraTeaEmployee" value="${record ? record.employeeId : ''}"><div class="autocomplete-dropdown" id="ac_extraTeaEmp"></div></div></div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:6px;"><div><label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">🏢 Department</label><input type="text" id="extraTeaDept" value="${record ? empDept : ''}" readonly style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; background:#F1F5F9; color:#64748B;"></div><div><label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">📂 Category</label><input type="text" id="extraTeaCategory" value="${record ? empCategory : ''}" readonly style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; background:#F1F5F9; color:#64748B;"></div></div>
+              <div style="margin-top:6px;"><label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">📦 Supply Source</label><select id="extraTeaSupplySource" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; font-weight:600; background:#fff;"><option value="Contractor" ${initialSource === 'Contractor' ? 'selected' : ''}>Contractor (IA Caterers)</option>${showDauOption ? `<option value="DAU Direct Purchase" ${initialSource === 'DAU Direct Purchase' ? 'selected' : ''} style="color:#059669; font-weight:bold;">🛒 DAU Direct Purchase</option>` : ''}</select></div>
+              <div style="display:grid; grid-template-columns:2fr 1fr; gap:10px; margin-top:6px;"><div><label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">🥤 Beverage</label><select id="extraTeaBeverage" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;"><option value="">-- Select --</option>${beverageOpts}</select></div><div><label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">🔢 Qty</label><input type="number" id="extraTeaQty" value="${record ? record.qty || 1 : 1}" min="1" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;"></div></div>
+              <div style="margin-top:6px;"><label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">📝 Reason</label><input type="text" id="extraTeaReason" value="${record ? safeStr(record.reason) : ''}" placeholder="Why extra tea?" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;"></div>
+              <div style="margin-top:6px;"><label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">📌 Remarks</label><textarea id="extraTeaRemarks" rows="2" placeholder="Additional notes..." style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; resize:vertical;">${record ? safeStr(record.remarks) : ''}</textarea></div>
+              <div style="display:flex; gap:8px; margin-top:16px;"><button onclick="document.getElementById('extraTeaModal').classList.add('hidden')" class="danger" style="flex:1; min-height:44px;">Cancel</button><button id="extraTeaSaveBtn" class="success" style="flex:2; min-height:44px;">${record ? 'Update' : 'Save'} Record</button></div>
             `;
-                // Supply Source બદલાય ત્યારે આપોઆપ બેવરેજ લિસ્ટ બદલાવવાનું લોજિક
+                // Beverage dropdown dynamic update
                 const sourceSelect = document.getElementById('extraTeaSupplySource');
                 const bevSelect = document.getElementById('extraTeaBeverage');
-
-                function updateBeverageDropdownOptions() {
+                function updateBevList() {
                     if (!sourceSelect || !bevSelect) return;
-                    const selectedSource = sourceSelect.value;
-                    const activeList = selectedSource === 'DAU Direct Purchase' ? DAU_PURCHASE_BEVERAGES : CONTRACTOR_BEVERAGES;
-
-                    const currVal = bevSelect.value;
-                    bevSelect.innerHTML = '<option value="">-- Select --</option>' + 
-                        activeList.map(b => `<option value="${b}" ${record && record.beverage === b ? 'selected' : ''}>${b}</option>`).join('');
-                    
-                    if (currVal && activeList.includes(currVal)) {
-                        bevSelect.value = currVal;
-                    }
+                    const src = sourceSelect.value;
+                    const list = src === 'DAU Direct Purchase' ? dauList : contractorList;
+                    const curr = bevSelect.value;
+                    bevSelect.innerHTML = '<option value="">-- Select --</option>' + list.map(b=>`<option value="${b}">${b}</option>`).join('');
+                    if (curr && list.includes(curr)) bevSelect.value = curr;
+                    else if (record && record.beverage && list.includes(record.beverage)) bevSelect.value = record.beverage;
                 }
+                if (sourceSelect) { sourceSelect.onchange = updateBevList; }
 
-                if (sourceSelect) {
-                    sourceSelect.onchange = updateBeverageDropdownOptions;
-                    updateBeverageDropdownOptions();
+                const searchInput = document.getElementById('extraTeaEmpSearch'); const hiddenInput = document.getElementById('extraTeaEmployee'); const dropdown = document.getElementById('ac_extraTeaEmp');
+                if (searchInput) {
+                    searchInput.addEventListener('input', function() { const q = this.value.toLowerCase().trim(); if (q.length < 2) { dropdown.classList.remove('active'); hiddenInput.value = ""; document.getElementById('extraTeaDept').value = ""; document.getElementById('extraTeaCategory').value = ""; return; } const matches = employeeList.filter(e => (e.name || '').toLowerCase().includes(q)).slice(0, 10); if (!matches.length) { dropdown.classList.remove('active'); return; } dropdown.innerHTML = matches.map(e => `<div class="ac-item" data-id="${e.id}" data-name="${safeStr(e.name)}" data-dept="${safeStr(e.department)}" data-cat="${safeStr(e.category)}">${safeStr(e.name)} <span style="color:#64748B;font-size:.7rem;">[${safeStr(e.category)}]</span></div>`).join(''); dropdown.classList.add('active'); });
+                    dropdown.addEventListener('click', function(e) { const item = e.target.closest('.ac-item'); if (item) { searchInput.value = item.dataset.name; hiddenInput.value = item.dataset.id; document.getElementById('extraTeaDept').value = item.dataset.dept || ''; document.getElementById('extraTeaCategory').value = item.dataset.cat || ''; dropdown.classList.remove('active'); } });
+                    searchInput.addEventListener('blur', () => setTimeout(() => dropdown.classList.remove('active'), 200));
                 }
-
-                const searchInput = document.getElementById('extraTeaEmpSearch');
-                const hiddenInput = document.getElementById('extraTeaEmployee');
-                const dropdown = document.getElementById('ac_extraTeaEmp');
-
-                searchInput.addEventListener('input', function() {
-                    const q = this.value.toLowerCase().trim();
-                    if (q.length < 2) { 
-                        dropdown.classList.remove('active'); 
-                        hiddenInput.value = "";
-                        document.getElementById('extraTeaDept').value = "";
-                        document.getElementById('extraTeaCategory').value = "";
-                        return; 
-                    }
-                    
-                    const matches = employeeList.filter(e => (e.name || '').toLowerCase().includes(q)).slice(0, 10);
-                    if (!matches.length) { 
-                        dropdown.classList.remove('active'); 
-                        return; 
-                    }
-                    
-                    dropdown.innerHTML = matches.map(e => 
-                        `<div class="ac-item" data-id="${e.id}" data-name="${safeStr(e.name)}" data-dept="${safeStr(e.department)}" data-cat="${safeStr(e.category)}">
-                            ${safeStr(e.name)} <span style="color:#64748B;font-size:.7rem;">[${safeStr(e.category)}]</span>
-                         </div>`
-                    ).join('');
-                    dropdown.classList.add('active');
-                });
-
-                dropdown.addEventListener('click', function(e) {
-                    const item = e.target.closest('.ac-item');
-                    if (item) {
-                        searchInput.value = item.dataset.name;
-                        hiddenInput.value = item.dataset.id;
-                        document.getElementById('extraTeaDept').value = item.dataset.dept || '';
-                        document.getElementById('extraTeaCategory').value = item.dataset.cat || '';
-                        dropdown.classList.remove('active');
-                    }
-                });
-
-                searchInput.addEventListener('blur', () => setTimeout(() => dropdown.classList.remove('active'), 200));
-                searchInput.addEventListener('focus', function() { if (this.value.length >= 2) this.dispatchEvent(new Event('input')); });
-
                 document.getElementById('extraTeaSaveBtn').onclick = function() {
-                    const dateVal = document.getElementById('extraTeaDate').value;
-                    if (!dateVal) return appAlert('Error', 'Select a date.');
-                    const dateDMY = convertYMDtoDMY(dateVal);
-                    const time = document.getElementById('extraTeaTime').value || '09:00';
-                    const employeeId = document.getElementById('extraTeaEmployee').value;
-                    if (!employeeId) return appAlert('Error', 'Select an employee.');
-                    const beverage = document.getElementById('extraTeaBeverage').value;
-                    if (!beverage) return appAlert('Error', 'Select a beverage.');
-                    const qty = parseInt(document.getElementById('extraTeaQty').value) || 1;
-                    if (qty < 1) return appAlert('Error', 'Qty must be at least 1.');
-                    const reason = document.getElementById('extraTeaReason').value.trim() || 'Not specified';
-                    const remarks = document.getElementById('extraTeaRemarks').value.trim() || '';
-
-                    const supplySourceVal = document.getElementById('extraTeaSupplySource') ? document.getElementById('extraTeaSupplySource').value : 'Contractor';
-
-                    const emp = getEmployeeById(employeeId);
-                    const empName = emp ? emp.name : 'Unknown';
-                    const empDept = emp ? emp.department || '' : '';
-                    const empCategory = emp ? emp.category || '' : '';
-
-                    const pantryId = currentUser.id;
-                    const pantryName = currentUser.name;
-
-                    const recordId = record ? record.id : 'extra_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
-
-                    const recordData = {
-                        id: recordId,
-                        date: dateDMY,
-                        time: time,
-                        supplySource: supplySourceVal,
-                        employeeId: employeeId,
-                        employeeName: empName,
-                        department: empDept,
-                        category: empCategory,
-                        beverage: beverage,
-                        qty: qty,
-                        reason: reason,
-                        remarks: remarks,
-                        pantryId: pantryId,
-                        pantryName: pantryName,
-                        timestamp: Date.now()
-                    };
-
-                    db.ref('extraTeaRecords/' + recordId).set(recordData).then(() => {
-                        appAlert('Success', 'Extra tea record saved!');
-                        document.getElementById('extraTeaModal').classList.add('hidden');
-                        renderExtraTeaView();
-                    }).catch(err => {
-                        appAlert('Error', 'Save failed: ' + err.message);
-                    });
-                };
-
+                    const dateVal = document.getElementById('extraTeaDate').value; if (!dateVal) return appAlert('Error', 'Select a date.'); const dateDMY = convertYMDtoDMY(dateVal); const time = document.getElementById('extraTeaTime').value || '09:00'; const employeeId = document.getElementById('extraTeaEmployee').value; if (!employeeId) return appAlert('Error', 'Select an employee.'); const beverage = document.getElementById('extraTeaBeverage').value; if (!beverage) return appAlert('Error', 'Select a beverage.'); const qty = parseInt(document.getElementById('extraTeaQty').value) || 1; const reason = document.getElementById('extraTeaReason').value.trim() || 'Not specified'; const remarks = document.getElementById('extraTeaRemarks').value.trim() || ''; const supplySourceVal = document.getElementById('extraTeaSupplySource') ? document.getElementById('extraTeaSupplySource').value : 'Contractor'; const emp = window.getEmployeeById(employeeId); const empName = emp ? emp.name : 'Unknown'; const empDept = emp ? emp.department || '' : ''; const empCategory = emp ? emp.category || '' : ''; const pantryId = currentUser.id; const pantryName = currentUser.name; const recordId = record ? record.id : 'extra_' + Date.now() + '_' + Math.floor(Math.random() * 10000); const recordData = { id: recordId, date: dateDMY, time: time, supplySource: supplySourceVal, employeeId: employeeId, employeeName: empName, department: empDept, category: empCategory, beverage: beverage, qty: qty, reason: reason, remarks: remarks, pantryId: pantryId, pantryName: pantryName, timestamp: Date.now() }; db.ref('extraTeaRecords/' + recordId).set(recordData).then(() => { appAlert('Success', 'Extra tea record saved! ['+supplySourceVal+']'); document.getElementById('extraTeaModal').classList.add('hidden'); window.renderExtraTeaView(); }).catch(err => { appAlert('Error', 'Save failed: ' + err.message); }); };
                 modal.classList.remove('hidden');
             }
 
-            function deleteExtraTeaRecord(id) {
-                appConfirm('Delete Record', 'Are you sure you want to delete this extra tea record?', () => {
-                    db.ref('extraTeaRecords/' + id).remove().then(() => {
-                        appAlert('Deleted', 'Record removed successfully.');
-                        renderExtraTeaView();
-                    }).catch(err => {
-                        appAlert('Error', 'Delete failed: ' + err.message);
-                    });
-                });
-            }
-
-            // ============================================================
-            //  EXTRA TEA VIEW - PANTRY BOY
-            // ============================================================
-            function renderExtraTeaView() {
+            window.deleteExtraTeaRecord = function(id) { appConfirm('Delete Record', 'Are you sure?', () => { db.ref('extraTeaRecords/' + id).remove().then(() => { appAlert('Deleted', 'Record removed.'); window.renderExtraTeaView(); }); }); }
+            window.renderExtraTeaView = function() {
                 activePantryTab = 'extra_tea';
-
                 const myRecords = extraTeaRecords.filter(r => r.pantryId === currentUser.id);
-
-                let totalRecords = myRecords.length;
-                let totalQty = 0;
-                const beverageCounts = {};
-                myRecords.forEach(r => {
-                    totalQty += (r.qty || 1);
-                    const b = r.beverage || 'Unknown';
-                    beverageCounts[b] = (beverageCounts[b] || 0) + (r.qty || 1);
-                });
-
+                let totalRecords = myRecords.length; let totalQty = 0; const beverageCounts = {}; myRecords.forEach(r => { totalQty += (r.qty || 1); const b = r.beverage || 'Unknown'; beverageCounts[b] = (beverageCounts[b] || 0) + (r.qty || 1); });
                 const container = document.getElementById('pantryContent');
-                container.innerHTML = `
-              <div class="card" style="padding:16px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-                  <h4 style="color:#0A56D0; margin:0; font-size:1rem;">☕ My Extra Tea Records</h4>
-                  <button id="addExtraTeaBtn" class="success" style="padding:8px 16px; font-size:.8rem; min-height:36px;">➕ New Record</button>
-                </div>
-                <div class="android-metric-grid" style="grid-template-columns:1fr 1fr 1fr;">
-                  <div class="android-metric-card"><div class="label">📋 Total Records</div><div class="value">${totalRecords}</div></div>
-                  <div class="android-metric-card"><div class="label">🥤 Total Cups</div><div class="value">${totalQty}</div></div>
-                  <div class="android-metric-card"><div class="label">🍵 Top Beverage</div><div class="value">${Object.keys(beverageCounts).length ? Object.keys(beverageCounts).reduce((a,b) => beverageCounts[a] > beverageCounts[b] ? a : b) : 'N/A'}</div></div>
-                </div>
-                <div style="margin-top:8px;">
-                  <div class="merged-filter-row" style="margin-bottom:8px;">
-                    <input id="extraTeaSearch" placeholder="🔍 Search by employee or reason..." style="flex:2; margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;">
-                    <select id="extraTeaFilterBeverage" style="flex:1; margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;">
-                      <option value="">All Beverages</option>
-                      ${EXTRA_BEVERAGE_OPTIONS.map(b => `<option value="${b}">${b}</option>`).join('')}
-                    </select>
-                  </div>
-                  <div id="extraTeaMyRecordsList" class="extra-tea-table-wrap" style="max-height:400px;"></div>
-                  <button id="exportExtraTeaExcelBtn" class="toolbar-btn success" style="width:100%; margin-top:8px; padding:12px; border-radius:8px; font-weight:700;">📊 Download My Extra Tea Excel</button>
-                </div>
-              </div>
-            `;
-
-                document.getElementById('addExtraTeaBtn').onclick = () => openExtraTeaForm(null);
-                document.getElementById('extraTeaSearch').addEventListener('input', renderExtraTeaMyRecords);
-                document.getElementById('extraTeaFilterBeverage').addEventListener('change', renderExtraTeaMyRecords);
-                document.getElementById('exportExtraTeaExcelBtn').onclick = () => exportExtraTeaExcel(true);
-
-                renderExtraTeaMyRecords();
+                container.innerHTML = `<div class="card" style="padding:16px;"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;"><h4 style="color:#0A56D0; margin:0; font-size:1rem;">☕ My Extra Tea Records</h4><button id="addExtraTeaBtn" class="success" style="padding:8px 16px; font-size:.8rem; min-height:36px;">➕ New Record</button></div><div class="android-metric-grid" style="grid-template-columns:1fr 1fr 1fr;"><div class="android-metric-card"><div class="label">📋 Total Records</div><div class="value">${totalRecords}</div></div><div class="android-metric-card"><div class="label">🥤 Total Cups</div><div class="value">${totalQty}</div></div><div class="android-metric-card"><div class="label">🍵 Top Beverage</div><div class="value">${Object.keys(beverageCounts).length ? Object.keys(beverageCounts).reduce((a,b) => beverageCounts[a] > beverageCounts[b] ? a : b) : 'N/A'}</div></div></div><div style="margin-top:8px;"><div class="merged-filter-row" style="margin-bottom:8px;"><input id="extraTeaSearch" placeholder="🔍 Search..." style="flex:2; margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;"><select id="extraTeaFilterBeverage" style="flex:1; margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;"><option value="">All Beverages</option>${(typeof CONTRACTOR_BEVERAGES !== 'undefined' ? CONTRACTOR_BEVERAGES : []).concat(typeof DAU_PURCHASE_BEVERAGES !== 'undefined' ? DAU_PURCHASE_BEVERAGES : []).filter((v,i,a)=>a.indexOf(v)===i).map(b => `<option value="${b}">${b}</option>`).join('')}</select></div><div id="extraTeaMyRecordsList" class="extra-tea-table-wrap" style="max-height:400px;"></div><button id="exportExtraTeaExcelBtn" class="toolbar-btn success" style="width:100%; margin-top:8px; padding:12px; border-radius:8px; font-weight:700;">📊 Download My Extra Tea Excel</button></div></div>`;
+                document.getElementById('addExtraTeaBtn').onclick = () => window.openExtraTeaForm(null); document.getElementById('extraTeaSearch')?.addEventListener('input', window.renderExtraTeaMyRecords); document.getElementById('extraTeaFilterBeverage')?.addEventListener('change', window.renderExtraTeaMyRecords); document.getElementById('exportExtraTeaExcelBtn').onclick = () => window.exportExtraTeaExcel(true); window.renderExtraTeaMyRecords();
+            }
+            window.renderExtraTeaMyRecords = function() {
+                const container = document.getElementById('extraTeaMyRecordsList'); if (!container) return; const search = document.getElementById('extraTeaSearch')?.value.toLowerCase().trim() || ''; const filterBev = document.getElementById('extraTeaFilterBeverage')?.value || ''; let records = extraTeaRecords.filter(r => r.pantryId === currentUser.id); if (search) records = records.filter(r => (r.employeeName || '').toLowerCase().includes(search) || (r.reason || '').toLowerCase().includes(search)); if (filterBev) records = records.filter(r => (r.beverage || '') === filterBev); if (!records.length) { container.innerHTML = `<p style="padding:20px; text-align:center; color:#64748B;">No extra tea records found.</p>`; return; } let html = `<table class="extra-tea-table"><thead><tr><th>#</th><th>Date</th><th>Time</th><th>Employee</th><th>Supply</th><th>Beverage</th><th>Qty</th><th>Reason</th><th>Actions</th></tr></thead><tbody>`; records.forEach((r, idx) => { html += `<tr><td>${idx+1}</td><td>${safeStr(r.date)}</td><td>${safeStr(r.time)}</td><td>${safeStr(r.employeeName)}</td><td><span style="font-size:.7rem; padding:2px 6px; border-radius:4px; background:${r.supplySource==='DAU Direct Purchase' ? '#ECFDF5' : '#EFF6FF'}; color:${r.supplySource==='DAU Direct Purchase' ? '#059669' : '#0A56D0'}; font-weight:600;">${safeStr(r.supplySource||'Contractor')}</span></td><td><strong>${safeStr(r.beverage)}</strong></td><td>${r.qty||1}</td><td>${safeStr(r.reason)}</td><td><button class="edit-btn" onclick="window.openExtraTeaForm(extraTeaRecords.find(e=>e.id==='${r.id}'))">✏️</button> <button class="del-btn" onclick="window.deleteExtraTeaRecord('${r.id}')">🗑</button></td></tr>`; }); html += '</tbody></table>'; container.innerHTML = html;
+            }
+            window.renderExtraTeaAdminView = function() {
+                const cont = document.getElementById('adminContent'); if (!cont) return; const totalRecords = extraTeaRecords.length; let totalQty = 0; extraTeaRecords.forEach(r => { totalQty += (r.qty||1); }); const pantryBoys = [...new Set(extraTeaRecords.map(r=>r.pantryId))]; cont.innerHTML = `<div class="card" style="padding:16px; border:2px solid #0A56D0; background:#F8FAFC; margin-bottom:12px;"><h4 style="color:#0A56D0; margin:0 0 12px 0; font-size:1rem;">☕ Extra Tea Records - Admin Dashboard</h4><div class="android-metric-grid" style="grid-template-columns:1fr 1fr 1fr;"><div class="android-metric-card"><div class="label">📋 Total Records</div><div class="value">${totalRecords}</div></div><div class="android-metric-card"><div class="label">🥤 Total Cups</div><div class="value">${totalQty}</div></div><div class="android-metric-card"><div class="label">🧑‍🍳 Pantry Boys</div><div class="value">${pantryBoys.length}</div></div></div><button id="exportExtraTeaAdminExcelBtn" class="toolbar-btn success" style="width:100%; margin-top:8px; padding:12px; border-radius:8px; font-weight:700;">📊 Download All Extra Tea Excel</button></div><div id="extraTeaAdminRecordsList" class="extra-tea-table-wrap" style="max-height:500px;"></div>`;
+                document.getElementById('exportExtraTeaAdminExcelBtn').onclick = () => window.exportExtraTeaExcel(false); window.renderExtraTeaAdminRecords();
+            }
+            window.renderExtraTeaAdminRecords = function() {
+                const container = document.getElementById('extraTeaAdminRecordsList'); if (!container) return; let records = [...extraTeaRecords]; if (!records.length) { container.innerHTML = `<p style="padding:20px; text-align:center; color:#64748B;">No extra tea records found.</p>`; return; } let html = `<table class="extra-tea-table"><thead><tr><th>#</th><th>Date</th><th>Time</th><th>Employee</th><th>Supply</th><th>Beverage</th><th>Qty</th><th>Pantry Boy</th><th>Actions</th></tr></thead><tbody>`; records.forEach((r,idx)=>{ html+=`<tr><td>${idx+1}</td><td>${safeStr(r.date)}</td><td>${safeStr(r.time)}</td><td>${safeStr(r.employeeName)}</td><td>${safeStr(r.supplySource||'Contractor')}</td><td><strong>${safeStr(r.beverage)}</strong></td><td>${r.qty||1}</td><td>${safeStr(r.pantryName)}</td><td><button class="edit-btn" onclick="window.openExtraTeaForm(extraTeaRecords.find(e=>e.id==='${r.id}'))">✏️</button> <button class="del-btn" onclick="window.deleteExtraTeaRecord('${r.id}')">🗑</button></td></tr>`; }); html+='</tbody></table>'; container.innerHTML=html;
+            }
+            window.exportExtraTeaExcel = function(onlyMyRecords=true) {
+                let records = onlyMyRecords ? extraTeaRecords.filter(r=>r.pantryId===currentUser.id) : [...extraTeaRecords]; if (!records.length) return appAlert('No Data','No extra tea records to export.'); const wb = XLSX.utils.book_new(); const data = [['#','Date','Time','Employee','Supply Source','Beverage','Qty','Reason','Pantry Boy']]; records.forEach((r,idx)=>{ data.push([idx+1,r.date||'',r.time||'',r.employeeName||'',r.supplySource||'',r.beverage||'',r.qty||1,r.reason||'',r.pantryName||'']); }); const ws = XLSX.utils.aoa_to_sheet(data); XLSX.utils.book_append_sheet(wb, ws, 'Extra Tea Records'); const fileName = onlyMyRecords ? `Extra_Tea_Records_${currentUser.name}_${new Date().toISOString().slice(0,10)}.xlsx` : `All_Extra_Tea_Records_${new Date().toISOString().slice(0,10)}.xlsx`; window.pantryDownloadExcelFile(wb, fileName); appAlert('Downloaded', fileName+' downloaded!');
+            }
+            window.renderTodaysExtraTeaReport = function() {
+                const cont = document.getElementById('adminContent'); if (!cont) return; const todayDMY = getTodayInDMY(); const todayRecords = extraTeaRecords.filter(r=>r.date===todayDMY); let totalQty=0; todayRecords.forEach(r=>totalQty+=(r.qty||1)); cont.innerHTML = `<div class="card" style="padding:16px; border:2px solid #D97706; background:#FFFBEB;"><h4 style="color:#D97706; margin:0 0 12px 0;">📊 Today's Extra Tea Report - ${todayDMY}</h4><p>Total: ${todayRecords.length} records, ${totalQty} cups</p><div id="todayExtraTeaList"></div></div>`; const listContainer = document.getElementById('todayExtraTeaList'); if (!todayRecords.length) { listContainer.innerHTML='<p>No records for today.</p>'; return; } let html='<table class="extra-tea-table"><thead><tr><th>#</th><th>Time</th><th>Employee</th><th>Supply</th><th>Beverage</th><th>Qty</th><th>Pantry Boy</th></tr></thead><tbody>'; todayRecords.forEach((r,idx)=>{ html+=`<tr><td>${idx+1}</td><td>${safeStr(r.time)}</td><td>${safeStr(r.employeeName)}</td><td>${safeStr(r.supplySource||'Contractor')}</td><td>${safeStr(r.beverage)}</td><td>${r.qty||1}</td><td>${safeStr(r.pantryName)}</td></tr>`; }); html+='</tbody></table>'; listContainer.innerHTML=html;
             }
 
-            function renderExtraTeaMyRecords() {
-                const container = document.getElementById('extraTeaMyRecordsList');
-                if (!container) return;
-
-                const search = document.getElementById('extraTeaSearch')?.value.toLowerCase().trim() || '';
-                const filterBev = document.getElementById('extraTeaFilterBeverage')?.value || '';
-
-                let records = extraTeaRecords.filter(r => r.pantryId === currentUser.id);
-
-                if (search) {
-                    records = records.filter(r =>
-                        (r.employeeName || '').toLowerCase().includes(search) ||
-                        (r.reason || '').toLowerCase().includes(search) ||
-                        (r.remarks || '').toLowerCase().includes(search)
-                    );
-                }
-                if (filterBev) {
-                    records = records.filter(r => (r.beverage || '') === filterBev);
-                }
-
-                if (!records.length) {
-                    container.innerHTML = `<p style="padding:20px; text-align:center; color:#64748B;">No extra tea records found.</p>`;
-                    return;
-                }
-
-                let html = `<table class="extra-tea-table"><thead>
-              <tr>
-                <th>#</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Employee</th>
-                <th>Dept</th>
-                <th>Beverage</th>
-                <th>Qty</th>
-                <th>Reason</th>
-                <th style="min-width:100px;">Actions</th>
-              </tr>
-            </thead><tbody>`;
-
-                records.forEach((r, idx) => {
-                    html += `<tr>
-                <td>${idx + 1}</td>
-                <td>${safeStr(r.date)}</td>
-                <td>${safeStr(r.time)}</td>
-                <td>${safeStr(r.employeeName)}</td>
-                <td>${safeStr(r.department)}</td>
-                <td><strong>${safeStr(r.beverage)}</strong></td>
-                <td>${r.qty || 1}</td>
-                <td>${safeStr(r.reason)}</td>
-                <td>
-                  <div class="action-cell">
-                    <button class="edit-btn" onclick="openExtraTeaForm(extraTeaRecords.find(e => e.id === '${r.id}'))">✏️</button>
-                    <button class="del-btn" onclick="deleteExtraTeaRecord('${r.id}')">🗑</button>
-                  </div>
-                </td>
-              </tr>`;
-                });
-
-                html += '</tbody></table>';
-                container.innerHTML = html;
-            }
-
-            // ============================================================
-            //  EXTRA TEA ADMIN VIEW
-            // ============================================================
-            function renderExtraTeaAdminView() {
-                const cont = document.getElementById('adminContent');
-                if (!cont) return;
-
-                const totalRecords = extraTeaRecords.length;
-                let totalQty = 0;
-                const beverageCounts = {};
-                extraTeaRecords.forEach(r => {
-                    totalQty += (r.qty || 1);
-                    const b = r.beverage || 'Unknown';
-                    beverageCounts[b] = (beverageCounts[b] || 0) + (r.qty || 1);
-                });
-
-                const pantryBoys = [...new Set(extraTeaRecords.map(r => r.pantryId))];
-                const depts = [...new Set(extraTeaRecords.map(r => r.department).filter(Boolean))];
-
-                cont.innerHTML = `
-              <div class="card" style="padding:16px; border:2px solid #0A56D0; background:#F8FAFC; margin-bottom:12px;">
-                <h4 style="color:#0A56D0; margin:0 0 12px 0; font-size:1rem;">☕ Extra Tea Records - Admin Dashboard</h4>
-                <div class="android-metric-grid" style="grid-template-columns:1fr 1fr 1fr 1fr;">
-                  <div class="android-metric-card"><div class="label">📋 Total Records</div><div class="value">${totalRecords}</div></div>
-                  <div class="android-metric-card"><div class="label">🥤 Total Cups</div><div class="value">${totalQty}</div></div>
-                  <div class="android-metric-card"><div class="label">🧑‍🍳 Pantry Boys</div><div class="value">${pantryBoys.length}</div></div>
-                  <div class="android-metric-card"><div class="label">🏢 Departments</div><div class="value">${depts.length}</div></div>
-                </div>
-                <button id="exportExtraTeaAdminExcelBtn" class="toolbar-btn success" style="width:100%; margin-top:8px; padding:12px; border-radius:8px; font-weight:700;">📊 Download All Extra Tea Excel</button>
-              </div>
-              <div style="margin-top:8px;">
-                <div class="merged-filter-row" style="margin-bottom:8px;">
-                  <input id="extraTeaAdminSearch" placeholder="🔍 Search by employee, reason, pantry..." style="flex:2; margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;">
-                  <select id="extraTeaAdminFilterPantry" style="flex:1; margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;">
-                    <option value="">All Pantry Boys</option>
-                    ${pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
-                  </select>
-                  <select id="extraTeaAdminFilterBeverage" style="flex:1; margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;">
-                    <option value="">All Beverages</option>
-                    ${EXTRA_BEVERAGE_OPTIONS.map(b => `<option value="${b}">${b}</option>`).join('')}
-                  </select>
-                </div>
-                <div id="extraTeaAdminRecordsList" class="extra-tea-table-wrap" style="max-height:500px;"></div>
-              </div>
-            `;
-
-                document.getElementById('extraTeaAdminSearch').addEventListener('input', renderExtraTeaAdminRecords);
-                document.getElementById('extraTeaAdminFilterPantry').addEventListener('change', renderExtraTeaAdminRecords);
-                document.getElementById('extraTeaAdminFilterBeverage').addEventListener('change', renderExtraTeaAdminRecords);
-                document.getElementById('exportExtraTeaAdminExcelBtn').onclick = () => exportExtraTeaExcel(false);
-
-                renderExtraTeaAdminRecords();
-            }
-
-            function renderExtraTeaAdminRecords() {
-                const container = document.getElementById('extraTeaAdminRecordsList');
-                if (!container) return;
-
-                const search = document.getElementById('extraTeaAdminSearch')?.value.toLowerCase().trim() || '';
-                const filterPantry = document.getElementById('extraTeaAdminFilterPantry')?.value || '';
-                const filterBev = document.getElementById('extraTeaAdminFilterBeverage')?.value || '';
-
-                let records = [...extraTeaRecords];
-
-                if (search) {
-                    records = records.filter(r =>
-                        (r.employeeName || '').toLowerCase().includes(search) ||
-                        (r.reason || '').toLowerCase().includes(search) ||
-                        (r.remarks || '').toLowerCase().includes(search) ||
-                        (r.pantryName || '').toLowerCase().includes(search)
-                    );
-                }
-                if (filterPantry) {
-                    records = records.filter(r => r.pantryId === filterPantry);
-                }
-                if (filterBev) {
-                    records = records.filter(r => (r.beverage || '') === filterBev);
-                }
-
-                if (!records.length) {
-                    container.innerHTML = `<p style="padding:20px; text-align:center; color:#64748B;">No extra tea records found.</p>`;
-                    return;
-                }
-
-                let html = `<table class="extra-tea-table"><thead>
-              <tr>
-                <th>#</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Employee</th>
-                <th>Dept</th>
-                <th>Category</th>
-                <th>Beverage</th>
-                <th>Qty</th>
-                <th>Reason</th>
-                <th>Pantry Boy</th>
-                <th style="min-width:100px;">Actions</th>
-              </tr>
-            </thead><tbody>`;
-
-                records.forEach((r, idx) => {
-                    html += `<tr>
-                <td>${idx + 1}</td>
-                <td>${safeStr(r.date)}</td>
-                <td>${safeStr(r.time)}</td>
-                <td>${safeStr(r.employeeName)}</td>
-                <td>${safeStr(r.department)}</td>
-                <td>${safeStr(r.category)}</td>
-                <td><strong>${safeStr(r.beverage)}</strong></td>
-                <td>${r.qty || 1}</td>
-                <td>${safeStr(r.reason)}</td>
-                <td>${safeStr(r.pantryName)}</td>
-                <td>
-                  <div class="action-cell">
-                    <button class="edit-btn" onclick="openExtraTeaForm(extraTeaRecords.find(e => e.id === '${r.id}'))">✏️</button>
-                    <button class="del-btn" onclick="deleteExtraTeaRecord('${r.id}')">🗑</button>
-                  </div>
-                </td>
-              </tr>`;
-                });
-
-                html += '</tbody></table>';
-                container.innerHTML = html;
-            }
-
-            // ============================================================
-            //  EXTRA TEA EXCEL EXPORT
-            // ============================================================
-            function exportExtraTeaExcel(onlyMyRecords = true) {
-                let records = onlyMyRecords ?
-                    extraTeaRecords.filter(r => r.pantryId === currentUser.id) :
-                    [...extraTeaRecords];
-
-                if (!records.length) {
-                    return appAlert('No Data', 'No extra tea records to export.');
-                }
-
-                const wb = XLSX.utils.book_new();
-
-                const data = [
-                    ['#', 'Date', 'Time', 'Employee', 'Department', 'Category', 'Beverage', 'Qty', 'Reason', 'Remarks', 'Pantry Boy', 'Recorded At']
-                ];
-                records.forEach((r, idx) => {
-                    data.push([
-                        idx + 1,
-                        r.date || '',
-                        r.time || '',
-                        r.employeeName || '',
-                        r.department || '',
-                        r.category || '',
-                        r.beverage || '',
-                        r.qty || 1,
-                        r.reason || '',
-                        r.remarks || '',
-                        r.pantryName || '',
-                        new Date(r.timestamp || Date.now()).toLocaleString()
-                    ]);
-                });
-
-                const ws = XLSX.utils.aoa_to_sheet(data);
-                ws['!cols'] = [
-                    { wch: 5 }, { wch: 14 }, { wch: 10 }, { wch: 22 },
-                    { wch: 16 }, { wch: 14 }, { wch: 14 }, { wch: 8 },
-                    { wch: 20 }, { wch: 20 }, { wch: 16 }, { wch: 20 }
-                ];
-                XLSX.utils.book_append_sheet(wb, ws, 'Extra Tea Records');
-
-                const dailyTotals = {};
-                records.forEach(r => {
-                    const date = r.date || 'Unknown';
-                    dailyTotals[date] = (dailyTotals[date] || 0) + (r.qty || 1);
-                });
-                const dailyData = [
-                    ['Daily Total Summary'],
-                    ['Date', 'Total Cups']
-                ];
-                Object.entries(dailyTotals).sort((a, b) => a[0].localeCompare(b[0])).forEach(([date, total]) => {
-                    dailyData.push([date, total]);
-                });
-                const dailyWs = XLSX.utils.aoa_to_sheet(dailyData);
-                dailyWs['!cols'] = [{ wch: 16 }, { wch: 12 }];
-                XLSX.utils.book_append_sheet(wb, dailyWs, 'Daily Total');
-
-                const monthlyTotals = {};
-                records.forEach(r => {
-                    if (r.date) {
-                        const parts = r.date.split('/');
-                        if (parts.length === 3) {
-                            const monthKey = `${parts[2]}-${parts[1]}`;
-                            monthlyTotals[monthKey] = (monthlyTotals[monthKey] || 0) + (r.qty || 1);
-                        }
-                    }
-                });
-                const monthlyData = [
-                    ['Monthly Total Summary'],
-                    ['Month', 'Total Cups']
-                ];
-                Object.entries(monthlyTotals).sort().forEach(([month, total]) => {
-                    monthlyData.push([month, total]);
-                });
-                const monthlyWs = XLSX.utils.aoa_to_sheet(monthlyData);
-                monthlyWs['!cols'] = [{ wch: 16 }, { wch: 12 }];
-                XLSX.utils.book_append_sheet(wb, monthlyWs, 'Monthly Total');
-
-                const pantryTotals = {};
-                records.forEach(r => {
-                    const name = r.pantryName || 'Unknown';
-                    pantryTotals[name] = (pantryTotals[name] || 0) + (r.qty || 1);
-                });
-                const pantryData = [
-                    ['Pantry Boy Wise Summary'],
-                    ['Pantry Boy', 'Total Cups']
-                ];
-                Object.entries(pantryTotals).sort((a, b) => b[1] - a[1]).forEach(([name, total]) => {
-                    pantryData.push([name, total]);
-                });
-                const pantryWs = XLSX.utils.aoa_to_sheet(pantryData);
-                pantryWs['!cols'] = [{ wch: 20 }, { wch: 12 }];
-                XLSX.utils.book_append_sheet(wb, pantryWs, 'Pantry Wise');
-
-                const deptTotals = {};
-                records.forEach(r => {
-                    const dept = r.department || 'Unknown';
-                    deptTotals[dept] = (deptTotals[dept] || 0) + (r.qty || 1);
-                });
-                const deptData = [
-                    ['Department Wise Summary'],
-                    ['Department', 'Total Cups']
-                ];
-                Object.entries(deptTotals).sort((a, b) => b[1] - a[1]).forEach(([dept, total]) => {
-                    deptData.push([dept, total]);
-                });
-                const deptWs = XLSX.utils.aoa_to_sheet(deptData);
-                deptWs['!cols'] = [{ wch: 20 }, { wch: 12 }];
-                XLSX.utils.book_append_sheet(wb, deptWs, 'Department Wise');
-
-                const fileName = onlyMyRecords ?
-                    `Extra_Tea_Records_${currentUser.name}_${new Date().toISOString().slice(0,10)}.xlsx` :
-                    `All_Extra_Tea_Records_${new Date().toISOString().slice(0,10)}.xlsx`;
-
-                window.pantryDownloadExcelFile(wb, fileName);
-                appAlert('Downloaded', `Excel file "${fileName}" downloaded successfully!`);
-            }
-
-            // ============================================================
-            //  TODAY'S EXTRA TEA REPORT (Admin)
-            // ============================================================
-            function renderTodaysExtraTeaReport() {
-                const cont = document.getElementById('adminContent');
-                if (!cont) return;
-
-                const todayDMY = getTodayInDMY();
-                const todayRecords = extraTeaRecords.filter(r => r.date === todayDMY);
-
-                let totalQty = 0;
-                const beverageCounts = {};
-                todayRecords.forEach(r => {
-                    totalQty += (r.qty || 1);
-                    const b = r.beverage || 'Unknown';
-                    beverageCounts[b] = (beverageCounts[b] || 0) + (r.qty || 1);
-                });
-
-                cont.innerHTML = `
-              <div class="card" style="padding:16px; border:2px solid #D97706; background:#FFFBEB; margin-bottom:12px;">
-                <h4 style="color:#D97706; margin:0 0 12px 0; font-size:1rem;">📊 Today's Extra Tea Report - ${todayDMY}</h4>
-                <div class="android-metric-grid" style="grid-template-columns:1fr 1fr 1fr;">
-                  <div class="android-metric-card"><div class="label">📋 Total Records</div><div class="value">${todayRecords.length}</div></div>
-                  <div class="android-metric-card"><div class="label">🥤 Total Cups</div><div class="value">${totalQty}</div></div>
-                  <div class="android-metric-card"><div class="label">🍵 Top Beverage</div><div class="value">${Object.keys(beverageCounts).length ? Object.keys(beverageCounts).reduce((a,b) => beverageCounts[a] > beverageCounts[b] ? a : b) : 'N/A'}</div></div>
-                </div>
-                <div style="margin-top:12px;">
-                  <div id="todayExtraTeaList" class="extra-tea-table-wrap" style="max-height:400px;"></div>
-                </div>
-              </div>
-            `;
-
-                const listContainer = document.getElementById('todayExtraTeaList');
-                if (!todayRecords.length) {
-                    listContainer.innerHTML = `<p style="padding:20px; text-align:center; color:#64748B;">No extra tea records for today.</p>`;
-                    return;
-                }
-
-                let html = `<table class="extra-tea-table"><thead>
-              <tr>
-                <th>#</th>
-                <th>Time</th>
-                <th>Employee</th>
-                <th>Dept</th>
-                <th>Beverage</th>
-                <th>Qty</th>
-                <th>Reason</th>
-                <th>Pantry Boy</th>
-              </tr>
-            </thead><tbody>`;
-
-                todayRecords.forEach((r, idx) => {
-                    html += `<tr>
-                <td>${idx + 1}</td>
-                <td>${safeStr(r.time)}</td>
-                <td>${safeStr(r.employeeName)}</td>
-                <td>${safeStr(r.department)}</td>
-                <td><strong>${safeStr(r.beverage)}</strong></td>
-                <td>${r.qty || 1}</td>
-                <td>${safeStr(r.reason)}</td>
-                <td>${safeStr(r.pantryName)}</td>
-              </tr>`;
-                });
-
-                html += '</tbody></table>';
-                listContainer.innerHTML = html;
-            }
 
             // ============================================================
             //  DELETE / RESTORE HANDLERS
@@ -3127,7 +2619,7 @@ window.pantryDownloadExcelFile = function(wb, filename) {
             };
 
             // ============================================================
-            //  MEETING / REFRESHMENT SECTION
+            //  MEETING / REFRESHMENT SECTION (MOBILE OPTIMIZED)
             // ============================================================
             let meetingSrCounter = 1;
 
@@ -3135,115 +2627,6 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                 const existing = eventLogsData.filter(ev => ev.date && parseDMYToYMD(ev.date).startsWith(monthStr));
                 return existing.length + 1;
             }
-
-            window.addMeetingItemRow = function(prefix) {
-                const container = document.getElementById(prefix + 'MeetingItemsContainer');
-                if (!container) return;
-                
-                const rowId = 'dl_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
-                const row = document.createElement('div');
-                row.className = 'dynamic-item-row';
-                row.style.cssText = "display:flex; flex-wrap:wrap; gap:8px; align-items:center; background:#F8FAFC; padding:10px; border-radius:10px; border:1px solid #E2E8F0; margin-bottom:8px;";
-                
-                const vendorOpts = canteenList.map(c => `<option value="${safeStr(c.name)}">${safeStr(c.name)}</option>`).join('');
-                const activePantryStaff = pantryTeam.filter(p => !p.onLeave);
-                const pantryOpts = activePantryStaff.map(p => `<option value="${safeStr(p.name)}">${safeStr(p.name)}</option>`).join('');
-                const todayYMD = new Date().toISOString().split('T')[0];
-                
-                row.innerHTML = `
-                <div style="flex:1; min-width:120px;">
-                    <label style="font-size:0.7rem; color:#64748B; font-weight:700;">Date</label>
-                    <input type="date" class="item-row-date" value="${todayYMD}" style="width:100%; padding:8px; font-size:.8rem; border-radius:6px; border:1px solid #CBD5E1;">
-                </div>
-                <div style="flex:1; min-width:120px;">
-                    <label style="font-size:0.7rem; color:#64748B; font-weight:700;">Vendor / Canteen</label>
-                    <select class="item-vendor" style="width:100%; padding:8px; font-size:.8rem; border-radius:6px; border:1px solid #CBD5E1;">
-                        <option value="">-- Vendor --</option>${vendorOpts}
-                    </select>
-                </div>
-                <div style="flex:1.5; min-width:150px;">
-                    <label style="font-size:0.7rem; color:#64748B; font-weight:700;">Item Name</label>
-                    <input type="text" list="${rowId}" class="item-name" placeholder="Item Name" style="width:100%; padding:8px; font-size:.8rem; border-radius:6px; border:1px solid #CBD5E1;">
-                    <datalist id="${rowId}"></datalist>
-                </div>
-                <div style="flex:0.6; min-width:60px;">
-                    <label style="font-size:0.7rem; color:#64748B; font-weight:700;">Qty</label>
-                    <input type="number" class="item-qty" placeholder="Qty" min="1" value="1" style="width:100%; padding:8px; font-size:.8rem; border-radius:6px; border:1px solid #CBD5E1;">
-                </div>
-                <div style="flex:0.8; min-width:80px;">
-                    <label style="font-size:0.7rem; color:#64748B; font-weight:700;">Rate (₹)</label>
-                    <input type="number" class="item-rate" placeholder="Rate" min="0" value="" style="width:100%; padding:8px; font-size:.8rem; border-radius:6px; border:1px solid #CBD5E1;">
-                </div>
-                <div style="flex:1.2; min-width:130px;">
-                    <label style="font-size:0.7rem; color:#64748B; font-weight:700;">Served By </label>
-                    <select class="item-served-by" style="width:100%; padding:8px; font-size:.8rem; border-radius:6px; border:1px solid #CBD5E1;">
-                        <option value="">-- Pantry Boy --</option>
-                        <option value="Direct Order (Canteen)">Direct Canteen</option>
-						<option value="Multiple Pantry Boy">Multi Staff</option>
-                        ${pantryOpts}
-                    </select>
-                </div>
-                <div style="display:flex; align-items:flex-end;">
-                    <button type="button" class="remove-item-btn" style="background:#DC3545; color:#fff; border:none; padding:8px 12px; border-radius:6px; font-size:1rem; cursor:pointer; margin-top:14px;" title="Remove Item">X</button>
-                </div>
-                `;
-                container.appendChild(row);
-                
-                row.querySelector('.remove-item-btn').onclick = () => { 
-                    row.remove(); 
-                    window.calcMeetingTotal(prefix); 
-                };
-                
-                row.querySelectorAll('input').forEach(i => i.addEventListener('input', () => window.calcMeetingTotal(prefix)));
-                
-                const vendorSelect = row.querySelector('.item-vendor');
-                const nameInput = row.querySelector('.item-name');
-                const rateInput = row.querySelector('.item-rate');
-                const dataList = row.querySelector('#' + rowId);
-
-                function checkAndFillRate() {
-                    const vName = vendorSelect.value;
-                    const iName = nameInput.value.trim().toLowerCase();
-                    if (vName && iName) {
-                        const items = vendorItemsCatalog[vName.toLowerCase()] || [];
-                        const match = items.find(it => it.name.toLowerCase() === iName);
-                        if (match) {
-                            rateInput.value = match.rate;
-                            window.calcMeetingTotal(prefix);
-                        }
-                    }
-                }
-
-                vendorSelect.addEventListener('change', function() {
-                    const vName = this.value;
-                    dataList.innerHTML = '';
-                    if (vName) {
-                        const items = vendorItemsCatalog[vName.toLowerCase()] || [];
-                        items.forEach(it => {
-                            const option = document.createElement('option');
-                            option.value = it.name;
-                            dataList.appendChild(option);
-                        });
-                    }
-                    checkAndFillRate();
-                });
-
-                nameInput.addEventListener('input', checkAndFillRate);
-                window.calcMeetingTotal(prefix);
-            };
-
-            window.calcMeetingTotal = function(prefix) {
-                const container = document.getElementById(prefix + 'MeetingItemsContainer');
-                const display = document.getElementById(prefix + 'MeetingCalcDisplay');
-                if (!container || !display) return;
-                let total = 0;
-                container.querySelectorAll('.dynamic-item-row').forEach(row => {
-                    const q = Number(row.querySelector('.item-qty').value) || 0;
-                    const r = parseFloat(row.querySelector('.item-rate').value) || 0;
-                    total += q * r;
-                });
-                display.innerText = "₹ " + total.toFixed(2);
-            };
 
             window.renderMeetingRefreshmentSection = function(containerId, prefix) {
                 const target = document.getElementById(containerId);
@@ -3254,140 +2637,71 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                 const srNo = getMeetingSrForMonth(monthStr);
                 meetingSrCounter = srNo;
 
-                const activePantryStaff = pantryTeam.filter(p => !p.onLeave);
-                const dynamicPantryOpts = activePantryStaff.map(p => `<option value="${safeStr(p.name)}">${safeStr(p.name)}</option>`).join('');
-
                 target.innerHTML = `
-              <div class="card" style="border-top:4px solid #0A56D0; flex-shrink:0;">
-                <h3 style="color:#0A56D0; margin:0 0 16px 0; font-size:1.15rem; text-align:center;">🎪 Multi-Day / Multi-Item Meeting</h3>
+              <div class="card" style="border-top:4px solid #0A56D0; flex-shrink:0; padding: 12px;">
+                <h3 style="color:#0A56D0; margin:0 0 16px 0; font-size:1.15rem; text-align:center;">🎪 Meeting Entry</h3>
                 
+                <div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
+                    <button type="button" onclick="window.downloadMeetingSampleTemplate()" class="btn" style="flex:1; background:#0A56D0; font-size:0.8rem; min-height:38px;">📥 Format</button>
+                    <label class="btn success" style="flex:1; font-size:0.8rem; min-height:38px; cursor:pointer; text-align:center; display:inline-flex; align-items:center; justify-content:center;">
+                        📤 Import
+                        <input type="file" accept=".xlsx, .xls" onchange="window.importMeetingExcelFile(event)" style="display:none;">
+                    </label>
+                </div>
+
                 <div class="meeting-row" style="background:#F1F5F9; padding:12px; border-radius:10px; margin-bottom:16px; border:1px solid #CBD5E1;">
-                  <div style="flex:1; min-width:200px;">
-                    <label>👤 Organizer / Requested By</label>
+                  <div style="flex:1; width:100%; margin-bottom:10px;">
+                    <label style="font-size:12px; font-weight:bold; color:#475569;">👤 Organizer / Requested By</label>
                     <div class="autocomplete-wrap">
-                      <input type="text" id="${prefix}MeetingOrderedBy" placeholder="Dept or Person Name..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1;">
+                      <input type="text" id="${prefix}MeetingOrderedBy" placeholder="Dept or Person Name..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; font-size:13px;">
                       <div class="autocomplete-dropdown" id="ac_${prefix}MeetingOrderedBy"></div>
                     </div>
                   </div>
-                  <div style="flex:2; min-width:200px;">
-                    <label>📝 Meeting Purpose / Event Name</label>
-                    <input type="text" id="${prefix}MeetingPurpose" placeholder="E.g. NAAC Peer Team Visit, Audit Meeting..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1;">
-                  </div>
-                  <div style="flex:0.5; min-width:80px;">
-                    <label>🔢 Sr. No.</label>
-                    <div class="meeting-sr-box" id="${prefix}MeetingSrDisplay" style="min-height:40px; padding:10px;">${srNo}</div>
+                  <div style="flex:1; width:100%;">
+                    <label style="font-size:12px; font-weight:bold; color:#475569;">📝 Meeting Purpose / Event Name</label>
+                    <input type="text" id="${prefix}MeetingPurpose" placeholder="E.g. Audit Meeting..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; font-size:13px;">
                   </div>
                 </div>
 
-                <div class="sub-section-title" style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
-                    <span>📋 Add Refreshment Items</span>
-                    <button type="button" onclick="window.addMeetingItemRow('${prefix}')" class="success sm" style="border-radius:100px; padding:6px 14px;">➕ Add Item</button>
-                </div>
+                <div class="sub-section-title" style="margin-top:10px;">📋 Refreshment Items</div>
                 
                 <div id="${prefix}MeetingItemsContainer" style="margin-top:10px;"></div>
                 
-                <div class="card" style="background:#EFF6FF; margin-top:12px; padding:14px; text-align:center; border:2px dashed #0A56D0; box-shadow:none;">
+                <button type="button" onclick="window.addMeetingItemRow('${prefix}', false)" class="btn-add-blank">➕ Add New Blank Row</button>
+                <button type="button" onclick="window.addMeetingItemRow('${prefix}', true)" class="btn-add-same">🔄 Add Row (Same Header Details)</button>
+                
+                <div class="card" style="background:#EFF6FF; margin-top:16px; padding:14px; text-align:center; border:2px dashed #0A56D0; box-shadow:none;">
                   <span style="font-size:.9rem; color:#1E3A8A; font-weight:700;">Grand Total Amount:</span>
                   <div id="${prefix}MeetingCalcDisplay" style="font-size:1.6rem; font-weight:800; color:#0A56D0;">₹ 0.00</div>
                 </div>
 
-                <!-- Live Meeting Documents Checklist Tracker -->
                 <div class="card" style="background:#FFFBEB; border:1px solid #FCD34D; padding:12px; margin-top:12px;">
-                    <h5 style="color:#D97706; margin:0 0 8px 0; font-size:0.85rem; font-weight:700;">📋 Meeting Document Checklist</h5>
-                    <div style="display:flex; flex-direction:column; gap:6px; text-align:left;">
-                        <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; font-weight:500; color:#1F2937; margin:0; cursor:pointer;">
-                            <input type="checkbox" id="${prefix}CheckGuestSlipCreated" style="width:16px; height:16px; accent-color:#D97706;"> Guest Slip Created?
-                        </label>
-                        <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; font-weight:500; color:#1F2937; margin:0; cursor:pointer;">
-                            <input type="checkbox" id="${prefix}CheckGuestSlipSigned" style="width:16px; height:16px; accent-color:#D97706;"> Guest Slip Signed?
-                        </label>
-                        <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; font-weight:500; color:#1F2937; margin:0; cursor:pointer;">
-                            <input type="checkbox" id="${prefix}CheckGuestSlipReturned" style="width:16px; height:16px; accent-color:#D97706;"> Guest Slip Returned to Vendor?
-                        </label>
+                    <h5 style="color:#D97706; margin:0 0 10px 0; font-size:0.85rem; font-weight:700;">📋 Guest Slip Status</h5>
+                    <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:space-between; font-size:12px;">
+                        <label style="display:flex; align-items:center; gap:4px; font-weight:600;"><input type="checkbox" id="${prefix}CheckGuestSlipCreated_Yes" style="width:16px; height:16px;"> Created</label>
+                        <label style="display:flex; align-items:center; gap:4px; font-weight:600;"><input type="checkbox" id="${prefix}CheckGuestSlipSigned_Yes" style="width:16px; height:16px;"> Signed</label>
+                        <label style="display:flex; align-items:center; gap:4px; font-weight:600;"><input type="checkbox" id="${prefix}CheckGuestSlipReturned_Yes" style="width:16px; height:16px;"> Returned</label>
                     </div>
                 </div>
                 
                 <div style="margin-top:12px; background:#F8FAFC; padding:10px; border-radius:8px; border:1px solid #E2E8F0; display:flex; align-items:center; gap:8px;">
                   <input type="checkbox" id="${prefix}ShowNotification" style="width:18px; height:18px; accent-color:#0A56D0;">
-                  <label for="${prefix}ShowNotification" style="font-size:.85rem; font-weight:700; color:#44474E; margin:0; cursor:pointer;">📢 Show Notification on Pantry Dashboard</label>
+                  <label for="${prefix}ShowNotification" style="font-size:.85rem; font-weight:700; color:#44474E; margin:0; cursor:pointer;">📢 Show Notification on Dashboard</label>
                 </div>
-                <button type="button" id="${prefix}MeetingSubmitBtn" class="success" style="width:100%; padding:16px; margin-top:12px; border-radius:12px; font-weight:800; font-size:1.1rem; box-shadow:0 4px 12px rgba(20,108,67,0.3);">📌 SAVE MEETING & REFRESHMENTS</button>
+
+                <button type="button" id="${prefix}MeetingSubmitBtn" class="btn-submit">💾 SAVE ALL ENTRIES</button>
               </div>
+              
               <div style="display:flex; justify-content:space-between; align-items:center; margin:16px 0 8px 4px;">
                 <h4 style="color:#1E293B; font-size:.95rem; font-weight:700; margin:0;">🏛️ Past Archives</h4>
               </div>
-              <button onclick="window.openEventHistoryModal()" class="btn" style="width:100%; margin-top:10px; background:#1E293B;">📊 Open Event History Stream</button>
+              <button onclick="window.openEventHistoryModal()" class="btn" style="width:100%; background:#1E293B;">📊 Open Event History</button>
             `;
 
-                window.addMeetingItemRow = function(pref) {
-                    const container = document.getElementById(pref + 'MeetingItemsContainer');
-                    if (!container) return;
-                    const rowId = 'dl_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
-                    const locListId = 'loc_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
-                    const row = document.createElement('div');
-                    row.className = 'dynamic-item-row';
-                    row.style.cssText = "display:flex; flex-wrap:wrap; gap:6px; align-items:center; background:#F8FAFC; padding:8px; border-radius:10px; border:1px solid #E2E8F0; margin-bottom:8px;";
-                    
-                    const vendorOpts = canteenList.map(c => `<option value="${safeStr(c.name)}">${safeStr(c.name)}</option>`).join('');
-                    const pantryOpts = pantryTeam.filter(p => !p.onLeave).map(p => `<option value="${safeStr(p.name)}">${safeStr(p.name)}</option>`).join('');
-                    const todayYMD = new Date().toISOString().split('T')[0];
-                    
-                    row.innerHTML = `
-                    <div style="flex:1; min-width:95px;"><label style="font-size:0.65rem; color:#64748B; font-weight:700;">Date</label><input type="date" class="item-row-date" value="${todayYMD}" style="width:100%; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;"></div>
-                    <div style="flex:1; min-width:110px;"><label style="font-size:0.65rem; color:#64748B; font-weight:700;">Location Venue</label><input type="text" list="${locListId}" class="item-row-location" placeholder="Search/Type Venue" style="width:100%; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;"><datalist id="${locListId}">${venueList.map(v => `<option value="${safeStr(v.name)}">`).join('')}</datalist></div>
-                    <div style="flex:1; min-width:110px;"><label style="font-size:0.65rem; color:#64748B; font-weight:700;">Vendor</label><select class="item-vendor" style="width:100%; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;"><option value="">-- Vendor --</option>${vendorOpts}</select></div>
-                    <div style="flex:1.4; min-width:130px;"><label style="font-size:0.65rem; color:#64748B; font-weight:700;">Item Name</label><input type="text" list="${rowId}" class="item-name" placeholder="Item Name" style="width:100%; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;"><datalist id="${rowId}"></datalist></div>
-                    <div style="flex:0.5; min-width:50px;"><label style="font-size:0.65rem; color:#64748B; font-weight:700;">Qty</label><input type="number" class="item-qty" placeholder="Qty" min="1" value="1" style="width:100%; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;"></div>
-                    <div style="flex:0.6; min-width:60px;"><label style="font-size:0.65rem; color:#64748B; font-weight:700;">Rate</label><input type="number" class="item-rate" placeholder="₹ Rate" min="0" value="" style="width:100%; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;"></div>
-                    <div style="flex:1.1; min-width:120px;"><label style="font-size:0.65rem; color:#64748B; font-weight:700;">Served By</label><select class="item-served-by" style="width:100%; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;"><option value="">-- Pantry Boy --</option><option value="Direct Order (Canteen)">Direct Canteen</option>${pantryOpts}</select></div>
-                    <div style="display:flex; align-items:flex-end;"><button type="button" class="remove-item-btn" style="background:#DC3545; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-size:0.8rem; cursor:pointer; margin-top:14px;">X</button></div>
-                    `;
-                    container.appendChild(row);
-                    row.querySelector('.remove-item-btn').onclick = () => { row.remove(); window.calcMeetingTotal(pref); };
-                    row.querySelectorAll('input, select').forEach(i => i.addEventListener('input', () => window.calcMeetingTotal(pref)));
-                    
-                    const vendorSelect = row.querySelector('.item-vendor');
-                    const nameInput = row.querySelector('.item-name');
-                    const rateInput = row.querySelector('.item-rate');
-                    const dataList = row.querySelector('#' + rowId);
+                // Add first initial row
+                window.addMeetingItemRow(prefix, false);
 
-                    function checkAndFillRate() {
-                        const vName = vendorSelect.value;
-                        const iName = nameInput.value.trim().toLowerCase();
-                        if (vName && iName) {
-                            const items = vendorItemsCatalog[vName.toLowerCase()] || [];
-                            const match = items.find(it => it.name.toLowerCase() === iName);
-                            if (match) { rateInput.value = match.rate; window.calcMeetingTotal(pref); }
-                        }
-                    }
-                    vendorSelect.addEventListener('change', function() {
-                        const vName = this.value; dataList.innerHTML = '';
-                        if (vName) {
-                            const items = vendorItemsCatalog[vName.toLowerCase()] || [];
-                            items.forEach(it => { 
-                                const op = document.createElement('option'); 
-                                op.value = it.name; 
-                                dataList.appendChild(op); 
-                            });
-                        }
-                        checkAndFillRate();
-                    });
-                    nameInput.addEventListener('input', checkAndFillRate);
-                    window.calcMeetingTotal(pref);
-                };
-
-                window.addMeetingItemRow(prefix);
-
-                const dateInput = document.getElementById(prefix + 'MeetingDate');
-                const dayDisplay = document.getElementById(prefix + 'MeetingDayDisplay');
-
-                if (dateInput && dayDisplay) {
-                    dateInput.addEventListener('change', function() {
-                        const ymd = this.value;
-                        if (ymd) { dayDisplay.textContent = getDayOfWeek(convertYMDtoDMY(ymd)); } else { dayDisplay.textContent = '—'; }
-                    });
-                }
-
+                // Autocomplete for Organizer
                 const orderedByInput = document.getElementById(prefix + 'MeetingOrderedBy');
                 const orderedByDropdown = document.getElementById('ac_' + prefix + 'MeetingOrderedBy');
 
@@ -3410,9 +2724,9 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                         if (item) { orderedByInput.value = item.dataset.name; orderedByDropdown.classList.remove('active'); }
                     });
                     orderedByInput.addEventListener('blur', () => { setTimeout(() => orderedByDropdown.classList.remove('active'), 250); });
-                    orderedByInput.addEventListener('focus', function() { if (this.value.length >= 2) this.dispatchEvent(new Event('input')); });
                 }
 
+                // Submit Logic
                 document.getElementById(prefix + 'MeetingSubmitBtn').onclick = function() {
                     const orderedBy = orderedByInput.value.trim();
                     const purpose = document.getElementById(prefix + 'MeetingPurpose').value.trim() || 'General Meeting';
@@ -3424,7 +2738,7 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                     const summary = [];
                     let hasError = false;
 
-                    container.querySelectorAll('.dynamic-item-row').forEach((row, index) => {
+                    container.querySelectorAll('.entry-card').forEach((row, index) => {
                         const dateVal = row.querySelector('.item-row-date').value;
                         const locationVal = row.querySelector('.item-row-location').value.trim();
                         const vendor = row.querySelector('.item-vendor').value.trim();
@@ -3434,10 +2748,10 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                         const servedBy = row.querySelector('.item-served-by').value.trim();
                         
                         if (iName && qty > 0) {
-                            if (!dateVal) { appAlert('Error', `Select Date for item ${index+1}`); hasError = true; }
-                            if (!locationVal) { appAlert('Error', `Enter Location Venue for item ${index+1}`); hasError = true; }
-                            if (!vendor) { appAlert('Error', `Select Vendor for item ${index+1}`); hasError = true; }
-                            if (!servedBy) { appAlert('Error', `Select Pantry Boy for item ${index+1}`); hasError = true; }
+                            if (!dateVal) { appAlert('Error', `Select Date for Card #${index+1}`); hasError = true; }
+                            if (!locationVal) { appAlert('Error', `Enter Location for Card #${index+1}`); hasError = true; }
+                            if (!vendor) { appAlert('Error', `Select Vendor for Card #${index+1}`); hasError = true; }
+                            if (!servedBy) { appAlert('Error', `Select Pantry Boy for Card #${index+1}`); hasError = true; }
                             
                             const finalRowDate = convertYMDtoDMY(dateVal);
                             const amt = qty * rate;
@@ -3450,7 +2764,7 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                             const vKey = vendor.toLowerCase().trim();
                             const currentCatalog = vendorItemsCatalog[vKey] || [];
                             if (!currentCatalog.some(it => it.name.toLowerCase() === iName.toLowerCase())) {
-                                currentCatalog.push({ name: iName, rate: iRate });
+                                currentCatalog.push({ name: iName, rate: rate });
                                 db.ref('vendorItems/' + vKey).set(currentCatalog);
                             }
 
@@ -3492,18 +2806,219 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                         pantryName: uniquePantryBoys,
                         refreshmentSummary: summary.join(', '),
                         showNotification: document.getElementById(prefix + 'ShowNotification').checked,
-                        guestSlipCreated: document.getElementById(prefix + 'CheckGuestSlipCreated').checked,
-                        guestSlipSigned: document.getElementById(prefix + 'CheckGuestSlipSigned').checked,
-                        guestSlipReturned: document.getElementById(prefix + 'CheckGuestSlipReturned').checked
+                        guestSlipCreated: document.getElementById(prefix + 'CheckGuestSlipCreated_Yes')?.checked || false,
+                        guestSlipSigned: document.getElementById(prefix + 'CheckGuestSlipSigned_Yes')?.checked || false,
+                        guestSlipReturned: document.getElementById(prefix + 'CheckGuestSlipReturned_Yes')?.checked || false
                     }).then(() => {
                         appAlert('Success', `Meeting saved successfully!`);
                         orderedByInput.value = '';
                         document.getElementById(prefix + 'MeetingPurpose').value = '';
                         container.innerHTML = '';
-                        window.addMeetingItemRow(prefix);
+                        window.addMeetingItemRow(prefix, false);
                         window.calcMeetingTotal(prefix);
                     });
                 };
+            };
+
+            // Reusable function to calculate amounts and days
+            window.updateRowVisuals = function(rowId, prefix) {
+                const row = document.getElementById(rowId);
+                if(!row) return;
+
+                // Update Day
+                const dateVal = row.querySelector('.item-row-date').value;
+                if(dateVal) {
+                    const d = new Date(dateVal);
+                    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                    row.querySelector('.item-row-day').value = !isNaN(d) ? days[d.getDay()] : '';
+                }
+
+                // Update Amount
+                const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+                const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
+                row.querySelector('.item-amount').value = (qty * rate).toFixed(2);
+
+                // Update Grand Total
+                window.calcMeetingTotal(prefix);
+            };
+
+            window.calcMeetingTotal = function(prefix) {
+                const container = document.getElementById(prefix + 'MeetingItemsContainer');
+                const display = document.getElementById(prefix + 'MeetingCalcDisplay');
+                if (!container || !display) return;
+                let total = 0;
+                container.querySelectorAll('.entry-card').forEach(row => {
+                    const q = Number(row.querySelector('.item-qty').value) || 0;
+                    const r = parseFloat(row.querySelector('.item-rate').value) || 0;
+                    total += q * r;
+                });
+                display.innerText = "₹ " + total.toFixed(2);
+            };
+
+            window.addMeetingItemRow = function(pref, copyHeader = false) {
+                const container = document.getElementById(pref + 'MeetingItemsContainer');
+                if (!container) return;
+
+                let lastDate = new Date().toISOString().split('T')[0];
+                let lastLoc = '';
+                let lastVendor = '';
+                let lastServed = '';
+
+                if (copyHeader) {
+                    const cards = container.querySelectorAll('.entry-card');
+                    if (cards.length > 0) {
+                        const lastCard = cards[cards.length - 1];
+                        lastDate = lastCard.querySelector('.row-date').value;
+                        lastLoc = lastCard.querySelector('.row-location').value;
+                        lastVendor = lastCard.querySelector('.row-vendor').value;
+                        lastServed = lastCard.querySelector('.row-served').value;
+                    }
+                }
+
+                const rowId = 'dl_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+                const locListId = 'loc_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+                const card = document.createElement('div');
+                card.className = 'entry-card';
+                card.id = rowId;
+                
+                const vendorOpts = canteenList.map(c => `<option value="${safeStr(c.name)}" ${lastVendor === c.name ? 'selected':''}>${safeStr(c.name)}</option>`).join('');
+                const activePantryStaff = pantryTeam.filter(p => !p.onLeave);
+                const pantryOpts = activePantryStaff.map(p => `<option value="${safeStr(p.name)}" ${lastServed === p.name ? 'selected':''}>${safeStr(p.name)}</option>`).join('');
+                
+                const d = new Date(lastDate);
+                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                const dayName = !isNaN(d) ? days[d.getDay()] : '';
+                
+                card.innerHTML = `
+                    <div class="entry-card-header">
+                        <span class="row-sr-text">Item</span>
+                        <div class="action-container" style="display:flex; gap:6px;">
+                            <button type="button" class="btn-dup" title="Duplicate Item" onclick="window.duplicateMeetingRow('${rowId}', '${pref}')" style="background:#8b5cf6; color:white; padding:6px 10px; font-size:12px; border:none; border-radius:6px;">📋 Dup</button>
+                            <button type="button" class="btn-remove" onclick="this.closest('.entry-card').remove(); window.calcMeetingTotal('${pref}'); window.updateFormSrNumbers('${pref}');" style="background:#ef4444; color:white; padding:6px 10px; font-size:12px; border:none; border-radius:6px;">✕</button>
+                        </div>
+                    </div>
+                    <!-- EXACT MOBILE FORM GRID -->
+                    <div class="form-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                        <div>
+                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Date</label>
+                            <input type="date" class="item-row-date row-date" value="${lastDate}" onchange="window.updateRowVisuals('${rowId}', '${pref}')" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Day</label>
+                            <input type="text" class="item-row-day row-day day-badge" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; background:#dbeafe; color:#1e40af; font-weight:bold; text-align:center;" value="${dayName}" readonly>
+                        </div>
+                        <div class="full-width" style="grid-column: span 2;">
+                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Item Name</label>
+                            <input type="text" list="list_${rowId}" class="item-name row-item" placeholder="E.g. Samosa, Tea" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                            <datalist id="list_${rowId}"></datalist>
+                        </div>
+                        <div>
+                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Qty</label>
+                            <input type="number" class="item-qty row-qty" placeholder="1" min="1" value="1" oninput="window.updateRowVisuals('${rowId}', '${pref}')" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Rate (₹)</label>
+                            <input type="number" class="item-rate row-rate" placeholder="0.00" min="0" value="" oninput="window.updateRowVisuals('${rowId}', '${pref}')" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                        </div>
+                        <div class="full-width" style="grid-column: span 2;">
+                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Amount (₹)</label>
+                            <input type="number" class="item-amount row-amount" placeholder="0.00" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; background:#f1f5f9; font-weight:bold;" readonly>
+                        </div>
+                        <div>
+                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Location</label>
+                            <input type="text" list="${locListId}" class="item-row-location row-location" placeholder="Campus" value="${lastLoc}" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                            <datalist id="${locListId}">${venueList.map(v => `<option value="${safeStr(v.name)}">`).join('')}</datalist>
+                        </div>
+                        <div>
+                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Vendor</label>
+                            <select class="item-vendor row-vendor" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; background:#fff;">
+                                <option value="">-- Vendor --</option>
+                                ${vendorOpts}
+                            </select>
+                        </div>
+                        <div class="full-width" style="grid-column: span 2;">
+                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Served By</label>
+                            <select class="item-served-by row-served" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; background:#fff;">
+                                <option value="">-- Pantry Boy --</option>
+                                <option value="Multiple Pantry Boys" ${lastServed === 'Multiple Pantry Boys' ? 'selected':''}>Multiple Pantry Boys</option>
+                                <option value="Through Vendor" ${lastServed === 'Through Vendor' ? 'selected':''}>Through Vendor</option>
+                                ${pantryOpts}
+                            </select>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+                window.updateFormSrNumbers(pref);
+                
+                // Vendor Autocomplete Logic
+                const vendorSelect = card.querySelector('.item-vendor');
+                const nameInput = card.querySelector('.item-name');
+                const rateInput = card.querySelector('.item-rate');
+                const dataList = card.querySelector('#list_' + rowId);
+
+                function checkAndFillRate() {
+                    const vName = vendorSelect.value;
+                    const iName = nameInput.value.trim().toLowerCase();
+                    if (vName && iName) {
+                        const items = vendorItemsCatalog[vName.toLowerCase()] || [];
+                        const match = items.find(it => it.name.toLowerCase() === iName);
+                        if (match) { 
+                            rateInput.value = match.rate; 
+                            window.updateRowVisuals(rowId, pref);
+                        }
+                    }
+                }
+                
+                vendorSelect.addEventListener('change', function() {
+                    const vName = this.value;
+                    dataList.innerHTML = '';
+                    if (vName) {
+                        const items = vendorItemsCatalog[vName.toLowerCase()] || [];
+                        items.forEach(it => { 
+                            const op = document.createElement('option'); 
+                            op.value = it.name; 
+                            dataList.appendChild(op); 
+                        });
+                    }
+                    checkAndFillRate();
+                });
+                
+                nameInput.addEventListener('input', checkAndFillRate);
+                window.updateRowVisuals(rowId, pref);
+            };
+
+            window.duplicateMeetingRow = function(sourceRowId, pref) {
+                const sourceCard = document.getElementById(sourceRowId);
+                if (!sourceCard) return;
+
+                window.addMeetingItemRow(pref, false);
+                const container = document.getElementById(pref + 'MeetingItemsContainer');
+                const newCard = container.lastElementChild;
+
+                // Copy values
+                newCard.querySelector('.item-row-date').value = sourceCard.querySelector('.item-row-date').value;
+                newCard.querySelector('.item-row-location').value = sourceCard.querySelector('.item-row-location').value;
+                newCard.querySelector('.item-vendor').value = sourceCard.querySelector('.item-vendor').value;
+                newCard.querySelector('.item-name').value = sourceCard.querySelector('.item-name').value;
+                newCard.querySelector('.item-qty').value = sourceCard.querySelector('.item-qty').value;
+                newCard.querySelector('.item-rate').value = sourceCard.querySelector('.item-rate').value;
+                newCard.querySelector('.item-served-by').value = sourceCard.querySelector('.item-served-by').value;
+
+                // Update dropdown list for vendor
+                newCard.querySelector('.item-vendor').dispatchEvent(new Event('change'));
+                
+                window.updateRowVisuals(newCard.id, pref);
+            };
+
+            window.updateFormSrNumbers = function(pref) {
+                const container = document.getElementById(pref + 'MeetingItemsContainer');
+                if(!container) return;
+                const rows = container.querySelectorAll('.entry-card');
+                rows.forEach((row, idx) => {
+                    const srText = row.querySelector('.row-sr-text');
+                    if(srText) srText.textContent = `Card #${idx + 1}`;
+                });
             };
 		
             // ============================================================
@@ -4364,11 +3879,52 @@ window.shareVendorLink = function(link, vendor) {
                 function renderBeverageModeContent(mode) {
                     const target = document.getElementById('beverageEntryModeContent');
                     if (!target) return;
+                    
                     if (mode === 'name') {
-                        target.innerHTML =
-                            `<div class="merged-filter-row" style="flex-shrink:0;"><input id="pantryStaffSearch" placeholder="🔍 Search..."><select id="entryCategory"><option value="All">All</option><option value="Faculty">Faculty</option><option value="Staff">Staff</option><option value="Law">Law</option><option value="Outsourced">Outsourced</option></select></div><div class="table-row table-header"><div>Name</div><div style="text-align:center;">Morning</div><div style="text-align:center;">Afternoon</div></div><div id="bulkServeList" style="flex:1; overflow-y:auto; margin-bottom:8px;"></div>`;
+                        const hasDauAccess = window.hasDauPurchasePermission ? window.hasDauPurchasePermission(currentUser.id) : true;
+                        
+                        target.innerHTML = `
+                            <div class="merged-filter-row" style="flex-shrink:0; margin-bottom:8px;">
+                                <select id="dailySupplySource" style="flex:1; padding:10px; border-radius:8px; border:1px solid #CBD5E1; font-weight:bold; color:#0A56D0; background:#EFF6FF;">
+                                    <option value="Contractor">☕ IA Caterers (Contractor)</option>
+                                    ${hasDauAccess ? '<option value="DAU Direct Purchase">🛒 DAU Direct Purchase</option>' : ''}
+                                </select>
+                            </div>
+                            <div class="merged-filter-row" style="flex-shrink:0;">
+                                <input id="pantryStaffSearch" placeholder="🔍 Search Name..." style="flex:1.5;">
+                                <select id="entryCategory" style="flex:1;">
+                                    <option value="All">All Categories</option>
+                                    <option value="Faculty">Faculty</option>
+                                    <option value="Staff">Staff</option>
+                                    <option value="Law">Law</option>
+                                    <option value="Outsourced">Outsourced</option>
+                                </select>
+                            </div>
+                            <div style="margin-bottom:12px; border:2px solid #0A56D0; border-radius:10px; overflow:hidden;" id="dailyEntryMainBox">
+                                <div id="dailyEntryHeaderLabel" style="background:#EFF6FF; padding:8px 12px; font-weight:700; color:#0A56D0; font-size:.9rem; border-bottom:1px solid #BFDBFE;">☕ IA Caterers (Contractor) - Daily Tea</div>
+                                <div class="table-row table-header"><div>Name</div><div style="text-align:center;">Morning</div><div style="text-align:center;">Afternoon</div></div>
+                                <div id="bulkServeListContractor" style="max-height:350px; overflow-y:auto; margin-bottom:4px;"></div>
+                            </div>
+                        `;
+                        
                         document.getElementById('entryCategory').addEventListener('change', populateServe);
                         document.getElementById('pantryStaffSearch').addEventListener('input', populateServe);
+                        document.getElementById('dailySupplySource').addEventListener('change', function() {
+                            const lbl = document.getElementById('dailyEntryHeaderLabel');
+                            const box = document.getElementById('dailyEntryMainBox');
+                            if(this.value === 'Contractor') {
+                                lbl.innerHTML = '☕ IA Caterers (Contractor) - Daily Tea';
+                                lbl.style.background = '#EFF6FF'; lbl.style.color = '#0A56D0'; lbl.style.borderBottomColor = '#BFDBFE';
+                                box.style.borderColor = '#0A56D0';
+                                this.style.color = '#0A56D0'; this.style.background = '#EFF6FF';
+                            } else {
+                                lbl.innerHTML = '🛒 DAU Direct Purchase - Daily Tea';
+                                lbl.style.background = '#ECFDF5'; lbl.style.color = '#047857'; lbl.style.borderBottomColor = '#BBF7D0';
+                                box.style.borderColor = '#059669';
+                                this.style.color = '#047857'; this.style.background = '#ECFDF5';
+                            }
+                            populateServe();
+                        });
                         populateServe();
                     } else {
                         openMonthlyGridPopup();
@@ -4376,34 +3932,35 @@ window.shareVendorLink = function(link, vendor) {
                 }
 
                 function populateServe() {
-                    const container = document.getElementById('bulkServeList');
+                    const container = document.getElementById('bulkServeListContractor');
                     if (!container) return;
+                    
                     const cat = document.getElementById('entryCategory')?.value || 'All';
                     const search = document.getElementById('pantryStaffSearch')?.value.toLowerCase().trim() || '';
-                    const selectedDMY = convertYMDtoDMY(document.getElementById('beverageEntryDate')?.value || new Date()
-                        .toISOString().split('T')[0]);
+                    const selectedDMY = convertYMDtoDMY(document.getElementById('beverageEntryDate')?.value || new Date().toISOString().split('T')[0]);
+                    const supplySource = document.getElementById('dailySupplySource')?.value || 'Contractor';
 
-                    const effectivePantryId = getEffectivePantryId(currentUser.id);
+                    let effectivePantryId = currentUser.id;
+                    if(typeof getEffectivePantryId === 'function') effectivePantryId = getEffectivePantryId(currentUser.id);
 
-                    const filtered = employeeList.filter(emp => emp.assignedPantryId === effectivePantryId && (cat === 'All' ||
-                        emp.category === cat) && (!search || emp.name.toLowerCase().includes(search)));
-                    if (!filtered.length) { container.innerHTML =
-                        `<p style="text-align:center; padding:20px; color:#74777F; font-size:.9rem;">No employees.</p>`; return; }
-                    const drinkOpts = BEVERAGE_OPTIONS.map(d => `<option value="${d}">${d}</option>`).join('');
+                    const filtered = employeeList.filter(emp => emp.assignedPantryId === effectivePantryId && (cat === 'All' || emp.category === cat) && (!search || emp.name.toLowerCase().includes(search)));
+                    
+                    const contractorOpts = (typeof CONTRACTOR_BEVERAGES !== 'undefined' ? CONTRACTOR_BEVERAGES : ['Tea','Coffee']).map(d => `<option value="${d}">${d}</option>`).join('');
+                    const dauOpts = (typeof DAU_PURCHASE_BEVERAGES !== 'undefined' ? DAU_PURCHASE_BEVERAGES : []).map(d => `<option value="${d}">${d}</option>`).join('');
+                    const drinkOpts = supplySource === 'DAU Direct Purchase' ? dauOpts : contractorOpts;
+
+                    if (!filtered.length) { container.innerHTML = `<p style="text-align:center; padding:20px; color:#74777F; font-size:.9rem;">No employees found.</p>`; return; }
+                    
                     container.innerHTML = filtered.map(emp => {
-                        const logs = logsData.filter(l => l.employeeId === emp.id && l.date === selectedDMY);
+                        const logs = logsData.filter(l => l.employeeId === emp.id && l.date === selectedDMY && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
                         const morn = logs.find(l => l.session === 'Morning');
                         const aft = logs.find(l => l.session === 'Afternoon');
-                        const mEl = morn ?
-                            `<select class="mornDrink" disabled style="background:#E2E8F0; color:#146C43; font-weight:bold; padding:8px; border-radius:8px; border:1px solid #CBD5E1; width:100%;"><option>${morn.drink}</option></select>` :
-                            `<select class="mornDrink" style="padding:8px; border-radius:8px; border:1px solid #CBD5E1; width:100%;"><option value="">-</option>${drinkOpts}</select>`;
-                        const aEl = aft ?
-                            `<select class="aftDrink" disabled style="background:#E2E8F0; color:#146C43; font-weight:bold; padding:8px; border-radius:8px; border:1px solid #CBD5E1; width:100%;"><option>${aft.drink}</option></select>` :
-                            `<select class="aftDrink" style="padding:8px; border-radius:8px; border:1px solid #CBD5E1; width:100%;"><option value="">-</option>${drinkOpts}</select>`;
-                        const editBtn = (morn || aft) ?
-                            `<button onclick="window.handleDirectRowEditTrigger('${emp.id}')" style="background:transparent; border:none; cursor:pointer; font-size:1rem; padding:4px 6px; border-radius:8px; color:#0A56D0;">✏️</button>` :
-                            '';
-                        return `<div class="table-row bulk-entry-row" data-id="${emp.id}" data-name="${safeStr(emp.name)}"><div style="display:flex; align-items:center; justify-content:space-between; gap:4px;"><div style="font-size:.9rem;">${safeStr(emp.name)} <br><small style="color:#74777F; font-size:.7rem;">[${emp.category}]</small></div>${editBtn}</div><div>${mEl}</div><div>${aEl}</div></div>`;
+                        
+                        const mEl = morn ? `<select class="mornDrink" data-supply="${supplySource}" disabled style="background:#E2E8F0; color:#146C43; font-weight:bold; padding:8px; border-radius:8px; border:1px solid #CBD5E1; width:100%;"><option>${morn.drink}</option></select>` : `<select class="mornDrink" data-supply="${supplySource}" style="padding:8px; border-radius:8px; border:1px solid #CBD5E1; width:100%;"><option value="">-</option>${drinkOpts}</select>`;
+                        const aEl = aft ? `<select class="aftDrink" data-supply="${supplySource}" disabled style="background:#E2E8F0; color:#146C43; font-weight:bold; padding:8px; border-radius:8px; border:1px solid #CBD5E1; width:100%;"><option>${aft.drink}</option></select>` : `<select class="aftDrink" data-supply="${supplySource}" style="padding:8px; border-radius:8px; border:1px solid #CBD5E1; width:100%;"><option value="">-</option>${drinkOpts}</select>`;
+                        const editBtn = (morn || aft) ? `<button onclick="window.handleDirectRowEditTrigger('${emp.id}')" style="background:transparent; border:none; cursor:pointer; font-size:1rem; padding:4px 6px; border-radius:8px; color:#0A56D0;">✏️</button>` : '';
+                        
+                        return `<div class="table-row bulk-entry-row" data-id="${emp.id}" data-name="${safeStr(emp.name)}" data-supply="${supplySource}"><div style="display:flex; align-items:center; justify-content:space-between; gap:4px;"><div style="font-size:.9rem;">${safeStr(emp.name)} <br><small style="color:#74777F; font-size:.7rem;">[${emp.category}]</small></div>${editBtn}</div><div>${mEl}</div><div>${aEl}</div></div>`;
                     }).join('');
                 }
 
@@ -4603,10 +4160,11 @@ window.shareVendorLink = function(link, vendor) {
                     rows.forEach((row, idx) => {
                         const empId = row.dataset.id;
                         const empName = row.dataset.name;
+                        const supplySource = row.dataset.supply || row.querySelector('.mornDrink')?.dataset?.supply || 'Contractor';
                         const m = row.querySelector('.mornDrink');
                         const a = row.querySelector('.aftDrink');
                         if (m && !m.disabled && m.value && m.value !== "-") {
-                            const id = 'log_' + (base + idx * 2) + '_' + Math.floor(Math.random() * 10000);
+                            const id = 'log_' + (base + idx * 3) + '_' + Math.floor(Math.random() * 10000);
                             updates[id] = {
                                 id,
                                 employeeId: empId,
@@ -4615,12 +4173,13 @@ window.shareVendorLink = function(link, vendor) {
                                 session: 'Morning',
                                 date: selectedDMY,
                                 pantryId: currentUser.id,
-                                pantryName: currentUser.name
+                                pantryName: currentUser.name,
+                                supplySource: supplySource
                             };
                             saved++;
                         }
                         if (a && !a.disabled && a.value && a.value !== "-") {
-                            const id = 'log_' + (base + idx * 2 + 1) + '_' + Math.floor(Math.random() * 10000);
+                            const id = 'log_' + (base + idx * 3 + 1) + '_' + Math.floor(Math.random() * 10000);
                             updates[id] = {
                                 id,
                                 employeeId: empId,
@@ -4629,7 +4188,8 @@ window.shareVendorLink = function(link, vendor) {
                                 session: 'Afternoon',
                                 date: selectedDMY,
                                 pantryId: currentUser.id,
-                                pantryName: currentUser.name
+                                pantryName: currentUser.name,
+                                supplySource: supplySource
                             };
                             saved++;
                         }
@@ -5250,7 +4810,7 @@ window.shareVendorLink = function(link, vendor) {
                   <button class="dash-btn" data-tab="leaves" style="color:#D97706; border-color:#FDE68A; background:#FFFBEB;"><span class="icon">🌴</span><span class="label">Leave Mgmt</span></button>
                   <button class="dash-btn" data-tab="duty_transfer" style="color:#7C3AED; border-color:#C4B5FD; background:#F5F3FF;"><span class="icon">🔄</span><span class="label">Duty Transfer</span></button>
                   <button class="dash-btn" data-tab="canteens"><span class="icon">🏢</span><span class="label">Canteens</span></button>
-                  <button class="dash-btn" data-tab="meeting" style="color:#D97706; border-color:#FCD34D; background:#FEF3C7;"><span class="icon">🎪</span><span class="label">Meetings</span></button>
+<button class="dash-btn" data-tab="meeting_guests" style="color:#0284c7; border-color:#bae6fd; background:#f0f9ff;"><span class="icon">🤝</span><span class="label">Meetings & Guests</span></button>
                                     <button class="dash-btn" data-tab="plain_events" style="color:#10B981; border-color:#6EE7B7; background:#ECFDF5;"><span class="icon">📢</span><span class="label">Event Broadcast</span></button>
                   <button class="dash-btn" data-tab="reports"><span class="icon">📊</span><span class="label">Reports</span></button>
                   <button class="dash-btn" data-tab="locations" style="color:#0A56D0; border-color:#CBD5E1; background:#F0F7FF;"><span class="icon">📍</span><span class="label">Locations</span></button>
@@ -5434,6 +4994,10 @@ window.shareVendorLink = function(link, vendor) {
                     case 'meeting':
                         window.renderMeetingRefreshmentSection('adminContent', 'admMeet_');
                         break;
+
+                    case 'meeting_guests':
+                        window.renderMeetingsGuestsUI('adminContent', 'admin');
+                        break;
                     case 'plain_events':
                         window.renderPlainEventsAdmin();
                         break;
@@ -5443,8 +5007,26 @@ window.shareVendorLink = function(link, vendor) {
                         cont.innerHTML = `
                   <div class="card" style="border:2px solid #0A56D0; background:#F8FAFC;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;"><h4 style="color:#0A56D0; font-size:1rem; margin:0;">📡 Live Daily Entry</h4></div>
-                    <div style="display:flex; gap:8px; margin-bottom:8px;"><input type="date" id="liveReportDate" value="${todayYMD}" style="flex:1; padding:12px; border-radius:10px; border:1px solid #CBD5E1;"><select id="liveReportType" style="flex:1; padding:12px; border-radius:10px; border:1px solid #CBD5E1;"><option value="regular">Regular Entries</option><option value="extra">Extra Logs</option></select></div>
-                    <select id="liveReportPantry" style="margin-bottom:12px; padding:12px; border-radius:10px; border:1px solid #CBD5E1;"><option value="All">All Pantry</option>${pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}</select>
+                    
+                    <div style="display:flex; gap:8px; margin-bottom:8px;">
+                        <input type="date" id="liveReportDate" value="${todayYMD}" style="flex:1; padding:10px; border-radius:8px; border:1px solid #CBD5E1;">
+                        <select id="liveReportType" style="flex:1; padding:10px; border-radius:8px; border:1px solid #CBD5E1;">
+                            <option value="regular">Regular Entries</option>
+                            <option value="extra">Extra Logs</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; gap:8px; margin-bottom:12px;">
+                        <select id="liveReportPantry" style="flex:1; padding:10px; border-radius:8px; border:1px solid #CBD5E1;">
+                            <option value="All">All Pantry Boys</option>
+                            ${pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+                        </select>
+                        <select id="liveReportSupply" style="flex:1; padding:10px; border-radius:8px; border:1px solid #CBD5E1;">
+                            <option value="All">All Supply Sources</option>
+                            <option value="Contractor">IA Caterers</option>
+                            <option value="DAU Direct Purchase">DAU Direct Purchase</option>
+                        </select>
+                    </div>
+
                     <div style="overflow-x:auto; border-radius:8px; border:1px solid #CBD5E1; margin-bottom:12px;">
                       <table style="width:100%; border-collapse:collapse; background:#fff; font-size:.85rem; text-align:left;">
                         <thead style="background:#F1F5F9; color:#44474E;"><tr><th style="padding:10px; border-bottom:1px solid #CBD5E1;">Beverage Type</th><th style="padding:10px; border-bottom:1px solid #CBD5E1; text-align:center;">Total Cups</th></tr></thead>
@@ -5688,8 +5270,8 @@ window.shareVendorLink = function(link, vendor) {
                             printContainer.classList.remove('hidden');
                         };
 
-                        ['liveReportDate', 'liveReportType', 'liveReportPantry'].forEach(id => { 
-                            document.getElementById(id).addEventListener('change', window.renderAdminLiveRecords); 
+                        ['liveReportDate', 'liveReportType', 'liveReportPantry', 'liveReportSupply'].forEach(id => { 
+                            if(document.getElementById(id)) document.getElementById(id).addEventListener('change', window.renderAdminLiveRecords); 
                         });
                         window.renderAdminLiveRecords();
                         break;
@@ -6587,9 +6169,19 @@ window.shareVendorLink = function(link, vendor) {
                 const listEl = document.getElementById('liveReportList');
                 if (!listEl) return;
                 let records = [];
+                const supplyVal = document.getElementById('liveReportSupply') ? document.getElementById('liveReportSupply').value : 'All';
+
                 if (typeVal === 'regular') records = logsData.filter(l => l.date === targetDMY);
                 else records = extraLogsData.filter(l => l.date === targetDMY);
+                
                 if (pantryVal !== 'All') records = records.filter(l => l.pantryId === pantryVal);
+
+                if (supplyVal !== 'All') {
+                    records = records.filter(l => {
+                        const s = l.supplySource || 'Contractor';
+                        return s === supplyVal;
+                    });
+                }
 
                 let tea = 0,
                     coffee = 0,
@@ -7351,11 +6943,10 @@ window.shareVendorLink = function(link, vendor) {
                 </div>
                 <div id="pantryMenuArea" class="dash-menu-modern">
                   <button class="dash-btn" data-tab="serve"><span class="icon">☕</span><span><span class="label">Daily / Monthly Entry</span><br><span class="sub">Name wise & date wise</span></span><span class="right">›</span></button>
-                  <button class="dash-btn" data-tab="meeting" style="color:#D97706; border-color:#FCD34D; background:#FEF3C7;"><span class="icon">🎪</span><span><span class="label">Meeting & Guest Refreshments</span><br><span class="sub">Log with items & auto total</span></span><span class="right">›</span></button>
                   
                   <!-- લીલા કલરનું નવું Upcoming Events બટન અહીં છે -->
                   <button class="dash-btn" data-tab="view_plain_events" style="color:#10B981; border-color:#A7F3D0; background:#ECFDF5;"><span class="icon">📢</span><span><span class="label">Upcoming Events</span><br><span class="sub">View admin broadcasts</span></span><span class="right">›</span></button>
-                  
+                  <button class="dash-btn" data-tab="meeting_guests" style="color:#0284c7; border-color:#bae6fd; background:#f0f9ff;"><span class="icon">🤝</span><span><span class="label">Meetings & Guests</span><br><span class="sub">Log guest & meeting details</span></span><span class="right">›</span></button>
                   <button class="dash-btn" data-tab="logs" style="color:#7C3AED; border-color:#C4B5FD; background:#F5F3FF;"><span class="icon">📋</span><span><span class="label">My Records</span><br><span class="sub">Daily metrics & grid</span></span><span class="right">›</span></button>
                   <button class="dash-btn" data-tab="extra_tea" style="color:#D97706; border-color:#FDE68A; background:#FEF3C7;"><span class="icon">☕</span><span><span class="label">Extra Tea Record</span><br><span class="sub">Log extra tea consumption</span></span><span class="right">›</span></button>
                   <button class="dash-btn" data-tab="profile" style="color:#44474E; border-color:#CBD5E1; background:#F8FAFC;"><span class="icon">🔐</span><span><span class="label">Change Profile PIN</span><br><span class="sub">Security settings</span></span><span class="right">›</span></button>
@@ -7422,6 +7013,9 @@ window.shareVendorLink = function(link, vendor) {
                                 break;
                             case 'view_plain_events':
                                 window.renderPantryPlainEvents();
+                                break;
+								case 'meeting_guests':
+                                window.renderMeetingsGuestsUI('pantryContent', 'pantry');
                                 break;
                             case 'logs':
                                 renderLogsHistory();
@@ -7662,7 +7256,8 @@ window.shareVendorLink = function(link, vendor) {
                 </select>
                 <select class="e-item-served-by" style="padding:5px; font-size:11px; border-radius:4px; border:1px solid #CBD5E1; width:100%; box-sizing:border-box;">
                     <option value="">-- Served By --</option>
-                    <option value="Direct Order (Canteen)" ${servedBy === 'Direct Order (Canteen)' ? 'selected' : ''}>Direct Canteen</option>
+                    <option value="Multiple Pantry Boys" ${servedBy === 'Multiple Pantry Boys' ? 'selected' : ''}>Multiple Pantry Boys</option>
+                    <option value="Through Vendor" ${servedBy === 'Through Vendor' ? 'selected' : ''}>Through Vendor</option>
                     ${pantryOpts}
                 </select>
             </div>
@@ -7819,8 +7414,16 @@ window.shareVendorLink = function(link, vendor) {
                 renderIfNeeded(); });
             db.ref('logs').on('value', snap => { logsData = parseSnap(snap);
                 renderIfNeeded(); });
-            db.ref('eventLogs').on('value', snap => { eventLogsData = parseSnap(snap);
-                renderIfNeeded(); });
+            db.ref('eventLogs').on('value', snap => { 
+                eventLogsData = parseSnap(snap);
+                renderIfNeeded();
+                try {
+                    const modal = document.getElementById('eventHistoryModal');
+                    if (modal && !modal.classList.contains('hidden') && window.openEventHistoryModal) {
+                        window.openEventHistoryModal();
+                    }
+                } catch(e) {}
+            });
             db.ref('extraLogs').on('value', snap => { extraLogsData = parseSnap(snap);
                 renderIfNeeded(); });
             db.ref('extraTeaRecords').on('value', snap => { extraTeaRecords = parseSnap(snap);
@@ -7948,6 +7551,9 @@ db.ref('dauPurchaseAccess').on('value', snap => { dauPurchaseAccessData = snap.v
                                         renderAdminCanteens();
                                         renderVendorItemsList();
                                         break;
+										case 'meeting_guests':
+                        window.renderMeetingsGuestsUI('adminContent', 'admin');
+                        break;
                                     case 'meeting':
                                         renderAdminMeetingHistory();
                                         break;
@@ -8390,7 +7996,828 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     });
                 });
             };
+        
+            // ===== FIXED: Beverage Master Admin - Add Item now works V9 =====
+            window.renderBeverageMasterAdmin = function() {
+                try {
+                    const contractorListEl = document.getElementById('contractorDrinkList');
+                    const dauListEl = document.getElementById('dauDrinkList');
+                    const contractorInput = document.getElementById('newContractorDrinkInput');
+                    const dauInput = document.getElementById('newDauDrinkInput');
+                    const addContractorBtn = document.getElementById('addContractorDrinkBtn');
+                    const addDauBtn = document.getElementById('addDauDrinkBtn');
+                    function renderLists() {
+                        if (contractorListEl) {
+                            const list = (typeof CONTRACTOR_BEVERAGES !== 'undefined' && CONTRACTOR_BEVERAGES) ? CONTRACTOR_BEVERAGES : [];
+                            contractorListEl.innerHTML = list.map((name, idx) => `<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 8px; border-bottom:1px solid #E2E8F0;"><span style="font-size:.85rem;">${safeStr(name)}</span><button onclick="window.deleteContractorBeverage(${idx})" style="background:#DC3545; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:.7rem; cursor:pointer;">🗑</button></div>`).join('') || '<p style="padding:8px; color:#64748B; font-size:.8rem;">No items yet</p>';
+                        }
+                        if (dauListEl) {
+                            const list = (typeof DAU_PURCHASE_BEVERAGES !== 'undefined' && DAU_PURCHASE_BEVERAGES) ? DAU_PURCHASE_BEVERAGES : [];
+                            dauListEl.innerHTML = list.map((name, idx) => `<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 8px; border-bottom:1px solid #E2E8F0;"><span style="font-size:.85rem;">${safeStr(name)}</span><button onclick="window.deleteDauBeverage(${idx})" style="background:#DC3545; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:.7rem; cursor:pointer;">🗑</button></div>`).join('') || '<p style="padding:8px; color:#64748B; font-size:.8rem;">No items yet</p>';
+                        }
+                    }
+                    window.deleteContractorBeverage = function(idx) {
+                        appConfirm('Delete Item', 'Remove this beverage?', () => {
+                            if (typeof CONTRACTOR_BEVERAGES !== 'undefined') {
+                                CONTRACTOR_BEVERAGES.splice(idx,1);
+                                db.ref('contractorBeverages').set(CONTRACTOR_BEVERAGES).then(()=>{ renderLists(); appAlert('Deleted','Item removed'); });
+                            }
+                        });
+                    };
+                    window.deleteDauBeverage = function(idx) {
+                        appConfirm('Delete Item', 'Remove this DAU item?', () => {
+                            if (typeof DAU_PURCHASE_BEVERAGES !== 'undefined') {
+                                DAU_PURCHASE_BEVERAGES.splice(idx,1);
+                                db.ref('dauPurchaseBeverages').set(DAU_PURCHASE_BEVERAGES).then(()=>{ renderLists(); appAlert('Deleted','Item removed'); });
+                            }
+                        });
+                    };
+                    if (addContractorBtn && contractorInput) {
+                        addContractorBtn.onclick = function() {
+                            const val = contractorInput.value.trim();
+                            if (!val) return appAlert('Error','Enter drink name');
+                            if (typeof CONTRACTOR_BEVERAGES === 'undefined') window.CONTRACTOR_BEVERAGES = [];
+                            if (CONTRACTOR_BEVERAGES.map(v=>v.toLowerCase()).includes(val.toLowerCase())) return appAlert('Exists','Item already exists');
+                            CONTRACTOR_BEVERAGES.push(val);
+                            db.ref('contractorBeverages').set(CONTRACTOR_BEVERAGES).then(()=>{
+                                contractorInput.value=''; renderLists(); appAlert('Success','Added: '+val);
+                            }).catch(e=>appAlert('Error',e.message));
+                        };
+                        contractorInput.addEventListener('keypress', function(e){ if(e.key==='Enter'){ e.preventDefault(); addContractorBtn.click(); } });
+                    }
+                    if (addDauBtn && dauInput) {
+                        addDauBtn.onclick = function() {
+                            const val = dauInput.value.trim();
+                            if (!val) return appAlert('Error','Enter item name');
+                            if (typeof DAU_PURCHASE_BEVERAGES === 'undefined') window.DAU_PURCHASE_BEVERAGES = [];
+                            if (DAU_PURCHASE_BEVERAGES.map(v=>v.toLowerCase()).includes(val.toLowerCase())) return appAlert('Exists','Item already exists');
+                            DAU_PURCHASE_BEVERAGES.push(val);
+                            db.ref('dauPurchaseBeverages').set(DAU_PURCHASE_BEVERAGES).then(()=>{
+                                dauInput.value=''; renderLists(); appAlert('Success','Added: '+val);
+                            }).catch(e=>appAlert('Error',e.message));
+                        };
+                        dauInput.addEventListener('keypress', function(e){ if(e.key==='Enter'){ e.preventDefault(); addDauBtn.click(); } });
+                    }
+                    renderLists();
+                } catch(err) { console.log('renderBeverageMasterAdmin error', err); }
+            };
+
+            // FIXED: DAU Direct Purchase Access Allotment - robust rendering
+            window.renderDauPurchaseAccessAdmin = function() {
+                const container = document.getElementById('dauPurchasePantryList');
+                const saveBtn = document.getElementById('saveDauPurchaseAccessBtn');
+                if (!container) return;
+                const accessMap = (typeof dauPurchaseAccessData === 'object' && dauPurchaseAccessData !== null) ? dauPurchaseAccessData : {};
+                if (!pantryTeam || !Array.isArray(pantryTeam) || pantryTeam.length === 0) {
+                    container.innerHTML = '<p style="padding:16px; text-align:center; color:#64748B; font-size:13px;">Loading pantry staff... If empty, please add pantry staff first in Employees tab.</p>';
+                    // Retry after 1 sec if pantryTeam not loaded
+                    setTimeout(()=>{ window.renderDauPurchaseAccessAdmin(); }, 1000);
+                    return;
+                }
+                try {
+                    container.innerHTML = pantryTeam.map(p => {
+                        if (!p || !p.id) return '';
+                        const hasAccess = accessMap[p.id] === true;
+                        return `<div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #E2E8F0; font-size:13px; background:${hasAccess ? '#ECFDF5' : '#fff'}; margin-bottom:4px; border-radius:6px; border:1px solid ${hasAccess ? '#BBF7D0' : '#E2E8F0'};"><span><strong>🧑‍🍳 ${safeStr(p.name)}</strong> <small style="color:#64748B;">(${safeStr(p.mobile) || 'No Mobile'})</small></span><label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-weight:600; color:${hasAccess ? '#059669' : '#64748B'};"><input type="checkbox" class="dau-access-checkbox" data-id="${p.id}" ${hasAccess ? 'checked' : ''} style="width:18px; height:18px; accent-color:#059669;"> ${hasAccess ? 'Allowed' : 'Not Allowed'}</label></div>`;
+                    }).join('');
+                    if (saveBtn) {
+                        saveBtn.onclick = function() {
+                            const checkboxes = container.querySelectorAll('.dau-access-checkbox');
+                            const updates = {};
+                            checkboxes.forEach(cb => {
+                                const pId = cb.dataset.id;
+                                if (pId) {
+                                    updates['dauPurchaseAccess/' + pId] = cb.checked ? true : null;
+                                }
+                            });
+                            db.ref().update(updates).then(() => {
+                                appAlert('Success', 'DAU Purchase access permissions updated! Pantry boys can now see DAU option.');
+                                // Force refresh extra tea form if open
+                                renderIfNeeded();
+                            }).catch(err => appAlert('Error', err.message));
+                        };
+                    }
+                } catch(e) { console.log('renderDauPurchaseAccessAdmin error', e); container.innerHTML = '<p style="color:red;">Error: '+e.message+'</p>'; }
+            };
+
+            window.setGuestSlipYesNo = function(prefix, field, value) {
+                const yesId = prefix + 'CheckGuestSlip' + field + '_Yes';
+                const noId = prefix + 'CheckGuestSlip' + field + '_No';
+                const yesEl = document.getElementById(yesId);
+                const noEl = document.getElementById(noId);
+                if (!yesEl || !noEl) return;
+                if (value === 'Yes') { if (yesEl.checked) noEl.checked = false; } else { if (noEl.checked) yesEl.checked = false; }
+            };
+            // નવો Date Parser કોડ (તારીખનો પ્રોબ્લેમ સોલ્વ કરવા માટે)
+            window.parseExcelDateToDMY = function(rawDate) {
+                try {
+                    if (rawDate === undefined || rawDate === null || rawDate === '') return '';
+                    
+                    if (rawDate instanceof Date && !isNaN(rawDate)) { 
+                        const dd = String(rawDate.getDate()).padStart(2,'0'); 
+                        const mm = String(rawDate.getMonth()+1).padStart(2,'0'); 
+                        const yyyy = rawDate.getFullYear(); 
+                        return `${dd}/${mm}/${yyyy}`; 
+                    }
+                    
+                    if (typeof rawDate === 'number' && !isNaN(rawDate)) { 
+                        if (rawDate > 59 && rawDate < 60000) { 
+                            const utc_days = Math.floor(rawDate - 25569); 
+                            const utc_value = utc_days * 86400; 
+                            const date_info = new Date(utc_value * 1000); 
+                            const dd = String(date_info.getDate()).padStart(2,'0'); 
+                            const mm = String(date_info.getMonth()+1).padStart(2,'0'); 
+                            const yyyy = date_info.getFullYear(); 
+                            if (yyyy > 1900 && yyyy < 2100) return `${dd}/${mm}/${yyyy}`; 
+                        } 
+                    }
+                    
+                    let str = String(rawDate).trim(); 
+                    if (!str) return ''; 
+                    
+                    if (str.includes('/')) { 
+                        const parts = str.split('/').map(p=>p.trim()); 
+                        if (parts.length === 3) { 
+                            if (parts[2].length === 2) parts[2] = '20' + parts[2];
+                            if (parts[2].length === 4) {
+                                if (Number(parts[0]) > 12) return `${parts[0].padStart(2,'0')}/${parts[1].padStart(2,'0')}/${parts[2]}`;
+                                return `${parts[1].padStart(2,'0')}/${parts[0].padStart(2,'0')}/${parts[2]}`; 
+                            }
+                            if (parts[0].length === 4) return `${parts[2].padStart(2,'0')}/${parts[1].padStart(2,'0')}/${parts[0]}`; 
+                        } 
+                    }
+                    
+                    if (str.includes('-')) { 
+                        const parts = str.split('-').map(p=>p.trim()); 
+                        if (parts.length === 3) { 
+                            if (parts[2].length === 2) parts[2] = '20' + parts[2];
+                            if (parts[2].length === 4) return `${parts[0].padStart(2,'0')}/${parts[1].padStart(2,'0')}/${parts[2]}`; 
+                            if (parts[0].length === 4) return `${parts[2].padStart(2,'0')}/${parts[1].padStart(2,'0')}/${parts[0]}`; 
+                        } 
+                    }
+                    
+                    const d = new Date(str); 
+                    if (!isNaN(d) && d.getFullYear() > 1900) { 
+                        const dd = String(d.getDate()).padStart(2,'0'); 
+                        const mm = String(d.getMonth()+1).padStart(2,'0'); 
+                        const yyyy = d.getFullYear(); 
+                        return `${dd}/${mm}/${yyyy}`; 
+                    } 
+                    return '';
+                } catch(e) { return ''; }
+            };
+
+            function getExcelField(row, names) { const norm = {}; for (let k in row) { if (Object.prototype.hasOwnProperty.call(row, k)) { norm[k.toString().trim().toLowerCase()] = row[k]; } } for (let n of names) { let key = n.toLowerCase(); if (norm.hasOwnProperty(key)) return norm[key]; for (let rk in norm) { if (rk.includes(key)) return norm[rk]; } } return ''; }
+            
+            window.downloadMeetingSampleTemplate = function() { try { const sampleData = [["Date", "Item", "Qty", "Rate", "Amount", "Requisitioner's Name", "Purpose", "Location", "Vendor", "Served By"], ["15/07/2026", "Tea", 10, 15, 150, "Admin Dept", "NAAC Meeting", "Conference Hall", "Padmakamal", "Ramesh"], ["16/07/2026", "Samosa", 10, 20, 200, "Admin Dept", "Audit Meeting", "Room 101", "Padmakamal", "Suresh"], ["17/07/2026", "Coffee", 5, 20, 100, "HR Dept", "Interview", "Hall A", "Padmakamal", "Ramesh"]]; const ws = XLSX.utils.aoa_to_sheet(sampleData); ws['!cols'] = [{wch:12},{wch:18},{wch:8},{wch:8},{wch:10},{wch:20},{wch:20},{wch:15},{wch:15},{wch:15}]; const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Format"); window.pantryDownloadExcelFile(wb, "Meeting_Excel_Format.xlsx"); appAlert('Downloaded', 'Sample Excel format downloaded!'); } catch(err) { appAlert('Download Error', err.message); } };
+
+            window.importMeetingExcelFile = async function(event) {
+                const file = event.target.files[0]; 
+                if (!file) return; 
+                appAlert('Reading File', 'Please wait, reading ' + file.name + '...'); 
+                try { 
+                    const data = await file.arrayBuffer(); 
+                    const wb = XLSX.read(data, { cellDates: true }); 
+                    const firstSheetName = wb.SheetNames[0]; 
+                    const sheet = wb.Sheets[firstSheetName]; 
+                    const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" }); 
+                    
+                    if (!rows || rows.length === 0) { 
+                        appAlert('Import Error', 'Excel is empty'); 
+                        event.target.value = ''; 
+                        return; 
+                    } 
+                    
+                    let importCount = 0; 
+                    const groups = {}; 
+                    
+                    rows.forEach((row) => { 
+                        let rawDate = getExcelField(row, ['Date']); 
+                        let itemName = getExcelField(row, ['Item', 'Item Name']); 
+                        let qty = Number(getExcelField(row, ['Qty', 'Quantity']) || 1); 
+                        let rate = Number(getExcelField(row, ['Rate']) || 0); 
+                        let amount = Number(getExcelField(row, ['Amount']) || (qty * rate)); 
+                        let reqName = getExcelField(row, ["Requisitioner's Name", 'Ordered By', 'Organizer']) || 'General'; 
+                        let purpose = getExcelField(row, ['Purpose', 'Meeting Purpose']) || 'Meeting Refreshment'; 
+                        let location = getExcelField(row, ['Location', 'Venue']) || 'Campus'; 
+                        let vendor = getExcelField(row, ['Vendor']) || 'Padmakamal'; 
+                        let servedBy = getExcelField(row, ['Served By', 'Pantry Boy']) || 'General'; 
+                        
+                        if (!itemName.toString().trim()) return; 
+                        
+                        let formattedDMY = window.parseExcelDateToDMY(rawDate); 
+                        if (!formattedDMY) formattedDMY = getTodayInDMY(); 
+                        
+                        const groupKey = `${purpose.trim()}_${reqName.trim()}_${formattedDMY}`; 
+                        if (!groups[groupKey]) { 
+                            groups[groupKey] = { purpose: purpose, orderedBy: reqName, date: formattedDMY, items: [] }; 
+                        } 
+                        groups[groupKey].items.push({ 
+                            vendor: vendor, type: '🍪 Snacks/Food', name: itemName, qty: qty, unit: 'Nos', 
+                            rate: rate, amount: amount, itemSpecificDate: formattedDMY, servedBy: servedBy, locationNode: location 
+                        }); 
+                    }); 
+                    
+                    const updates = {}; 
+                    for (const key in groups) { 
+                        const grp = groups[key]; 
+                        const eventId = 'event_imp_' + Date.now() + '_' + Math.floor(Math.random() * 100000); 
+                        const totalAmt = grp.items.reduce((sum, i) => sum + (Number(i.amount)||0), 0); 
+                        const vendors = [...new Set(grp.items.map(i => i.vendor))].join(', '); 
+                        const pantryBoys = [...new Set(grp.items.map(i => i.servedBy))].join(', '); 
+                        const summary = grp.items.map(i => `${i.qty} ${i.name} (${i.locationNode})`).join(', '); 
+                        updates['eventLogs/' + eventId] = { 
+                            id: eventId, canteenSource: vendors, orderedBy: grp.orderedBy, servedByName: pantryBoys, 
+                            eventName: grp.purpose, date: grp.date, time: '09:00', items: grp.items, amount: totalAmt, 
+                            pantryName: pantryBoys, refreshmentSummary: summary, showNotification: false, 
+                            guestSlipCreated: false, guestSlipSigned: false, guestSlipReturned: false 
+                        }; 
+                        importCount++; 
+                    } 
+                    
+                    if (importCount > 0) { 
+                        await db.ref().update(updates); 
+                        appAlert('Import Successful', `✅ ${importCount} meeting log(s) imported! Dates saved correctly.`); 
+                    } else { 
+                        appAlert('Import Failed', 'No valid rows'); 
+                    } 
+                } catch (err) { 
+                    appAlert('Import Error', err.message); 
+                } finally { 
+                    if(event.target) event.target.value = ''; 
+                } 
+            };
+            window.importMeetingExcelFile = async function(event) {
+                const file = event.target.files[0]; if (!file) return; appAlert('Reading File', 'Please wait, reading ' + file.name + '...'); try { const data = await file.arrayBuffer(); const wb = XLSX.read(data, { cellDates: true, raw: false }); const firstSheetName = wb.SheetNames[0]; const sheet = wb.Sheets[firstSheetName]; const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" }); if (!rows || rows.length === 0) { appAlert('Import Error', 'Excel is empty'); event.target.value = ''; return; } let importCount = 0; const groups = {}; rows.forEach((row) => { let rawDate = getExcelField(row, ['Date']); let itemName = getExcelField(row, ['Item', 'Item Name']); let qty = Number(getExcelField(row, ['Qty', 'Quantity']) || 1); let rate = Number(getExcelField(row, ['Rate']) || 0); let amount = Number(getExcelField(row, ['Amount']) || (qty * rate)); let reqName = getExcelField(row, ["Requisitioner's Name", 'Ordered By', 'Organizer']) || 'General'; let purpose = getExcelField(row, ['Purpose', 'Meeting Purpose']) || 'Meeting Refreshment'; let location = getExcelField(row, ['Location', 'Venue']) || 'Campus'; let vendor = getExcelField(row, ['Vendor']) || 'Padmakamal'; let servedBy = getExcelField(row, ['Served By', 'Pantry Boy']) || 'General'; if (!itemName.toString().trim()) return; let formattedDMY = parseExcelDateToDMY(rawDate); if (!formattedDMY) formattedDMY = getTodayInDMY(); const groupKey = `${purpose.trim()}_${reqName.trim()}_${formattedDMY}`; if (!groups[groupKey]) { groups[groupKey] = { purpose: purpose, orderedBy: reqName, date: formattedDMY, items: [] }; } groups[groupKey].items.push({ vendor: vendor, type: '🍪 Snacks/Food', name: itemName, qty: qty, unit: 'Nos', rate: rate, amount: amount, itemSpecificDate: formattedDMY, servedBy: servedBy, locationNode: location }); }); const updates = {}; for (const key in groups) { const grp = groups[key]; const eventId = 'event_imp_' + Date.now() + '_' + Math.floor(Math.random() * 100000); const totalAmt = grp.items.reduce((sum, i) => sum + (Number(i.amount)||0), 0); const vendors = [...new Set(grp.items.map(i => i.vendor))].join(', '); const pantryBoys = [...new Set(grp.items.map(i => i.servedBy))].join(', '); const summary = grp.items.map(i => `${i.qty} ${i.name} (${i.locationNode})`).join(', '); updates['eventLogs/' + eventId] = { id: eventId, canteenSource: vendors, orderedBy: grp.orderedBy, servedByName: pantryBoys, eventName: grp.purpose, date: grp.date, time: '09:00', items: grp.items, amount: totalAmt, pantryName: pantryBoys, refreshmentSummary: summary, showNotification: false, guestSlipCreated: false, guestSlipSigned: false, guestSlipReturned: false }; importCount++; } if (importCount > 0) { await db.ref().update(updates); appAlert('Import Successful', `✅ ${importCount} meeting log(s) imported! Dates from Excel saved correctly.`); } else { appAlert('Import Failed', 'No valid rows'); } } catch (err) { appAlert('Import Error', err.message); console.error(err); } finally { if(event.target) event.target.value = ''; } };
+            window.pantryDeleteHandler = function(type, id) {
+                const typeMap = { employee: { ref: 'employees', binRef: 'recycleBin/employees', data: employeeList }, pantry: { ref: 'pantryTeam', binRef: 'recycleBin/pantryTeam', data: pantryTeam }, extra: { ref: 'extraLogs', binRef: 'recycleBin/extraLogs', data: extraLogsData }, event: { ref: 'eventLogs', binRef: 'recycleBin/eventLogs', data: eventLogsData }, regular_log: { ref: 'logs', binRef: 'recycleBin/logs', data: logsData }, canteen: { ref: 'canteens', binRef: null, data: canteenList }, venue: { ref: 'venues', binRef: null, data: venueList }, upcoming_event: { ref: 'upcomingEvents', binRef: null, data: upcomingEventsData }, supervisor_link: { ref: 'supervisorLinks', binRef: null, data: null } };
+                const entry = typeMap[type]; if (!entry) return; if (type === 'canteen' || type === 'venue' || type === 'upcoming_event' || type === 'supervisor_link') { appConfirm(`Delete ${type}`, `Permanently remove this ${type}?`, () => { db.ref(entry.ref + '/' + id).remove().then(() => { const modal = document.getElementById('eventHistoryModal'); if (modal && !modal.classList.contains('hidden') && type === 'event' && window.openEventHistoryModal) { setTimeout(() => window.openEventHistoryModal(), 150); } }); }); return; } appConfirm('Move to Recycle Bin', `Send this ${type} to recycle bin?`, () => { const target = entry.data.find(e => e.id === id); if (target) { db.ref(entry.binRef + '/' + id).set(target); db.ref(entry.ref + '/' + id).remove().then(() => { try { const modal = document.getElementById('eventHistoryModal'); if (modal && !modal.classList.contains('hidden')) { const btn = modal.querySelector(`button[onclick*="'${id}'"]`); if (btn) { const tr = btn.closest('tr'); if (tr) tr.style.display = 'none'; } if (type === 'event' && window.openEventHistoryModal) { setTimeout(() => window.openEventHistoryModal(), 200); } } } catch(e) {} }); if (type === 'pantry') { employeeList.forEach(emp => { if (emp.assignedPantryId === id) { db.ref('employees/' + emp.id).update({ assignedPantryId: "" }); } }); } } }); };
+
+            // ===== DAILY TEA - TWO SECTION FIX (IA Caterer + DAU Purchased) =====
+            // Override populateServe to show two sections if has DAU permission
+            const originalRenderServeEntry = window.renderServeEntry || function(){};
+            // We will patch after original definition - inject new logic into renderServeEntry wrapper
+            window._patchedDailyTea = true;
+
+// ============================================================
+            //  NEW MEETINGS & GUESTS MODULE (EXACT UI & EXCEL UPLOAD)
+            // ============================================================
+            let mgRecordsData = [];
+            db.ref('meetingsGuestsRecords').on('value', snap => {
+                mgRecordsData = parseSnap(snap);
+                if (document.getElementById('mgHistoryTableBody')) {
+                    window.renderMgHistoryTable();
+                }
+            });
+
+            window.renderMeetingsGuestsUI = function(containerId, currentRole) {
+                try {
+                    const container = document.getElementById(containerId);
+                    if (!container) return;
+
+                    window.mgCurrentRole = currentRole;
+                    const currentMonthStr = new Date().toISOString().slice(0, 7);
+
+                    container.innerHTML = `
+                        <div style="display: flex; flex-direction: column; height: 100%;">
+                            <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-shrink: 0;">
+                                <input type="file" id="mgExcelFileInput" accept=".xlsx, .xls" style="display: none;">
+                                <button onclick="document.getElementById('mgExcelFileInput').click()" style="flex: 1; padding: 10px; background-color: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer;">📂 Import Excel</button>
+                                <button onclick="window.openMgHistory()" style="flex: 1; padding: 10px; background-color: #fef3c7; color: #d97706; border: 1px solid #fde68a; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer;">📜 View History</button>
+                            </div>
+
+                            <div id="mgFormArea" style="flex-grow: 1; overflow-y: auto; padding: 10px; background: #f0f2f5; border-radius: 8px; border: 1px solid #cbd5e1;">
+                                <div id="mgDynamicRows"></div>
+                            </div>
+
+                            <div style="background: #ffffff; padding: 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); border-radius: 8px; margin-top: 10px; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0;">
+                                <div style="display: flex; gap: 10px;">
+                                    <button type="button" onclick="window.addMgRow()" style="background-color: #10b981; color: white; flex: 1; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px; border: none; cursor:pointer;">+ Blank Row</button>
+                                    <button type="button" onclick="window.addWithSameHeaderMg()" style="background-color: #f59e0b; color: white; flex: 1; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px; border: none; cursor:pointer;">🔄 Same Header</button>
+                                </div>
+                                <button type="button" onclick="window.submitMgForm()" style="background-color: #2563eb; color: white; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 15px; border: none; cursor:pointer;">💾 Save All Entries</button>
+                            </div>
+                        </div>
+
+                        <div class="card" style="margin-top: 15px; border-top: 4px solid #f59e0b;">
+                            <h3 style="color:#d97706; margin:0 0 10px 0; text-align:center;">📜 Sync History</h3>
+                            <div class="mg-month-filter" style="flex-wrap: wrap; margin-bottom: 12px;">
+                                <input type="month" id="mgMainMonthFilter" value="${currentMonthStr}" onchange="window.renderMgHistoryTable()" style="flex:1; padding:8px; border-radius:6px; border:1px solid #cbd5e1; min-width:120px;">
+                                <input type="text" id="mgMainSearchFilter" placeholder="🔍 Search any word..." oninput="window.renderMgHistoryTable()" style="flex:2; padding:8px; border-radius:6px; border:1px solid #cbd5e1; min-width:150px;">
+                            </div>
+                            <div id="mgHistoryListMain" style="max-height: 400px; overflow-y: auto; padding: 4px;"></div>
+                        </div>
+                    `;
+
+                    document.getElementById('mgExcelFileInput').addEventListener('change', window.handleMgExcelUpload);
+                    
+                    let myPantryTeam = pantryTeam;
+                    let myEmployees = employeeList;
+                    
+                    // જો પેન્ટ્રી બોય હોય, તો ફક્ત તેને સોંપાયેલા એમ્પ્લોયી અને પોતાનું જ નામ દેખાશે
+                    if (currentRole === 'pantry' && typeof currentUser !== 'undefined') {
+                        myPantryTeam = pantryTeam.filter(p => p.id === currentUser.id);
+                        myEmployees = employeeList.filter(e => e.assignedPantryId === currentUser.id || (window.getEffectivePantryId && e.assignedPantryId === window.getEffectivePantryId(currentUser.id)));
+                    }
+
+                    const vendorOpts = canteenList.map(c => `<option value="${safeStr(c.name)}">${safeStr(c.name)}</option>`).join('');
+                    const pantryOpts = `<option value="Multiple Pantry Boys">Multiple Pantry Boys</option><option value="Through Vendor">Through Vendor</option>` + myPantryTeam.map(p => `<option value="${safeStr(p.name)}">${safeStr(p.name)}</option>`).join('');
+                    const employeeOpts = myEmployees.map(e => `<option value="${safeStr(e.name)}">`).join('');
+                    
+                    window.mgVendorOpts = vendorOpts;
+                    window.mgPantryOpts = pantryOpts;
+                    
+                    // દેટાલિસ્ટ (Datalist) અપડેટ કરવા માટે
+                    const datalist = document.getElementById('mgEmployeeDatalist');
+                    if(datalist) datalist.innerHTML = employeeOpts;
+
+                    window.addMgRow();
+                    window.renderMgHistoryTable();
+                } catch(e) { console.error(e); }
+            };
+
+            window.addMgRow = function(data = {}) {
+                const container = document.getElementById('mgDynamicRows');
+                if(!container) return;
+                const rowId = Date.now() + Math.random().toString(36).substring(2, 5);
+                
+                const today = new Date().toISOString().split('T')[0];
+                const initialDate = data.Date || today;
+
+                const div = document.createElement('div');
+                div.className = 'mg-entry-card';
+                div.id = `row-${rowId}`;
+                
+                // Fetch dynamic data for dropdowns
+                const vendorOpts = canteenList.map(c => `<option value="${safeStr(c.name)}" ${data.Vendor === c.name ? 'selected':''}>${safeStr(c.name)}</option>`).join('');
+                const pantryOpts = `<option value="Multiple Pantry Boys" ${data["Served By"] === 'Multiple Pantry Boys' ? 'selected':''}>Multiple Pantry Boys</option><option value="Through Vendor" ${data["Served By"] === 'Through Vendor' ? 'selected':''}>Through Vendor</option>` + pantryTeam.map(p => `<option value="${safeStr(p.name)}" ${data["Served By"] === p.name ? 'selected':''}>${safeStr(p.name)}</option>`).join('');
+
+                div.innerHTML = `
+                    <div class="mg-entry-card-header">
+                        <span class="row-sr-text">#1</span>
+                        <div class="mg-action-container">
+                            <button type="button" class="mg-btn-icon" style="background-color: #8b5cf6;" onclick="window.duplicateMgRow('${rowId}')">📋</button>
+                            <button type="button" class="mg-btn-icon" style="background-color: #ef4444;" onclick="window.removeMgRow('row-${rowId}')">✕</button>
+                        </div>
+                    </div>
+                    <div class="mg-form-grid">
+                        <div>
+                            <label>Date</label>
+                            <input type="date" class="row-date" value="${initialDate}" onchange="window.updateMgDay('${rowId}')">
+                        </div>
+                        <div>
+                            <label>Day</label>
+                            <input type="text" class="row-day" value="${getDayOfWeek(convertYMDtoDMY(initialDate)) || ''}" readonly>
+                        </div>
+                        <div class="mg-full-width">
+                            <label>Item Name</label>
+                            <input type="text" class="row-item" placeholder="Item Name" value="${data.Item || ''}">
+                        </div>
+                        <div>
+                            <label>Qty</label>
+                            <input type="number" class="row-qty" placeholder="0" value="${data.Qty || ''}" oninput="window.calcMgAmount('${rowId}')">
+                        </div>
+                        <div>
+                            <label>Rate</label>
+                            <input type="number" class="row-rate" placeholder="0.00" value="${data.Rate || ''}" oninput="window.calcMgAmount('${rowId}')">
+                        </div>
+                        <div class="mg-full-width">
+                            <label>Amount</label>
+                            <input type="number" class="row-amount" placeholder="0.00" value="${data.Amount || 0}" readonly style="background-color: #e2e8f0; font-weight: bold;">
+                        </div>
+                        <div class="mg-full-width">
+                            <label>Requisitioner's Name</label>
+                            <input type="text" class="row-req" placeholder="Req. Name" value="${data["Requisitioner's Name"] || ''}">
+                        </div>
+                        <div>
+                            <label>Location</label>
+                            <input type="text" class="row-location" placeholder="Location" value="${data.Location || ''}">
+                        </div>
+                        <div>
+                            <label>Vendor</label>
+                            <select class="row-vendor"><option value="">-- Select --</option>${vendorOpts}</select>
+                        </div>
+                        <div class="mg-full-width">
+                            <label>Served By (Pantry)</label>
+                            <select class="row-served"><option value="">-- Select --</option>${pantryOpts}</select>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+                window.updateMgFormSrNumbers();
+                document.getElementById('mgFormArea').scrollTop = document.getElementById('mgFormArea').scrollHeight;
+            };
+
+            window.updateMgDay = function(rowId) {
+                const row = document.getElementById(`row-${rowId}`);
+                if(!row) return;
+                const dateVal = row.querySelector('.row-date').value;
+                row.querySelector('.row-day').value = getDayOfWeek(convertYMDtoDMY(dateVal));
+            };
+
+            window.calcMgAmount = function(rowId) {
+                const row = document.getElementById(`row-${rowId}`);
+                const qty = parseFloat(row.querySelector('.row-qty').value) || 0;
+                const rate = parseFloat(row.querySelector('.row-rate').value) || 0;
+                row.querySelector('.row-amount').value = (qty * rate).toFixed(2);
+            };
+
+            window.removeMgRow = function(rowId) {
+                const rows = document.querySelectorAll('.mg-entry-card');
+                if (rows.length > 1) {
+                    document.getElementById(rowId).remove();
+                    window.updateMgFormSrNumbers();
+                } else {
+                    appAlert("Notice", "At least one entry card is required.");
+                }
+            };
+
+            window.duplicateMgRow = function(rowId) {
+                const sourceRow = document.getElementById(`row-${rowId}`);
+                const data = window.getMgRowData(sourceRow);
+                window.addMgRow(data);
+            };
+
+            window.addWithSameHeaderMg = function() {
+                const rows = document.querySelectorAll('.mg-entry-card');
+                if (rows.length === 0) { window.addMgRow(); return; }
+                const lastData = window.getMgRowData(rows[rows.length - 1]);
+                const newData = {
+                    Date: lastData.RawDate,
+                    Item: '', Qty: '', Rate: '', Amount: 0,
+                    "Requisitioner's Name": lastData.ReqName,
+                    Location: lastData.Location,
+                    Vendor: lastData.Vendor,
+                    "Served By": lastData.ServedBy
+                };
+                window.addMgRow(newData);
+            };
+
+            window.updateMgFormSrNumbers = function() {
+                const rows = document.querySelectorAll('.mg-entry-card');
+                rows.forEach((row, idx) => {
+                    row.querySelector('.row-sr-text').textContent = `#${idx + 1}`;
+                });
+            };
+
+            window.getMgRowData = function(row) {
+                return {
+                    RawDate: row.querySelector('.row-date').value,
+                    Item: row.querySelector('.row-item').value,
+                    Qty: parseFloat(row.querySelector('.row-qty').value) || 0,
+                    Rate: parseFloat(row.querySelector('.row-rate').value) || 0,
+                    Amount: parseFloat(row.querySelector('.row-amount').value) || 0,
+                    ReqName: row.querySelector('.row-req').value,
+                    Location: row.querySelector('.row-location').value,
+                    Vendor: row.querySelector('.row-vendor').value,
+                    ServedBy: row.querySelector('.row-served').value
+                };
+            };
+
+            window.submitMgForm = function() {
+                const rows = document.querySelectorAll('.mg-entry-card');
+                let isValid = true;
+                const updates = {};
+
+                rows.forEach(row => {
+                    if(!row.querySelector('.row-item').value || !row.querySelector('.row-qty').value) isValid = false;
+                });
+
+                if(!isValid) return appAlert("Error", "Please fill Item and Qty fields before saving.");
+
+                rows.forEach(row => {
+                    const data = window.getMgRowData(row);
+                    const id = 'mgrec_' + Date.now() + Math.random().toString(36).substring(2, 7);
+                    
+                    updates['meetingsGuestsRecords/' + id] = {
+                        id: id,
+                        RawDate: data.RawDate,
+                        DateFormatted: convertYMDtoDMY(data.RawDate),
+                        Day: getDayOfWeek(convertYMDtoDMY(data.RawDate)),
+                        Item: data.Item, Qty: data.Qty, Rate: data.Rate, Amount: data.Amount,
+                        ReqName: data.ReqName, Purpose: data.Purpose || "Meeting / Guest",
+                        Location: data.Location, Vendor: data.Vendor, ServedBy: data.ServedBy,
+                        Timestamp: Date.now()
+                    };
+                });
+
+                db.ref().update(updates).then(() => {
+                    appAlert("Success", "Data Saved Successfully!");
+                    document.getElementById('mgDynamicRows').innerHTML = '';
+                    window.addMgRow();
+                }).catch(err => appAlert('Error', err.message));
+            };
+
+            // EXACT EXCEL UPLOAD LOGIC
+            window.handleMgExcelUpload = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                appAlert('Reading File', 'Please wait, importing data from Excel...');
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const data = new Uint8Array(event.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const firstSheet = workbook.SheetNames[0];
+                        const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { raw: true });
+
+                        const updates = {};
+                        let importCount = 0;
+
+                        jsonData.forEach(row => {
+                            let rawDate = new Date().toISOString().split('T')[0];
+                            
+                            if (row.Date) { 
+                                if (typeof row.Date === 'number') {
+                                    const excelEpoch = Date.UTC(1899, 11, 30);
+                                    const d = new Date(excelEpoch + (row.Date * 86400000));
+                                    const year = d.getUTCFullYear();
+                                    const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+                                    const day = String(d.getUTCDate()).padStart(2, '0');
+                                    rawDate = `${year}-${month}-${day}`;
+                                } else if (typeof row.Date === 'string') {
+                                    let parts = row.Date.split(/[-/]/);
+                                    if (parts.length === 3) {
+                                        if (parts[2].length === 4) { rawDate = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`; } 
+                                        else if (parts[0].length === 4) { rawDate = `${parts[0]}-${parts[1].padStart(2,'0')}-${parts[2].padStart(2,'0')}`; }
+                                    }
+                                }
+                            }
+
+                            const item = row.Item || row['Item Name'] || row.Items || '';
+                            const qty = parseFloat(row.Qty || row.Quantity || 0) || 0;
+                            const rate = parseFloat(row.Rate || row.Price || 0) || 0;
+                            const amount = parseFloat(row.Amount) || (qty * rate);
+                            const reqName = row["Requisitioner's Name"] || row['Requisitioner Name'] || row['Requisitioner'] || row['Req Name'] || '';
+                            const purpose = row.Purpose || row['Event Name'] || 'Meeting / Guest';
+                            const location = row.Location || row.Place || '';
+                            const vendor = row.Vendor || row['Vendor Name'] || '';
+                            const servedBy = row["Served By"] || row['ServedBy'] || row['Served by'] || '';
+
+                            if(item && qty > 0) {
+                                const id = 'mgrec_' + Date.now() + Math.random().toString(36).substring(2, 7);
+                                updates['meetingsGuestsRecords/' + id] = {
+                                    id: id,
+                                    RawDate: rawDate, 
+                                    DateFormatted: convertYMDtoDMY(rawDate), 
+                                    Day: getDayOfWeek(convertYMDtoDMY(rawDate)),
+                                    Item: item, Qty: qty, Rate: rate, Amount: amount,
+                                    ReqName: reqName, Purpose: purpose, Location: location,
+                                    Vendor: vendor, ServedBy: servedBy, Status: 'Pending', Timestamp: Date.now()
+                                };
+                                importCount++;
+                            }
+                        });
+
+                        if(importCount > 0) {
+                            db.ref().update(updates).then(() => {
+                                appAlert('Success', `✅ ${importCount} Records imported from Excel to Firebase!`);
+                            });
+                        } else {
+                            appAlert('Error', 'No valid records found in Excel.');
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        appAlert("Error", "Failed to process Excel file.");
+                    } finally {
+                        document.getElementById('mgExcelFileInput').value = '';
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            };
+
+            // HISTORY POPUP
+            window.openMgHistory = function() {
+                const existing = document.getElementById('mgHistoryPopupOverlay');
+                if(existing) existing.remove();
+                const currentMonthStr = new Date().toISOString().slice(0, 7);
+
+                const modal = document.createElement('div');
+                modal.className = 'popup-overlay';
+                modal.id = 'mgHistoryPopupOverlay';
+                modal.innerHTML = `
+                    <div class="popup-card full" style="display:flex; flex-direction:column; max-width:600px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:#1e293b; padding:15px; border-radius:10px 10px 0 0; color:white; flex-shrink:0;">
+                            <h3 style="margin:0; font-size:16px;">Sync History</h3>
+                            <button onclick="document.getElementById('mgHistoryPopupOverlay').remove()" style="background:transparent; border:none; color:white; font-size:20px; cursor:pointer;">✕</button>
+                        </div>
+                        <div style="background:#fff; padding:10px; border-bottom:1px solid #e2e8f0; flex-shrink:0;">
+                            <div class="mg-month-filter" style="margin:0; flex-wrap: wrap;">
+                                <input type="month" id="mgPopupMonthFilter" value="${currentMonthStr}" onchange="window.renderMgHistoryTable()" style="flex:1; padding:8px; border-radius:6px; border:1px solid #cbd5e1; min-width:120px;">
+                                <input type="text" id="mgPopupSearchFilter" placeholder="🔍 Search any word..." oninput="window.renderMgHistoryTable()" style="flex:2; padding:8px; border-radius:6px; border:1px solid #cbd5e1; min-width:150px;">
+                            </div>
+                        </div>
+                        <div id="mgHistoryListPopup" style="flex-grow:1; overflow:auto; background:#f0f2f5; padding:10px;"></div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                window.renderMgHistoryTable();
+            };	
+
+            window.renderMgHistoryTable = function() {
+                const containerMain = document.getElementById('mgHistoryListMain');
+                const containerPopup = document.getElementById('mgHistoryListPopup');
+                
+                const mainPicker = document.getElementById('mgMainMonthFilter');
+                const popupPicker = document.getElementById('mgPopupMonthFilter');
+                const selectedMonthYMD = popupPicker ? popupPicker.value : (mainPicker ? mainPicker.value : new Date().toISOString().slice(0, 7));
+
+                const mainSearch = document.getElementById('mgMainSearchFilter');
+                const popupSearch = document.getElementById('mgPopupSearchFilter');
+                const searchQuery = (popupSearch ? popupSearch.value : (mainSearch ? mainSearch.value : '')).toLowerCase().trim();
+
+                let combinedRecords = [...mgRecordsData];
+
+                if (typeof eventLogsData !== 'undefined' && eventLogsData.length > 0) {
+                    eventLogsData.forEach(ev => {
+                        if (ev.items && Array.isArray(ev.items) && ev.items.length > 0) {
+                            ev.items.forEach((item, idx) => {
+                                combinedRecords.push({
+                                    id: ev.id + '_' + idx,
+                                    DateFormatted: item.itemSpecificDate || ev.date,
+                                    Day: getDayOfWeek(item.itemSpecificDate || ev.date) || '',
+                                    Item: item.name, Qty: item.qty, Rate: item.rate || 0,
+                                    Amount: item.amount || (item.qty * (item.rate || 0)),
+                                    ReqName: ev.orderedBy || '-', Purpose: ev.eventName || '-',
+                                    Location: item.locationNode || '-', Vendor: item.vendor || ev.canteenSource || '-',
+                                    ServedBy: item.servedBy || ev.servedByName || ev.pantryName || '-',
+                                    Timestamp: ev.timestamp || new Date(parseDMYToYMD(item.itemSpecificDate || ev.date)).getTime() || 0,
+                                    isOldEvent: true, originalId: ev.id
+                                });
+                            });
+                        } else {
+                            combinedRecords.push({
+                                id: ev.id, DateFormatted: ev.date, Day: getDayOfWeek(ev.date) || '',
+                                Item: ev.refreshmentSummary || 'Meeting Details', Qty: '-', Rate: '-',
+                                Amount: ev.amount || 0, ReqName: ev.orderedBy || '-', Purpose: ev.eventName || '-',
+                                Location: '-', Vendor: ev.canteenSource || '-', ServedBy: ev.servedByName || ev.pantryName || '-',
+                                Timestamp: ev.timestamp || new Date(parseDMYToYMD(ev.date)).getTime() || 0,
+                                isOldEvent: true, originalId: ev.id
+                            });
+                        }
+                    });
+                }
+
+                // Role Base Filter (Pantry boy can only see his own, Admin sees all)
+                if (window.mgCurrentRole === 'pantry' && typeof currentUser !== 'undefined' && currentUser) {
+                    combinedRecords = combinedRecords.filter(rec => {
+                        const sBy = (rec.ServedBy || '').toLowerCase();
+                        return sBy.includes(currentUser.name.toLowerCase());
+                    });
+                }
+
+                // Month Filter
+                let filteredRecords = combinedRecords.filter(rec => {
+                    let recYMD = '';
+                    if (rec.DateFormatted && rec.DateFormatted.includes('/')) {
+                        recYMD = parseDMYToYMD(rec.DateFormatted);
+                    } else if (rec.RawDate) {
+                        recYMD = rec.RawDate;
+                    } else {
+                        recYMD = new Date(rec.Timestamp).toISOString().split('T')[0];
+                    }
+                    return recYMD.startsWith(selectedMonthYMD);
+                });
+
+                // Search Filter
+                if (searchQuery) {
+                    filteredRecords = filteredRecords.filter(rec => 
+                        Object.values(rec).some(val => String(val).toLowerCase().includes(searchQuery))
+                    );
+                }
+
+                const sorted = filteredRecords.sort((a, b) => {
+                    let dateA = parseDMYToYMD(a.DateFormatted) || new Date(a.Timestamp).toISOString();
+                    let dateB = parseDMYToYMD(b.DateFormatted) || new Date(b.Timestamp).toISOString();
+                    return dateA.localeCompare(dateB); 
+                });
+
+                let html = '';
+                if(sorted.length === 0) {
+                    html = `<div style="text-align:center; padding:30px; color:#64748b; font-weight:bold; background:#fff; border-radius:10px;">No records found.</div>`;
+                } else {
+                    html = sorted.map(rec => {
+                        let actionBtn = '';
+                        
+                        // Edit & Delete Buttons updated
+                        if (rec.isOldEvent) {
+                            actionBtn = `
+                                <button onclick="window.editMeetingEvent('${rec.originalId}')" style="background:#0284c7; color:white; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:11px; cursor:pointer;">✏️ Edit</button>
+                                <button onclick="window.pantryDeleteHandler('event', '${rec.originalId}')" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:11px; cursor:pointer;">🗑 Delete</button>
+                            `;
+                        } else {
+                            actionBtn = `
+                                <button onclick="window.editNewMgRecord('${rec.id}')" style="background:#0284c7; color:white; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:11px; cursor:pointer;">✏️ Edit</button>
+                                <button onclick="window.deleteMgRecord('${rec.id}')" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:11px; cursor:pointer;">🗑 Delete</button>
+                            `;
+                        }
+
+                        return `
+                            <div class="mg-history-card">
+                                <div class="mg-hc-header">
+                                    <span class="mg-hc-date">📅 ${rec.DateFormatted} <span style="font-weight:normal; color:#64748b; font-size:11px;">(${rec.Day})</span></span>
+                                </div>
+                                <div class="mg-hc-body">
+                                    <div class="mg-hc-item">🔸 ${rec.Item}</div>
+                                    <div><b>Qty:</b> ${rec.Qty}</div>
+                                    <div><b>Rate:</b> ${rec.Rate !== '-' ? '₹'+rec.Rate : '-'}</div>
+                                    <div><b>Purpose:</b> ${rec.Purpose}</div>
+                                    <div><b>Req By:</b> ${rec.ReqName}</div>
+                                    <div><b>Location:</b> ${rec.Location}</div>
+                                    <div><b>Served By:</b> ${rec.ServedBy}</div>
+                                    <div class="mg-hc-full" style="margin-top:4px; grid-column: span 2;"><b>Vendor:</b> <span style="color:#d97706;">${rec.Vendor}</span></div>
+                                    <div class="mg-hc-amt">Total Amount: ₹${rec.Amount}</div>
+                                </div>
+                                <div class="mg-hc-footer">${actionBtn}</div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                if(containerMain) containerMain.innerHTML = html;
+                if(containerPopup) containerPopup.innerHTML = html;
+            };
+
+            // New Edit Function for New Records
+            window.editNewMgRecord = function(id) {
+                const rec = mgRecordsData.find(r => r.id === id);
+                if(!rec) return appAlert('Error', 'Record not found.');
+
+                const vendorOpts = canteenList.map(c => `<option value="${safeStr(c.name)}" ${rec.Vendor === c.name ? 'selected':''}>${safeStr(c.name)}</option>`).join('');
+                const pantryOpts = `<option value="Multiple Pantry Boys" ${rec.ServedBy === 'Multiple Pantry Boys' ? 'selected':''}>Multiple Pantry Boys</option><option value="Through Vendor" ${rec.ServedBy === 'Through Vendor' ? 'selected':''}>Through Vendor</option>` + pantryTeam.map(p => `<option value="${safeStr(p.name)}" ${rec.ServedBy === p.name ? 'selected':''}>${safeStr(p.name)}</option>`).join('');
+
+                const modal = document.createElement('div');
+                modal.className = 'popup-overlay';
+                modal.id = 'editMgRecordModal';
+                modal.innerHTML = `
+                    <div class="popup-card" style="max-width:500px; max-height:90vh; overflow-y:auto;">
+                        <h3 style="color:#0A56D0; margin-top:0; margin-bottom:12px;">✏️ Edit Record</h3>
+                        <div class="mg-form-grid" style="text-align:left;">
+                            <div><label>Date</label><input type="date" id="emg_date" value="${rec.RawDate}"></div>
+                            <div><label>Vendor</label><select id="emg_vendor"><option value="">-- Select --</option>${vendorOpts}</select></div>
+                            <div class="mg-full-width"><label>Item Name</label><input type="text" id="emg_item" value="${rec.Item}"></div>
+                            <div><label>Qty</label><input type="number" id="emg_qty" value="${rec.Qty}" oninput="window.calcEditMgAmt()"></div>
+                            <div><label>Rate</label><input type="number" id="emg_rate" value="${rec.Rate}" oninput="window.calcEditMgAmt()"></div>
+                            <div class="mg-full-width"><label>Amount</label><input type="number" id="emg_amt" value="${rec.Amount}" readonly style="background:#e2e8f0; font-weight:bold;"></div>
+                            <div><label>Requisitioner</label><input type="text" id="emg_req" value="${rec.ReqName}"></div>
+                            <div><label>Purpose</label><input type="text" id="emg_purpose" value="${rec.Purpose}"></div>
+                            <div><label>Location</label><input type="text" id="emg_location" value="${rec.Location}"></div>
+                            <div><label>Served By</label><select id="emg_served"><option value="">-- Select --</option>${pantryOpts}</select></div>
+                        </div>
+                        <div style="display:flex; gap:8px; margin-top:16px;">
+                            <button onclick="document.getElementById('editMgRecordModal').remove()" class="danger" style="flex:1; min-height:44px;">Cancel</button>
+                            <button onclick="window.saveEditMgRecord('${id}')" class="success" style="flex:1; min-height:44px;">💾 Update</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            };
+
+            window.calcEditMgAmt = function() {
+                const q = parseFloat(document.getElementById('emg_qty').value) || 0;
+                const r = parseFloat(document.getElementById('emg_rate').value) || 0;
+                document.getElementById('emg_amt').value = (q * r).toFixed(2);
+            };
+
+            window.saveEditMgRecord = function(id) {
+                const rawDate = document.getElementById('emg_date').value;
+                const item = document.getElementById('emg_item').value.trim();
+                const qty = parseFloat(document.getElementById('emg_qty').value) || 0;
+
+                if(!item || !qty) return appAlert('Error', 'Item and Qty are required.');
+
+                db.ref('meetingsGuestsRecords/' + id).update({
+                    RawDate: rawDate,
+                    DateFormatted: convertYMDtoDMY(rawDate),
+                    Day: getDayOfWeek(convertYMDtoDMY(rawDate)),
+                    Vendor: document.getElementById('emg_vendor').value,
+                    Item: item,
+                    Qty: qty,
+                    Rate: parseFloat(document.getElementById('emg_rate').value) || 0,
+                    Amount: parseFloat(document.getElementById('emg_amt').value) || 0,
+                    ReqName: document.getElementById('emg_req').value,
+                    Purpose: document.getElementById('emg_purpose').value,
+                    Location: document.getElementById('emg_location').value,
+                    ServedBy: document.getElementById('emg_served').value
+                }).then(() => {
+                    document.getElementById('editMgRecordModal').remove();
+                    appAlert('Updated', 'Record updated successfully!');
+                });
+            };	
+
+            window.updateMgStatus = function(id, newStatus) {
+                db.ref('meetingsGuestsRecords/' + id).update({ Status: newStatus });
+            };
+
+            window.deleteMgRecord = function(id) {
+                appConfirm('Delete Record', 'Are you sure you want to delete this record?', () => {
+                    db.ref('meetingsGuestsRecords/' + id).remove();
+                });
+            };
         })();
-    </script>
+        // Step 3: Function to download Sample Excel Format
+</script>    
 </body>
 </html>
