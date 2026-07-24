@@ -1770,12 +1770,13 @@
         flex-shrink: 0; /* પેન્સિલનું બટન નાનું થઈને ગાયબ ન થાય તે માટે */
         margin-left: 5px;
     }
-            /* ===== CUSTOM INLINE DROPDOWN (MOBILE FIX) ===== */
-        .my-drop-wrap { position: relative; width: 100%; text-align: left; }
-        .my-drop-btn { background: #fff; border: 1px solid #0A56D0; border-radius: 8px; padding: 6px 10px; font-size: 0.8rem; cursor: pointer; min-height: 36px; display: flex; justify-content: space-between; align-items: center; color: #0A56D0; font-weight: 700; box-shadow: 0 2px 4px rgba(10,86,208,0.1); }
-        .my-drop-list { display: none; position: absolute; top: 100%; left: 0; min-width: 120px; background: #fff; border: 1px solid #CBD5E1; border-radius: 8px; z-index: 99999; box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin-top: 4px; }
-        .my-drop-wrap.active .my-drop-list { display: block; }
-        .my-drop-item { padding: 10px 12px; font-size: 0.85rem; border-bottom: 1px solid #E2E8F0; color: #1E293B; cursor: pointer; font-weight: 600; }
+                    /* ===== CUSTOM INLINE DROPDOWN (CENTER POPUP) ===== */
+        .my-drop-wrap { position: static; width: 100%; text-align: left; }
+        .my-drop-btn { background: #fff; border: 1px solid #0A56D0; border-radius: 8px; padding: 6px 10px; font-size: 0.85rem; cursor: pointer; min-height: 38px; display: flex; justify-content: space-between; align-items: center; color: #0A56D0; font-weight: 700; box-shadow: 0 2px 4px rgba(10,86,208,0.1); }
+        .my-drop-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 999998; }
+        .my-drop-list { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 320px; background: #fff; border-radius: 12px; z-index: 999999; box-shadow: 0 10px 30px rgba(0,0,0,0.3); overflow: hidden; text-align: center; }
+        .my-drop-wrap.active .my-drop-overlay, .my-drop-wrap.active .my-drop-list { display: block; }
+        .my-drop-item { padding: 15px; font-size: 1.1rem; border-bottom: 1px solid #E2E8F0; color: #1E293B; cursor: pointer; font-weight: 700; }
         .my-drop-item:last-child { border-bottom: none; }
         .my-drop-item:active { background: #EFF6FF; color: #0A56D0; }
         .my-drop-disabled { background: #E2E8F0; color: #146C43; font-weight: 800; padding: 8px; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.85rem; text-align: center; }
@@ -2241,10 +2242,13 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                         appAlert('Updated', 'Drink corrected!'); }
                 };
             };
-            // Custom Dropdown JS Helpers
+                      // Custom Dropdown JS Helpers
             window.openMyDrop = function(btn) {
-                document.querySelectorAll('.my-drop-wrap').forEach(w => { if (w !== btn.parentElement) w.classList.remove('active'); });
-                btn.parentElement.classList.toggle('active');
+                document.querySelectorAll('.my-drop-wrap').forEach(w => w.classList.remove('active'));
+                btn.parentElement.classList.add('active');
+            };
+            window.closeMyDrop = function(overlay) {
+                overlay.parentElement.classList.remove('active');
             };
             window.selectMyDrop = function(item, value, display) {
                 const wrap = item.closest('.my-drop-wrap');
@@ -2258,7 +2262,7 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                 }
             });
 
-                        window.handleDirectRowEditTrigger = function(empId) {
+                                    window.handleDirectRowEditTrigger = function(empId) {
                 const rows = document.querySelectorAll('.bulk-entry-row');
                 let targetRow = null;
                 rows.forEach(r => { if(r.dataset.id === empId) targetRow = r; });
@@ -2269,8 +2273,8 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                     (typeof DAU_PURCHASE_BEVERAGES !== 'undefined' ? DAU_PURCHASE_BEVERAGES : []) : 
                     (typeof CONTRACTOR_BEVERAGES !== 'undefined' ? CONTRACTOR_BEVERAGES : ['Tea','Coffee']);
 
-                let optsHtml = `<div class="my-drop-item" style="color:#DC3545;" onclick="window.selectMyDrop(this, 'REMOVE_LOG', '✕ Clear')">✕ Clear/Remove</div>`;
-                optsHtml += `<div class="my-drop-item" onclick="window.selectMyDrop(this, '', '-')">- (None)</div>`;
+                // "Clear/Remove" કાઢીને સીધું "- (None)" ઓપ્શન જ રાખ્યું છે
+                let optsHtml = `<div class="my-drop-item" onclick="window.selectMyDrop(this, '', '-')">- (None)</div>`;
                 drinkArr.forEach(d => {
                     optsHtml += `<div class="my-drop-item" onclick="window.selectMyDrop(this, '${d}', '${d}')">${d}</div>`;
                 });
@@ -2286,6 +2290,7 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                         wrap.innerHTML = `
                             <input type="hidden" class="${sessionClass} drink-input" data-supply="${supplySource}" value="${currentVal}">
                             <div class="my-drop-btn" style="border-color:#D97706; color:#D97706;" onclick="window.openMyDrop(this)"><span>${displayTxt}</span> <small>▼</small></div>
+                            <div class="my-drop-overlay" onclick="window.closeMyDrop(this)"></div>
                             <div class="my-drop-list">${optsHtml}</div>
                         `;
                         const parentTd = hiddenInput.parentElement;
@@ -2319,22 +2324,27 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                 const aVal = aInput ? aInput.value : '';
 
                 if (morning) {
-                    if (mVal === 'REMOVE_LOG' || mVal === '') db.ref('logs/' + morning.id).remove();
+                    if (mVal === '') db.ref('logs/' + morning.id).remove();
                     else if (mVal && mVal !== morning.drink) db.ref('logs/' + morning.id).update({ drink: mVal });
                 } 
                 if (afternoon) {
-                    if (aVal === 'REMOVE_LOG' || aVal === '') db.ref('logs/' + afternoon.id).remove();
+                    if (aVal === '') db.ref('logs/' + afternoon.id).remove();
                     else if (aVal && aVal !== afternoon.drink) db.ref('logs/' + afternoon.id).update({ drink: aVal });
                 }
 
+                // ⏳ ની જગ્યાએ 1 સેકન્ડ માટે ✅ બતાવીને પાછી પેન્સિલ ✏️ લાવી દેશે 
                 const editBtn = targetRow.querySelector('button');
                 if(editBtn) {
-                    editBtn.innerHTML = '⏳';
+                    editBtn.innerHTML = '✅';
                     editBtn.style.background = 'transparent';
-                    editBtn.style.color = '#0A56D0';
+                    editBtn.style.color = '#146C43';
+                    setTimeout(() => {
+                        editBtn.innerHTML = '✏️';
+                        editBtn.style.color = '#0A56D0';
+                        editBtn.onclick = function() { window.handleDirectRowEditTrigger(empId); };
+                    }, 1000);
                 }
             };
-
             window.editCanteen = function(id, currentName) {
                 const modal = document.createElement('div');
                 modal.className = 'popup-overlay';
@@ -3982,13 +3992,12 @@ window.shareVendorLink = function(link, vendor) {
                 document.getElementById('beverageEntryDate').addEventListener('change', () => renderBeverageModeContent(
                     currentMode));
 
-                function renderBeverageModeContent(mode) {
+                                function renderBeverageModeContent(mode) {
                     const target = document.getElementById('beverageEntryModeContent');
                     if (!target) return;
                     
                     if (mode === 'name') {
                         const hasDauAccess = window.hasDauPurchasePermission ? window.hasDauPurchasePermission(currentUser.id) : true;
-                        
                         target.innerHTML = `
                             <div class="merged-filter-row" style="flex-shrink:0; margin-bottom:8px;">
                                 <select id="dailySupplySource" style="flex:1; padding:10px; border-radius:8px; border:1px solid #CBD5E1; font-weight:bold; color:#0A56D0; background:#EFF6FF;">
@@ -4012,7 +4021,6 @@ window.shareVendorLink = function(link, vendor) {
                                 <div id="bulkServeListContractor" style="max-height:350px; overflow-y:auto; margin-bottom:4px;"></div>
                             </div>
                         `;
-                        
                         document.getElementById('entryCategory').addEventListener('change', populateServe);
                         document.getElementById('pantryStaffSearch').addEventListener('input', populateServe);
                         document.getElementById('dailySupplySource').addEventListener('change', function() {
@@ -4037,10 +4045,10 @@ window.shareVendorLink = function(link, vendor) {
                     }
                 }
 
-                                function populateServe() {
-                    const containerContractor = document.getElementById('bulkServeListContractor');
-                    const containerDAU = document.getElementById('bulkServeListDAU');
-                    const containerOld = document.getElementById('bulkServeList');
+                function populateServe() {
+                    const container = document.getElementById('bulkServeListContractor');
+                    if (!container) return;
+                    
                     const cat = document.getElementById('entryCategory')?.value || 'All';
                     const search = document.getElementById('pantryStaffSearch')?.value.toLowerCase().trim() || '';
                     const selectedDMY = convertYMDtoDMY(document.getElementById('beverageEntryDate')?.value || new Date().toISOString().split('T')[0]);
@@ -4053,44 +4061,41 @@ window.shareVendorLink = function(link, vendor) {
                     
                     const contractorArr = typeof CONTRACTOR_BEVERAGES !== 'undefined' ? CONTRACTOR_BEVERAGES : ['Tea','Coffee'];
                     const dauArr = typeof DAU_PURCHASE_BEVERAGES !== 'undefined' ? DAU_PURCHASE_BEVERAGES : [];
+                    
+                    // જે સોર્સ પસંદ કર્યો હોય તેનું જ લિસ્ટ લેવાનું
+                    const currentDrinkArr = supplySource === 'DAU Direct Purchase' ? dauArr : contractorArr;
 
-                    function renderList(container, drinkArr, supplySrc) {
-                        if (!container) return;
-                        if (!filtered.length) { container.innerHTML = `<p style="text-align:center; padding:20px; color:#74777F; font-size:.9rem;">No employees found.</p>`; return; }
+                    if (!filtered.length) { container.innerHTML = `<p style="text-align:center; padding:20px; color:#74777F; font-size:.9rem;">No employees found.</p>`; return; }
+                    
+                    let optsHtml = `<div class="my-drop-item" onclick="window.selectMyDrop(this, '', '-')">- (None)</div>`;
+                    currentDrinkArr.forEach(d => {
+                        optsHtml += `<div class="my-drop-item" onclick="window.selectMyDrop(this, '${d}', '${d}')">${d}</div>`;
+                    });
+
+                    container.innerHTML = filtered.map(emp => {
+                        const logs = logsData.filter(l => l.employeeId === emp.id && l.date === selectedDMY && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                        const morn = logs.find(l => l.session === 'Morning');
+                        const aft = logs.find(l => l.session === 'Afternoon');
                         
-                        let optsHtml = `<div class="my-drop-item" onclick="window.selectMyDrop(this, '', '-')">- (None)</div>`;
-                        drinkArr.forEach(d => {
-                            optsHtml += `<div class="my-drop-item" onclick="window.selectMyDrop(this, '${d}', '${d}')">${d}</div>`;
-                        });
+                        const buildDrop = (log, inputClass) => {
+                            if (log) {
+                                return `<div class="my-drop-disabled">${log.drink}</div><input type="hidden" class="${inputClass}" data-supply="${supplySource}" value="${log.drink}" disabled>`;
+                            }
+                            return `
+                            <div class="my-drop-wrap">
+                                <input type="hidden" class="${inputClass} drink-input" data-supply="${supplySource}" value="">
+                                <div class="my-drop-btn" onclick="window.openMyDrop(this)"><span>-</span> <small>▼</small></div>
+                                <div class="my-drop-overlay" onclick="window.closeMyDrop(this)"></div>
+                                <div class="my-drop-list">${optsHtml}</div>
+                            </div>`;
+                        };
 
-                        container.innerHTML = filtered.map(emp => {
-                            const logs = logsData.filter(l => l.employeeId === emp.id && l.date === selectedDMY && (l.supplySource === supplySrc || (!l.supplySource && supplySrc === 'Contractor')));
-                            const morn = logs.find(l => l.session === 'Morning');
-                            const aft = logs.find(l => l.session === 'Afternoon');
-                            
-                            const buildDrop = (log, inputClass) => {
-                                if (log) {
-                                    return `<div class="my-drop-disabled">${log.drink}</div><input type="hidden" class="${inputClass}" data-supply="${supplySrc}" value="${log.drink}" disabled>`;
-                                }
-                                return `
-                                <div class="my-drop-wrap">
-                                    <input type="hidden" class="${inputClass} drink-input" data-supply="${supplySrc}" value="">
-                                    <div class="my-drop-btn" onclick="window.openMyDrop(this)"><span>-</span> <small>▼</small></div>
-                                    <div class="my-drop-list">${optsHtml}</div>
-                                </div>`;
-                            };
-
-                            const mEl = buildDrop(morn, 'mornDrink');
-                            const aEl = buildDrop(aft, 'aftDrink');
-                            const editBtn = (morn || aft) ? `<button onclick="window.handleDirectRowEditTrigger('${emp.id}')" style="background:transparent; border:none; cursor:pointer; font-size:1rem; padding:4px 6px; border-radius:8px; color:#0A56D0;">✏️</button>` : '';
-                            
-                            return `<div class="table-row bulk-entry-row" data-id="${emp.id}" data-name="${safeStr(emp.name)}" data-supply="${supplySrc}"><div style="display:flex; align-items:center; justify-content:space-between; gap:4px;"><div style="font-size:.9rem;">${safeStr(emp.name)} <br><small style="color:#74777F; font-size:.7rem;">[${emp.category}]</small></div>${editBtn}</div><div style="padding:0 4px; flex:1;">${mEl}</div><div style="padding:0 4px; flex:1;">${aEl}</div></div>`;
-                        }).join('');
-                    }
-
-                    if (containerContractor) renderList(containerContractor, contractorArr, 'Contractor');
-                    if (containerDAU) renderList(containerDAU, dauArr, 'DAU Direct Purchase');
-                    if (containerOld && !containerContractor) renderList(containerOld, contractorArr, 'Contractor');
+                        const mEl = buildDrop(morn, 'mornDrink');
+                        const aEl = buildDrop(aft, 'aftDrink');
+                        const editBtn = (morn || aft) ? `<button onclick="window.handleDirectRowEditTrigger('${emp.id}')" style="background:transparent; border:none; cursor:pointer; font-size:1rem; padding:4px 6px; border-radius:8px; color:#0A56D0;">✏️</button>` : '';
+                        
+                        return `<div class="table-row bulk-entry-row" data-id="${emp.id}" data-name="${safeStr(emp.name)}" data-supply="${supplySource}"><div style="display:flex; align-items:center; justify-content:space-between; gap:4px;"><div style="font-size:.9rem;">${safeStr(emp.name)} <br><small style="color:#74777F; font-size:.7rem;">[${emp.category}]</small></div>${editBtn}</div><div style="padding:0 4px; flex:1;">${mEl}</div><div style="padding:0 4px; flex:1;">${aEl}</div></div>`;
+                    }).join('');
                 }
 
                 function getEffectivePantryId(pantryId) {
@@ -4100,15 +4105,14 @@ window.shareVendorLink = function(link, vendor) {
                     return pantryId;
                 }
 
-                function openMonthlyGridPopup() {
+                               function openMonthlyGridPopup() {
                     const popup = document.getElementById('monthlyGridPopup');
                     const content = document.getElementById('monthlyGridPopupContent');
                     popup.classList.remove('hidden');
 
                     const dateVal = document.getElementById('beverageEntryDate')?.value;
                     if (!dateVal) {
-                        content.innerHTML =
-                            `<p style="padding:20px; color:#74777F; text-align:center;">Select a date first.</p>`;
+                        content.innerHTML = `<p style="padding:20px; color:#74777F; text-align:center;">Select a date first.</p>`;
                         return;
                     }
 
@@ -4119,26 +4123,39 @@ window.shareVendorLink = function(link, vendor) {
                     const myAssigned = employeeList.filter(emp => emp.assignedPantryId === effectivePantryId);
 
                     if (!myAssigned.length) {
-                        content.innerHTML =
-                            `<p style="padding:20px; color:#74777F; text-align:center;">No staff assigned to you.</p>`;
+                        content.innerHTML = `<p style="padding:20px; color:#74777F; text-align:center;">No staff assigned to you.</p>`;
                         return;
                     }
 
-                    // Build professional monthly grid with sticky headers - COMPACT LAYOUT
-                    let tableHtml =
-                        `<table style="border-collapse:collapse;"><thead><tr><th rowspan="2" style="min-width:80px; position:sticky; left:0; z-index:6; background:#F1F5F9; top:0; padding:4px; border:1px solid #CBD5E1; border-bottom:2px solid #0A56D0;">Date</th>`;
+                    // નવું: સોર્સ સિલેક્શન (Contractor કે DAU)
+                    const hasDauAccess = window.hasDauPurchasePermission ? window.hasDauPurchasePermission(currentUser.id) : true;
+                    const supplySource = document.getElementById('monthlySupplySource')?.value || 'Contractor';
+                    
+                    const contractorArr = typeof CONTRACTOR_BEVERAGES !== 'undefined' ? CONTRACTOR_BEVERAGES : ['Tea','Coffee'];
+                    const dauArr = typeof DAU_PURCHASE_BEVERAGES !== 'undefined' ? DAU_PURCHASE_BEVERAGES : [];
+                    const currentDrinkArr = supplySource === 'DAU Direct Purchase' ? dauArr : contractorArr;
+
+                    // ડ્રોપડાઉન કંટ્રોલ HTML
+                    const controlHtml = `
+                        <div style="margin-bottom: 12px; display:flex; gap: 10px; align-items: center; background:#EFF6FF; padding:8px; border-radius:8px; border:1px solid #BFDBFE;">
+                            <select id="monthlySupplySource" style="padding:8px; border-radius:6px; border:1px solid #0A56D0; font-weight:bold; color:#0A56D0; background:#fff; flex:1; margin:0;" onchange="window.refreshMonthlyGrid()">
+                                <option value="Contractor" ${supplySource === 'Contractor' ? 'selected' : ''}>☕ IA Caterers (Contractor)</option>
+                                ${hasDauAccess ? `<option value="DAU Direct Purchase" ${supplySource === 'DAU Direct Purchase' ? 'selected' : ''}>🛒 DAU Direct Purchase</option>` : ''}
+                            </select>
+                        </div>
+                    `;
+
+                    // Build professional monthly grid
+                    let tableHtml = `<div style="overflow:auto; max-height:55vh;"><table style="border-collapse:collapse;"><thead><tr><th rowspan="2" style="min-width:80px; position:sticky; left:0; z-index:6; background:#F1F5F9; top:0; padding:4px; border:1px solid #CBD5E1; border-bottom:2px solid #0A56D0;">Date</th>`;
                     myAssigned.forEach(emp => {
-                        tableHtml +=
-                            `<th colspan="2" class="merged-header" style="min-width:100px; position:sticky; top:0; background:#F1F5F9; z-index:5; padding:4px 2px 2px 2px; border:1px solid #CBD5E1; border-bottom:1px solid #94A3B8;">
-                                <span class="emp-name" style="display:block; font-size:.78rem; margin-bottom:0;">${safeStr(emp.name)}</span>
-                            </th>`;
+                        tableHtml += `<th colspan="2" class="merged-header" style="min-width:100px; position:sticky; top:0; background:#F1F5F9; z-index:5; padding:4px 2px 2px 2px; border:1px solid #CBD5E1; border-bottom:1px solid #94A3B8;">
+                            <span class="emp-name" style="display:block; font-size:.78rem; margin-bottom:0;">${safeStr(emp.name)}</span>
+                        </th>`;
                     });
                     tableHtml += `</tr><tr>`;
                     myAssigned.forEach(() => {
-                        // "Morning" & "Afternoon" ko "Morn" & "Aft" kiya aur top:40px ko 24px kiya taaki height kam ho
-                        tableHtml +=
-                            `<th class="session-label" style="position:sticky; top:24px; background:#F8FAFC; z-index:4; padding:2px; font-size:.65rem; border:1px solid #CBD5E1; border-top:none; border-bottom:2px solid #0A56D0;">Morn</th>
-                             <th class="session-label" style="position:sticky; top:24px; background:#F8FAFC; z-index:4; padding:2px; font-size:.65rem; border:1px solid #CBD5E1; border-top:none; border-bottom:2px solid #0A56D0;">Aft</th>`;
+                        tableHtml += `<th class="session-label" style="position:sticky; top:24px; background:#F8FAFC; z-index:4; padding:2px; font-size:.65rem; border:1px solid #CBD5E1; border-top:none; border-bottom:2px solid #0A56D0;">Morn</th>
+                                      <th class="session-label" style="position:sticky; top:24px; background:#F8FAFC; z-index:4; padding:2px; font-size:.65rem; border:1px solid #CBD5E1; border-top:none; border-bottom:2px solid #0A56D0;">Aft</th>`;
                     });
                     tableHtml += `</tr></thead><tbody>`;
 
@@ -4148,36 +4165,38 @@ window.shareVendorLink = function(link, vendor) {
                         const dmy = `${dd}/${monthPad}/${yy}`;
                         const dateDisplay = formatDateForGrid(d, mm, yy);
                         
-                        // Copy Button aur Naya Delete Button dono add kiye
                         const copyBtn = d > 1 ? `<button type="button" onclick="window.copyPrevDateRow(this)" style="background:transparent; border:none; cursor:pointer; font-size:1rem; padding:0 4px;" title="Copy from previous day">📋</button>` : '';
                         const clearBtn = `<button type="button" onclick="window.clearDateRow(this)" style="background:transparent; border:none; cursor:pointer; font-size:1rem; padding:0 4px; color:#DC3545;" title="Clear this day's entry">🗑️</button>`;
                         
                         tableHtml += `<tr><td class="date-cell"><div style="display:flex; justify-content:space-between; align-items:center;"><span>${dateDisplay}</span><div style="display:flex; gap:4px;">${copyBtn}${clearBtn}</div></div></td>`;
                         
                         myAssigned.forEach(emp => {
-                            const mLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l
-                                .session === 'Morning');
-                            const aLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l
-                                .session === 'Afternoon');
+                            const mLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Morning' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                            const aLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Afternoon' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
                             const mVal = mLog ? mLog.drink : '';
                             const aVal = aLog ? aLog.drink : '';
-                            tableHtml +=
-                                `<td><select class="grid-morn" data-emp="${emp.id}" data-date="${dmy}" data-logid="${mLog ? mLog.id : ''}" style="width:100%; padding:4px; font-size:.7rem; border:1px solid #CBD5E1; border-radius:4px;"><option value="">-</option>${BEVERAGE_OPTIONS.map(opt => `<option value="${opt}" ${opt === mVal ? 'selected' : ''}>${opt}</option>`).join('')}</select></td>
-                            <td><select class="grid-aft" data-emp="${emp.id}" data-date="${dmy}" data-logid="${aLog ? aLog.id : ''}" style="width:100%; padding:4px; font-size:.7rem; border:1px solid #CBD5E1; border-radius:4px; margin-top:2px;"><option value="">-</option>${BEVERAGE_OPTIONS.map(opt => `<option value="${opt}" ${opt === aVal ? 'selected' : ''}>${opt}</option>`).join('')}</select></td>`;
+                            
+                            tableHtml += `<td><select class="grid-morn" data-emp="${emp.id}" data-date="${dmy}" data-logid="${mLog ? mLog.id : ''}" style="width:100%; padding:4px; font-size:.7rem; border:1px solid #CBD5E1; border-radius:4px;"><option value="">-</option>${currentDrinkArr.map(opt => `<option value="${opt}" ${opt === mVal ? 'selected' : ''}>${opt}</option>`).join('')}</select></td>
+                            <td><select class="grid-aft" data-emp="${emp.id}" data-date="${dmy}" data-logid="${aLog ? aLog.id : ''}" style="width:100%; padding:4px; font-size:.7rem; border:1px solid #CBD5E1; border-radius:4px; margin-top:2px;"><option value="">-</option>${currentDrinkArr.map(opt => `<option value="${opt}" ${opt === aVal ? 'selected' : ''}>${opt}</option>`).join('')}</select></td>`;
                         });
                         tableHtml += '</tr>';
                     }
-                    tableHtml += '</tbody></table>';
-                    content.innerHTML = tableHtml;
+                    tableHtml += '</tbody></table></div>';
+                    
+                    content.innerHTML = controlHtml + tableHtml;
 
-                    // NAYA FUNCTION: Previous row ka data copy karne ke liye
+                    // ગ્રીડ રિફ્રેશ કરવા
+                    window.refreshMonthlyGrid = function() {
+                        openMonthlyGridPopup();
+                    };
+
                     window.copyPrevDateRow = function(btn) {
                         const currentRow = btn.closest('tr');
                         const prevRow = currentRow.previousElementSibling;
                         if (!prevRow) return;
 
-                        const prevSelects = prevRow.querySelectorAll('select');
-                        const currSelects = currentRow.querySelectorAll('select');
+                        const prevSelects = prevRow.querySelectorAll('select.grid-morn, select.grid-aft');
+                        const currSelects = currentRow.querySelectorAll('select.grid-morn, select.grid-aft');
                         
                         let copied = false;
                         prevSelects.forEach((sel, idx) => {
@@ -4188,22 +4207,20 @@ window.shareVendorLink = function(link, vendor) {
                         });
                         
                         if (copied) {
-                            // Button icon change hoke feedback dega
                             const originalIcon = btn.innerText;
                             btn.innerText = "✅";
                             setTimeout(() => { btn.innerText = originalIcon; }, 1000);
                         }
                     };
 
-                    // NAYA FUNCTION: Kisi bhi ek din ka data clear/delete karne ke liye
                     window.clearDateRow = function(btn) {
                         const currentRow = btn.closest('tr');
-                        const currSelects = currentRow.querySelectorAll('select');
+                        const currSelects = currentRow.querySelectorAll('select.grid-morn, select.grid-aft');
                         
                         let cleared = false;
                         currSelects.forEach(sel => {
                             if (!sel.disabled) {
-                                sel.value = ""; // Dropdown ko empty (dash) pe set karega
+                                sel.value = ""; 
                                 cleared = true;
                             }
                         });
@@ -4216,7 +4233,8 @@ window.shareVendorLink = function(link, vendor) {
                     };
 
                     document.getElementById('saveMonthlyGridPopup').onclick = function() {
-                        const selects = content.querySelectorAll('select');
+                        const selects = content.querySelectorAll('select.grid-morn, select.grid-aft');
+                        const selectedSupplySource = document.getElementById('monthlySupplySource')?.value || 'Contractor';
                         const updates = {};
                         let saved = 0;
                         const baseId = Date.now();
@@ -4225,8 +4243,7 @@ window.shareVendorLink = function(link, vendor) {
                             const val = sel.value;
                             const empId = sel.dataset.emp;
                             const dateDMY = sel.dataset.date;
-                            const session = sel.className.includes('grid-morn') ? 'Morning' :
-                            'Afternoon';
+                            const session = sel.className.includes('grid-morn') ? 'Morning' : 'Afternoon';
                             const existingLogId = sel.dataset.logid;
                             const empObj = employeeList.find(e => e.id === empId);
                             const empName = empObj ? empObj.name : 'Unknown';
@@ -4245,8 +4262,7 @@ window.shareVendorLink = function(link, vendor) {
                                 }
                             } else {
                                 if (val && val !== '-') {
-                                    const newId = 'log_' + (baseId + idx) + '_' + Math.floor(Math.random() *
-                                        10000);
+                                    const newId = 'log_' + (baseId + idx) + '_' + Math.floor(Math.random() * 10000);
                                     updates[newId] = {
                                         id: newId,
                                         employeeId: empId,
@@ -4255,7 +4271,8 @@ window.shareVendorLink = function(link, vendor) {
                                         session: session,
                                         date: dateDMY,
                                         pantryId: currentUser.id,
-                                        pantryName: currentUser.name
+                                        pantryName: currentUser.name,
+                                        supplySource: selectedSupplySource
                                     };
                                     sel.dataset.logid = newId;
                                     saved++;
