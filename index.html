@@ -1749,6 +1749,37 @@
         .mg-hc-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #f1f5f9; }
         .mg-month-filter { padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 12px; display: flex; gap: 10px; align-items: center; }
 	</style>
+	<style>
+    /* ===== DAILY TEA ENTRY IMPROVEMENTS (MOBILE FIX) ===== */
+    .table-row {
+        padding: 14px 8px !important; /* એન્ટ્રીની લાઈન થોડી મોટી અને ખુલ્લી કરવા માટે */
+        align-items: flex-start !important;
+    }
+    .table-row>div:nth-child(1) {
+        white-space: normal !important; /* લાંબુ નામ હોય તો નીચેની લાઈનમાં વ્રેપ કરવા માટે */
+        overflow: visible !important;
+        text-overflow: clip !important;
+        word-break: break-word;
+        line-height: 1.4;
+    }
+    .bulk-entry-row select {
+        min-height: 42px; /* ડ્રોપડાઉન થોડું મોટું કરવા જેથી ટચ કરવામાં સરળતા રહે */
+        font-size: 0.85rem !important;
+    }
+    .bulk-entry-row button {
+        flex-shrink: 0; /* પેન્સિલનું બટન નાનું થઈને ગાયબ ન થાય તે માટે */
+        margin-left: 5px;
+    }
+            /* ===== CUSTOM INLINE DROPDOWN (MOBILE FIX) ===== */
+        .my-drop-wrap { position: relative; width: 100%; text-align: left; }
+        .my-drop-btn { background: #fff; border: 1px solid #0A56D0; border-radius: 8px; padding: 6px 10px; font-size: 0.8rem; cursor: pointer; min-height: 36px; display: flex; justify-content: space-between; align-items: center; color: #0A56D0; font-weight: 700; box-shadow: 0 2px 4px rgba(10,86,208,0.1); }
+        .my-drop-list { display: none; position: absolute; top: 100%; left: 0; min-width: 120px; background: #fff; border: 1px solid #CBD5E1; border-radius: 8px; z-index: 99999; box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin-top: 4px; }
+        .my-drop-wrap.active .my-drop-list { display: block; }
+        .my-drop-item { padding: 10px 12px; font-size: 0.85rem; border-bottom: 1px solid #E2E8F0; color: #1E293B; cursor: pointer; font-weight: 600; }
+        .my-drop-item:last-child { border-bottom: none; }
+        .my-drop-item:active { background: #EFF6FF; color: #0A56D0; }
+        .my-drop-disabled { background: #E2E8F0; color: #146C43; font-weight: 800; padding: 8px; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.85rem; text-align: center; }
+</style>
 </head>
 <body>
 
@@ -2210,54 +2241,98 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                         appAlert('Updated', 'Drink corrected!'); }
                 };
             };
+            // Custom Dropdown JS Helpers
+            window.openMyDrop = function(btn) {
+                document.querySelectorAll('.my-drop-wrap').forEach(w => { if (w !== btn.parentElement) w.classList.remove('active'); });
+                btn.parentElement.classList.toggle('active');
+            };
+            window.selectMyDrop = function(item, value, display) {
+                const wrap = item.closest('.my-drop-wrap');
+                wrap.querySelector('input.drink-input').value = value;
+                wrap.querySelector('.my-drop-btn span').innerText = display;
+                wrap.classList.remove('active');
+            };
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.my-drop-wrap')) {
+                    document.querySelectorAll('.my-drop-wrap').forEach(w => w.classList.remove('active'));
+                }
+            });
 
-            window.handleDirectRowEditTrigger = function(empId) {
-                const selectedDateYMD = document.getElementById('beverageEntryDate')?.value || new Date().toISOString().split(
-                    'T')[0];
-                const selectedDateDMY = convertYMDtoDMY(selectedDateYMD);
-                const matched = logsData.filter(l => l.employeeId === empId && l.date === selectedDateDMY);
-                if (!matched.length) return appAlert('No Records', 'No logs for this date.');
+                        window.handleDirectRowEditTrigger = function(empId) {
+                const rows = document.querySelectorAll('.bulk-entry-row');
+                let targetRow = null;
+                rows.forEach(r => { if(r.dataset.id === empId) targetRow = r; });
+                if(!targetRow) return;
 
-                const modal = document.createElement('div');
-                modal.className = 'popup-overlay';
-                modal.id = 'directRowEditModal';
-                const morning = matched.find(l => l.session === 'Morning');
-                const afternoon = matched.find(l => l.session === 'Afternoon');
+                const supplySource = targetRow.dataset.supply || 'Contractor';
+                const drinkArr = supplySource === 'DAU Direct Purchase' ? 
+                    (typeof DAU_PURCHASE_BEVERAGES !== 'undefined' ? DAU_PURCHASE_BEVERAGES : []) : 
+                    (typeof CONTRACTOR_BEVERAGES !== 'undefined' ? CONTRACTOR_BEVERAGES : ['Tea','Coffee']);
 
-                modal.innerHTML = `
-              <div class="popup-card" style="text-align:center;">
-                <h3 style="color:#0A56D0; margin-top:0; margin-bottom:14px;">Modify Saved Status</h3>
-                <div style="margin-bottom:14px; text-align:left;">
-                  <label style="font-size:.8rem; font-weight:700; color:#44474E;">🌅 Morning:</label>
-                  ${morning ? `<select id="directMornDropdown" style="margin-top:4px; padding:12px; border-radius:8px; border:1px solid #CBD5E1; width:100%;">${BEVERAGE_OPTIONS.map(d => `<option value="${d}" ${d===morning.drink?'selected':''}>${d}</option>`).join('')}<option value="REMOVE_LOG" style="color:#DC3545; font-weight:700;">✕ Clear</option></select>` : `<p style="font-size:.85rem; color:#74777F; margin:4px 0;">Not served</p>`}
-                </div>
-                <div style="margin-bottom:20px; text-align:left;">
-                  <label style="font-size:.8rem; font-weight:700; color:#44474E;">🌇 Afternoon:</label>
-                  ${afternoon ? `<select id="directAftDropdown" style="margin-top:4px; padding:12px; border-radius:8px; border:1px solid #CBD5E1; width:100%;">${BEVERAGE_OPTIONS.map(d => `<option value="${d}" ${d===afternoon.drink?'selected':''}>${d}</option>`).join('')}<option value="REMOVE_LOG" style="color:#DC3545; font-weight:700;">✕ Clear</option></select>` : `<p style="font-size:.85rem; color:#74777F; margin:4px 0;">Not served</p>`}
-                </div>
-                <div style="display:flex; gap:12px; justify-content:center; width:100%;">
-                  <button onclick="document.getElementById('directRowEditModal').remove()" style="background:#E2E8F0; color:#1F1F1F; flex:1; border-radius:100px; min-height:44px;">Cancel</button>
-                  <button id="directRowSaveBtn" class="success" style="flex:1; border-radius:100px; min-height:44px;">Apply</button>
-                </div>
-              </div>
-            `;
-                document.body.appendChild(modal);
+                let optsHtml = `<div class="my-drop-item" style="color:#DC3545;" onclick="window.selectMyDrop(this, 'REMOVE_LOG', '✕ Clear')">✕ Clear/Remove</div>`;
+                optsHtml += `<div class="my-drop-item" onclick="window.selectMyDrop(this, '', '-')">- (None)</div>`;
+                drinkArr.forEach(d => {
+                    optsHtml += `<div class="my-drop-item" onclick="window.selectMyDrop(this, '${d}', '${d}')">${d}</div>`;
+                });
 
-                document.getElementById('directRowSaveBtn').onclick = function() {
-                    if (morning) {
-                        const v = document.getElementById('directMornDropdown').value;
-                        if (v === 'REMOVE_LOG') db.ref('logs/' + morning.id).remove();
-                        else db.ref('logs/' + morning.id).update({ drink: v });
+                const makeEditable = (sessionClass) => {
+                    const hiddenInput = targetRow.querySelector(`input.${sessionClass}`);
+                    if (!hiddenInput) return; 
+                    if (hiddenInput.disabled) {
+                        const currentVal = hiddenInput.value;
+                        const displayTxt = currentVal || '-';
+                        const wrap = document.createElement('div');
+                        wrap.className = 'my-drop-wrap';
+                        wrap.innerHTML = `
+                            <input type="hidden" class="${sessionClass} drink-input" data-supply="${supplySource}" value="${currentVal}">
+                            <div class="my-drop-btn" style="border-color:#D97706; color:#D97706;" onclick="window.openMyDrop(this)"><span>${displayTxt}</span> <small>▼</small></div>
+                            <div class="my-drop-list">${optsHtml}</div>
+                        `;
+                        const parentTd = hiddenInput.parentElement;
+                        parentTd.innerHTML = '';
+                        parentTd.appendChild(wrap);
                     }
-                    if (afternoon) {
-                        const v = document.getElementById('directAftDropdown').value;
-                        if (v === 'REMOVE_LOG') db.ref('logs/' + afternoon.id).remove();
-                        else db.ref('logs/' + afternoon.id).update({ drink: v });
-                    }
-                    modal.remove();
-                    appAlert('Updated', 'Cloud entries modified!');
-                    window.populateServe?.();
                 };
+
+                makeEditable('mornDrink');
+                makeEditable('aftDrink');
+
+                const editBtn = targetRow.querySelector('button');
+                if(editBtn) {
+                    editBtn.innerHTML = '💾 Save';
+                    editBtn.style.background = '#146C43';
+                    editBtn.style.color = '#fff';
+                    editBtn.onclick = function() { window.saveDirectRowEdit(empId, targetRow); };
+                }
+            };
+
+            window.saveDirectRowEdit = function(empId, targetRow) {
+                const mInput = targetRow.querySelector('input.mornDrink');
+                const aInput = targetRow.querySelector('input.aftDrink');
+                const selectedDateDMY = convertYMDtoDMY(document.getElementById('beverageEntryDate')?.value || new Date().toISOString().split('T')[0]);
+                
+                const matchedLogs = logsData.filter(l => l.employeeId === empId && l.date === selectedDateDMY);
+                const morning = matchedLogs.find(l => l.session === 'Morning');
+                const afternoon = matchedLogs.find(l => l.session === 'Afternoon');
+
+                const mVal = mInput ? mInput.value : '';
+                const aVal = aInput ? aInput.value : '';
+
+                if (morning) {
+                    if (mVal === 'REMOVE_LOG' || mVal === '') db.ref('logs/' + morning.id).remove();
+                    else if (mVal && mVal !== morning.drink) db.ref('logs/' + morning.id).update({ drink: mVal });
+                } 
+                if (afternoon) {
+                    if (aVal === 'REMOVE_LOG' || aVal === '') db.ref('logs/' + afternoon.id).remove();
+                    else if (aVal && aVal !== afternoon.drink) db.ref('logs/' + afternoon.id).update({ drink: aVal });
+                }
+
+                const editBtn = targetRow.querySelector('button');
+                if(editBtn) {
+                    editBtn.innerHTML = '⏳';
+                    editBtn.style.background = 'transparent';
+                    editBtn.style.color = '#0A56D0';
+                }
             };
 
             window.editCanteen = function(id, currentName) {
@@ -3962,10 +4037,10 @@ window.shareVendorLink = function(link, vendor) {
                     }
                 }
 
-                function populateServe() {
-                    const container = document.getElementById('bulkServeListContractor');
-                    if (!container) return;
-                    
+                                function populateServe() {
+                    const containerContractor = document.getElementById('bulkServeListContractor');
+                    const containerDAU = document.getElementById('bulkServeListDAU');
+                    const containerOld = document.getElementById('bulkServeList');
                     const cat = document.getElementById('entryCategory')?.value || 'All';
                     const search = document.getElementById('pantryStaffSearch')?.value.toLowerCase().trim() || '';
                     const selectedDMY = convertYMDtoDMY(document.getElementById('beverageEntryDate')?.value || new Date().toISOString().split('T')[0]);
@@ -3976,23 +4051,46 @@ window.shareVendorLink = function(link, vendor) {
 
                     const filtered = employeeList.filter(emp => emp.assignedPantryId === effectivePantryId && (cat === 'All' || emp.category === cat) && (!search || emp.name.toLowerCase().includes(search)));
                     
-                    const contractorOpts = (typeof CONTRACTOR_BEVERAGES !== 'undefined' ? CONTRACTOR_BEVERAGES : ['Tea','Coffee']).map(d => `<option value="${d}">${d}</option>`).join('');
-                    const dauOpts = (typeof DAU_PURCHASE_BEVERAGES !== 'undefined' ? DAU_PURCHASE_BEVERAGES : []).map(d => `<option value="${d}">${d}</option>`).join('');
-                    const drinkOpts = supplySource === 'DAU Direct Purchase' ? dauOpts : contractorOpts;
+                    const contractorArr = typeof CONTRACTOR_BEVERAGES !== 'undefined' ? CONTRACTOR_BEVERAGES : ['Tea','Coffee'];
+                    const dauArr = typeof DAU_PURCHASE_BEVERAGES !== 'undefined' ? DAU_PURCHASE_BEVERAGES : [];
 
-                    if (!filtered.length) { container.innerHTML = `<p style="text-align:center; padding:20px; color:#74777F; font-size:.9rem;">No employees found.</p>`; return; }
-                    
-                    container.innerHTML = filtered.map(emp => {
-                        const logs = logsData.filter(l => l.employeeId === emp.id && l.date === selectedDMY && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
-                        const morn = logs.find(l => l.session === 'Morning');
-                        const aft = logs.find(l => l.session === 'Afternoon');
+                    function renderList(container, drinkArr, supplySrc) {
+                        if (!container) return;
+                        if (!filtered.length) { container.innerHTML = `<p style="text-align:center; padding:20px; color:#74777F; font-size:.9rem;">No employees found.</p>`; return; }
                         
-                        const mEl = morn ? `<select class="mornDrink" data-supply="${supplySource}" disabled style="background:#E2E8F0; color:#146C43; font-weight:bold; padding:8px; border-radius:8px; border:1px solid #CBD5E1; width:100%;"><option>${morn.drink}</option></select>` : `<select class="mornDrink" data-supply="${supplySource}" style="padding:8px; border-radius:8px; border:1px solid #CBD5E1; width:100%;"><option value="">-</option>${drinkOpts}</select>`;
-                        const aEl = aft ? `<select class="aftDrink" data-supply="${supplySource}" disabled style="background:#E2E8F0; color:#146C43; font-weight:bold; padding:8px; border-radius:8px; border:1px solid #CBD5E1; width:100%;"><option>${aft.drink}</option></select>` : `<select class="aftDrink" data-supply="${supplySource}" style="padding:8px; border-radius:8px; border:1px solid #CBD5E1; width:100%;"><option value="">-</option>${drinkOpts}</select>`;
-                        const editBtn = (morn || aft) ? `<button onclick="window.handleDirectRowEditTrigger('${emp.id}')" style="background:transparent; border:none; cursor:pointer; font-size:1rem; padding:4px 6px; border-radius:8px; color:#0A56D0;">✏️</button>` : '';
-                        
-                        return `<div class="table-row bulk-entry-row" data-id="${emp.id}" data-name="${safeStr(emp.name)}" data-supply="${supplySource}"><div style="display:flex; align-items:center; justify-content:space-between; gap:4px;"><div style="font-size:.9rem;">${safeStr(emp.name)} <br><small style="color:#74777F; font-size:.7rem;">[${emp.category}]</small></div>${editBtn}</div><div>${mEl}</div><div>${aEl}</div></div>`;
-                    }).join('');
+                        let optsHtml = `<div class="my-drop-item" onclick="window.selectMyDrop(this, '', '-')">- (None)</div>`;
+                        drinkArr.forEach(d => {
+                            optsHtml += `<div class="my-drop-item" onclick="window.selectMyDrop(this, '${d}', '${d}')">${d}</div>`;
+                        });
+
+                        container.innerHTML = filtered.map(emp => {
+                            const logs = logsData.filter(l => l.employeeId === emp.id && l.date === selectedDMY && (l.supplySource === supplySrc || (!l.supplySource && supplySrc === 'Contractor')));
+                            const morn = logs.find(l => l.session === 'Morning');
+                            const aft = logs.find(l => l.session === 'Afternoon');
+                            
+                            const buildDrop = (log, inputClass) => {
+                                if (log) {
+                                    return `<div class="my-drop-disabled">${log.drink}</div><input type="hidden" class="${inputClass}" data-supply="${supplySrc}" value="${log.drink}" disabled>`;
+                                }
+                                return `
+                                <div class="my-drop-wrap">
+                                    <input type="hidden" class="${inputClass} drink-input" data-supply="${supplySrc}" value="">
+                                    <div class="my-drop-btn" onclick="window.openMyDrop(this)"><span>-</span> <small>▼</small></div>
+                                    <div class="my-drop-list">${optsHtml}</div>
+                                </div>`;
+                            };
+
+                            const mEl = buildDrop(morn, 'mornDrink');
+                            const aEl = buildDrop(aft, 'aftDrink');
+                            const editBtn = (morn || aft) ? `<button onclick="window.handleDirectRowEditTrigger('${emp.id}')" style="background:transparent; border:none; cursor:pointer; font-size:1rem; padding:4px 6px; border-radius:8px; color:#0A56D0;">✏️</button>` : '';
+                            
+                            return `<div class="table-row bulk-entry-row" data-id="${emp.id}" data-name="${safeStr(emp.name)}" data-supply="${supplySrc}"><div style="display:flex; align-items:center; justify-content:space-between; gap:4px;"><div style="font-size:.9rem;">${safeStr(emp.name)} <br><small style="color:#74777F; font-size:.7rem;">[${emp.category}]</small></div>${editBtn}</div><div style="padding:0 4px; flex:1;">${mEl}</div><div style="padding:0 4px; flex:1;">${aEl}</div></div>`;
+                        }).join('');
+                    }
+
+                    if (containerContractor) renderList(containerContractor, contractorArr, 'Contractor');
+                    if (containerDAU) renderList(containerDAU, dauArr, 'DAU Direct Purchase');
+                    if (containerOld && !containerContractor) renderList(containerOld, contractorArr, 'Contractor');
                 }
 
                 function getEffectivePantryId(pantryId) {
