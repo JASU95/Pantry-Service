@@ -2323,10 +2323,41 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                             }
                         });
                     }
-                });
-                
-                allItems.sort((a, b) => parseDMYToYMD(a.date).localeCompare(parseDMYToYMD(b.date)));
+                });                
+                                // નવી Meetings & Guests નો ડેટા સિંક કરવા માટે
+                if (typeof mgRecordsData !== 'undefined' && mgRecordsData.length > 0) {
+                    mgRecordsData.forEach(rec => {
+                        const itemVendor = (rec.Vendor || '').toLowerCase();
+                        if (itemVendor === vendorName.toLowerCase()) {
+                            let head = 'Office';
+                            const purposeText = `${rec.Purpose || ''} ${rec.ReqName || ''}`.toLowerCase();
+                            
+                            if (purposeText.includes('school of law') || purposeText.includes('law') || purposeText.includes('llm') || purposeText.includes('sol')) {
+                                head = 'SoL';
+                            } else if (purposeText.includes('admission')) {
+                                head = 'Admissions';
+                            } else if (purposeText.includes('placement')) {
+                                head = 'Placement';
+                            }
 
+                            allItems.push({
+                                date: rec.DateFormatted || rec.RawDate,
+                                itemName: rec.Item || '',
+                                qty: rec.Qty || 0,
+                                rate: rec.Rate || 0,
+                                amount: rec.Amount || ((rec.Qty || 0) * (rec.Rate || 0)),
+                                vendor: rec.Vendor || '',
+                                requestedBy: rec.ReqName || '',
+                                meeting: rec.Purpose || '',
+                                servedBy: rec.ServedBy || '-',
+                                accountHead: head
+                            });
+                        }
+                    });
+                }
+
+                allItems.sort((a, b) => parseDMYToYMD(a.date).localeCompare(parseDMYToYMD(b.date)));
+                
                 window.renderFilteredVendorTable = function(selectedHead) {
                     // ફિલ્ટર બદલતી વખતે ઓલરેડી લખેલી બેંક ડિટેલ્સ મેમરીમાં સેવ રાખો જેથી ગાયબ ના થાય
                     const savedBankName = document.getElementById('iaBankName')?.value || '';
@@ -3852,7 +3883,7 @@ window.shareVendorLink = function(link, vendor) {
               <div class="card" style="padding:16px; margin-bottom:16px; display:flex; flex-direction:column; overflow:hidden; max-height:100%;">
                 <div style="margin-bottom:12px; flex-shrink:0;">
                   <label style="font-size:.85rem; color:#44474E; font-weight:700; display:block;">Select Date:</label>
-                  <input type="date" id="beverageEntryDate" value="${todayYMD}" style="margin:4px 0 10px 0; padding:12px; border-radius:10px; border:1px solid #CBD5E1;">
+                  <input type="date" id="beverageEntryDate" value="${todayYMD}" onclick="this.showPicker && this.showPicker()" style="margin:4px 0 10px 0; padding:12px; border-radius:10px; border:1px solid #CBD5E1; cursor:pointer;">
                   <div class="mode-toggle">
                     <button id="modeNameWise" class="active">👤  Daily Entry</button>
                     <button id="modeDateWise">📅  Monthly Entry</button>
@@ -5394,9 +5425,6 @@ window.shareVendorLink = function(link, vendor) {
                             window.renderDauPurchaseAccessAdmin?.();
                         }, 50);
                         break;
-                        case 'dau_purchase':
-    window.renderDauPurchaseAccessAdmin?.();
-    break;
 					                    case 'settings':
                         cont.innerHTML = `
                           <div class="card"><h4 style="margin-bottom:12px; color:#44474E; font-size:1rem;">⚙️ Change Admin Password</h4><input type="password" id="newAdminPass" placeholder="New Password" value="${adminSecurity.password}" style="padding:14px; border-radius:10px; border:1px solid #CBD5E1;"><button id="saveAdminCreds" class="success" style="width:100%; min-height:44px;">Update Password</button></div>
@@ -7434,8 +7462,7 @@ window.shareVendorLink = function(link, vendor) {
                 renderIfNeeded(); });
             db.ref('upcomingEvents').on('value', snap => { upcomingEventsData = parseSnap(snap);
                 renderIfNeeded(); });
-                            db.ref('plainEvents').on('value', snap => { 
-                plainEventsData = parseSnap(snap);
+            db.ref('plainEvents').on('value', snap => { plainEventsData = parseSnap(snap);
                 if (activePantryTab === 'view_plain_events' && window.renderPantryPlainEvents) {
                     window.renderPantryPlainEvents();
                 }
@@ -7444,21 +7471,7 @@ window.shareVendorLink = function(link, vendor) {
                 }
                 renderIfNeeded(); 
             });
-                            db.ref('plainEvents').on('value', snap => { 
-                plainEventsData = parseSnap(snap);
-                if (activePantryTab === 'view_plain_events' && window.renderPantryPlainEvents) {
-                    window.renderPantryPlainEvents();
-                }
-                if (activeAdminTab === 'plain_events' && window.renderPlainEventsAdmin) {
-                    window.renderPlainEventsAdmin();
-                }
-                renderIfNeeded(); 
-            });
-
-                            db.ref('plainEvents').on('value', snap => { plainEventsData = parseSnap(snap);
-                window.renderPlainEventsAdmin && window.renderPlainEventsAdmin();
-                window.renderPantryPlainEvents && window.renderPantryPlainEvents();
-                renderIfNeeded(); });
+             
             db.ref('recycleBin').on('value', snap => { binData = snap.exists() ? snap.val() : { employees: {},
                         pantryTeam: {}, extraLogs: {}, eventLogs: {}, logs: {} };
                 renderIfNeeded(); });
@@ -8363,7 +8376,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     <div class="mg-form-grid">
                         <div>
                             <label>Date</label>
-                            <input type="date" class="row-date" value="${initialDate}" onchange="window.updateMgDay('${rowId}')">
+                           <input type="date" class="row-date" value="${initialDate}" onclick="this.showPicker && this.showPicker()" onchange="window.updateMgDay('${rowId}')" style="cursor:pointer;">
                         </div>
                         <div>
                             <label>Day</label>
