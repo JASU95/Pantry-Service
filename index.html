@@ -2075,16 +2075,18 @@ window.pantryDownloadExcelFile = function(wb, filename) {
             window.getEmployeeById = function(empId) { return employeeList.find(e => e.id === empId); }
             window.getPantryNameById = function(pantryId) { const p = pantryTeam.find(pt => pt.id === pantryId); return p ? p.name : 'Unknown'; }
 
-            // FIXED: Always allow DAU option for admin, and for pantry boy if permission exists OR if no permissions set yet (default allow)
+                        // STRICT DAU ACCESS: Only allowed pantry boys can see DAU Direct Purchase
             window.hasDauPurchasePermission = function(pantryId) {
                 try {
                     if (!pantryId) return false;
+                    // એડમિનને હંમેશા બધું દેખાશે
                     if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'admin') return true;
+                    
                     const map = (typeof dauPurchaseAccessData === 'object' && dauPurchaseAccessData !== null) ? dauPurchaseAccessData : {};
-                    // If no allotment done yet (empty map), allow all pantry boys to see DAU option by default for testing
-                    if (Object.keys(map).length === 0) return true;
+                    
+                    // જો એડમિને એક્સેસ આપ્યો હશે (true) તો જ દેખાશે, નહીંતર બિલકુલ નહિ દેખાય.
                     return map[pantryId] === true;
-                } catch(e) { return true; }
+                } catch(e) { return false; }
             };
 
             window.openExtraTeaForm = function(record = null) {
@@ -3946,23 +3948,9 @@ window.shareVendorLink = function(link, vendor) {
             // ============================================================
             //  PANTRY - DAILY / MONTHLY ENTRY (Professional Monthly Grid)
             // ============================================================
-            function renderServeEntry() {
+                        function renderServeEntry() {
                 activePantryTab = 'serve';
                 const todayYMD = new Date().toISOString().split('T')[0];
-                    // ડ્યુટી લોકિંગ રૂલ
-    const dutyCheck = window.checkPantryBoyDutyAccessToday(currentUser.id);
-    if(!dutyCheck.allowed) {
-        const container = document.getElementById('pantryContent');
-        container.innerHTML = `
-            <div class="card" style="text-align:center; padding:32px 16px; border:2px solid #DC3545; background:#FEF2F2; border-radius:12px; margin-top:20px;">
-                <span style="font-size:2.5rem;">🔒</span>
-                <h3 style="color:#DC3545; margin:10px 0 6px 0; font-size:1.1rem; font-weight:700;">Entry Screen Restricted</h3>
-                <p style="font-size:13px; color:#475569; line-height:1.5;">આજે <b>${dutyCheck.type}</b> હોવાના કારણે એડમિને તમને સ્પેશિયલ ડ્યુટી ફાળવી નથી. તેથી તમે આજે ડેટા એન્ટ્રી કરી શકશો નહીં.</p>
-                <p style="font-size:11px; color:#94A3B8; margin-top:10px;">જો તમારી ડ્યુટી ચાલુ હોય, તો કૃપા કરીને વેરિફિકેશન માટે એડમિનનો સંપર્ક કરો.</p>
-            </div>
-        `;
-        return;
-    }
                 const container = document.getElementById('pantryContent');
                 container.innerHTML = `
               <div class="card" style="padding:16px; margin-bottom:16px; display:flex; flex-direction:column; overflow:hidden; max-height:100%;">
@@ -4045,67 +4033,127 @@ window.shareVendorLink = function(link, vendor) {
                     }
                 }
 
-                function populateServe() {
-                    const container = document.getElementById('bulkServeListContractor');
-                    if (!container) return;
-                    
+                                                function populateServe() {
+                    const containerContractor = document.getElementById('bulkServeListContractor');
+                    const containerDAU = document.getElementById('bulkServeListDAU');
+                    const containerOld = document.getElementById('bulkServeList');
                     const cat = document.getElementById('entryCategory')?.value || 'All';
                     const search = document.getElementById('pantryStaffSearch')?.value.toLowerCase().trim() || '';
-                    const selectedDMY = convertYMDtoDMY(document.getElementById('beverageEntryDate')?.value || new Date().toISOString().split('T')[0]);
+                    const selectedYMD = document.getElementById('beverageEntryDate')?.value || new Date().toISOString().split('T')[0];
+                    const selectedDMY = convertYMDtoDMY(selectedYMD);
                     const supplySource = document.getElementById('dailySupplySource')?.value || 'Contractor';
 
                     let effectivePantryId = currentUser.id;
                     if(typeof getEffectivePantryId === 'function') effectivePantryId = getEffectivePantryId(currentUser.id);
 
-                    const filtered = employeeList.filter(emp => emp.assignedPantryId === effectivePantryId && (cat === 'All' || emp.category === cat) && (!search || emp.name.toLowerCase().includes(search)));
+                    // 1. કયો દિવસ છે તે ચેક કરો (Saturday, Sunday, Holiday)
+                    let dayType = '';
+                    if (typeof publicHolidaysData !== 'undefined' && publicHolidaysData[selectedYMD]) {
+                        dayType = 'Holiday';
+                    } else {
+                        const dNum = new Date(selectedYMD).getDay();
+                        if (dNum === 6) dayType = 'Saturday';
+                        else if (dNum === 0) dayType = 'Sunday';
+                    }
+
+                    // 2. રેગ્યુલર એમ્પ્લોયી (જે રોજના એલોટ કરેલા છે)
+                    let regularFiltered = employeeList.filter(emp => {
+                        if (emp.assignedPantryId !== effectivePantryId) return false;
+                        if (cat !== 'All' && emp.category !== cat) return false;
+                        if (search && !emp.name.toLowerCase().includes(search)) return false;
+                        if (supplySource === 'DAU Direct Purchase' && emp.dauTeaEligible !== true) return false;
+                        return true;
+                    });
+                    
+                    // 3. સ્પેશિયલ ડ્યુટી વાળા એમ્પ્લોયી (શનિ/રવિ/રજા માટે અલગથી એલોટ કરેલા)
+                    let specialFiltered = [];
+                    if (dayType && typeof weekendDutiesData !== 'undefined') {
+                        const dayDuties = weekendDutiesData[dayType] || {};
+                        specialFiltered = employeeList.filter(emp => {
+                            if (dayDuties[emp.id] !== effectivePantryId) return false; // માત્ર એલોટ કરેલા
+                            if (cat !== 'All' && emp.category !== cat) return false;
+                            if (search && !emp.name.toLowerCase().includes(search)) return false;
+                            if (supplySource === 'DAU Direct Purchase' && emp.dauTeaEligible !== true) return false;
+                            return true;
+                        });
+                    }
+
+                    // જો કોઈ એમ્પ્લોયી સ્પેશિયલમાં હોય તો તેને રેગ્યુલરમાંથી કાઢી નાખવો જેથી ડબલ વખત ના દેખાય
+                    const specialIds = specialFiltered.map(e => e.id);
+                    regularFiltered = regularFiltered.filter(e => !specialIds.includes(e.id));
                     
                     const contractorArr = typeof CONTRACTOR_BEVERAGES !== 'undefined' ? CONTRACTOR_BEVERAGES : ['Tea','Coffee'];
                     const dauArr = typeof DAU_PURCHASE_BEVERAGES !== 'undefined' ? DAU_PURCHASE_BEVERAGES : [];
-                    
-                    // જે સોર્સ પસંદ કર્યો હોય તેનું જ લિસ્ટ લેવાનું
                     const currentDrinkArr = supplySource === 'DAU Direct Purchase' ? dauArr : contractorArr;
 
-                    if (!filtered.length) { container.innerHTML = `<p style="text-align:center; padding:20px; color:#74777F; font-size:.9rem;">No employees found.</p>`; return; }
-                    
-                    let optsHtml = `<div class="my-drop-item" onclick="window.selectMyDrop(this, '', '-')">- (None)</div>`;
-                    currentDrinkArr.forEach(d => {
-                        optsHtml += `<div class="my-drop-item" onclick="window.selectMyDrop(this, '${d}', '${d}')">${d}</div>`;
-                    });
+                    function buildRows(empList, drinkArr, supplySrc) {
+                        let optsHtml = `<div class="my-drop-item" style="color:#DC3545;" onclick="window.selectMyDrop(this, 'REMOVE_LOG', '✕ Clear')">✕ Clear/Remove</div>`;
+                        optsHtml += `<div class="my-drop-item" onclick="window.selectMyDrop(this, '', '-')">- (None)</div>`;
+                        drinkArr.forEach(d => {
+                            optsHtml += `<div class="my-drop-item" onclick="window.selectMyDrop(this, '${d}', '${d}')">${d}</div>`;
+                        });
 
-                    container.innerHTML = filtered.map(emp => {
-                        const logs = logsData.filter(l => l.employeeId === emp.id && l.date === selectedDMY && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
-                        const morn = logs.find(l => l.session === 'Morning');
-                        const aft = logs.find(l => l.session === 'Afternoon');
-                        
-                        const buildDrop = (log, inputClass) => {
-                            if (log) {
-                                return `<div class="my-drop-disabled">${log.drink}</div><input type="hidden" class="${inputClass}" data-supply="${supplySource}" value="${log.drink}" disabled>`;
-                            }
-                            return `
-                            <div class="my-drop-wrap">
-                                <input type="hidden" class="${inputClass} drink-input" data-supply="${supplySource}" value="">
-                                <div class="my-drop-btn" onclick="window.openMyDrop(this)"><span>-</span> <small>▼</small></div>
-                                <div class="my-drop-overlay" onclick="window.closeMyDrop(this)"></div>
-                                <div class="my-drop-list">${optsHtml}</div>
-                            </div>`;
-                        };
+                        return empList.map(emp => {
+                            const logs = logsData.filter(l => l.employeeId === emp.id && l.date === selectedDMY && (l.supplySource === supplySrc || (!l.supplySource && supplySrc === 'Contractor')));
+                            const morn = logs.find(l => l.session === 'Morning');
+                            const aft = logs.find(l => l.session === 'Afternoon');
+                            
+                            const buildDrop = (log, inputClass) => {
+                                if (log) {
+                                    return `<div class="my-drop-disabled">${log.drink}</div><input type="hidden" class="${inputClass}" data-supply="${supplySrc}" value="${log.drink}" disabled>`;
+                                }
+                                return `
+                                <div class="my-drop-wrap">
+                                    <input type="hidden" class="${inputClass} drink-input" data-supply="${supplySrc}" value="">
+                                    <div class="my-drop-btn" onclick="window.openMyDrop(this)"><span>-</span> <small>▼</small></div>
+                                    <div class="my-drop-overlay" onclick="window.closeMyDrop(this)"></div>
+                                    <div class="my-drop-list">${optsHtml}</div>
+                                </div>`;
+                            };
 
-                        const mEl = buildDrop(morn, 'mornDrink');
-                        const aEl = buildDrop(aft, 'aftDrink');
-                        const editBtn = (morn || aft) ? `<button onclick="window.handleDirectRowEditTrigger('${emp.id}')" style="background:transparent; border:none; cursor:pointer; font-size:1rem; padding:4px 6px; border-radius:8px; color:#0A56D0;">✏️</button>` : '';
+                            const mEl = buildDrop(morn, 'mornDrink');
+                            const aEl = buildDrop(aft, 'aftDrink');
+                            const editBtn = (morn || aft) ? `<button onclick="window.handleDirectRowEditTrigger('${emp.id}')" style="background:transparent; border:none; cursor:pointer; font-size:1rem; padding:4px 6px; border-radius:8px; color:#0A56D0;">✏️</button>` : '';
+                            
+                            return `<div class="table-row bulk-entry-row" data-id="${emp.id}" data-name="${safeStr(emp.name)}" data-supply="${supplySrc}"><div style="display:flex; align-items:center; justify-content:space-between; gap:4px;"><div style="font-size:.9rem;">${safeStr(emp.name)} <br><small style="color:#74777F; font-size:.7rem;">[${emp.category}]</small></div>${editBtn}</div><div style="padding:0 4px; flex:1;">${mEl}</div><div style="padding:0 4px; flex:1;">${aEl}</div></div>`;
+                        }).join('');
+                    }
+
+                    function renderList(container, drinkArr, supplySrc) {
+                        if (!container) return;
+                        let html = '';
                         
-                        return `<div class="table-row bulk-entry-row" data-id="${emp.id}" data-name="${safeStr(emp.name)}" data-supply="${supplySource}"><div style="display:flex; align-items:center; justify-content:space-between; gap:4px;"><div style="font-size:.9rem;">${safeStr(emp.name)} <br><small style="color:#74777F; font-size:.7rem;">[${emp.category}]</small></div>${editBtn}</div><div style="padding:0 4px; flex:1;">${mEl}</div><div style="padding:0 4px; flex:1;">${aEl}</div></div>`;
-                    }).join('');
+                        // 1. રેગ્યુલર કર્મચારીઓનું લિસ્ટ
+                        if (regularFiltered.length > 0) {
+                            html += `<div style="padding:8px 12px; background:#F8FAFC; border-bottom:1px solid #CBD5E1; color:#0A56D0; font-weight:bold; font-size:.85rem;">📌 Regular Assigned Employees</div>`;
+                            html += buildRows(regularFiltered, drinkArr, supplySrc);
+                        }
+                        
+                        // 2. સ્પેશિયલ ડ્યુટી (શનિ/રવિ/રજા) વાળા કર્મચારીઓનું અલગ લિસ્ટ
+                        if (specialFiltered.length > 0) {
+                            html += `<div style="padding:8px 12px; background:#FFFBEB; border-bottom:1px solid #FDE68A; border-top:4px solid #FCD34D; color:#D97706; font-weight:bold; font-size:.85rem;">🌟 ${dayType} Duty Employees</div>`;
+                            html += buildRows(specialFiltered, drinkArr, supplySrc);
+                        }
+
+                        if (!html) {
+                            container.innerHTML = `<p style="text-align:center; padding:20px; color:#74777F; font-size:.9rem;">No allotted employees found.</p>`;
+                        } else {
+                            container.innerHTML = html;
+                        }
+                    }
+
+                    const mainContainer = document.getElementById('bulkServeListContractor') || document.getElementById('bulkServeList');
+                    if (mainContainer) renderList(mainContainer, currentDrinkArr, supplySource);
                 }
 
                 function getEffectivePantryId(pantryId) {
-                    if (replacementAssignments[pantryId]) {
+                    if (typeof replacementAssignments !== 'undefined' && replacementAssignments[pantryId]) {
                         return replacementAssignments[pantryId];
                     }
                     return pantryId;
                 }
 
-                               function openMonthlyGridPopup() {
+                function openMonthlyGridPopup() {
                     const popup = document.getElementById('monthlyGridPopup');
                     const content = document.getElementById('monthlyGridPopupContent');
                     popup.classList.remove('hidden');
@@ -4119,23 +4167,10 @@ window.shareVendorLink = function(link, vendor) {
                     const monthStr = dateVal.slice(0, 7);
                     const [yy, mm] = monthStr.split('-').map(Number);
                     const daysInMonth = getDaysInMonth(yy, mm);
-                    const effectivePantryId = getEffectivePantryId(currentUser.id);
-                    const myAssigned = employeeList.filter(emp => emp.assignedPantryId === effectivePantryId);
 
-                    if (!myAssigned.length) {
-                        content.innerHTML = `<p style="padding:20px; color:#74777F; text-align:center;">No staff assigned to you.</p>`;
-                        return;
-                    }
-
-                    // નવું: સોર્સ સિલેક્શન (Contractor કે DAU)
                     const hasDauAccess = window.hasDauPurchasePermission ? window.hasDauPurchasePermission(currentUser.id) : true;
                     const supplySource = document.getElementById('monthlySupplySource')?.value || 'Contractor';
                     
-                    const contractorArr = typeof CONTRACTOR_BEVERAGES !== 'undefined' ? CONTRACTOR_BEVERAGES : ['Tea','Coffee'];
-                    const dauArr = typeof DAU_PURCHASE_BEVERAGES !== 'undefined' ? DAU_PURCHASE_BEVERAGES : [];
-                    const currentDrinkArr = supplySource === 'DAU Direct Purchase' ? dauArr : contractorArr;
-
-                    // ડ્રોપડાઉન કંટ્રોલ HTML
                     const controlHtml = `
                         <div style="margin-bottom: 12px; display:flex; gap: 10px; align-items: center; background:#EFF6FF; padding:8px; border-radius:8px; border:1px solid #BFDBFE;">
                             <select id="monthlySupplySource" style="padding:8px; border-radius:6px; border:1px solid #0A56D0; font-weight:bold; color:#0A56D0; background:#fff; flex:1; margin:0;" onchange="window.refreshMonthlyGrid()">
@@ -4145,7 +4180,35 @@ window.shareVendorLink = function(link, vendor) {
                         </div>
                     `;
 
-                    // Build professional monthly grid
+                    const effectivePantryId = getEffectivePantryId(currentUser.id);
+                    
+                    const myAssigned = employeeList.filter(emp => {
+                        let isMine = false;
+                        if (emp.assignedPantryId === effectivePantryId) isMine = true;
+                        
+                        // જો સ્પેશિયલ ડ્યુટીમાં નામ હોય તો પણ મંથલી ગ્રીડમાં દેખાય
+                        if (typeof weekendDutiesData !== 'undefined') {
+                            ['Saturday', 'Sunday', 'Holiday'].forEach(dt => {
+                                if (weekendDutiesData[dt] && weekendDutiesData[dt][emp.id] === effectivePantryId) {
+                                    isMine = true;
+                                }
+                            });
+                        }
+
+                        if (!isMine) return false;
+                        if (supplySource === 'DAU Direct Purchase' && emp.dauTeaEligible !== true) return false;
+                        return true;
+                    });
+
+                    if (!myAssigned.length) {
+                        content.innerHTML = controlHtml + `<p style="padding:40px; color:#74777F; text-align:center; font-weight:600;">No employees allotted for ${supplySource}.</p>`;
+                        return;
+                    }
+                    
+                    const contractorArr = typeof CONTRACTOR_BEVERAGES !== 'undefined' ? CONTRACTOR_BEVERAGES : ['Tea','Coffee'];
+                    const dauArr = typeof DAU_PURCHASE_BEVERAGES !== 'undefined' ? DAU_PURCHASE_BEVERAGES : [];
+                    const currentDrinkArr = supplySource === 'DAU Direct Purchase' ? dauArr : contractorArr;
+
                     let tableHtml = `<div style="overflow:auto; max-height:55vh;"><table style="border-collapse:collapse;"><thead><tr><th rowspan="2" style="min-width:80px; position:sticky; left:0; z-index:6; background:#F1F5F9; top:0; padding:4px; border:1px solid #CBD5E1; border-bottom:2px solid #0A56D0;">Date</th>`;
                     myAssigned.forEach(emp => {
                         tableHtml += `<th colspan="2" class="merged-header" style="min-width:100px; position:sticky; top:0; background:#F1F5F9; z-index:5; padding:4px 2px 2px 2px; border:1px solid #CBD5E1; border-bottom:1px solid #94A3B8;">
@@ -4185,10 +4248,7 @@ window.shareVendorLink = function(link, vendor) {
                     
                     content.innerHTML = controlHtml + tableHtml;
 
-                    // ગ્રીડ રિફ્રેશ કરવા
-                    window.refreshMonthlyGrid = function() {
-                        openMonthlyGridPopup();
-                    };
+                    window.refreshMonthlyGrid = function() { openMonthlyGridPopup(); };
 
                     window.copyPrevDateRow = function(btn) {
                         const currentRow = btn.closest('tr');
@@ -4205,7 +4265,6 @@ window.shareVendorLink = function(link, vendor) {
                                 copied = true;
                             }
                         });
-                        
                         if (copied) {
                             const originalIcon = btn.innerText;
                             btn.innerText = "✅";
@@ -4216,15 +4275,10 @@ window.shareVendorLink = function(link, vendor) {
                     window.clearDateRow = function(btn) {
                         const currentRow = btn.closest('tr');
                         const currSelects = currentRow.querySelectorAll('select.grid-morn, select.grid-aft');
-                        
                         let cleared = false;
                         currSelects.forEach(sel => {
-                            if (!sel.disabled) {
-                                sel.value = ""; 
-                                cleared = true;
-                            }
+                            if (!sel.disabled) { sel.value = ""; cleared = true; }
                         });
-                        
                         if (cleared) {
                             const originalIcon = btn.innerText;
                             btn.innerText = "✅";
@@ -4264,14 +4318,9 @@ window.shareVendorLink = function(link, vendor) {
                                 if (val && val !== '-') {
                                     const newId = 'log_' + (baseId + idx) + '_' + Math.floor(Math.random() * 10000);
                                     updates[newId] = {
-                                        id: newId,
-                                        employeeId: empId,
-                                        employeeName: empName,
-                                        drink: val,
-                                        session: session,
-                                        date: dateDMY,
-                                        pantryId: currentUser.id,
-                                        pantryName: currentUser.name,
+                                        id: newId, employeeId: empId, employeeName: empName,
+                                        drink: val, session: session, date: dateDMY,
+                                        pantryId: currentUser.id, pantryName: currentUser.name,
                                         supplySource: selectedSupplySource
                                     };
                                     sel.dataset.logid = newId;
@@ -7895,58 +7944,120 @@ window.renderWeekendDutyInterface = function() {
 // ============================================================
 //  DAU DIRECT PURCHASE ACCESS MANAGEMENT (FAIL-SAFE)
 // ============================================================
-window.renderDauPurchaseAccessAdmin = function() {
-    const container = document.getElementById('dauPurchasePantryList');
-    if(!container) return;
+            window.renderDauPurchaseAccessAdmin = function() {
+                const cont = document.getElementById('adminContent');
+                if(!cont) return;
 
-    // સેફટી ચેક: ડેટા ઓબ્જેક્ટ છે કે નહીં તે ચકાસવું
-    const accessMap = (typeof dauPurchaseAccessData === 'object' && dauPurchaseAccessData !== null) ? dauPurchaseAccessData : {};
+                cont.innerHTML = `
+                    <div class="card" style="border:2px solid #059669; background:#ECFDF5;">
+                        <h4 style="color:#047857; margin:0 0 10px 0; font-size:1rem;">🛒 Pantry Staff Access (DAU)</h4>
+                        <p style="font-size:.8rem; color:#475569; margin-bottom:12px;">Grant permission to selected Pantry Staff to see the DAU Purchase option.</p>
+                        <div id="dauPurchasePantryList" class="scroll-list-box" style="min-height:80px; max-height:250px; background:#fff; padding:6px;"></div>
+                        <button id="saveDauPurchaseAccessBtn" class="success" style="width:100%; min-height:44px; margin-top:12px; font-size:14px; font-weight:700; border-radius:8px; background:#059669;">💾 Save Pantry Permissions</button>
+                    </div>
 
-    if(!pantryTeam || !Array.isArray(pantryTeam) || pantryTeam.length === 0) {
-        container.innerHTML = '<p style="padding:16px; text-align:center; color:#64748B; font-size:13px;">No Pantry Staff found in database.</p>';
-        return;
-    }
+                    <div class="card" style="border:2px solid #0A56D0; background:#EFF6FF; margin-top:16px;">
+                        <h4 style="color:#0A56D0; margin:0 0 10px 0; font-size:1rem;">👥 Employee Allotment (DAU)</h4>
+                        <p style="font-size:.8rem; color:#475569; margin-bottom:12px;">Select employees (Faculty, Staff, Law etc.) who are eligible for DAU tea. Only these names will appear in the entry form.</p>
+                        
+                        <div style="display:flex; gap:8px; margin-bottom:10px;">
+                            <select id="dauEmpCatFilter" style="flex:1; padding:10px; border-radius:8px; border:1px solid #CBD5E1;">
+                                <option value="All">All Categories</option>
+                                <option value="Faculty">Faculty</option>
+                                <option value="Staff">Staff</option>
+                                <option value="Law">Law</option>
+                                <option value="Outsourced">Outsourced</option>
+                            </select>
+                            <input type="text" id="dauEmpSearch" placeholder="🔍 Search Employee..." style="flex:1.5; padding:10px; border-radius:8px; border:1px solid #CBD5E1;">
+                        </div>
+                        <div style="display:flex; align-items:center; margin-bottom:8px;">
+                            <input type="checkbox" id="dauEmpSelectAll" style="width:18px; height:18px; margin-right:8px; accent-color:#0A56D0;">
+                            <label for="dauEmpSelectAll" style="font-size:.85rem; font-weight:bold; color:#1E293B;">Select All Visible</label>
+                        </div>
+                        <div id="dauEmpListContainer" class="scroll-list-box" style="max-height:350px; background:#fff; padding:6px;"></div>
+                        <button id="saveDauEmpAccessBtn" class="success" style="width:100%; min-height:44px; margin-top:12px; font-weight:700; border-radius:8px; background:#0A56D0;">💾 Save Employee Allotment</button>
+                    </div>
+                `;
 
-    try {
-        container.innerHTML = pantryTeam.map(p => {
-            if (!p || !p.id) return '';
-            const hasAccess = accessMap[p.id] === true;
-            return `
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #E2E8F0; font-size:13px; background:#fff; margin-bottom:4px; border-radius:6px;">
-                    <span><strong>🧑‍🍳 ${safeStr(p.name)}</strong> <small style="color:#64748B;">(${safeStr(p.mobile) || 'No Mobile'})</small></span>
-                    <label style="display:flex; align-items:center; gap:6px; font-weight:600; cursor:pointer; color:${hasAccess ? '#059669' : '#64748B'};">
-                        <input type="checkbox" class="dau-access-checkbox" data-id="${p.id}" ${hasAccess ? 'checked' : ''} style="width:18px; height:18px; accent-color:#059669;">
-                        Enable Access
-                    </label>
-                </div>
-            `;
-        }).join('');
-    } catch(e) {
-        console.error("DAU Purchase Render Error:", e);
-        container.innerHTML = '<p style="padding:16px; text-align:center; color:#DC3545; font-size:13px;">Error loading list.</p>';
-    }
-
-    const saveBtn = document.getElementById('saveDauPurchaseAccessBtn');
-    if (saveBtn) {
-        saveBtn.onclick = function() {
-            const checkboxes = container.querySelectorAll('.dau-access-checkbox');
-            const updates = {};
-
-            checkboxes.forEach(cb => {
-                const pId = cb.dataset.id;
-                if (pId) {
-                    updates['dauPurchaseAccess/' + pId] = cb.checked ? true : null;
+                const pContainer = document.getElementById('dauPurchasePantryList');
+                const accessMap = (typeof dauPurchaseAccessData === 'object' && dauPurchaseAccessData !== null) ? dauPurchaseAccessData : {};
+                
+                if(!pantryTeam || pantryTeam.length === 0) {
+                    pContainer.innerHTML = '<p style="padding:16px; text-align:center; color:#64748B;">No Pantry Staff found.</p>';
+                } else {
+                    pContainer.innerHTML = pantryTeam.map(p => {
+                        const hasAccess = accessMap[p.id] === true;
+                        return `<div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #E2E8F0; font-size:13px; background:${hasAccess ? '#ECFDF5' : '#fff'}; margin-bottom:4px; border-radius:6px; border:1px solid ${hasAccess ? '#BBF7D0' : '#E2E8F0'};"><span><strong>🧑‍🍳 ${safeStr(p.name)}</strong></span><label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-weight:600; color:${hasAccess ? '#059669' : '#64748B'};"><input type="checkbox" class="dau-access-checkbox" data-id="${p.id}" ${hasAccess ? 'checked' : ''} style="width:18px; height:18px; accent-color:#059669;"> Allowed</label></div>`;
+                    }).join('');
                 }
-            });
 
-            db.ref().update(updates).then(() => {
-                appAlert('Success', 'DAU Purchase access permissions updated!');
-            }).catch(err => appAlert('Error', err.message));
-        };
-    }
-};
+                document.getElementById('saveDauPurchaseAccessBtn').onclick = function() {
+                    const checkboxes = pContainer.querySelectorAll('.dau-access-checkbox');
+                    const updates = {};
+                    checkboxes.forEach(cb => {
+                        if (cb.dataset.id) updates['dauPurchaseAccess/' + cb.dataset.id] = cb.checked ? true : null;
+                    });
+                    db.ref().update(updates).then(() => {
+                        appAlert('Success', 'Pantry Staff permissions updated!');
+                    }).catch(err => appAlert('Error', err.message));
+                };
 
+                const eContainer = document.getElementById('dauEmpListContainer');
+                                function loadDauEmployees() {
+                    const cat = document.getElementById('dauEmpCatFilter').value;
+                    const search = document.getElementById('dauEmpSearch').value.toLowerCase().trim();
+                    
+                    const filtered = employeeList.filter(emp => {
+                        // Category ને એકદમ પરફેક્ટ મેચ કરવા (સ્પેસ કે નાના-મોટા અક્ષરોની ભૂલ સુધારવા)
+                        const empCat = (emp.category || '').trim().toLowerCase();
+                        const filterCat = cat.trim().toLowerCase();
+                        
+                        if(cat !== 'All') {
+                            if (filterCat === 'outsourced' && empCat.includes('outsource')) {
+                                // Allow
+                            } else if (empCat !== filterCat) {
+                                return false;
+                            }
+                        }
+                        if(search && !(emp.name||'').toLowerCase().includes(search)) return false;
+                        return true;
+                    });
 
+                    if(!filtered.length) {
+                        eContainer.innerHTML = '<p style="padding:16px; text-align:center; color:#64748B;">No employees found.</p>';
+                        return;
+                    }
+
+                    eContainer.innerHTML = filtered.map(emp => {
+                        const isEligible = emp.dauTeaEligible === true;
+                        return `<div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #E2E8F0; font-size:13px; background:${isEligible ? '#EFF6FF' : '#fff'}; margin-bottom:4px; border-radius:6px;">
+                                <span><strong>${safeStr(emp.name)}</strong> <small style="color:#64748B;">[${safeStr(emp.category)}]</small></span>
+                                <input type="checkbox" class="dau-emp-checkbox" data-id="${emp.id}" ${isEligible ? 'checked' : ''} style="width:18px; height:18px; accent-color:#0A56D0;">
+                            </div>`;
+                    }).join('');
+                    document.getElementById('dauEmpSelectAll').checked = false;
+                }                
+
+                document.getElementById('dauEmpCatFilter').addEventListener('change', loadDauEmployees);
+                document.getElementById('dauEmpSearch').addEventListener('input', loadDauEmployees);
+                document.getElementById('dauEmpSelectAll').addEventListener('change', function() {
+                    eContainer.querySelectorAll('.dau-emp-checkbox').forEach(cb => cb.checked = this.checked);
+                });
+
+                document.getElementById('saveDauEmpAccessBtn').onclick = function() {
+                    const checks = eContainer.querySelectorAll('.dau-emp-checkbox');
+                    const updates = {};
+                    checks.forEach(cb => {
+                        updates['employees/' + cb.dataset.id + '/dauTeaEligible'] = cb.checked ? true : null;
+                    });
+                    db.ref().update(updates).then(() => {
+                        appAlert('Success', 'Employee DAU Allotment saved! Only these employees will show up for DAU entries.');
+                        loadDauEmployees();
+                    }).catch(err => appAlert('Error', err.message));
+                };
+
+                loadDauEmployees();
+            };
     renderList();
 };
 
@@ -8191,41 +8302,128 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
             };
 
             // FIXED: DAU Direct Purchase Access Allotment - robust rendering
-            window.renderDauPurchaseAccessAdmin = function() {
-                const container = document.getElementById('dauPurchasePantryList');
-                const saveBtn = document.getElementById('saveDauPurchaseAccessBtn');
-                if (!container) return;
-                const accessMap = (typeof dauPurchaseAccessData === 'object' && dauPurchaseAccessData !== null) ? dauPurchaseAccessData : {};
-                if (!pantryTeam || !Array.isArray(pantryTeam) || pantryTeam.length === 0) {
-                    container.innerHTML = '<p style="padding:16px; text-align:center; color:#64748B; font-size:13px;">Loading pantry staff... If empty, please add pantry staff first in Employees tab.</p>';
-                    // Retry after 1 sec if pantryTeam not loaded
-                    setTimeout(()=>{ window.renderDauPurchaseAccessAdmin(); }, 1000);
-                    return;
-                }
-                try {
-                    container.innerHTML = pantryTeam.map(p => {
-                        if (!p || !p.id) return '';
-                        const hasAccess = accessMap[p.id] === true;
-                        return `<div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #E2E8F0; font-size:13px; background:${hasAccess ? '#ECFDF5' : '#fff'}; margin-bottom:4px; border-radius:6px; border:1px solid ${hasAccess ? '#BBF7D0' : '#E2E8F0'};"><span><strong>🧑‍🍳 ${safeStr(p.name)}</strong> <small style="color:#64748B;">(${safeStr(p.mobile) || 'No Mobile'})</small></span><label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-weight:600; color:${hasAccess ? '#059669' : '#64748B'};"><input type="checkbox" class="dau-access-checkbox" data-id="${p.id}" ${hasAccess ? 'checked' : ''} style="width:18px; height:18px; accent-color:#059669;"> ${hasAccess ? 'Allowed' : 'Not Allowed'}</label></div>`;
-                    }).join('');
-                    if (saveBtn) {
-                        saveBtn.onclick = function() {
-                            const checkboxes = container.querySelectorAll('.dau-access-checkbox');
-                            const updates = {};
-                            checkboxes.forEach(cb => {
-                                const pId = cb.dataset.id;
-                                if (pId) {
-                                    updates['dauPurchaseAccess/' + pId] = cb.checked ? true : null;
-                                }
-                            });
-                            db.ref().update(updates).then(() => {
-                                appAlert('Success', 'DAU Purchase access permissions updated! Pantry boys can now see DAU option.');
-                                // Force refresh extra tea form if open
-                                renderIfNeeded();
-                            }).catch(err => appAlert('Error', err.message));
-                        };
+                        window.renderDauPurchaseAccessAdmin = function() {
+                const cont = document.getElementById('adminContent');
+                if(!cont) return;
+
+                // સ્ટેપ 1: પહેલાં ફ્રેમ અને "Loading..." ટેક્સ્ટ તરત જ બતાવી દેવી
+                cont.innerHTML = `
+                    <div class="card" style="border:2px solid #059669; background:#ECFDF5;">
+                        <h4 style="color:#047857; margin:0 0 10px 0; font-size:1rem;">🛒 Pantry Staff Access (DAU)</h4>
+                        <p style="font-size:.8rem; color:#475569; margin-bottom:12px;">Grant permission to selected Pantry Staff to see the DAU Purchase option.</p>
+                        <div id="dauPurchasePantryList" class="scroll-list-box" style="min-height:80px; max-height:250px; background:#fff; padding:6px;">
+                            <div style="text-align:center; padding:20px; color:#059669; font-weight:bold;">⏳ Loading Pantry Staff...</div>
+                        </div>
+                        <button id="saveDauPurchaseAccessBtn" class="success" style="width:100%; min-height:44px; margin-top:12px; font-size:14px; font-weight:700; border-radius:8px; background:#059669;">💾 Save Pantry Permissions</button>
+                    </div>
+
+                    <div class="card" style="border:2px solid #0A56D0; background:#EFF6FF; margin-top:16px;">
+                        <h4 style="color:#0A56D0; margin:0 0 10px 0; font-size:1rem;">👥 Employee Allotment (DAU)</h4>
+                        <p style="font-size:.8rem; color:#475569; margin-bottom:12px;">Select employees who are eligible for DAU tea.</p>
+                        
+                        <div style="display:flex; gap:8px; margin-bottom:10px;">
+                            <select id="dauEmpCatFilter" style="flex:1; padding:10px; border-radius:8px; border:1px solid #CBD5E1;">
+                                <option value="All">All Categories</option>
+                                <option value="Faculty">Faculty</option>
+                                <option value="Staff">Staff</option>
+                                <option value="Law">Law</option>
+                                <option value="Outsourced">Outsourced</option>
+                            </select>
+                            <input type="text" id="dauEmpSearch" placeholder="🔍 Search Employee..." style="flex:1.5; padding:10px; border-radius:8px; border:1px solid #CBD5E1;">
+                        </div>
+                        <div style="display:flex; align-items:center; margin-bottom:8px;">
+                            <input type="checkbox" id="dauEmpSelectAll" style="width:18px; height:18px; margin-right:8px; accent-color:#0A56D0;">
+                            <label for="dauEmpSelectAll" style="font-size:.85rem; font-weight:bold; color:#1E293B;">Select All Visible</label>
+                        </div>
+                        <div id="dauEmpListContainer" class="scroll-list-box" style="max-height:350px; background:#fff; padding:6px;">
+                            <div style="text-align:center; padding:20px; color:#0A56D0; font-weight:bold;">⏳ Loading Employees...</div>
+                        </div>
+                        <button id="saveDauEmpAccessBtn" class="success" style="width:100%; min-height:44px; margin-top:12px; font-weight:700; border-radius:8px; background:#0A56D0;">💾 Save Employee Allotment</button>
+                    </div>
+                `;
+
+                // સ્ટેપ 2: 50 મિલિસેકન્ડ પછી બેકગ્રાઉન્ડમાં ડેટા લોડ કરવો જેથી સ્ક્રીન ના ચોંટે
+                setTimeout(() => {
+                    const pContainer = document.getElementById('dauPurchasePantryList');
+                    const accessMap = (typeof dauPurchaseAccessData === 'object' && dauPurchaseAccessData !== null) ? dauPurchaseAccessData : {};
+                    
+                    if(!pantryTeam || pantryTeam.length === 0) {
+                        pContainer.innerHTML = '<p style="padding:16px; text-align:center; color:#64748B;">No Pantry Staff found.</p>';
+                    } else {
+                        pContainer.innerHTML = pantryTeam.map(p => {
+                            const hasAccess = accessMap[p.id] === true;
+                            return `<div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #E2E8F0; font-size:13px; background:${hasAccess ? '#ECFDF5' : '#fff'}; margin-bottom:4px; border-radius:6px; border:1px solid ${hasAccess ? '#BBF7D0' : '#E2E8F0'};"><span><strong>🧑‍🍳 ${safeStr(p.name)}</strong></span><label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-weight:600; color:${hasAccess ? '#059669' : '#64748B'};"><input type="checkbox" class="dau-access-checkbox" data-id="${p.id}" ${hasAccess ? 'checked' : ''} style="width:18px; height:18px; accent-color:#059669;"> Allowed</label></div>`;
+                        }).join('');
                     }
-                } catch(e) { console.log('renderDauPurchaseAccessAdmin error', e); container.innerHTML = '<p style="color:red;">Error: '+e.message+'</p>'; }
+
+                    document.getElementById('saveDauPurchaseAccessBtn').onclick = function() {
+                        const checkboxes = pContainer.querySelectorAll('.dau-access-checkbox');
+                        const updates = {};
+                        checkboxes.forEach(cb => {
+                            if (cb.dataset.id) updates['dauPurchaseAccess/' + cb.dataset.id] = cb.checked ? true : null;
+                        });
+                        db.ref().update(updates).then(() => {
+                            appAlert('Success', 'Pantry Staff permissions updated!');
+                        }).catch(err => appAlert('Error', err.message));
+                    };
+
+                    const eContainer = document.getElementById('dauEmpListContainer');
+                    function loadDauEmployees() {
+                        const cat = document.getElementById('dauEmpCatFilter').value;
+                        const search = document.getElementById('dauEmpSearch').value.toLowerCase().trim();
+                        
+                        const filtered = employeeList.filter(emp => {
+                            const empCat = (emp.category || '').trim().toLowerCase();
+                            const filterCat = cat.trim().toLowerCase();
+                            
+                            if(cat !== 'All') {
+                                if (filterCat === 'outsourced' && empCat.includes('outsource')) {
+                                    // Allow outsourced variations
+                                } else if (empCat !== filterCat) {
+                                    return false;
+                                }
+                            }
+                            if(search && !(emp.name||'').toLowerCase().includes(search)) return false;
+                            return true;
+                        });
+
+                        if(!filtered.length) {
+                            eContainer.innerHTML = '<p style="padding:16px; text-align:center; color:#64748B;">No employees found.</p>';
+                            return;
+                        }
+
+                        eContainer.innerHTML = filtered.map(emp => {
+                            const isEligible = emp.dauTeaEligible === true;
+                            return `<div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #E2E8F0; font-size:13px; background:${isEligible ? '#EFF6FF' : '#fff'}; margin-bottom:4px; border-radius:6px;">
+                                    <span><strong>${safeStr(emp.name)}</strong> <small style="color:#64748B;">[${safeStr(emp.category)}]</small></span>
+                                    <input type="checkbox" class="dau-emp-checkbox" data-id="${emp.id}" ${isEligible ? 'checked' : ''} style="width:18px; height:18px; accent-color:#0A56D0;">
+                                </div>`;
+                        }).join('');
+                        document.getElementById('dauEmpSelectAll').checked = false;
+                    }
+
+                    document.getElementById('dauEmpCatFilter').addEventListener('change', loadDauEmployees);
+                    document.getElementById('dauEmpSearch').addEventListener('input', loadDauEmployees);
+                    document.getElementById('dauEmpSelectAll').addEventListener('change', function() {
+                        eContainer.querySelectorAll('.dau-emp-checkbox').forEach(cb => cb.checked = this.checked);
+                    });
+
+                    document.getElementById('saveDauEmpAccessBtn').onclick = function() {
+                        const checks = eContainer.querySelectorAll('.dau-emp-checkbox');
+                        const updates = {};
+                        checks.forEach(cb => {
+                            updates['employees/' + cb.dataset.id + '/dauTeaEligible'] = cb.checked ? true : null;
+                        });
+                        db.ref().update(updates).then(() => {
+                            appAlert('Success', 'Employee DAU Allotment saved! Only these employees will show up for DAU entries.');
+                            loadDauEmployees();
+                        }).catch(err => appAlert('Error', err.message));
+                    };
+
+                    // લિસ્ટ લોડ કરો
+                    loadDauEmployees();
+
+                }, 50); // 50ms નું ટાઈમર
             };
 
             window.setGuestSlipYesNo = function(prefix, field, value) {
