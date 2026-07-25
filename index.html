@@ -3961,12 +3961,13 @@ window.shareVendorLink = function(link, vendor) {
                   <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; width: 100%;">
     <button type="button" onclick="window.changeDateBy(-1)" style="padding: 6px 14px; background: #EFF6FF; border: 2px solid #0A56D0; color: #0A56D0; border-radius: 6px; font-weight: bold; font-size: 1.1rem; cursor: pointer;">◀</button>
     
-    <input type="date" id="beverageEntryDate" style="width: 160px; padding: 8px; border-radius: 6px; border: 2px solid #0A56D0; text-align: center; font-weight: bold; font-size: 1rem; color: #0A56D0; background: #F8FAFC;">
+    <!-- અહી type="date" ની જગ્યાએ type="text" અને readonly કરી દીધું છે, જેથી મોબાઈલનું કેલેન્ડર ક્યારેય ના ખુલે -->
+    <input type="text" id="beverageEntryDate" readonly style="width: 160px; padding: 8px; border-radius: 6px; border: 2px solid #0A56D0; text-align: center; font-weight: bold; font-size: 1rem; color: #0A56D0; background: #F8FAFC; cursor: pointer;">
     
     <button type="button" onclick="window.changeDateBy(1)" style="padding: 6px 14px; background: #EFF6FF; border: 2px solid #0A56D0; color: #0A56D0; border-radius: 6px; font-weight: bold; font-size: 1.1rem; cursor: pointer;">▶</button>
 
-    <!-- સિક્રેટ ટ્રીક: કોઈ જ સ્ક્રિપ્ટ વગર ઇન્સ્ટન્ટ તારીખ લાવશે અને ડિઝાઇન નહિ બગાડે -->
-    <img src="x" onerror="var d=document.getElementById('beverageEntryDate');if(d){var t=new Date();d.value=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');setTimeout(function(){if(typeof flatpickr!=='undefined'){flatpickr(d,{dateFormat:'Y-m-d',disableMobile:true,onChange:function(){if(typeof window.refreshAllData==='function')window.refreshAllData();}});}else{d.addEventListener('change',function(){if(typeof window.refreshAllData==='function')window.refreshAllData();});}if(typeof window.refreshAllData==='function')window.refreshAllData();},100);}this.remove();" style="display:none;">
+    <!-- આ સિક્રેટ કોડ ઇન્ટરનેટ પરથી ઓટોમેટિક નવું કસ્ટમ કેલેન્ડર લાવીને સેટ કરી દેશે (પેજ નહિ ફાટે) -->
+    <img src="x" onerror="var d=document.getElementById('beverageEntryDate');if(d){var t=new Date();d.value=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');if(!document.getElementById('fp-css')){var css=document.createElement('link');css.id='fp-css';css.rel='stylesheet';css.href='https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css';document.head.appendChild(css);}var initFp=function(){flatpickr(d,{dateFormat:'Y-m-d',disableMobile:true,onChange:function(){if(typeof window.refreshAllData==='function')window.refreshAllData();}});};if(!window.flatpickr){var js=document.createElement('script');js.src='https://cdn.jsdelivr.net/npm/flatpickr';js.onload=initFp;document.head.appendChild(js);}else{initFp();}if(typeof window.refreshAllData==='function')window.refreshAllData();}this.remove();" style="display:none;">
 </div>
                   <div class="mode-toggle">
                     <button id="modeNameWise" class="active">👤  Daily Entry</button>
