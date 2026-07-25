@@ -2385,9 +2385,9 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                 eventLogsData.forEach(ev => {
                     if (ev.items && Array.isArray(ev.items)) {
                         ev.items.forEach(item => {
-                            const itemVendor = (item.vendor || ev.canteenSource || '').toLowerCase();
-                            if (itemVendor === vendorName.toLowerCase()) {
-                                const purposeText = `${ev.eventName || ''} ${ev.orderedBy || ''}`.toLowerCase();
+                                                        const itemVendor = (item.vendor || ev.canteenSource || '').toLowerCase();
+                            if (vendorName === 'All Vendors' || itemVendor === vendorName.toLowerCase()) {
+                                const purposeText = `${ev.eventName || ''} ${ev.orderedBy || ''}`.toLowerCase();                                
                                 let head = 'Office'; // Default fallback
                                 if (purposeText.includes('school of law') || purposeText.includes('law') || purposeText.includes('llm') || purposeText.includes('sol')) {
                                     head = 'SoL';
@@ -2416,8 +2416,8 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                                 // નવી Meetings & Guests નો ડેટા સિંક કરવા માટે
                 if (typeof mgRecordsData !== 'undefined' && mgRecordsData.length > 0) {
                     mgRecordsData.forEach(rec => {
-                        const itemVendor = (rec.Vendor || '').toLowerCase();
-                        if (itemVendor === vendorName.toLowerCase()) {
+                                                const itemVendor = (rec.Vendor || '').toLowerCase();
+                        if (vendorName === 'All Vendors' || itemVendor === vendorName.toLowerCase()) {
                             let head = 'Office';
                             const purposeText = `${rec.Purpose || ''} ${rec.ReqName || ''}`.toLowerCase();
                             
@@ -2493,11 +2493,12 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                         let sr = 1;
                         let grandTotal = 0;
                         tableHtml = `
-                            <table class="vendor-desktop-table" id="rawVendorPrintableTargetTable" style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+                                                        <table class="vendor-desktop-table" id="rawVendorPrintableTargetTable" style="width:100%; border-collapse:collapse; font-size:0.9rem;">
                                 <thead>
                                     <tr>
                                         <th>S.R.</th>
                                         <th>Date</th>
+                                        ${vendorName === 'All Vendors' ? '<th>Vendor</th>' : ''}
                                         <th>Item Name</th>
                                         <th>Qty</th>
                                         <th>Rate</th>
@@ -2517,9 +2518,10 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                             if(row.accountHead==='Placement') headBadgeColor='#10B981';
 
                             tableHtml += `
-                                <tr>
+                                                                <tr>
                                     <td>${sr++}</td>
                                     <td>${safeStr(row.date)}</td>
+                                    ${vendorName === 'All Vendors' ? `<td style="color:#D97706; font-weight:700;">${safeStr(row.vendor)}</td>` : ''}
                                     <td><strong>${safeStr(row.itemName)}</strong></td>
                                     <td>${row.qty}</td>
                                     <td>₹${row.rate}</td>
@@ -2670,11 +2672,12 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                                 </div>
 
                                 <table style="width: 100%; border-collapse: collapse; margin-top: 10px; border:1px solid #000 !important; color:#000;">
-                                    <thead>
-                                        <tr style="background: #E2E8F0 !important; height:40px !important;">
-                                            <th style="border:1px solid #000 !important; width: 8%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">S.R.</th>
-                                            <th style="border:1px solid #000 !important; width: 15%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Date</th>
-                                            <th style="border:1px solid #000 !important; width: 45%; font-weight:700; font-size:13px !important; text-align:left; padding-left:10px; color:#000;">Item Description</th>
+                                                                    <thead>
+                                    <tr style="background: #E2E8F0 !important; height:40px !important;">
+                                        <th style="border:1px solid #000 !important; width: 8%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">S.R.</th>
+                                        <th style="border:1px solid #000 !important; width: 15%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Date</th>
+                                        ${vendorName === 'All Vendors' ? '<th style="border:1px solid #000 !important; width: 15%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Vendor</th>' : ''}
+                                        <th style="border:1px solid #000 !important; width: 45%; font-weight:700; font-size:13px !important; text-align:left; padding-left:10px; color:#000;">Item Description</th>
                                             <th style="border:1px solid #000 !important; width: 10%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Qty</th>
                                             <th style="border:1px solid #000 !important; width: 11%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Rate</th>
                                             <th style="border:1px solid #000 !important; width: 11%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Amount</th>
@@ -3811,6 +3814,7 @@ window.shareVendorLink = function(link, vendor) {
                                 <tr style="height:40px !important;">
                                     <td style="border:1px solid #000 !important; text-align:center; padding:5px; font-size:13px !important; vertical-align:middle;">${billSr++}</td>
                                     <td style="border:1px solid #000 !important; text-align:center; padding:5px; font-size:13px !important; vertical-align:middle; white-space:nowrap;">${item.date}</td>
+                                    ${vendorName === 'All Vendors' ? `<td style="border:1px solid #000 !important; text-align:center; padding:5px; font-size:13px !important; vertical-align:middle; font-weight:700; color:#D97706;">${safeStr(item.vendor)}</td>` : ''}
                                     <td style="border:1px solid #000 !important; text-align:left; padding:5px 10px; font-size:13px !important; vertical-align:middle; font-weight:600;">${item.itemName}</td>
                                     <td style="border:1px solid #000 !important; text-align:center; padding:5px; font-size:13px !important; vertical-align:middle;">${item.qty}</td>
                                     <td style="border:1px solid #000 !important; text-align:center; padding:5px; font-size:13px !important; vertical-align:middle;">₹${item.rate}</td>
@@ -3893,7 +3897,7 @@ window.shareVendorLink = function(link, vendor) {
                                     <tbody>
                                         ${billRows}
                                         <tr style="background: #FFF !important; font-weight: bold; height:40px !important;">
-                                            <td colspan="5" style="border:1px solid #000 !important; text-align: right; padding-right: 12px; font-size:13px !important; vertical-align:middle; font-weight:700; color:#000;">GRAND TOTAL AMOUNT DUE</td>
+                                            <td colspan="${vendorName === 'All Vendors' ? 6 : 5}" style="border:1px solid #000 !important; text-align: right; padding-right: 12px; font-size:13px !important; vertical-align:middle; font-weight:700; color:#000;">GRAND TOTAL AMOUNT DUE</td>
                                             <td style="border:1px solid #000 !important; text-align:center; font-size: 14px !important; color: #000; vertical-align:middle; font-weight:800;">₹${billTotal.toFixed(2)}</td>
                                         </tr>
                                     </tbody>
@@ -3957,7 +3961,6 @@ window.shareVendorLink = function(link, vendor) {
                 container.innerHTML = `
               <div class="card" style="padding:16px; margin-bottom:16px; display:flex; flex-direction:column; overflow:hidden; max-height:100%;">
                 <div style="margin-bottom:12px; flex-shrink:0;">
-                  <label style="font-size:.85rem; color:#44474E; font-weight:700; display:block;">Select Date:</label>
                   <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; width: 100%;">
     
     <!-- ◀ પાછળની તારીખ માટે બટન -->
@@ -5138,9 +5141,14 @@ window.shareVendorLink = function(link, vendor) {
 
                     case 'canteens':
                         cont.innerHTML = `
-                  <div class="card"><h4 style="margin-bottom:12px; color:#0A56D0; font-size:1rem;">Add Authorized Canteen</h4><input id="cantNameInput" placeholder="Enter Canteen Name" style="text-align:left; padding:14px; border-radius:10px; border:1px solid #CBD5E1;"><button id="saveCanteenBtn" class="success" style="width:100%; min-height:44px;">Add Canteen Vendor</button></div>
-                  <h4 style="color:#44474E; margin:8px 4px; font-size:.95rem;">Available Vendors</h4><div id="canteenListContainer" class="scroll-list-box"></div>
-                  <div class="card" style="margin-top:16px; border-top:3px solid #0A56D0;"><h4 style="color:#0A56D0; margin-bottom:12px; font-size:1rem;">🛒 Vendor Items & Rates</h4><div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;"><select id="vendorItemSelect" style="flex:2; margin:0; padding:10px; border-radius:8px; border:1px solid #CBD5E1;"><option value="">-- Select Vendor --</option>${canteenList.map(c => `<option value="${safeStr(c.name)}">${safeStr(c.name)}</option>`).join('')}</select><input type="text" id="vendorItemName" placeholder="Item Name" style="flex:2; margin:0; padding:10px; border-radius:8px; border:1px solid #CBD5E1;"><input type="number" id="vendorItemRate" placeholder="Rate (₹)" style="flex:1; margin:0; padding:10px; border-radius:8px; border:1px solid #CBD5E1;"><button id="addVendorItemBtn" class="success" style="flex:1; padding:8px; font-size:.8rem; min-height:38px; margin:0;">➕ Add</button></div><div id="vendorItemsList" style="max-height:200px; overflow-y:auto; border:1px solid #E2E8F0; border-radius:8px; padding:6px;"></div></div>
+                                    <div class="card"><h4 style="margin-bottom:12px; color:#0A56D0; font-size:1rem;">Add Authorized Canteen</h4><input id="cantNameInput" placeholder="Enter Canteen Name" style="text-align:left; padding:14px; border-radius:10px; border:1px solid #CBD5E1;"><button id="saveCanteenBtn" class="success" style="width:100%; min-height:44px;">Add Canteen Vendor</button></div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin:12px 4px 8px 4px;">
+                      <h4 style="color:#44474E; font-size:.95rem; margin:0;">Available Vendors</h4>
+                      <button onclick="window.openVendorSheet('all_vendors', 'All Vendors')" class="btn" style="background:#1E293B; font-size:.8rem; padding:6px 12px; min-height:32px; border-radius:8px; cursor:pointer;">📋 Consolidated Statement</button>
+                  </div>
+                  <div id="canteenListContainer" class="scroll-list-box"></div>
+                  <div class="card" style="margin-top:16px; border-top:3px solid #0A56D0;"><h4 style="color:#0A56D0; margin-bottom:12px; font-size:1rem;">🛒 Vendor Items & Rates</h4>
+<div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;"><select id="vendorItemSelect" style="flex:2; margin:0; padding:10px; border-radius:8px; border:1px solid #CBD5E1;"><option value="">-- Select Vendor --</option>${canteenList.map(c => `<option value="${safeStr(c.name)}">${safeStr(c.name)}</option>`).join('')}</select><input type="text" id="vendorItemName" placeholder="Item Name" style="flex:2; margin:0; padding:10px; border-radius:8px; border:1px solid #CBD5E1;"><input type="number" id="vendorItemRate" placeholder="Rate (₹)" style="flex:1; margin:0; padding:10px; border-radius:8px; border:1px solid #CBD5E1;"><button id="addVendorItemBtn" class="success" style="flex:1; padding:8px; font-size:.8rem; min-height:38px; margin:0;">➕ Add</button></div><div id="vendorItemsList" style="max-height:200px; overflow-y:auto; border:1px solid #E2E8F0; border-radius:8px; padding:6px;"></div></div>
                   <div class="card" style="margin-top:16px;"><h4 style="color:#0A56D0; margin-bottom:12px; font-size:1rem;">🔗 Vendor Link Generator</h4><p style="font-size:.8rem; color:#44474E; margin-bottom:8px;">Generate a shareable link for vendors to view their statement.</p><div style="display:flex; gap:8px; flex-wrap:wrap;"><select id="vendorLinkSelect" style="flex:2; margin:0; padding:10px; border-radius:8px; border:1px solid #CBD5E1;"><option value="">-- Select Vendor --</option>${canteenList.map(c => `<option value="${safeStr(c.name)}">${safeStr(c.name)}</option>`).join('')}</select><button id="genVendorLinkBtn" class="btn" style="flex:1; min-height:40px;">🔗 Generate Link</button></div><div id="vendorLinkDisplay" style="margin-top:8px; padding:10px; background:#F1F5F9; border-radius:8px; font-size:.8rem; word-break:break-all; display:none;"></div></div>
                 `;
                         renderAdminCanteens();
@@ -6151,12 +6159,27 @@ window.shareVendorLink = function(link, vendor) {
                 c.innerHTML = pantryTeam.map(p => {
                     const assigned = employeeList.filter(e => e.assignedPantryId === p.id).map(e => e.name)
                         .join(', ') || 'No employees';
-                    const leaveBadge = p.onLeave ? ' <span style="color:#DC3545; font-weight:700;">(On Leave)</span>' :
-                        '';
+                    const leaveBadge = p.onLeave ? ' <span style="color:#DC3545; font-weight:700;">(On Leave)</span>' : '';
+                    
+                    // --- NEW CODE: Online/Offline Badge બતાવવા માટે ---
+                    const presence = (typeof pantryPresenceData !== 'undefined' && pantryPresenceData['pantry_' + p.id]) ? pantryPresenceData['pantry_' + p.id] : { state: 'offline' };
+                    const isOnline = presence.state === 'online';
+                    let lastSeenText = '';
+                    if (!isOnline && presence.last_changed) {
+                        const d = new Date(presence.last_changed);
+                        const timeStr = d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        const dateStr = d.toLocaleDateString('en-GB'); // DD/MM/YYYY format
+                        lastSeenText = ` • Last seen: ${dateStr} ${timeStr}`;
+                    }
+                    const statusBadge = isOnline 
+                        ? `<span style="background:#DCFCE7; color:#166534; padding:2px 6px; border-radius:12px; font-size:0.65rem; font-weight:bold; margin-left:6px; border:1px solid #BBF7D0;">🟢 Online</span>` 
+                        : `<span style="background:#F1F5F9; color:#64748B; padding:2px 6px; border-radius:12px; font-size:0.65rem; font-weight:bold; margin-left:6px; border:1px solid #E2E8F0;">🔴 Offline${lastSeenText}</span>`;
+                    // --------------------------------------------------
+
                     return `
                 <div class="employee-item" style="margin:6px 4px; flex-direction:column; align-items:stretch;">
                   <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span><strong>${p.name}</strong>${leaveBadge}<br><small style="color:#74777F;">📱 ${p.mobile} | 🔐 PIN: <strong style="color:#146C43;">${p.pin}</strong></small></span>
+                    <span><strong>${p.name}</strong>${statusBadge}${leaveBadge}<br><small style="color:#74777F;">📱 ${p.mobile} | 🔐 PIN: <strong style="color:#146C43;">${p.pin}</strong></small></span>
                     <span style="display:flex; align-items:center; gap:4px;">
                       <button class="editPantryBtn" data-id="${p.id}" style="background:transparent; border:none; cursor:pointer; font-size:1.1rem; padding:6px 8px; color:#0A56D0; border-radius:8px;">✏️</button>
                       <button onclick="window.pantryDeleteHandler('pantry','${p.id}')" style="background:transparent; border:none; color:#DC3545; cursor:pointer; font-size:1.1rem; padding:6px 8px; border-radius:8px;">🗑</button>
@@ -6562,15 +6585,14 @@ window.shareVendorLink = function(link, vendor) {
                   <tr><th>LOG ID</th><th>NAME</th><th>CHOICE</th><th>QUANTITY</th><th class="left-align">REMARKS</th><th>DATE</th><th>SERVED BY</th></tr></thead>
                   <tbody>${trs}</tbody>
                 </table>`;
-                } else if (type === 'meeting') {
+                                } else if (type === 'meeting') {
                     const title = `MEETING & GUEST REFRESHMENT REPORT (${monthStr})`;
-                    const subset = eventLogsData.filter(ev => ev.date && parseDMYToYMD(ev.date).startsWith(month));
-                    
-                    if (!subset.length) return appAlert('No Data', 'No meeting records found for this month.');
-                    
                     const flatRows = [];
-                    subset.forEach(ev => {
-                        const checkInfo = `[Slip State: Created: ${ev.guestSlipCreated?'Yes':'No'} \| Signed: ${ev.guestSlipSigned?'Yes':'No'} \| Returned: ${ev.guestSlipReturned?'Yes':'No'}]`;
+
+                    // ૧. જૂનો ડેટા (eventLogsData)
+                    const subsetOld = eventLogsData.filter(ev => ev.date && parseDMYToYMD(ev.date).startsWith(month));
+                    subsetOld.forEach(ev => {
+                        const checkInfo = `[Slip State: Created: ${ev.guestSlipCreated?'Yes':'No'} \\| Signed: ${ev.guestSlipSigned?'Yes':'No'} \\| Returned: ${ev.guestSlipReturned?'Yes':'No'}]`;
                         if (ev.items && Array.isArray(ev.items) && ev.items.length > 0) {
                             ev.items.forEach(item => {
                                 flatRows.push({
@@ -6606,8 +6628,41 @@ window.shareVendorLink = function(link, vendor) {
                         }
                     });
 
-                    flatRows.sort((a,b) => parseDMYToYMD(a.date).localeCompare(parseDMYToYMD(b.date)));
+                    // ૨. નવો ડેટા (mgRecordsData)
+                    if (typeof mgRecordsData !== 'undefined' && mgRecordsData.length > 0) {
+                        const subsetNew = mgRecordsData.filter(rec => {
+                            let recYMD = '';
+                            if (rec.DateFormatted && rec.DateFormatted.includes('/')) {
+                                recYMD = parseDMYToYMD(rec.DateFormatted);
+                            } else if (rec.RawDate) {
+                                recYMD = rec.RawDate;
+                            } else {
+                                recYMD = new Date(rec.Timestamp).toISOString().split('T')[0];
+                            }
+                            return recYMD.startsWith(month);
+                        });
 
+                        subsetNew.forEach(rec => {
+                            flatRows.push({
+                                id: rec.id.slice(-5),
+                                date: rec.DateFormatted || convertYMDtoDMY(rec.RawDate),
+                                vendor: rec.Vendor || '-',
+                                purpose: rec.Purpose || '-',
+                                orderedBy: rec.ReqName || '-',
+                                itemName: rec.Item || '-',
+                                qty: rec.Qty + ' Nos',
+                                rate: '₹' + rec.Rate,
+                                amount: '₹' + Number(rec.Amount || 0).toFixed(2),
+                                pantry: rec.ServedBy || '-',
+                                location: rec.Location || '-',
+                                chk: '[Slip State: New Module]'
+                            });
+                        });
+                    }
+                    
+                    if (!flatRows.length) return appAlert('No Data', 'No meeting records found for this month.');
+
+                    flatRows.sort((a,b) => parseDMYToYMD(a.date).localeCompare(parseDMYToYMD(b.date)));
                     let tableBodyRows = '';
                     flatRows.forEach(r => {
                         tableBodyRows += `
@@ -7173,6 +7228,17 @@ window.shareVendorLink = function(link, vendor) {
                 document.getElementById('currentPantryBoyNameDisplay').innerText = safeStr(currentUser.name);
                 window.renderPantryLiveUpcomingEventsCard();
 
+                // --- NEW CODE: પેન્ટ્રી બોય ઓનલાઈન થાય તેનું ટ્રેકિંગ ---
+                const myPresenceRef = db.ref('presence/pantry_' + currentUser.id);
+                db.ref('.info/connected').on('value', function(snap) {
+                    if (snap.val() === true) {
+                        myPresenceRef.onDisconnect().set({ state: 'offline', last_changed: firebase.database.ServerValue.TIMESTAMP }).then(() => {
+                            myPresenceRef.set({ state: 'online', last_changed: firebase.database.ServerValue.TIMESTAMP });
+                        });
+                    }
+                });
+                // -------------------------------------------------------
+
                 document.getElementById('homePantryBtn').onclick = () => {
                     pantryScreen.classList.add('hidden');
                     activePantryTab = null;
@@ -7182,6 +7248,9 @@ window.shareVendorLink = function(link, vendor) {
                 document.getElementById('logoutPantry').onclick = () => {
                     appConfirm('Logout', 'Logout account?', () => {
                         const old = currentUser.id;
+                        // --- NEW CODE: લોગઆઉટ થાય ત્યારે ઓફલાઇન સેટ કરો ---
+                        db.ref('presence/pantry_' + old).set({ state: 'offline', last_changed: firebase.database.ServerValue.TIMESTAMP });
+                        // --------------------------------------------------
                         currentUser = null;
                         activePantryTab = null;
                         db.ref('sessionDevices/pantry_' + old).remove().then(() => {
@@ -7622,6 +7691,10 @@ window.shareVendorLink = function(link, vendor) {
                 renderIfNeeded(); });
             db.ref('pantryTeam').on('value', snap => { pantryTeam = parseSnap(snap);
                 renderIfNeeded(); });
+            // --- NEW CODE: લાઈવ સ્ટેટસ વાંચવા માટે ---
+            let pantryPresenceData = {};
+            db.ref('presence').on('value', snap => { pantryPresenceData = snap.val() || {}; renderIfNeeded(); });
+            // ---------------------------------------
             db.ref('logs').on('value', snap => { logsData = parseSnap(snap);
                 renderIfNeeded(); });
             db.ref('eventLogs').on('value', snap => { 
@@ -7833,8 +7906,7 @@ window.renderWeekendDutyInterface = function() {
             `;
         }).join('');
     }
-
-    // 📋 લાઈવ સમરી બોર્ડ રેન્ડર કરવાનું ફંક્શન (નીચે લિસ્ટ બતાવશે)
+        // 📋 લાઈવ સમરી બોર્ડ રેન્ડર કરવાનું ફંક્શન (નીચે લિસ્ટ બતાવશે)
     function renderLiveDutySummary() {
         const summaryContainer = document.getElementById('wDutyLiveSummaryContainer');
         if(!summaryContainer) return;
@@ -7856,7 +7928,7 @@ window.renderWeekendDutyInterface = function() {
                     const pId = dayDuties[empId];
                     if(!groupedByPantry[pId]) groupedByPantry[pId] = [];
                     const empObj = employeeList.find(e => e.id === empId);
-                    if(empObj) groupedByPantry[pId].push(empObj.name);
+                    if(empObj) groupedByPantry[pId].push({ id: empObj.id, name: empObj.name }); // નવી લાઈન
                 });
 
                 let dayBadgeBg = day === 'Saturday' ? '#3B82F6' : (day === 'Sunday' ? '#EF4444' : '#10B981');
@@ -7873,6 +7945,14 @@ window.renderWeekendDutyInterface = function() {
                     const pantryName = pantryTeam.find(p => p.id === pId)?.name || 'Unknown Staff';
                     const empsList = groupedByPantry[pId];
 
+                    // દરેક નામની બાજુમાં ડિલીટ બટન ઉમેર્યું
+                    const empBadges = empsList.map(e => `
+                        <span style="display:inline-flex; align-items:center; background:#EFF6FF; border:1px solid #BFDBFE; color:#1E40AF; padding:2px 6px; border-radius:4px; margin:2px;">
+                            ${e.name}
+                            <button onclick="window.removeSingleDuty('${e.id}', '${day}')" style="background:transparent; border:none; color:#DC3545; margin-left:4px; cursor:pointer; font-size:10px; font-weight:bold;">✕</button>
+                        </span>
+                    `).join('');
+
                     html += `
                         <div style="background:#fff; border:1px solid #CBD5E1; border-radius:6px; padding:8px; margin-bottom:6px;">
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; border-bottom:1px dashed #CBD5E1; padding-bottom:4px;">
@@ -7882,8 +7962,8 @@ window.renderWeekendDutyInterface = function() {
                                     <button onclick="window.clearPantryDayDuty('${pId}', '${day}')" style="background:#FEE2E2; color:#DC3545; border:none; padding:3px 8px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:bold;">🗑 Clear</button>
                                 </div>
                             </div>
-                            <div style="color:#334155; font-size:11px; line-height:1.4;">
-                                ${empsList.join(', ')}
+                            <div style="color:#334155; font-size:11px; line-height:1.4; display:flex; flex-wrap:wrap;">
+                                ${empBadges}
                             </div>
                         </div>
                     `;
@@ -7899,6 +7979,7 @@ window.renderWeekendDutyInterface = function() {
             summaryContainer.innerHTML = html;
         }
     }
+
 
     pSelect.onchange = populateList;
     dSelect.onchange = populateList;
@@ -7942,23 +8023,22 @@ window.renderWeekendDutyInterface = function() {
     };
 
     // લિસ્ટમાંથી સીધી ડ્યુટી કાઢી નાખવાનું ફંક્શન
-    window.clearPantryDayDuty = function(pId, day) {
-        const pantryName = pantryTeam.find(p => p.id === pId)?.name || 'Staff';
-        appConfirm('Clear Duty', `Are you sure you want to remove all ${day} duties for ${pantryName}?`, () => {
-            const dayDuties = weekendDutiesData[day] || {};
-            const updates = {};
-            for (const empId in dayDuties) {
-                if (dayDuties[empId] === pId) {
-                    updates[`weekendDuties/${day}/${empId}`] = null;
-                }
-            }
-            db.ref().update(updates).then(() => {
-                appAlert('Cleared', 'Duties removed successfully.');
-                populateList();
+        // સિંગલ ડ્યુટી કાઢી નાખવાનું નવું ફંક્શન
+    window.removeSingleDuty = function(empId, day) {
+        appConfirm('Remove Employee', 'Remove this employee from duty?', () => {
+            db.ref(`weekendDuties/${day}/${empId}`).remove().then(() => {
                 renderLiveDutySummary();
+                // ઉપરનું લિસ્ટ રિફ્રેશ કરવા માટે
+                if(typeof document.getElementById('wDutyPantrySelect') !== 'undefined'){
+                    document.getElementById('wDutyPantrySelect').dispatchEvent(new Event('change'));
+                }
             });
         });
     };
+
+    // પેજ લોડ થતાં જ નીચે સમરી બતાવવા માટેની લાઈન
+    renderLiveDutySummary();
+
 // ============================================================
 //  DAU DIRECT PURCHASE ACCESS MANAGEMENT (FAIL-SAFE)
 // ============================================================
@@ -8603,7 +8683,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
             // We will patch after original definition - inject new logic into renderServeEntry wrapper
             window._patchedDailyTea = true;
 
-// ============================================================
+            // ============================================================
             //  NEW MEETINGS & GUESTS MODULE (EXACT UI & EXCEL UPLOAD)
             // ============================================================
             let mgRecordsData = [];
@@ -8612,6 +8692,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 if (document.getElementById('mgHistoryTableBody')) {
                     window.renderMgHistoryTable();
                 }
+                renderIfNeeded(); // નવી લાઈન: આનાથી વેન્ડર લિંકમાં નવો ડેટા લાઈવ સિંક થઈ જશે!
             });
 
             window.renderMeetingsGuestsUI = function(containerId, currentRole) {
@@ -8707,15 +8788,28 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     <div class="mg-form-grid">
                         <div>
                             <label>Date</label>
-                           <input type="date" class="row-date" value="${initialDate}" onclick="this.showPicker && this.showPicker()" onchange="window.updateMgDay('${rowId}')" style="cursor:pointer;">
+                            <input type="date" class="row-date" value="${initialDate}" onclick="this.showPicker && this.showPicker()" onchange="window.updateMgDay('${rowId}')" style="cursor:pointer;">
                         </div>
                         <div>
-                            <label>Day</label>
-                            <input type="text" class="row-day" value="${getDayOfWeek(convertYMDtoDMY(initialDate)) || ''}" readonly>
+                            <label>Time ⏰</label>
+                            <input type="time" class="row-time" value="${data.Time || '09:00'}">
                         </div>
                         <div class="mg-full-width">
-                            <label>Item Name</label>
-                            <input type="text" class="row-item" placeholder="Item Name" value="${data.Item || ''}">
+                            <label>Purpose / Meeting Name 📝</label>
+                            <input type="text" class="row-purpose" placeholder="E.g. Board Meeting" value="${data.Purpose || ''}">
+                        </div>
+                        <div>
+                            <label>Vendor 🏢</label>
+                            <select class="row-vendor" onchange="window.updateMgVendorItems('${rowId}')"><option value="">-- Select --</option>${vendorOpts}</select>
+                        </div>
+                        <div>
+                            <label>Served By 👨‍🍳</label>
+                            <select class="row-served"><option value="">-- Select --</option>${pantryOpts}</select>
+                        </div>
+                        <div class="mg-full-width">
+                            <label>Item Name ☕</label>
+                            <input type="text" list="mg_list_${rowId}" class="row-item" placeholder="Type or Select Item" value="${data.Item || ''}" oninput="window.checkMgItemRate('${rowId}')">
+                            <datalist id="mg_list_${rowId}"></datalist>
                         </div>
                         <div>
                             <label>Qty</label>
@@ -8726,41 +8820,66 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                             <input type="number" class="row-rate" placeholder="0.00" value="${data.Rate || ''}" oninput="window.calcMgAmount('${rowId}')">
                         </div>
                         <div class="mg-full-width">
-                            <label>Amount</label>
-                            <input type="number" class="row-amount" placeholder="0.00" value="${data.Amount || 0}" readonly style="background-color: #e2e8f0; font-weight: bold;">
+                            <label>Amount (₹)</label>
+                            <input type="number" class="row-amount" placeholder="0.00" value="${data.Amount || 0}" readonly style="background-color: #e2e8f0; font-weight: bold; color: #0f172a;">
                         </div>
                         <div class="mg-full-width">
                             <label>Requisitioner's Name</label>
-                            <input type="text" class="row-req" placeholder="Req. Name" value="${data["Requisitioner's Name"] || ''}">
-                        </div>
-                        <div>
-                            <label>Location</label>
-                            <input type="text" class="row-location" placeholder="Location" value="${data.Location || ''}">
-                        </div>
-                        <div>
-                            <label>Vendor</label>
-                            <select class="row-vendor"><option value="">-- Select --</option>${vendorOpts}</select>
+                            <input type="text" class="row-req" placeholder="Who ordered?" value="${data.ReqName || ''}">
                         </div>
                         <div class="mg-full-width">
-                            <label>Served By (Pantry)</label>
-                            <select class="row-served"><option value="">-- Select --</option>${pantryOpts}</select>
+                            <label>Location / Venue</label>
+                            <input type="text" class="row-location" placeholder="Where?" value="${data.Location || ''}">
                         </div>
                     </div>
                 `;
                 container.appendChild(div);
                 window.updateMgFormSrNumbers();
+                setTimeout(() => { if (data.Vendor) window.updateMgVendorItems(rowId); }, 150);
                 document.getElementById('mgFormArea').scrollTop = document.getElementById('mgFormArea').scrollHeight;
             };
 
-            window.updateMgDay = function(rowId) {
+            window.updateMgVendorItems = function(rowId) {
                 const row = document.getElementById(`row-${rowId}`);
-                if(!row) return;
-                const dateVal = row.querySelector('.row-date').value;
-                row.querySelector('.row-day').value = getDayOfWeek(convertYMDtoDMY(dateVal));
+                if (!row) return;
+                const vendor = row.querySelector('.row-vendor').value;
+                const datalist = row.querySelector(`#mg_list_${rowId}`);
+                if(!datalist) return;
+                datalist.innerHTML = '';
+                if (vendor) {
+                    const items = vendorItemsCatalog[vendor.toLowerCase().trim()] || [];
+                    items.forEach(it => {
+                        const opt = document.createElement('option');
+                        opt.value = it.name;
+                        datalist.appendChild(opt);
+                    });
+                }
+                window.checkMgItemRate(rowId);
+            };
+
+            window.checkMgItemRate = function(rowId) {
+                const row = document.getElementById(`row-${rowId}`);
+                if (!row) return;
+                const vendor = row.querySelector('.row-vendor').value;
+                const itemName = row.querySelector('.row-item').value.toLowerCase().trim();
+                const rateInput = row.querySelector('.row-rate');
+                if (vendor && itemName) {
+                    const items = vendorItemsCatalog[vendor.toLowerCase().trim()] || [];
+                    const match = items.find(it => it.name.toLowerCase() === itemName);
+                    if (match) {
+                        rateInput.value = match.rate;
+                        window.calcMgAmount(rowId);
+                    }
+                }
+            };
+
+            window.updateMgDay = function(rowId) {
+                // Day input removed to save space, but keeping function to avoid errors
             };
 
             window.calcMgAmount = function(rowId) {
                 const row = document.getElementById(`row-${rowId}`);
+                if(!row) return;
                 const qty = parseFloat(row.querySelector('.row-qty').value) || 0;
                 const rate = parseFloat(row.querySelector('.row-rate').value) || 0;
                 row.querySelector('.row-amount').value = (qty * rate).toFixed(2);
@@ -8782,14 +8901,16 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 window.addMgRow(data);
             };
 
-            window.addWithSameHeaderMg = function() {
+                        window.addWithSameHeaderMg = function() {
                 const rows = document.querySelectorAll('.mg-entry-card');
                 if (rows.length === 0) { window.addMgRow(); return; }
                 const lastData = window.getMgRowData(rows[rows.length - 1]);
                 const newData = {
                     Date: lastData.RawDate,
+                    Time: lastData.Time,
+                    Purpose: lastData.Purpose,
                     Item: '', Qty: '', Rate: '', Amount: 0,
-                    "Requisitioner's Name": lastData.ReqName,
+                    ReqName: lastData.ReqName,
                     Location: lastData.Location,
                     Vendor: lastData.Vendor,
                     "Served By": lastData.ServedBy
@@ -8806,17 +8927,20 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
 
             window.getMgRowData = function(row) {
                 return {
-                    RawDate: row.querySelector('.row-date').value,
-                    Item: row.querySelector('.row-item').value,
-                    Qty: parseFloat(row.querySelector('.row-qty').value) || 0,
-                    Rate: parseFloat(row.querySelector('.row-rate').value) || 0,
-                    Amount: parseFloat(row.querySelector('.row-amount').value) || 0,
-                    ReqName: row.querySelector('.row-req').value,
-                    Location: row.querySelector('.row-location').value,
-                    Vendor: row.querySelector('.row-vendor').value,
-                    ServedBy: row.querySelector('.row-served').value
+                    RawDate: row.querySelector('.row-date')?.value || '',
+                    Time: row.querySelector('.row-time')?.value || '09:00',
+                    Purpose: row.querySelector('.row-purpose')?.value || '',
+                    Item: row.querySelector('.row-item')?.value || '',
+                    Qty: parseFloat(row.querySelector('.row-qty')?.value) || 0,
+                    Rate: parseFloat(row.querySelector('.row-rate')?.value) || 0,
+                    Amount: parseFloat(row.querySelector('.row-amount')?.value) || 0,
+                    ReqName: row.querySelector('.row-req')?.value || '',
+                    Location: row.querySelector('.row-location')?.value || '',
+                    Vendor: row.querySelector('.row-vendor')?.value || '',
+                    ServedBy: row.querySelector('.row-served')?.value || ''
                 };
             };
+;
 
             window.submitMgForm = function() {
                 const rows = document.querySelectorAll('.mg-entry-card');
@@ -8833,11 +8957,22 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     const data = window.getMgRowData(row);
                     const id = 'mgrec_' + Date.now() + Math.random().toString(36).substring(2, 7);
                     
+                    // --- AUTO SAVE ITEM TO VENDOR CATALOG ---
+                    if (data.Vendor && data.Item) {
+                        const vKey = data.Vendor.toLowerCase().trim();
+                        const currentCatalog = vendorItemsCatalog[vKey] || [];
+                        if (!currentCatalog.some(it => it.name.toLowerCase() === data.Item.toLowerCase().trim())) {
+                            currentCatalog.push({ name: data.Item.trim(), rate: data.Rate });
+                            db.ref('vendorItems/' + vKey).set(currentCatalog);
+                        }
+                    }
+                    
                     updates['meetingsGuestsRecords/' + id] = {
                         id: id,
                         RawDate: data.RawDate,
                         DateFormatted: convertYMDtoDMY(data.RawDate),
                         Day: getDayOfWeek(convertYMDtoDMY(data.RawDate)),
+                        Time: data.Time || '09:00',
                         Item: data.Item, Qty: data.Qty, Rate: data.Rate, Amount: data.Amount,
                         ReqName: data.ReqName, Purpose: data.Purpose || "Meeting / Guest",
                         Location: data.Location, Vendor: data.Vendor, ServedBy: data.ServedBy,
