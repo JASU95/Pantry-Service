@@ -3956,7 +3956,21 @@ window.shareVendorLink = function(link, vendor) {
               <div class="card" style="padding:16px; margin-bottom:16px; display:flex; flex-direction:column; overflow:hidden; max-height:100%;">
                 <div style="margin-bottom:12px; flex-shrink:0;">
                   <label style="font-size:.85rem; color:#44474E; font-weight:700; display:block;">Select Date:</label>
-                  <input type="date" id="beverageEntryDate" value="${todayYMD}" onclick="this.showPicker && this.showPicker()" style="margin:4px 0 10px 0; padding:12px; border-radius:10px; border:1px solid #CBD5E1; cursor:pointer;">
+                  <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; width: 100%;">
+    
+    <!-- પાછળની તારીખ માટે બટન -->
+    <button type="button" onclick="var d=document.getElementById('beverageEntryDate'); if(d && d.value){ var t=new Date(d.value); t.setDate(t.getDate()-1); var y=t.getFullYear(), m=String(t.getMonth()+1).padStart(2,'0'), dd=String(t.getDate()).padStart(2,'0'); d.value = y+'-'+m+'-'+dd; window.lastSavedDate = d.value; if(typeof populateServe==='function') populateServe(); var p = document.getElementById('monthlyGridPopup'); if(p && !p.classList.contains('hidden') && typeof openMonthlyGridPopup==='function') openMonthlyGridPopup(); }" style="padding: 6px 14px; background: #EFF6FF; border: 2px solid #0A56D0; color: #0A56D0; border-radius: 6px; font-weight: bold; font-size: 1.1rem; cursor: pointer;">◀</button>
+    
+    <!-- તારીખ બતાવવા માટેનું ખાનું (ડેટા સિન્ક સાથે) -->
+    <input type="date" id="beverageEntryDate" onchange="window.lastSavedDate = this.value; if(typeof populateServe==='function') populateServe(); var p = document.getElementById('monthlyGridPopup'); if(p && !p.classList.contains('hidden') && typeof openMonthlyGridPopup==='function') openMonthlyGridPopup();" style="width: 160px; padding: 8px; border-radius: 6px; border: 2px solid #0A56D0; text-align: center; font-weight: bold; font-size: 1rem; color: #0A56D0; background: #F8FAFC;">
+    
+    <!-- આગળની તારીખ માટે બટન -->
+    <button type="button" onclick="var d=document.getElementById('beverageEntryDate'); if(d && d.value){ var t=new Date(d.value); t.setDate(t.getDate()+1); var y=t.getFullYear(), m=String(t.getMonth()+1).padStart(2,'0'), dd=String(t.getDate()).padStart(2,'0'); d.value = y+'-'+m+'-'+dd; window.lastSavedDate = d.value; if(typeof populateServe==='function') populateServe(); var p = document.getElementById('monthlyGridPopup'); if(p && !p.classList.contains('hidden') && typeof openMonthlyGridPopup==='function') openMonthlyGridPopup(); }" style="padding: 6px 14px; background: #EFF6FF; border: 2px solid #0A56D0; color: #0A56D0; border-radius: 6px; font-weight: bold; font-size: 1.1rem; cursor: pointer;">▶</button>
+    
+    <!-- તારીખ યાદ રાખવા અને સિન્ક કરવા માટેનો સિક્રેટ કોડ (પેજ નહિ ફાટે) -->
+    <img src="x" onerror="var d=document.getElementById('beverageEntryDate'); if(d){ if(window.lastSavedDate){ d.value = window.lastSavedDate; } else { var t=new Date(); var y=t.getFullYear(), m=String(t.getMonth()+1).padStart(2,'0'), dd=String(t.getDate()).padStart(2,'0'); d.value = y+'-'+m+'-'+dd; window.lastSavedDate = d.value; } if(typeof populateServe==='function') setTimeout(populateServe, 100); } this.remove();" style="display:none;">
+
+</div>
                   <div class="mode-toggle">
                     <button id="modeNameWise" class="active">👤  Daily Entry</button>
                     <button id="modeDateWise">📅  Monthly Entry</button>
@@ -4033,7 +4047,7 @@ window.shareVendorLink = function(link, vendor) {
                     }
                 }
 
-                                                function populateServe() {
+                                                window.populateServe = function populateServe() {
                     const containerContractor = document.getElementById('bulkServeListContractor');
                     const containerDAU = document.getElementById('bulkServeListDAU');
                     const containerOld = document.getElementById('bulkServeList');
@@ -4153,7 +4167,7 @@ window.shareVendorLink = function(link, vendor) {
                     return pantryId;
                 }
 
-                function openMonthlyGridPopup() {
+                window.openMonthlyGridPopup = function openMonthlyGridPopup() {
                     const popup = document.getElementById('monthlyGridPopup');
                     const content = document.getElementById('monthlyGridPopupContent');
                     popup.classList.remove('hidden');
@@ -9143,7 +9157,33 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 });
             };
         })();
-        // Step 3: Function to download Sample Excel Format
+      
+		
+			// ===== Date Change & Auto Refresh Helpers =====
+            window.refreshAllData = function() {
+                if (typeof populateServe === 'function') {
+                    populateServe();
+                }
+                const mPopup = document.getElementById('monthlyGridPopup');
+                if (typeof openMonthlyGridPopup === 'function' && mPopup && !mPopup.classList.contains('hidden')) {
+                    openMonthlyGridPopup();
+                }
+            };
+
+            window.changeDateBy = function(days) {
+                const dateInput = document.getElementById('beverageEntryDate');
+                if (!dateInput || !dateInput.value) return;
+                
+                const current = new Date(dateInput.value);
+                current.setDate(current.getDate() + days);
+                
+                const yyyy = current.getFullYear();
+                const mm = String(current.getMonth() + 1).padStart(2, '0');
+                const dd = String(current.getDate()).padStart(2, '0');
+                
+                dateInput.value = `${yyyy}-${mm}-${dd}`;
+                window.refreshAllData();
+            };
 </script>    
 </body>
 </html>
