@@ -3954,30 +3954,65 @@ window.shareVendorLink = function(link, vendor) {
             // ============================================================
             //  PANTRY - DAILY / MONTHLY ENTRY (Professional Monthly Grid)
             // ============================================================
-                        function renderServeEntry() {
+                function renderServeEntry() {
                 activePantryTab = 'serve';
                 const todayYMD = new Date().toISOString().split('T')[0];
                 const container = document.getElementById('pantryContent');
                 container.innerHTML = `
+              <style>
+                /* ગ્લોબલ CSS ને બાયપાસ કરવા માટેની સ્પેશિયલ સ્ટાઇલ */
+                .custom-date-wrapper {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    width: 170px;
+                    height: 42px;
+                    background: #FFFFFF;
+                    border: 1px solid #CBD5E1;
+                    border-radius: 6px;
+                    overflow: hidden;
+                    cursor: pointer;
+                }
+                .custom-date-wrapper input {
+                    flex: 1 !important;
+                    width: 100% !important;
+                    height: 100% !important;
+                    border: none !important;
+                    background: transparent !important;
+                    text-align: center !important;
+                    font-weight: 500 !important;
+                    font-size: 1.05rem !important;
+                    color: #1E293B !important;
+                    outline: none !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    box-shadow: none !important;
+                }
+              </style>
               <div class="card" style="padding:16px; margin-bottom:16px; display:flex; flex-direction:column; overflow:hidden; max-height:100%;">
                 <div style="margin-bottom:12px; flex-shrink:0;">
-                  <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; width: 100%;">
+                  <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px; width: 100%;">
     
-    <!-- ◀ પાછળની તારીખ માટે બટન -->
-    <button type="button" onclick="window.changeDateBy(-1)" style="padding: 6px 14px; background: #EFF6FF; border: 2px solid #0A56D0; color: #0A56D0; border-radius: 6px; font-weight: bold; font-size: 1.1rem; cursor: pointer;">◀</button>
-    
-    <!-- આ બોક્સ પર ક્લિક કરતા જ નવું સ્માર્ટ કેલેન્ડર ખુલશે (જૂનું ક્યારેય નહિ ખુલે) -->
-    <input type="text" id="beverageEntryDate" readonly 
-           onclick="if(!this._fpLoaded){this._fpLoaded=true;var oldVal=this.value;var d=this;var css=document.createElement('link');css.rel='stylesheet';css.href='https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css';document.head.appendChild(css);var js=document.createElement('script');js.src='https://cdn.jsdelivr.net/npm/flatpickr';js.onload=function(){var fp=flatpickr(d,{dateFormat:'Y-m-d',disableMobile:true,defaultDate:oldVal||new Date(),onChange:function(){if(typeof window.refreshAllData==='function')window.refreshAllData();}});fp.open();};document.head.appendChild(js);}" 
-           style="width: 160px; padding: 8px; border-radius: 6px; border: 2px solid #0A56D0; text-align: center; font-weight: bold; font-size: 1rem; color: #0A56D0; background: #F8FAFC; cursor: pointer;">
-    
-    <!-- ▶ આગળની તારીખ માટે બટન -->
-    <button type="button" onclick="window.changeDateBy(1)" style="padding: 6px 14px; background: #EFF6FF; border: 2px solid #0A56D0; color: #0A56D0; border-radius: 6px; font-weight: bold; font-size: 1.1rem; cursor: pointer;">▶</button>
+                    <!-- ◀ પાછળની તારીખ માટે બટન -->
+                    <button type="button" onclick="window.changeDateBy(-1)" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 42px; padding: 0; background: #FFFFFF; border: 1.5px solid #0A56D0; color: #0A56D0; border-radius: 6px; font-weight: bold; font-size: 1.2rem; cursor: pointer; flex-shrink: 0;">◀</button>
+                    
+                    <!-- નવું ક્લીન તારીખ માટેનું બોક્સ -->
+                    <div class="custom-date-wrapper" onclick="var fp = document.getElementById('beverageEntryDate')._flatpickr; if(fp) fp.open();">
+                        <input type="text" id="beverageEntryDate" value="${todayYMD}" readonly>
+                        <div style="display: flex; align-items: center; justify-content: center; padding-right: 12px; color: #0A56D0; pointer-events: none;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <!-- ▶ આગળની તારીખ માટે બટન -->
+                    <button type="button" onclick="window.changeDateBy(1)" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 42px; padding: 0; background: #FFFFFF; border: 1.5px solid #0A56D0; color: #0A56D0; border-radius: 6px; font-weight: bold; font-size: 1.2rem; cursor: pointer; flex-shrink: 0;">▶</button>
 
-    <!-- પેજ ખૂલે ત્યારે ઇન્સ્ટન્ટ આજની તારીખ સેટ કરવાનો સેફ કોડ (પેજ નહિ ફાટે) -->
-    <img src="x" onerror="var d=document.getElementById('beverageEntryDate');if(d && !d.value){var t=new Date();d.value=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0'); if(typeof window.refreshAllData==='function') setTimeout(window.refreshAllData, 100);} this.remove();" style="display:none;">
-
-</div>
+                  </div>
                   <div class="mode-toggle">
                     <button id="modeNameWise" class="active">👤  Daily Entry</button>
                     <button id="modeDateWise">📅  Monthly Entry</button>
@@ -3988,9 +4023,25 @@ window.shareVendorLink = function(link, vendor) {
               </div>
             `;
 
+                // --- પેજ ખૂલતા જ કેલેન્ડરને DD/MM/YYYY માં ફેરવી દેશે ---
+                setTimeout(() => {
+                    if (typeof flatpickr !== 'undefined') {
+                        flatpickr("#beverageEntryDate", {
+                            dateFormat: "Y-m-d",
+                            altInput: true,
+                            altFormat: "d/m/Y",
+                            disableMobile: true,
+                            onChange: function() {
+                                if (typeof window.refreshAllData === 'function') window.refreshAllData();
+                            }
+                        });
+                    }
+                }, 50);
+                // ----------------------------------------------------------------
+
                 let currentMode = 'name';
 
-                function switchMode(mode) {
+                function switchMode(mode) {               
                     currentMode = mode;
                     document.getElementById('modeNameWise').className = mode === 'name' ? 'active' : '';
                     document.getElementById('modeDateWise').className = mode === 'date' ? 'active' : '';
@@ -5820,7 +5871,7 @@ window.shareVendorLink = function(link, vendor) {
                         <input type="text" id="editEvtCustomPantry" value="${currentServedVal}" placeholder="Multi profile selection" style="margin-top:4px; padding:6px; font-size:.78rem; border-radius:6px; border:1px solid #CBD5E1; width:100%; box-sizing:border-box;">
                     </div>
                 </div>
-                <label style="font-size:.8rem; font-weight:600; color:#44474E; display:block; margin-bottom:4px;">📝 Meeting Purpose</label>
+                <label style="font-size:.8rem; font-weight:600; color:#44474E; display:block; margin-bottom:4px;">?? Meeting Purpose</label>
                 <input type="text" id="editEvtName" value="${safeStr(ev.eventName)}" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; margin-bottom:10px; box-sizing:border-box;">
 
                 <div class="sub-section-title" style="margin-top:10px; font-weight:700; color:#0A56D0;">📋 Refreshment Items</div>
@@ -9440,16 +9491,18 @@ setTimeout(function() {
             dateInput.value = t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0');
         }
         
-        // જો Flatpickr (યુનિવર્સલ કેલેન્ડર) ની ફાઈલ સાચી રીતે આવી ગઈ હોય તો જ ચાલુ કરો
-        if (typeof flatpickr !== 'undefined') {
-            flatpickr(dateInput, {
-                dateFormat: "Y-m-d",
-                disableMobile: true, // આ લાઈનથી બધા જ મોબાઈલમાં એકસરખું ડિઝાઇન વાળું કેલેન્ડર ખુલશે!
-                onChange: function(selectedDates, dateStr) {
-                    window.refreshAllData();
-                }
-            });
-        } else {
+            // જો Flatpickr (યુનિવર્સલ કેલેન્ડર) ની ફાઈલ સાચી રીતે આવી ગઈ હોય તો જ ચાલુ કરો
+            if (typeof flatpickr !== 'undefined') {
+                flatpickr(dateInput, {
+                    dateFormat: "Y-m-d",
+                    altInput: true,          // નવી લાઈન ઉમેરી
+                    altFormat: "d/m/Y",      // નવી લાઈન ઉમેરી (DD/MM/YYYY માટે)
+                    disableMobile: true, // આ લાઈનથી બધા જ મોબાઈલમાં એકસરખું ડિઝાઇન વાળું કેલેન્ડર ખુલશે!
+                    onChange: function(selectedDates, dateStr) {
+                        window.refreshAllData();
+                    }
+                });
+            } else {
             // જો ઇન્ટરનેટ ધીમું હોય અને ફાઈલ ના આવે, તો જૂની સિસ્ટમ ચાલુ રાખો જેથી એન્ટ્રી અટકે નહિ
             dateInput.addEventListener('change', window.refreshAllData);
             window.refreshAllData();
