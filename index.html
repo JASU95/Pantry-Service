@@ -2091,6 +2091,48 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                 } catch(e) { return false; }
             };
 
+            // ============================================================
+            //  EXTRA TEA RECORD FUNCTIONS (COMBINED & SYNCED)
+            // ============================================================
+            
+            // માસ્ટર ફંક્શન: જૂની અને નવી બધી એન્ટ્રીઓને ભેગી કરવા માટે
+            window.getCombinedExtraTea = function() {
+                let combined = [];
+                if (typeof extraTeaRecords !== 'undefined' && Array.isArray(extraTeaRecords)) {
+                    combined = [...extraTeaRecords];
+                }
+                if (typeof extraLogsData !== 'undefined' && Array.isArray(extraLogsData)) {
+                    extraLogsData.forEach(ex => {
+                        if (!combined.some(c => c.id === ex.id)) {
+                            combined.push({
+                                id: ex.id,
+                                date: ex.date,
+                                time: ex.time || '00:00',
+                                employeeId: ex.employeeId,
+                                employeeName: ex.employeeName || ex.name || 'Unknown',
+                                department: ex.department || '',
+                                category: ex.category || '',
+                                beverage: ex.drink || ex.beverage || 'Tea',
+                                qty: Number(ex.qty) || 1,
+                                reason: ex.remarks || ex.reason || 'None',
+                                remarks: ex.remarks || '',
+                                pantryId: ex.pantryId,
+                                pantryName: ex.pantryName || 'Unknown',
+                                supplySource: ex.supplySource || 'Contractor',
+                                isOldLog: true // આ જૂનો ડેટા છે તેની ઓળખ
+                            });
+                        }
+                    });
+                }
+                combined.sort((a, b) => {
+                    const aDate = parseDMYToYMD(a.date) || '';
+                    const bDate = parseDMYToYMD(b.date) || '';
+                    if(bDate !== aDate) return bDate.localeCompare(aDate);
+                    return (b.time || '').localeCompare(a.time || '');
+                });
+                return combined;
+            };
+
             window.openExtraTeaForm = function(record = null) {
                 const modal = document.getElementById('extraTeaModal');
                 const title = document.getElementById('extraTeaModalTitle');
@@ -2100,7 +2142,7 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                 const todayYMD = new Date().toISOString().split('T')[0];
                 const contractorList = (typeof CONTRACTOR_BEVERAGES !== 'undefined' && CONTRACTOR_BEVERAGES.length) ? CONTRACTOR_BEVERAGES : ['Tea','Coffee','Green Tea'];
                 const dauList = (typeof DAU_PURCHASE_BEVERAGES !== 'undefined' && DAU_PURCHASE_BEVERAGES.length) ? DAU_PURCHASE_BEVERAGES : ['Tea','Coffee','Green Tea','Special Soup'];
-                // Initial beverage list based on record supply source or default contractor
+                
                 const initialSource = record ? (record.supplySource || 'Contractor') : 'Contractor';
                 const initialBevList = initialSource === 'DAU Direct Purchase' ? dauList : contractorList;
                 const beverageOpts = initialBevList.map(b => `<option value="${b}" ${record && record.beverage === b ? 'selected' : ''}>${b}</option>`).join('');
@@ -2108,7 +2150,6 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                 let empDept = ''; let empCategory = ''; let empName = ''; 
                 if (record) { const emp = window.getEmployeeById(record.employeeId); if (emp) { empDept = emp.department || ''; empCategory = emp.category || ''; empName = emp.name || ''; } }
 
-                // FIXED: Show both supply sources always for admin, and for pantry boy based on permission (now defaults to true)
                 const showDauOption = window.hasDauPurchasePermission(currentUser.id);
 
                 container.innerHTML = `
@@ -2116,7 +2157,7 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                 <div><label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">📅 Date</label><input type="date" id="extraTeaDate" value="${record ? parseDMYToYMD(record.date) : todayYMD}" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;"></div>
                 <div><label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">⏰ Time</label><input type="time" id="extraTeaTime" value="${record ? record.time || '09:00' : '09:00'}" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;"></div>
               </div>
-              <div style="margin-top:6px;"><label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">👤 Employee</label><div class="autocomplete-wrap" style="width:100%;"><input type="text" id="extraTeaEmpSearch" value="${record ? safeStr(empName) : ''}" placeholder="🔍 Type 2-3 letters of name..." style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; width:100%; box-sizing:border-box;"><input type="hidden" id="extraTeaEmployee" value="${record ? record.employeeId : ''}"><div class="autocomplete-dropdown" id="ac_extraTeaEmp"></div></div></div>
+              <div style="margin-top:6px;"><label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">👤 Employee</label><div class="autocomplete-wrap" style="width:100%;"><input type="text" id="extraTeaEmpSearch" value="${record ? safeStr(empName || record.employeeName) : ''}" placeholder="🔍 Type 2-3 letters of name..." style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; width:100%; box-sizing:border-box;"><input type="hidden" id="extraTeaEmployee" value="${record ? record.employeeId : ''}"><div class="autocomplete-dropdown" id="ac_extraTeaEmp"></div></div></div>
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:6px;"><div><label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">🏢 Department</label><input type="text" id="extraTeaDept" value="${record ? empDept : ''}" readonly style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; background:#F1F5F9; color:#64748B;"></div><div><label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">📂 Category</label><input type="text" id="extraTeaCategory" value="${record ? empCategory : ''}" readonly style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; background:#F1F5F9; color:#64748B;"></div></div>
               <div style="margin-top:6px;"><label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">📦 Supply Source</label><select id="extraTeaSupplySource" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; font-weight:600; background:#fff;"><option value="Contractor" ${initialSource === 'Contractor' ? 'selected' : ''}>Contractor (IA Caterers)</option>${showDauOption ? `<option value="DAU Direct Purchase" ${initialSource === 'DAU Direct Purchase' ? 'selected' : ''} style="color:#059669; font-weight:bold;">🛒 DAU Direct Purchase</option>` : ''}</select></div>
               <div style="display:grid; grid-template-columns:2fr 1fr; gap:10px; margin-top:6px;"><div><label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">🥤 Beverage</label><select id="extraTeaBeverage" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;"><option value="">-- Select --</option>${beverageOpts}</select></div><div><label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">🔢 Qty</label><input type="number" id="extraTeaQty" value="${record ? record.qty || 1 : 1}" min="1" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;"></div></div>
@@ -2124,7 +2165,6 @@ window.pantryDownloadExcelFile = function(wb, filename) {
               <div style="margin-top:6px;"><label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">📌 Remarks</label><textarea id="extraTeaRemarks" rows="2" placeholder="Additional notes..." style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; resize:vertical;">${record ? safeStr(record.remarks) : ''}</textarea></div>
               <div style="display:flex; gap:8px; margin-top:16px;"><button onclick="document.getElementById('extraTeaModal').classList.add('hidden')" class="danger" style="flex:1; min-height:44px;">Cancel</button><button id="extraTeaSaveBtn" class="success" style="flex:2; min-height:44px;">${record ? 'Update' : 'Save'} Record</button></div>
             `;
-                // Beverage dropdown dynamic update
                 const sourceSelect = document.getElementById('extraTeaSupplySource');
                 const bevSelect = document.getElementById('extraTeaBeverage');
                 function updateBevList() {
@@ -2145,34 +2185,106 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                     searchInput.addEventListener('blur', () => setTimeout(() => dropdown.classList.remove('active'), 200));
                 }
                 document.getElementById('extraTeaSaveBtn').onclick = function() {
-                    const dateVal = document.getElementById('extraTeaDate').value; if (!dateVal) return appAlert('Error', 'Select a date.'); const dateDMY = convertYMDtoDMY(dateVal); const time = document.getElementById('extraTeaTime').value || '09:00'; const employeeId = document.getElementById('extraTeaEmployee').value; if (!employeeId) return appAlert('Error', 'Select an employee.'); const beverage = document.getElementById('extraTeaBeverage').value; if (!beverage) return appAlert('Error', 'Select a beverage.'); const qty = parseInt(document.getElementById('extraTeaQty').value) || 1; const reason = document.getElementById('extraTeaReason').value.trim() || 'Not specified'; const remarks = document.getElementById('extraTeaRemarks').value.trim() || ''; const supplySourceVal = document.getElementById('extraTeaSupplySource') ? document.getElementById('extraTeaSupplySource').value : 'Contractor'; const emp = window.getEmployeeById(employeeId); const empName = emp ? emp.name : 'Unknown'; const empDept = emp ? emp.department || '' : ''; const empCategory = emp ? emp.category || '' : ''; const pantryId = currentUser.id; const pantryName = currentUser.name; const recordId = record ? record.id : 'extra_' + Date.now() + '_' + Math.floor(Math.random() * 10000); const recordData = { id: recordId, date: dateDMY, time: time, supplySource: supplySourceVal, employeeId: employeeId, employeeName: empName, department: empDept, category: empCategory, beverage: beverage, qty: qty, reason: reason, remarks: remarks, pantryId: pantryId, pantryName: pantryName, timestamp: Date.now() }; db.ref('extraTeaRecords/' + recordId).set(recordData).then(() => { appAlert('Success', 'Extra tea record saved! ['+supplySourceVal+']'); document.getElementById('extraTeaModal').classList.add('hidden'); window.renderExtraTeaView(); }).catch(err => { appAlert('Error', 'Save failed: ' + err.message); }); };
+                    const dateVal = document.getElementById('extraTeaDate').value; if (!dateVal) return appAlert('Error', 'Select a date.'); const dateDMY = convertYMDtoDMY(dateVal); const time = document.getElementById('extraTeaTime').value || '09:00'; const employeeId = document.getElementById('extraTeaEmployee').value; if (!employeeId && !record) return appAlert('Error', 'Select an employee.'); const beverage = document.getElementById('extraTeaBeverage').value; if (!beverage) return appAlert('Error', 'Select a beverage.'); const qty = parseInt(document.getElementById('extraTeaQty').value) || 1; const reason = document.getElementById('extraTeaReason').value.trim() || 'Not specified'; const remarks = document.getElementById('extraTeaRemarks').value.trim() || ''; const supplySourceVal = document.getElementById('extraTeaSupplySource') ? document.getElementById('extraTeaSupplySource').value : 'Contractor'; const emp = window.getEmployeeById(employeeId); const empName = emp ? emp.name : (record ? record.employeeName : 'Unknown'); const empDept = emp ? emp.department || '' : ''; const empCategory = emp ? emp.category || '' : ''; const pantryId = currentUser.id; const pantryName = currentUser.name; 
+                    
+                    const recordId = record ? record.id : 'extra_' + Date.now() + '_' + Math.floor(Math.random() * 10000); 
+                    const recordData = { id: recordId, date: dateDMY, time: time, supplySource: supplySourceVal, employeeId: employeeId || record.employeeId, employeeName: empName, department: empDept, category: empCategory, beverage: beverage, qty: qty, reason: reason, remarks: remarks, pantryId: pantryId, pantryName: pantryName, timestamp: Date.now() }; 
+                    
+                    // જો જૂનો ડેટા એડિટ થતો હોય, તો તેને extraLogs માંથી કાઢીને નવી સિસ્ટમમાં લઈ લો
+                    if (record && record.isOldLog) {
+                        db.ref('extraLogs/' + recordId).remove();
+                    }
+
+                    db.ref('extraTeaRecords/' + recordId).set(recordData).then(() => { 
+                        appAlert('Success', 'Extra tea record saved! ['+supplySourceVal+']'); 
+                        document.getElementById('extraTeaModal').classList.add('hidden'); 
+                        window.renderExtraTeaView(); 
+                    }).catch(err => { appAlert('Error', 'Save failed: ' + err.message); }); 
+                };
                 modal.classList.remove('hidden');
             }
 
-            window.deleteExtraTeaRecord = function(id) { appConfirm('Delete Record', 'Are you sure?', () => { db.ref('extraTeaRecords/' + id).remove().then(() => { appAlert('Deleted', 'Record removed.'); window.renderExtraTeaView(); }); }); }
             window.renderExtraTeaView = function() {
                 activePantryTab = 'extra_tea';
-                const myRecords = extraTeaRecords.filter(r => r.pantryId === currentUser.id);
-                let totalRecords = myRecords.length; let totalQty = 0; const beverageCounts = {}; myRecords.forEach(r => { totalQty += (r.qty || 1); const b = r.beverage || 'Unknown'; beverageCounts[b] = (beverageCounts[b] || 0) + (r.qty || 1); });
+                const allExtra = window.getCombinedExtraTea();
+                const myRecords = allExtra.filter(r => r.pantryId === currentUser.id);
+                let totalRecords = myRecords.length; let totalQty = 0; const beverageCounts = {}; 
+                myRecords.forEach(r => { totalQty += (r.qty || 1); const b = r.beverage || 'Unknown'; beverageCounts[b] = (beverageCounts[b] || 0) + (r.qty || 1); });
                 const container = document.getElementById('pantryContent');
                 container.innerHTML = `<div class="card" style="padding:16px;"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;"><h4 style="color:#0A56D0; margin:0; font-size:1rem;">☕ My Extra Tea Records</h4><button id="addExtraTeaBtn" class="success" style="padding:8px 16px; font-size:.8rem; min-height:36px;">➕ New Record</button></div><div class="android-metric-grid" style="grid-template-columns:1fr 1fr 1fr;"><div class="android-metric-card"><div class="label">📋 Total Records</div><div class="value">${totalRecords}</div></div><div class="android-metric-card"><div class="label">🥤 Total Cups</div><div class="value">${totalQty}</div></div><div class="android-metric-card"><div class="label">🍵 Top Beverage</div><div class="value">${Object.keys(beverageCounts).length ? Object.keys(beverageCounts).reduce((a,b) => beverageCounts[a] > beverageCounts[b] ? a : b) : 'N/A'}</div></div></div><div style="margin-top:8px;"><div class="merged-filter-row" style="margin-bottom:8px;"><input id="extraTeaSearch" placeholder="🔍 Search..." style="flex:2; margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;"><select id="extraTeaFilterBeverage" style="flex:1; margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;"><option value="">All Beverages</option>${(typeof CONTRACTOR_BEVERAGES !== 'undefined' ? CONTRACTOR_BEVERAGES : []).concat(typeof DAU_PURCHASE_BEVERAGES !== 'undefined' ? DAU_PURCHASE_BEVERAGES : []).filter((v,i,a)=>a.indexOf(v)===i).map(b => `<option value="${b}">${b}</option>`).join('')}</select></div><div id="extraTeaMyRecordsList" class="extra-tea-table-wrap" style="max-height:400px;"></div><button id="exportExtraTeaExcelBtn" class="toolbar-btn success" style="width:100%; margin-top:8px; padding:12px; border-radius:8px; font-weight:700;">📊 Download My Extra Tea Excel</button></div></div>`;
-                document.getElementById('addExtraTeaBtn').onclick = () => window.openExtraTeaForm(null); document.getElementById('extraTeaSearch')?.addEventListener('input', window.renderExtraTeaMyRecords); document.getElementById('extraTeaFilterBeverage')?.addEventListener('change', window.renderExtraTeaMyRecords); document.getElementById('exportExtraTeaExcelBtn').onclick = () => window.exportExtraTeaExcel(true); window.renderExtraTeaMyRecords();
+                document.getElementById('addExtraTeaBtn').onclick = () => window.openExtraTeaForm(null); 
+                document.getElementById('extraTeaSearch')?.addEventListener('input', window.renderExtraTeaMyRecords); 
+                document.getElementById('extraTeaFilterBeverage')?.addEventListener('change', window.renderExtraTeaMyRecords); 
+                document.getElementById('exportExtraTeaExcelBtn').onclick = () => window.exportExtraTeaExcel(true); 
+                window.renderExtraTeaMyRecords();
             }
+
             window.renderExtraTeaMyRecords = function() {
-                const container = document.getElementById('extraTeaMyRecordsList'); if (!container) return; const search = document.getElementById('extraTeaSearch')?.value.toLowerCase().trim() || ''; const filterBev = document.getElementById('extraTeaFilterBeverage')?.value || ''; let records = extraTeaRecords.filter(r => r.pantryId === currentUser.id); if (search) records = records.filter(r => (r.employeeName || '').toLowerCase().includes(search) || (r.reason || '').toLowerCase().includes(search)); if (filterBev) records = records.filter(r => (r.beverage || '') === filterBev); if (!records.length) { container.innerHTML = `<p style="padding:20px; text-align:center; color:#64748B;">No extra tea records found.</p>`; return; } let html = `<table class="extra-tea-table"><thead><tr><th>#</th><th>Date</th><th>Time</th><th>Employee</th><th>Supply</th><th>Beverage</th><th>Qty</th><th>Reason</th><th>Actions</th></tr></thead><tbody>`; records.forEach((r, idx) => { html += `<tr><td>${idx+1}</td><td>${safeStr(r.date)}</td><td>${safeStr(r.time)}</td><td>${safeStr(r.employeeName)}</td><td><span style="font-size:.7rem; padding:2px 6px; border-radius:4px; background:${r.supplySource==='DAU Direct Purchase' ? '#ECFDF5' : '#EFF6FF'}; color:${r.supplySource==='DAU Direct Purchase' ? '#059669' : '#0A56D0'}; font-weight:600;">${safeStr(r.supplySource||'Contractor')}</span></td><td><strong>${safeStr(r.beverage)}</strong></td><td>${r.qty||1}</td><td>${safeStr(r.reason)}</td><td><button class="edit-btn" onclick="window.openExtraTeaForm(extraTeaRecords.find(e=>e.id==='${r.id}'))">✏️</button> <button class="del-btn" onclick="window.deleteExtraTeaRecord('${r.id}')">🗑</button></td></tr>`; }); html += '</tbody></table>'; container.innerHTML = html;
+                const container = document.getElementById('extraTeaMyRecordsList'); if (!container) return; 
+                const search = document.getElementById('extraTeaSearch')?.value.toLowerCase().trim() || ''; 
+                const filterBev = document.getElementById('extraTeaFilterBeverage')?.value || ''; 
+                const allExtra = window.getCombinedExtraTea();
+                let records = allExtra.filter(r => r.pantryId === currentUser.id); 
+                if (search) records = records.filter(r => (r.employeeName || '').toLowerCase().includes(search) || (r.reason || '').toLowerCase().includes(search)); 
+                if (filterBev) records = records.filter(r => (r.beverage || '') === filterBev); 
+                if (!records.length) { container.innerHTML = `<p style="padding:20px; text-align:center; color:#64748B;">No extra tea records found.</p>`; return; } 
+                let html = `<table class="extra-tea-table"><thead><tr><th>#</th><th>Date</th><th>Time</th><th>Employee</th><th>Supply</th><th>Beverage</th><th>Qty</th><th>Reason</th><th>Actions</th></tr></thead><tbody>`; 
+                records.forEach((r, idx) => { html += `<tr><td>${idx+1}</td><td>${safeStr(r.date)}</td><td>${safeStr(r.time)}</td><td>${safeStr(r.employeeName)}</td><td><span style="font-size:.7rem; padding:2px 6px; border-radius:4px; background:${r.supplySource==='DAU Direct Purchase' ? '#ECFDF5' : '#EFF6FF'}; color:${r.supplySource==='DAU Direct Purchase' ? '#059669' : '#0A56D0'}; font-weight:600;">${safeStr(r.supplySource||'Contractor')}</span></td><td><strong>${safeStr(r.beverage)}</strong></td><td>${r.qty||1}</td><td>${safeStr(r.reason)}</td><td><button class="edit-btn" onclick="window.openExtraTeaForm(window.getCombinedExtraTea().find(e=>e.id==='${r.id}'))">✏️</button> <button class="del-btn" onclick="window.deleteExtraTeaRecord('${r.id}', ${r.isOldLog})">🗑</button></td></tr>`; }); 
+                html += '</tbody></table>'; container.innerHTML = html;
             }
+
             window.renderExtraTeaAdminView = function() {
-                const cont = document.getElementById('adminContent'); if (!cont) return; const totalRecords = extraTeaRecords.length; let totalQty = 0; extraTeaRecords.forEach(r => { totalQty += (r.qty||1); }); const pantryBoys = [...new Set(extraTeaRecords.map(r=>r.pantryId))]; cont.innerHTML = `<div class="card" style="padding:16px; border:2px solid #0A56D0; background:#F8FAFC; margin-bottom:12px;"><h4 style="color:#0A56D0; margin:0 0 12px 0; font-size:1rem;">☕ Extra Tea Records - Admin Dashboard</h4><div class="android-metric-grid" style="grid-template-columns:1fr 1fr 1fr;"><div class="android-metric-card"><div class="label">📋 Total Records</div><div class="value">${totalRecords}</div></div><div class="android-metric-card"><div class="label">🥤 Total Cups</div><div class="value">${totalQty}</div></div><div class="android-metric-card"><div class="label">🧑‍🍳 Pantry Boys</div><div class="value">${pantryBoys.length}</div></div></div><button id="exportExtraTeaAdminExcelBtn" class="toolbar-btn success" style="width:100%; margin-top:8px; padding:12px; border-radius:8px; font-weight:700;">📊 Download All Extra Tea Excel</button></div><div id="extraTeaAdminRecordsList" class="extra-tea-table-wrap" style="max-height:500px;"></div>`;
+                const cont = document.getElementById('adminContent'); if (!cont) return; 
+                const allExtra = window.getCombinedExtraTea();
+                const totalRecords = allExtra.length; let totalQty = 0; allExtra.forEach(r => { totalQty += (r.qty||1); }); 
+                const pantryBoys = [...new Set(allExtra.map(r=>r.pantryId))]; 
+                cont.innerHTML = `<div class="card" style="padding:16px; border:2px solid #0A56D0; background:#F8FAFC; margin-bottom:12px;"><h4 style="color:#0A56D0; margin:0 0 12px 0; font-size:1rem;">☕ Extra Tea Records - Admin Dashboard</h4><div class="android-metric-grid" style="grid-template-columns:1fr 1fr 1fr;"><div class="android-metric-card"><div class="label">📋 Total Records</div><div class="value">${totalRecords}</div></div><div class="android-metric-card"><div class="label">🥤 Total Cups</div><div class="value">${totalQty}</div></div><div class="android-metric-card"><div class="label">🧑‍🍳 Pantry Boys</div><div class="value">${pantryBoys.length}</div></div></div><button id="exportExtraTeaAdminExcelBtn" class="toolbar-btn success" style="width:100%; margin-top:8px; padding:12px; border-radius:8px; font-weight:700;">📊 Download All Extra Tea Excel</button></div><div id="extraTeaAdminRecordsList" class="extra-tea-table-wrap" style="max-height:500px;"></div>`;
                 document.getElementById('exportExtraTeaAdminExcelBtn').onclick = () => window.exportExtraTeaExcel(false); window.renderExtraTeaAdminRecords();
             }
+
             window.renderExtraTeaAdminRecords = function() {
-                const container = document.getElementById('extraTeaAdminRecordsList'); if (!container) return; let records = [...extraTeaRecords]; if (!records.length) { container.innerHTML = `<p style="padding:20px; text-align:center; color:#64748B;">No extra tea records found.</p>`; return; } let html = `<table class="extra-tea-table"><thead><tr><th>#</th><th>Date</th><th>Time</th><th>Employee</th><th>Supply</th><th>Beverage</th><th>Qty</th><th>Pantry Boy</th><th>Actions</th></tr></thead><tbody>`; records.forEach((r,idx)=>{ html+=`<tr><td>${idx+1}</td><td>${safeStr(r.date)}</td><td>${safeStr(r.time)}</td><td>${safeStr(r.employeeName)}</td><td>${safeStr(r.supplySource||'Contractor')}</td><td><strong>${safeStr(r.beverage)}</strong></td><td>${r.qty||1}</td><td>${safeStr(r.pantryName)}</td><td><button class="edit-btn" onclick="window.openExtraTeaForm(extraTeaRecords.find(e=>e.id==='${r.id}'))">✏️</button> <button class="del-btn" onclick="window.deleteExtraTeaRecord('${r.id}')">🗑</button></td></tr>`; }); html+='</tbody></table>'; container.innerHTML=html;
+                const container = document.getElementById('extraTeaAdminRecordsList'); if (!container) return; 
+                let records = window.getCombinedExtraTea(); 
+                if (!records.length) { container.innerHTML = `<p style="padding:20px; text-align:center; color:#64748B;">No extra tea records found.</p>`; return; } 
+                let html = `<table class="extra-tea-table"><thead><tr><th>#</th><th>Date</th><th>Time</th><th>Employee</th><th>Supply</th><th>Beverage</th><th>Qty</th><th>Pantry Boy</th><th>Actions</th></tr></thead><tbody>`; 
+                records.forEach((r,idx)=>{ html+=`<tr><td>${idx+1}</td><td>${safeStr(r.date)}</td><td>${safeStr(r.time)}</td><td>${safeStr(r.employeeName)}</td><td>${safeStr(r.supplySource||'Contractor')}</td><td><strong>${safeStr(r.beverage)}</strong></td><td>${r.qty||1}</td><td>${safeStr(r.pantryName)}</td><td><button class="edit-btn" onclick="window.openExtraTeaForm(window.getCombinedExtraTea().find(e=>e.id==='${r.id}'))">✏️</button> <button class="del-btn" onclick="window.deleteExtraTeaRecord('${r.id}', ${r.isOldLog})">🗑</button></td></tr>`; }); 
+                html+='</tbody></table>'; container.innerHTML=html;
             }
+
             window.exportExtraTeaExcel = function(onlyMyRecords=true) {
-                let records = onlyMyRecords ? extraTeaRecords.filter(r=>r.pantryId===currentUser.id) : [...extraTeaRecords]; if (!records.length) return appAlert('No Data','No extra tea records to export.'); const wb = XLSX.utils.book_new(); const data = [['#','Date','Time','Employee','Supply Source','Beverage','Qty','Reason','Pantry Boy']]; records.forEach((r,idx)=>{ data.push([idx+1,r.date||'',r.time||'',r.employeeName||'',r.supplySource||'',r.beverage||'',r.qty||1,r.reason||'',r.pantryName||'']); }); const ws = XLSX.utils.aoa_to_sheet(data); XLSX.utils.book_append_sheet(wb, ws, 'Extra Tea Records'); const fileName = onlyMyRecords ? `Extra_Tea_Records_${currentUser.name}_${new Date().toISOString().slice(0,10)}.xlsx` : `All_Extra_Tea_Records_${new Date().toISOString().slice(0,10)}.xlsx`; window.pantryDownloadExcelFile(wb, fileName); appAlert('Downloaded', fileName+' downloaded!');
+                const allExtra = window.getCombinedExtraTea();
+                let records = onlyMyRecords ? allExtra.filter(r=>r.pantryId===currentUser.id) : allExtra; 
+                if (!records.length) return appAlert('No Data','No extra tea records to export.'); 
+                const wb = XLSX.utils.book_new(); const data = [['#','Date','Time','Employee','Supply Source','Beverage','Qty','Reason','Pantry Boy']]; 
+                records.forEach((r,idx)=>{ data.push([idx+1,r.date||'',r.time||'',r.employeeName||'',r.supplySource||'',r.beverage||'',r.qty||1,r.reason||'',r.pantryName||'']); }); 
+                const ws = XLSX.utils.aoa_to_sheet(data); XLSX.utils.book_append_sheet(wb, ws, 'Extra Tea Records'); 
+                const fileName = onlyMyRecords ? `Extra_Tea_Records_${currentUser.name}_${new Date().toISOString().slice(0,10)}.xlsx` : `All_Extra_Tea_Records_${new Date().toISOString().slice(0,10)}.xlsx`; 
+                window.pantryDownloadExcelFile(wb, fileName); appAlert('Downloaded', fileName+' downloaded!');
             }
+
             window.renderTodaysExtraTeaReport = function() {
-                const cont = document.getElementById('adminContent'); if (!cont) return; const todayDMY = getTodayInDMY(); const todayRecords = extraTeaRecords.filter(r=>r.date===todayDMY); let totalQty=0; todayRecords.forEach(r=>totalQty+=(r.qty||1)); cont.innerHTML = `<div class="card" style="padding:16px; border:2px solid #D97706; background:#FFFBEB;"><h4 style="color:#D97706; margin:0 0 12px 0;">📊 Today's Extra Tea Report - ${todayDMY}</h4><p>Total: ${todayRecords.length} records, ${totalQty} cups</p><div id="todayExtraTeaList"></div></div>`; const listContainer = document.getElementById('todayExtraTeaList'); if (!todayRecords.length) { listContainer.innerHTML='<p>No records for today.</p>'; return; } let html='<table class="extra-tea-table"><thead><tr><th>#</th><th>Time</th><th>Employee</th><th>Supply</th><th>Beverage</th><th>Qty</th><th>Pantry Boy</th></tr></thead><tbody>'; todayRecords.forEach((r,idx)=>{ html+=`<tr><td>${idx+1}</td><td>${safeStr(r.time)}</td><td>${safeStr(r.employeeName)}</td><td>${safeStr(r.supplySource||'Contractor')}</td><td>${safeStr(r.beverage)}</td><td>${r.qty||1}</td><td>${safeStr(r.pantryName)}</td></tr>`; }); html+='</tbody></table>'; listContainer.innerHTML=html;
+                const cont = document.getElementById('adminContent'); if (!cont) return; 
+                const todayDMY = getTodayInDMY(); 
+                const allExtra = window.getCombinedExtraTea();
+                const todayRecords = allExtra.filter(r=>r.date===todayDMY); 
+                let totalQty=0; todayRecords.forEach(r=>totalQty+=(r.qty||1)); 
+                cont.innerHTML = `<div class="card" style="padding:16px; border:2px solid #D97706; background:#FFFBEB;"><h4 style="color:#D97706; margin:0 0 12px 0;">📊 Today's Extra Tea Report - ${todayDMY}</h4><p>Total: ${todayRecords.length} records, ${totalQty} cups</p><div id="todayExtraTeaList"></div></div>`; 
+                const listContainer = document.getElementById('todayExtraTeaList'); 
+                if (!todayRecords.length) { listContainer.innerHTML='<p>No records for today.</p>'; return; } 
+                let html='<table class="extra-tea-table"><thead><tr><th>#</th><th>Time</th><th>Employee</th><th>Supply</th><th>Beverage</th><th>Qty</th><th>Pantry Boy</th></tr></thead><tbody>'; 
+                todayRecords.forEach((r,idx)=>{ html+=`<tr><td>${idx+1}</td><td>${safeStr(r.time)}</td><td>${safeStr(r.employeeName)}</td><td>${safeStr(r.supplySource||'Contractor')}</td><td>${safeStr(r.beverage)}</td><td>${r.qty||1}</td><td>${safeStr(r.pantryName)}</td></tr>`; }); 
+                html+='</tbody></table>'; listContainer.innerHTML=html;
+            }
+
+            window.deleteExtraTeaRecord = function(id, isOldLog) { 
+                appConfirm('Delete Record', 'Are you sure?', () => { 
+                    const refPath = isOldLog ? 'extraLogs/' : 'extraTeaRecords/';
+                    db.ref(refPath + id).remove().then(() => { 
+                        appAlert('Deleted', 'Record removed.'); 
+                        window.renderExtraTeaView(); 
+                        if(typeof window.renderExtraTeaAdminRecords === 'function') window.renderExtraTeaAdminRecords();
+                    }); 
+                }); 
             }
 
 
@@ -5292,10 +5404,10 @@ window.shareVendorLink = function(link, vendor) {
                             <option value="All">All Pantry Boys</option>
                             ${pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
                         </select>
-                        <select id="liveReportSupply" style="flex:1; padding:10px; border-radius:8px; border:1px solid #CBD5E1;">
+                        <select id="liveReportSupply" style="flex:1; padding:10px; border-radius:8px; border:1px solid #CBD5E1; color:#0A56D0; font-weight:bold; background:#EFF6FF;">
                             <option value="All">All Supply Sources</option>
-                            <option value="Contractor">IA Caterers</option>
-                            <option value="DAU Direct Purchase">DAU Direct Purchase</option>
+                            <option value="Contractor">☕ IA Caterers</option>
+                            <option value="DAU Direct Purchase">🛒 DAU Direct</option>
                         </select>
                     </div>
 
@@ -5318,7 +5430,22 @@ window.shareVendorLink = function(link, vendor) {
                   
                   <div class="card">
                     <h4 style="margin-bottom:14px; color:#44474E; font-size:1rem;">📥 Download & Print Reports</h4>
-                    <label style="font-size:.85rem; color:#44474E;">Select Month</label><input type="month" id="reportMonth" value="${new Date().toISOString().slice(0,7)}" style="padding:12px; border-radius:10px; border:1px solid #CBD5E1; margin-bottom:10px;">
+                    
+                    <!-- NEW: Master Dropdown for Supply Source & Month -->
+                    <div style="display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap; background:#F1F5F9; padding:12px; border-radius:10px; border:1px solid #CBD5E1;">
+                        <div style="flex:1; min-width:150px;">
+                            <label style="font-size:.8rem; color:#44474E; font-weight:700;">Select Month</label>
+                            <input type="month" id="reportMonth" value="${new Date().toISOString().slice(0,7)}" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; margin-top:4px;">
+                        </div>
+                        <div style="flex:1; min-width:150px;">
+                            <label style="font-size:.8rem; color:#0A56D0; font-weight:700;">Select Supply Source</label>
+                            <select id="reportSupplySource" style="width:100%; padding:10px; border-radius:8px; border:1px solid #0A56D0; color:#0A56D0; font-weight:bold; background:#fff; margin-top:4px;">
+                                <option value="Contractor">☕ IA Caterers (Contractor)</option>
+                                <option value="DAU Direct Purchase">🛒 DAU Direct Purchase</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:6px;"><h5 style="color:#44474E; margin-bottom:8px; font-size:.9rem;">1. Regular Daily Tea Report</h5><select id="reportCategory" style="margin-bottom:8px; padding:12px; border-radius:10px; border:1px solid #CBD5E1;"><option value="All">All Categories</option><option>Faculty</option><option>Staff</option><option>Law</option><option>Outsourced</option></select><button id="previewRegularBtn" class="success report-btn">👁️ Preview & Print</button></div>
                     <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:8px;"><h5 style="color:#D97706; margin-bottom:8px; font-size:.9rem;">2. Extra Tea Report</h5><button id="previewExtraBtn" class="btn report-btn" style="background:#D97706;">👁️ Preview & Print</button></div>
                     <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:8px;"><h5 style="color:#0A56D0; margin-bottom:8px; font-size:.9rem;">3. Meeting Refreshment Report</h5><button id="previewMeetingBtn" class="btn report-btn" style="background:#0A56D0;">👁️ Preview & Print</button></div>
@@ -5343,15 +5470,15 @@ window.shareVendorLink = function(link, vendor) {
                       </div>
                     </div>
 
-                    <!-- 6. NEW IA CATERERS DAILY TEA BILL VERIFICATION MODULE -->
+                    <!-- 6. NEW VERIFICATION MODULE (Dynamically adapts to IA or DAU) -->
                     <div style="border-top:3px double #0A56D0; padding-top:16px; margin-top:16px; background:#F0FDF4; border-radius:12px; padding:14px; border:1px solid #BBF7D0;">
-                      <h5 style="color:#15803D; margin-bottom:4px; font-size:1rem; font-weight:700; display:flex; align-items:center; gap:6px;">🏪 IA Caterers - Daily Tea Bill Verification</h5>
-                      <p style="font-size:0.78rem; color:#166534; margin-bottom:12px;">Compare and verify contractor's tax bill based on monthly regular tea and coffee data.</p>
+                      <h5 style="color:#15803D; margin-bottom:4px; font-size:1rem; font-weight:700; display:flex; align-items:center; gap:6px;" id="verificationTitleLabel">🏪 Monthly Bill / Statement Verification</h5>
+                      <p style="font-size:0.78rem; color:#166534; margin-bottom:12px;">Compare and verify bill based on selected Supply Source.</p>
                       
                       <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
                         <div>
                             <label style="font-size:0.75rem; font-weight:600; color:#374151;">Select Billing Department</label>
-                            <select id="iaBillDepartment" style="padding:10px; border-radius:8px; border:1px solid #CBD5E1; margin:4px 0 0 0; background:#fff; font-weight:600;">
+                            <select id="iaBillDepartment" style="padding:10px; border-radius:8px; border:1px solid #CBD5E1; margin:4px 0 0 0; background:#fff; font-weight:600; width:100%;">
                                 <option value="Faculty">Faculty</option>
                                 <option value="Staff">Staff</option>
                                 <option value="SoL">SoL (School of Law)</option>
@@ -5361,15 +5488,15 @@ window.shareVendorLink = function(link, vendor) {
                         <div style="display:flex; gap:6px;">
                             <div style="flex:1;">
                                 <label style="font-size:0.75rem; font-weight:600; color:#374151;">CGST (%)</label>
-                                <input type="number" id="iaCGSTPercentage" value="0" min="0" step="0.1" style="padding:10px; border-radius:8px; border:1px solid #CBD5E1; margin:4px 0 0 0; text-align:center;">
+                                <input type="number" id="iaCGSTPercentage" value="0" min="0" step="0.1" style="padding:10px; border-radius:8px; border:1px solid #CBD5E1; margin:4px 0 0 0; text-align:center; width:100%; box-sizing:border-box;">
                             </div>
                             <div style="flex:1;">
                                 <label style="font-size:0.75rem; font-weight:600; color:#374151;">SGST (%)</label>
-                                <input type="number" id="iaSGSTPercentage" value="0" min="0" step="0.1" style="padding:10px; border-radius:8px; border:1px solid #CBD5E1; margin:4px 0 0 0; text-align:center;">
+                                <input type="number" id="iaSGSTPercentage" value="0" min="0" step="0.1" style="padding:10px; border-radius:8px; border:1px solid #CBD5E1; margin:4px 0 0 0; text-align:center; width:100%; box-sizing:border-box;">
                             </div>
                         </div>
                       </div>
-                      <button type="button" id="generateIACaterersBillBtn" class="success" style="width:100%; min-height:44px; font-weight:700; background:#166534; font-size:0.9rem; border-radius:8px; box-shadow:0 4px 10px rgba(22,101,52,0.2);">🧾 Verify & Print IA Caterers Bill</button>
+                      <button type="button" id="generateIACaterersBillBtn" class="success" style="width:100%; min-height:44px; font-weight:700; background:#166534; font-size:0.9rem; border-radius:8px; box-shadow:0 4px 10px rgba(22,101,52,0.2);">🧾 Verify & Print Bill</button>
                     </div>
 
                   </div>
@@ -5381,9 +5508,11 @@ window.shareVendorLink = function(link, vendor) {
                         document.getElementById('downloadGridExcelBtn').onclick = () => window.adminExportMonthlyGrid('excel');
                         document.getElementById('printGridPdfBtn').onclick = () => window.adminExportMonthlyGrid('print');
 
-                        // IA Caterers બિલ જનરેશન કનેક્શન
+                        // Dynamic Bill Generation Logic
                         document.getElementById('generateIACaterersBillBtn').onclick = function() {
                             const month = document.getElementById('reportMonth').value;
+                            const supplySource = document.getElementById('reportSupplySource').value;
+                            const supplyText = supplySource === 'Contractor' ? 'IA CATERERS' : 'DAU DIRECT PURCHASE';
                             if(!month) return appAlert('Error', 'Select month from the option above.');
                             
                             const dept = document.getElementById('iaBillDepartment').value;
@@ -5393,8 +5522,8 @@ window.shareVendorLink = function(link, vendor) {
                             const dateObj = new Date(month + '-01');
                             const monthStr = dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
 
-                            // ડેટા ફિલ્ટરિંગ લોજીક ચારેય બજેટ હેડ માટે
-                            let filteredLogs = logsData.filter(l => l.date && parseDMYToYMD(l.date).startsWith(month));
+                            // Filter logs by Supply Source
+                            let filteredLogs = logsData.filter(l => l.date && parseDMYToYMD(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
                             
                             filteredLogs = filteredLogs.filter(l => {
                                 const emp = employeeList.find(e => e.id === l.employeeId);
@@ -5409,7 +5538,6 @@ window.shareVendorLink = function(link, vendor) {
                                 return false;
                             });
 
-                            // આઇટમ ક્વોન્ટિટી કાઉન્ટર
                             let qtyTea = 0, qtyCoffee = 0, qtyGreen = 0, qtyLemon = 0, qtyBlackTea = 0, qtyBlackCoffee = 0;
                             filteredLogs.forEach(l => {
                                 const d = (l.drink || '').toLowerCase().trim();
@@ -5429,16 +5557,15 @@ window.shareVendorLink = function(link, vendor) {
                             const amtBlackCoffee = qtyBlackCoffee * 10;
 
                             const subTotal = amtTea + amtCoffee + amtGreen + amtLemon + amtBlackTea + amtBlackCoffee;
-                            if (subTotal === 0) return appAlert('No Data', `No consumption logs found for ${dept} in ${monthStr}`);
+                            if (subTotal === 0) return appAlert('No Data', `No consumption logs found for ${dept} in ${monthStr} (${supplyText})`);
 
                             const cgstAmt = subTotal * (cgstPct / 100);
                             const sgstAmt = subTotal * (sgstPct / 100);
                             const grandTotal = subTotal + cgstAmt + sgstAmt;
 
-                            // ઇન્વોઇસ નંબરિંગ સિસ્ટમ
                             const deptShort = dept.toUpperCase();
                             const [yy, mm] = month.split('-');
-                            const iaInvoiceNo = `IA/${deptShort}/${mm}/${yy.slice(-2)}`;
+                            const iaInvoiceNo = `${supplySource === 'Contractor' ? 'IA' : 'DAU'}/${deptShort}/${mm}/${yy.slice(-2)}`;
 
                             let tableRowsHtml = '';
                             let sr = 1;
@@ -5453,7 +5580,7 @@ window.shareVendorLink = function(link, vendor) {
                             const billFormHtml = `
                                 <div class="dau-official-invoice-print-sheet" style="font-family: 'Inter', Arial, sans-serif; padding: 5px; color: #000; background:#fff;">
                                     <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px;">
-                                        <h1 style="margin: 0; font-size: 26px; font-weight:800; letter-spacing: 0.5px; color:#000;">IA CATERERS</h1>
+                                        <h1 style="margin: 0; font-size: 26px; font-weight:800; letter-spacing: 0.5px; color:#000;">${supplyText}</h1>
                                         <p style="margin: 4px 0 0 0; font-size: 13px; color: #000; font-weight:600;">Monthly Institutional Beverage Verification Invoice</p>
                                     </div>
                                     
@@ -5502,15 +5629,6 @@ window.shareVendorLink = function(link, vendor) {
                                             </tr>
                                         </tbody>
                                     </table>
-
-                                    <div style="margin-top: 50px; display: flex; justify-content: space-between; font-size: 13px; font-weight:700; color:#000;">
-                                        <div style="text-align: center; width: 220px; border-top: 1px solid #000; padding-top: 5px;">
-                                            
-                                        </div>
-                                        <div style="text-align: center; width: 220px; border-top: 1px solid #000; padding-top: 5px;">
-                                            
-                                        </div>
-                                    </div>
                                 </div>
                             `;
 
@@ -5526,18 +5644,6 @@ window.shareVendorLink = function(link, vendor) {
                                     ${billFormHtml}
                                   </div>
                                 </div>
-                                <style>
-                                    @media print {
-                                        body * { visibility: hidden !important; background: transparent !important; }
-                                        #printAreaContainer, #printAreaContainer * { visibility: visible !important; }
-                                        #printAreaContainer { position: fixed !important; left: 0 !important; top: 0 !important; width: 100% !important; height: auto !important; z-index: 99999999 !important; background: #fff !important; display: block !important; overflow: visible !important; }
-                                        .preview-card { box-shadow: none !important; border: none !important; width: 100% !important; height: auto !important; max-height: none !important; display: block !important; overflow: visible !important; margin: 0 !important; padding: 0 !important; }
-                                        .preview-content { padding: 0 !important; margin: 0 !important; overflow: visible !important; background: #fff !important; }
-                                        .preview-header { display: none !important; }
-                                        table { border-collapse: collapse !important; width: 100% !important; }
-                                        th, td { border: 1px solid #000 !important; padding: 6px !important; font-size: 13px !important; color: #000 !important; background: #fff !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-                                    }
-                                </style>
                             `;
                             printContainer.classList.remove('hidden');
                         };
@@ -6455,8 +6561,11 @@ window.shareVendorLink = function(link, vendor) {
                 let records = [];
                 const supplyVal = document.getElementById('liveReportSupply') ? document.getElementById('liveReportSupply').value : 'All';
 
-                if (typeVal === 'regular') records = logsData.filter(l => l.date === targetDMY);
-                else records = extraLogsData.filter(l => l.date === targetDMY);
+                if (typeVal === 'regular') {
+                    records = logsData.filter(l => l.date === targetDMY);
+                } else {
+                    records = window.getCombinedExtraTea().filter(l => l.date === targetDMY);
+                }
                 
                 if (pantryVal !== 'All') records = records.filter(l => l.pantryId === pantryVal);
 
@@ -6467,15 +6576,9 @@ window.shareVendorLink = function(link, vendor) {
                     });
                 }
 
-                let tea = 0,
-                    coffee = 0,
-                    green = 0,
-                    lemon = 0,
-                    blackT = 0,
-                    blackC = 0,
-                    total = 0;
+                let tea = 0, coffee = 0, green = 0, lemon = 0, blackT = 0, blackC = 0, total = 0;
                 records.forEach(r => {
-                    const d = (r.drink || '').toLowerCase();
+                    const d = (r.drink || r.beverage || '').toLowerCase();
                     const q = r.qty ? Number(r.qty) : 1;
                     if (d === 'tea') tea += q;
                     else if (d === 'coffee') coffee += q;
@@ -6494,8 +6597,7 @@ window.shareVendorLink = function(link, vendor) {
                 document.getElementById('liveBlackCoffeeTotal').innerText = blackC;
                 document.getElementById('liveGrandTotal').innerText = total;
 
-                if (!records.length) { listEl.innerHTML =
-                    `<p style="text-align:center; padding:12px; color:#74777F; font-size:.85rem;">No records.</p>`; return; }
+                if (!records.length) { listEl.innerHTML = `<p style="text-align:center; padding:12px; color:#74777F; font-size:.85rem;">No records.</p>`; return; }
                 if (typeVal === 'regular') {
                     listEl.innerHTML = records.map(l =>
                         `
@@ -6509,7 +6611,7 @@ window.shareVendorLink = function(link, vendor) {
                     listEl.innerHTML = records.map(l =>
                         `
                 <div style="background:#fff; border-left:3px solid #D97706; margin:4px 0; padding:10px; border-radius:8px; font-size:.85rem; display:flex; justify-content:space-between; align-items:center;">
-                  <div><strong>${safeStr(l.employeeName)}</strong> <span style="color:#D97706; font-weight:bold;">[${l.qty} Cups]</span><br><small style="color:#44474E;">${l.drink} | ${l.remarks || 'No Reason'}</small></div>
+                  <div><strong>${safeStr(l.employeeName)}</strong> <span style="color:#D97706; font-weight:bold;">[${l.qty} Cups]</span><br><small style="color:#44474E;">${l.beverage} | ${l.reason || l.remarks || 'No Reason'}</small></div>
                   <div style="text-align:right;"><small style="color:#0A56D0;">🧑‍🍳 ${safeStr(l.pantryName)}</small></div>
                 </div>
               `
@@ -6520,8 +6622,14 @@ window.shareVendorLink = function(link, vendor) {
             // ============================================================
             //  PREVIEW / PRINT / EXCEL REPORTS (with A4 format, 48px rows)
             // ============================================================
+            // ============================================================
+            // 1. PREVIEW / PRINT REPORT
+            // ============================================================
             window.previewIndividualReport = function(type) {
                 const month = document.getElementById('reportMonth')?.value;
+                const supplySource = document.getElementById('reportSupplySource')?.value || 'Contractor';
+                const supplyText = supplySource === 'Contractor' ? 'IA CATERERS' : 'DAU DIRECT PURCHASE';
+
                 if (!month) return appAlert('Error', 'Select month.');
                 const dateObj = new Date(month + '-01');
                 const monthStr = dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
@@ -6529,61 +6637,38 @@ window.shareVendorLink = function(link, vendor) {
 
                 if (type === 'regular') {
                     const cat = document.getElementById('reportCategory').value;
-                    if (cat === 'All') return appAlert('Notice',
-                        'Please select a specific category (Faculty, Staff, Law, Outsourced).');
+                    if (cat === 'All') return appAlert('Notice', 'Please select a specific category (Faculty, Staff, Law, Outsourced).');
                     const categoryMatch = cat.trim().toLowerCase();
                     const isDAU = (categoryMatch === 'faculty' || categoryMatch === 'staff') ? 'DAU ' : '';
-                    const title = `MONTHLY TEA OF ${isDAU}${cat.toUpperCase()} (${monthStr})`;
+                    const title = `MONTHLY TEA OF ${isDAU}${cat.toUpperCase()} - ${supplyText} (${monthStr})`;
                     let trs = '';
-                    let sumT = 0,
-                        sumC = 0,
-                        sumGT = 0,
-                        sumLT = 0,
-                        sumBT = 0,
-                        sumBC = 0;
+                    let sumT = 0, sumC = 0, sumGT = 0, sumLT = 0, sumBT = 0, sumBC = 0;
                     let sr = 1;
 
                     const emps = employeeList.filter(e => {
                         const c = (e.category || '').trim().toLowerCase();
-                        if (categoryMatch === 'outsourced' || categoryMatch === 'outsource') return c.includes(
-                            'outsource');
+                        if (categoryMatch === 'outsourced' || categoryMatch === 'outsource') return c.includes('outsource');
                         return c === categoryMatch;
                     });
 
                     if (!emps.length && categoryMatch !== 'outsourced' && categoryMatch !== 'outsource') {
-                        return appAlert('No Data', 'No employees in this category.');
+                        return appAlert('No Data', `No employees in this category for ${supplyText}.`);
                     }
 
                     emps.forEach(emp => {
-                        let t = 0,
-                            c = 0,
-                            gt = 0,
-                            lt = 0,
-                            bt = 0,
-                            bc = 0;
-                        logsData.filter(l => l.employeeId === emp.id && parseDMYToYMD(l.date).startsWith(month))
+                        let t = 0, c = 0, gt = 0, lt = 0, bt = 0, bc = 0;
+                        logsData.filter(l => l.employeeId === emp.id && parseDMYToYMD(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')))
                             .forEach(log => {
                                 const d = (log.drink || '').toLowerCase().trim();
-                                if (d === 'tea') t++;
-                                else if (d === 'coffee') c++;
-                                else if (d === 'green tea') gt++;
-                                else if (d === 'lemon tea') lt++;
-                                else if (d === 'black tea') bt++;
-                                else if (d === 'black coffee') bc++;
+                                if (d === 'tea') t++; else if (d === 'coffee') c++; else if (d === 'green tea') gt++;
+                                else if (d === 'lemon tea') lt++; else if (d === 'black tea') bt++; else if (d === 'black coffee') bc++;
                             });
-                        sumT += t;
-                        sumC += c;
-                        sumGT += gt;
-                        sumLT += lt;
-                        sumBT += bt;
-                        sumBC += bc;
-                        trs +=
-                            `<tr><td>${sr++}</td><td class="left-align">${safeStr(emp.name)}</td><td>${t}</td><td>${c}</td><td>${gt}</td><td>${lt}</td><td>${bt}</td><td>${bc}</td><td></td></tr>`;
+                        sumT += t; sumC += c; sumGT += gt; sumLT += lt; sumBT += bt; sumBC += bc;
+                        trs += `<tr><td>${sr++}</td><td class="left-align">${safeStr(emp.name)}</td><td>${t}</td><td>${c}</td><td>${gt}</td><td>${lt}</td><td>${bt}</td><td>${bc}</td><td></td></tr>`;
                     });
 
-                    let wT = 0,
-                        wC = 0;
-                    if (categoryMatch === 'outsourced' || categoryMatch === 'outsource') {
+                    let wT = 0, wC = 0;
+                    if ((categoryMatch === 'outsourced' || categoryMatch === 'outsource') && supplySource === 'Contractor') {
                         db.ref('Workers_Tea/' + month).once('value', snap => {
                             const dataSnap = snap.val() || {};
                             for (const dept in dataSnap) {
@@ -6620,69 +6705,75 @@ window.shareVendorLink = function(link, vendor) {
                   <tbody>${trs}</tbody>
                   <tbody class="total-row-grp"><tr class="total-row"><td></td><td class="left-align" style="text-align:center;">TOTAL</td><td>${sumT}</td><td>${sumC}</td><td>${sumGT}</td><td>${sumLT}</td><td>${sumBT}</td><td>${sumBC}</td><td></td></tr></tbody>
                 </table>`;
+                
                 } else if (type === 'extra') {
-                    const title = `EXTRA TEA REPORT (${monthStr})`;
+                    const title = `EXTRA TEA REPORT - ${supplyText} (${monthStr})`;
                     let trs = '';
                     let count = 0;
-                    extraLogsData.filter(ex => ex.date && parseDMYToYMD(ex.date).startsWith(month)).forEach(ex => {
-                        trs +=
-                            `<tr><td>${ex.id.slice(-5)}</td><td class="left-align">${ex.employeeName}</td><td>${ex.drink}</td><td>${ex.qty}</td><td class="left-align">${ex.remarks || 'None'}</td><td>${ex.date}</td><td>${ex.pantryName}</td></tr>`;
+                    
+                    const targetExtraData = window.getCombinedExtraTea();
+                    
+                    targetExtraData.filter(ex => {
+                        if(!ex.date || !parseDMYToYMD(ex.date).startsWith(month)) return false;
+                        const sSource = ex.supplySource || 'Contractor';
+                        return sSource === supplySource;
+                    }).forEach(ex => {
+                        trs += `<tr><td style="border:1px solid #000; text-align:center;">${ex.id.slice(-5)}</td><td class="left-align" style="border:1px solid #000; padding-left:8px;">${ex.employeeName}</td><td style="border:1px solid #000; text-align:center; font-weight:bold;">${ex.beverage || ex.drink}</td><td style="border:1px solid #000; text-align:center;">${ex.qty || 1}</td><td class="left-align" style="border:1px solid #000; padding-left:8px;">${ex.reason || ex.remarks || 'None'}</td><td style="border:1px solid #000; text-align:center;">${ex.date}</td><td style="border:1px solid #000; text-align:center;">${ex.pantryName}</td></tr>`;
                         count++;
                     });
-                    if (!count) return appAlert('No Data', 'No extra tea logs for this month.');
+                    
+                    if (!count) return appAlert('No Data', 'No extra tea logs for this month in ' + supplyText);
                     html = `
-                <table class="print-table">
+                <table class="print-table" style="width:100%; border-collapse:collapse; font-size:12px;">
                   <thead><tr><th colspan="7" style="border:none; font-size:18px; text-decoration:underline; padding-bottom:20px; text-align:center;">${title}</th></tr>
-                  <tr><th>LOG ID</th><th>NAME</th><th>CHOICE</th><th>QUANTITY</th><th class="left-align">REMARKS</th><th>DATE</th><th>SERVED BY</th></tr></thead>
+                  <tr style="background:#F1F5F9; height:40px;">
+                    <th style="border:1px solid #000;">LOG ID</th>
+                    <th style="border:1px solid #000;">NAME</th>
+                    <th style="border:1px solid #000;">CHOICE</th>
+                    <th style="border:1px solid #000;">QUANTITY</th>
+                    <th class="left-align" style="border:1px solid #000;">REMARKS</th>
+                    <th style="border:1px solid #000;">DATE</th>
+                    <th style="border:1px solid #000;">SERVED BY</th>
+                  </tr></thead>
                   <tbody>${trs}</tbody>
                 </table>`;
-                                } else if (type === 'meeting') {
-                    const title = `MEETING & GUEST REFRESHMENT REPORT (${monthStr})`;
+                
+                } else if (type === 'meeting') {
+                    const title = `MEETING & GUEST REFRESHMENT REPORT - ${supplyText} (${monthStr})`;
                     const flatRows = [];
 
-                    // ૧. જૂનો ડેટા (eventLogsData)
                     const subsetOld = eventLogsData.filter(ev => ev.date && parseDMYToYMD(ev.date).startsWith(month));
                     subsetOld.forEach(ev => {
                         const checkInfo = `[Slip State: Created: ${ev.guestSlipCreated?'Yes':'No'} \\| Signed: ${ev.guestSlipSigned?'Yes':'No'} \\| Returned: ${ev.guestSlipReturned?'Yes':'No'}]`;
                         if (ev.items && Array.isArray(ev.items) && ev.items.length > 0) {
                             ev.items.forEach(item => {
-                                flatRows.push({
-                                    id: ev.id.slice(-5),
-                                    date: item.itemSpecificDate || ev.date,
-                                    vendor: item.vendor || ev.canteenSource || 'Various',
-                                    purpose: ev.eventName,
-                                    orderedBy: ev.orderedBy,
-                                    itemName: item.name,
-                                    qty: item.qty + ' Nos',
-                                    rate: '₹' + item.rate,
-                                    amount: '₹' + (item.amount || (item.qty * item.rate)).toFixed(2),
-                                    pantry: item.servedBy || ev.servedByName || '-',
-                                    location: item.locationNode || '-',
-                                    chk: checkInfo
-                                });
+                                const vendorName = (item.vendor || ev.canteenSource || '').toLowerCase();
+                                const isDAU = vendorName.includes('dau direct') || vendorName === 'dau direct purchase';
+                                if ((supplySource === 'DAU Direct Purchase' && isDAU) || (supplySource === 'Contractor' && !isDAU)) {
+                                    flatRows.push({
+                                        id: ev.id.slice(-5), date: item.itemSpecificDate || ev.date, vendor: item.vendor || ev.canteenSource || 'Various',
+                                        purpose: ev.eventName, orderedBy: ev.orderedBy, itemName: item.name, qty: item.qty + ' Nos',
+                                        rate: '₹' + item.rate, amount: '₹' + (item.amount || (item.qty * item.rate)).toFixed(2),
+                                        pantry: item.servedBy || ev.servedByName || '-', location: item.locationNode || '-', chk: checkInfo
+                                    });
+                                }
                             });
                         } else {
-                            flatRows.push({
-                                id: ev.id.slice(-5),
-                                date: ev.date,
-                                vendor: ev.canteenSource || '-',
-                                purpose: ev.eventName,
-                                orderedBy: ev.orderedBy,
-                                itemName: ev.refreshmentSummary || 'Details',
-                                qty: '-',
-                                rate: '-',
-                                amount: '₹' + (ev.amount || 0).toFixed(2),
-                                pantry: ev.servedByName || '-',
-                                location: '-',
-                                chk: checkInfo
-                            });
+                            const vendorName = (ev.canteenSource || '').toLowerCase();
+                            const isDAU = vendorName.includes('dau direct') || vendorName === 'dau direct purchase';
+                            if ((supplySource === 'DAU Direct Purchase' && isDAU) || (supplySource === 'Contractor' && !isDAU)) {
+                                flatRows.push({
+                                    id: ev.id.slice(-5), date: ev.date, vendor: ev.canteenSource || '-', purpose: ev.eventName,
+                                    orderedBy: ev.orderedBy, itemName: ev.refreshmentSummary || 'Details', qty: '-', rate: '-',
+                                    amount: '₹' + (ev.amount || 0).toFixed(2), pantry: ev.servedByName || ev.pantryName || '-', location: '-', chk: checkInfo
+                                });
+                            }
                         }
                     });
 
-                    // ૨. નવો ડેટા (mgRecordsData)
                     if (typeof mgRecordsData !== 'undefined' && mgRecordsData.length > 0) {
                         const subsetNew = mgRecordsData.filter(rec => {
-                            if (rec.Status === 'Review') return false; // રિવ્યુ વાળા રેકોર્ડ પ્રિન્ટમાં નહિ આવે
+                            if (rec.Status === 'Review') return false; 
                             let recYMD = '';
                             if (rec.DateFormatted && rec.DateFormatted.includes('/')) {
                                 recYMD = parseDMYToYMD(rec.DateFormatted);
@@ -6691,28 +6782,24 @@ window.shareVendorLink = function(link, vendor) {
                             } else {
                                 recYMD = new Date(rec.Timestamp).toISOString().split('T')[0];
                             }
-                            return recYMD.startsWith(month);
+                            if(!recYMD.startsWith(month)) return false;
+                            
+                            const recVendor = (rec.Vendor || '').toLowerCase();
+                            const isDAU = recVendor.includes('dau direct') || recVendor === 'dau direct purchase';
+                            return (supplySource === 'DAU Direct Purchase' && isDAU) || (supplySource === 'Contractor' && !isDAU);
                         });
 
                         subsetNew.forEach(rec => {
                             flatRows.push({
-                                id: rec.id.slice(-5),
-                                date: rec.DateFormatted || convertYMDtoDMY(rec.RawDate),
-                                vendor: rec.Vendor || '-',
-                                purpose: rec.Purpose || '-',
-                                orderedBy: rec.ReqName || '-',
-                                itemName: rec.Item || '-',
-                                qty: rec.Qty + ' Nos',
-                                rate: '₹' + rec.Rate,
-                                amount: '₹' + Number(rec.Amount || 0).toFixed(2),
-                                pantry: rec.ServedBy || '-',
-                                location: rec.Location || '-',
-                                chk: '[Slip State: New Module]'
+                                id: rec.id.slice(-5), date: rec.DateFormatted || convertYMDtoDMY(rec.RawDate), vendor: rec.Vendor || '-',
+                                purpose: rec.Purpose || '-', orderedBy: rec.ReqName || '-', itemName: rec.Item || '-', qty: rec.Qty + ' Nos',
+                                rate: '₹' + rec.Rate, amount: '₹' + Number(rec.Amount || 0).toFixed(2), pantry: rec.ServedBy || '-',
+                                location: rec.Location || '-', chk: '[Slip State: New Module]'
                             });
                         });
                     }
                     
-                    if (!flatRows.length) return appAlert('No Data', 'No meeting records found for this month.');
+                    if (!flatRows.length) return appAlert('No Data', 'No meeting records found for this month in ' + supplyText);
 
                     flatRows.sort((a,b) => parseDMYToYMD(a.date).localeCompare(parseDMYToYMD(b.date)));
                     let tableBodyRows = '';
@@ -6771,13 +6858,18 @@ window.shareVendorLink = function(link, vendor) {
                 if (html) showPreview(html);
             };
 
+            // ============================================================
+            // 2. EXCEL DOWNLOAD FROM PREVIEW
+            // ============================================================
             window.exportIndividualReport = async function(type) {
                 const month = document.getElementById('reportMonth')?.value || new Date().toISOString().slice(0,7);
+                const supplySource = document.getElementById('reportSupplySource')?.value || 'Contractor';
+                const supplyText = supplySource === 'Contractor' ? 'IA_Caterers' : 'DAU_Direct';
                 let filename = `Report_${month}.xlsx`;
 
                 if (type === 'regular') {
                     const cat = document.getElementById('reportCategory').value;
-                    filename = `Regular_Tea_${cat}_${month}.xlsx`;
+                    filename = `Regular_Tea_${cat}_${supplyText}_${month}.xlsx`;
 
                     const wb = XLSX.utils.book_new();
                     const dateObj = new Date(month + '-01');
@@ -6795,7 +6887,7 @@ window.shareVendorLink = function(link, vendor) {
                     const cName = cat;
                     const cNameLower = cName.toLowerCase();
                     const isDAU = (cNameLower === 'faculty' || cNameLower === 'staff') ? 'DAU ' : '';
-                    const titleStr = `MONTHLY TEA OF ${isDAU}${cName.toUpperCase()} (${monthStr})`;
+                    const titleStr = `MONTHLY TEA OF ${isDAU}${cName.toUpperCase()} - ${supplyText.replace('_',' ')} (${monthStr})`;
                     const titleStyle = { font: { bold: true, sz: 14, underline: true }, alignment: { horizontal: 'center', vertical: 'center' } };
 
                     const row1 = [{ v: titleStr, s: titleStyle }, '', '', '', '', '', '', '', ''];
@@ -6818,7 +6910,7 @@ window.shareVendorLink = function(link, vendor) {
 
                     emps.forEach(emp => {
                         let t = 0, c = 0, gt = 0, lt = 0, bt = 0, bc = 0;
-                        logsData.filter(l => l.employeeId === emp.id && parseDMYToYMD(l.date).startsWith(month)).forEach(log => {
+                        logsData.filter(l => l.employeeId === emp.id && parseDMYToYMD(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor'))).forEach(log => {
                             const d = (log.drink || '').toLowerCase().trim();
                             if (d === 'tea') t++; else if (d === 'coffee') c++; else if (d === 'green tea') gt++;
                             else if (d === 'lemon tea') lt++; else if (d === 'black tea') bt++; else if (d === 'black coffee') bc++;
@@ -6830,7 +6922,7 @@ window.shareVendorLink = function(link, vendor) {
                         ]);
                     });
 
-                    if (cNameLower === 'outsourced' || cNameLower === 'outsource') {
+                    if ((cNameLower === 'outsourced' || cNameLower === 'outsource') && supplySource === 'Contractor') {
                         let wT = 0, wC = 0;
                         for (const dept in workerTeaDataSnap) {
                             for (const dateStr in workerTeaDataSnap[dept]) {
@@ -6927,29 +7019,33 @@ window.shareVendorLink = function(link, vendor) {
                 ws['!cols'] = colWidths;
                 
                 if (type === 'extra') {
-                    filename = `Extra_Tea_${month}.xlsx`;
+                    filename = `Extra_Tea_${supplyText}_${month}.xlsx`;
                 } else if (type === 'meeting') {
-                    filename = `Meeting_Refreshment_${month}.xlsx`;
+                    filename = `Meeting_Refreshment_${supplyText}_${month}.xlsx`;
                 }
 
                 XLSX.writeFile(wb, filename);
                 appAlert('Downloaded', 'Excel report downloaded perfectly!');
             };
-         window.downloadAllCategoriesExcel = async function() {
+
+            // ============================================================
+            // 3. DOWNLOAD ALL CATEGORIES EXCEL
+            // ============================================================
+            window.downloadAllCategoriesExcel = async function() {
                 const month = document.getElementById('reportMonth')?.value;
+                const supplySource = document.getElementById('reportSupplySource')?.value || 'Contractor';
+                const supplyText = supplySource === 'Contractor' ? 'IA_Caterers' : 'DAU_Direct';
+
                 if (!month) return appAlert('Error', 'Select month.');
 
                 const wb = XLSX.utils.book_new();
                 const dateObj = new Date(month + '-01');
                 const monthStr = dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
-                const border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' },
-                    right: { style: 'thin' } };
-                const headerStyle = { font: { bold: true }, alignment: { horizontal: 'center', vertical: 'center',
-                        wrapText: true }, border };
+                const border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
+                const headerStyle = { font: { bold: true }, alignment: { horizontal: 'center', vertical: 'center', wrapText: true }, border };
                 const cellCenter = { alignment: { horizontal: 'center', vertical: 'center' }, border };
                 const cellLeft = { alignment: { horizontal: 'left', vertical: 'center' }, border };
-                const totalStyle = { font: { bold: true }, alignment: { horizontal: 'center', vertical: 'center' },
-                    border };
+                const totalStyle = { font: { bold: true }, alignment: { horizontal: 'center', vertical: 'center' }, border };
 
                 const wtSnap = await db.ref('Workers_Tea/' + month).once('value');
                 const workerTeaDataSnap = wtSnap.val() || {};
@@ -6959,9 +7055,8 @@ window.shareVendorLink = function(link, vendor) {
                 categories.forEach(cName => {
                     const cNameLower = cName.toLowerCase();
                     const isDAU = (cNameLower === 'faculty' || cNameLower === 'staff') ? 'DAU ' : '';
-                    const titleStr = `MONTHLY TEA OF ${isDAU}${cName.toUpperCase()} (${monthStr})`;
-                    const titleStyle = { font: { bold: true, sz: 14, underline: true },
-                        alignment: { horizontal: 'center', vertical: 'center' } };
+                    const titleStr = `MONTHLY TEA OF ${isDAU}${cName.toUpperCase()} - ${supplyText.replace('_',' ')} (${monthStr})`;
+                    const titleStyle = { font: { bold: true, sz: 14, underline: true }, alignment: { horizontal: 'center', vertical: 'center' } };
 
                     const row1 = [{ v: titleStr, s: titleStyle }, '', '', '', '', '', '', '', ''];
                     const row2 = [{ v: 'SR. NO.', s: headerStyle }, { v: 'NAME', s: headerStyle },
@@ -6972,54 +7067,31 @@ window.shareVendorLink = function(link, vendor) {
                     ];
 
                     let data = [row1, row2];
-                    let sumT = 0,
-                        sumC = 0,
-                        sumGT = 0,
-                        sumLT = 0,
-                        sumBT = 0,
-                        sumBC = 0;
+                    let sumT = 0, sumC = 0, sumGT = 0, sumLT = 0, sumBT = 0, sumBC = 0;
                     let sr = 1;
 
                     const emps = employeeList.filter(e => {
                         const c = (e.category || '').trim().toLowerCase();
-                        if (cNameLower === 'outsourced' || cNameLower === 'outsource') return c.includes(
-                            'outsource');
+                        if (cNameLower === 'outsourced' || cNameLower === 'outsource') return c.includes('outsource');
                         return c === cNameLower;
                     });
 
                     emps.forEach(emp => {
-                        let t = 0,
-                            c = 0,
-                            gt = 0,
-                            lt = 0,
-                            bt = 0,
-                            bc = 0;
-                        logsData.filter(l => l.employeeId === emp.id && parseDMYToYMD(l.date).startsWith(
-                            month)).forEach(log => {
+                        let t = 0, c = 0, gt = 0, lt = 0, bt = 0, bc = 0;
+                        logsData.filter(l => l.employeeId === emp.id && parseDMYToYMD(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor'))).forEach(log => {
                             const d = (log.drink || '').toLowerCase().trim();
-                            if (d === 'tea') t++;
-                            else if (d === 'coffee') c++;
-                            else if (d === 'green tea') gt++;
-                            else if (d === 'lemon tea') lt++;
-                            else if (d === 'black tea') bt++;
-                            else if (d === 'black coffee') bc++;
+                            if (d === 'tea') t++; else if (d === 'coffee') c++; else if (d === 'green tea') gt++;
+                            else if (d === 'lemon tea') lt++; else if (d === 'black tea') bt++; else if (d === 'black coffee') bc++;
                         });
-                        sumT += t;
-                        sumC += c;
-                        sumGT += gt;
-                        sumLT += lt;
-                        sumBT += bt;
-                        sumBC += bc;
+                        sumT += t; sumC += c; sumGT += gt; sumLT += lt; sumBT += bt; sumBC += bc;
                         data.push([{ v: sr++, s: cellCenter }, { v: emp.name, s: cellLeft },
                         { v: t, s: cellCenter }, { v: c, s: cellCenter }, { v: gt, s: cellCenter },
-                        { v: lt, s: cellCenter }, { v: bt, s: cellCenter },
-                        { v: bc, s: cellCenter }, { v: '', s: cellCenter }
+                        { v: lt, s: cellCenter }, { v: bt, s: cellCenter }, { v: bc, s: cellCenter }, { v: '', s: cellCenter }
                         ]);
                     });
 
-                    if (cNameLower === 'outsourced' || cNameLower === 'outsource') {
-                        let wT = 0,
-                            wC = 0;
+                    if ((cNameLower === 'outsourced' || cNameLower === 'outsource') && supplySource === 'Contractor') {
+                        let wT = 0, wC = 0;
                         for (const dept in workerTeaDataSnap) {
                             for (const dateStr in workerTeaDataSnap[dept]) {
                                 for (const shift in workerTeaDataSnap[dept][dateStr]) {
@@ -7030,29 +7102,17 @@ window.shareVendorLink = function(link, vendor) {
                             }
                         }
 
-                        data.push([{ v: '', s: totalStyle },
-                        { v: 'Housekeeping Staff (Safal)', s: cellLeft },
-                        { v: wT, s: cellCenter }, { v: wC, s: cellCenter },
-                        { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
-                        { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
-                        { v: '', s: cellCenter }
-                        ]);
+                        data.push([{ v: '', s: totalStyle }, { v: 'Housekeeping Staff (Safal)', s: cellLeft },
+                        { v: wT, s: cellCenter }, { v: wC, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                        { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }]);
 
-                        data.push([{ v: '', s: totalStyle },
-                        { v: 'Horticulture Staff (Safal)', s: cellLeft },
-                        { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
-                        { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
-                        { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
-                        { v: '', s: cellCenter }
-                        ]);
+                        data.push([{ v: '', s: totalStyle }, { v: 'Horticulture Staff (Safal)', s: cellLeft },
+                        { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                        { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }]);
 
-                        data.push([{ v: '', s: totalStyle },
-                        { v: 'Security Staff (Kavach)', s: cellLeft },
-                        { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
-                        { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
-                        { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
-                        { v: '', s: cellCenter }
-                        ]);
+                        data.push([{ v: '', s: totalStyle }, { v: 'Security Staff (Kavach)', s: cellLeft },
+                        { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                        { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }]);
 
                         sumT += wT;
                         sumC += wC;
@@ -7067,24 +7127,24 @@ window.shareVendorLink = function(link, vendor) {
 
                     const ws = XLSX.utils.aoa_to_sheet(data);
                     ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 8 } }];
-                    ws['!cols'] = [{ wch: 6 }, { wch: 26 }, { wch: 11 },
-                    { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 11 },
-                    { wch: 11 }, { wch: 24 }
-                    ];
+                    ws['!cols'] = [{ wch: 6 }, { wch: 26 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 24 }];
                     ws['!rows'] = data.map(() => ({ hpt: 48 }));
-                    XLSX.utils.book_append_sheet(wb, ws, cName.substring(0, 31).replace(
-                        /[\\/*?:\[\]]/g, '') || 'Report');
+                    XLSX.utils.book_append_sheet(wb, ws, cName.substring(0, 31).replace(/[\\/*?:\[\]]/g, '') || 'Report');
                 });
 
-                window.pantryDownloadExcelFile(wb, `All_Categories_Tea_Report_${month}.xlsx`);
+                window.pantryDownloadExcelFile(wb, `All_Categories_Tea_Report_${supplyText}_${month}.xlsx`);
                 appAlert('Downloaded', 'All categories combined Excel downloaded successfully!');
             };
 
-            // NAYA FUNCTION: Admin Monthly Grid Export (With Pagination, Borders & Equal Sizes)
+            // ============================================================
+            // 4. ADMIN MONTHLY GRID EXPORT (EXCEL / PDF)
+            // ============================================================
             window.adminExportMonthlyGrid = function(format) {
                 const month = document.getElementById('reportMonth')?.value;
                 const pantryId = document.getElementById('gridExportPantrySelect').value;
                 const categoryVal = document.getElementById('gridExportCategorySelect').value;
+                const supplySource = document.getElementById('reportSupplySource')?.value || 'Contractor';
+                const supplyText = supplySource === 'Contractor' ? 'IA CATERERS' : 'DAU DIRECT PURCHASE';
                 
                 if (!month) return appAlert('Error', 'Select month from top.');
 
@@ -7107,9 +7167,7 @@ window.shareVendorLink = function(link, vendor) {
                 
                 if(!emps.length) return appAlert('Notice', 'No employees found for this selection.');
 
-                // ====== EXCEL EXPORT LOGIC ======
                 if (format === 'excel') {
-                    // Styles define karna Excel ke liye (Borders & Alignment)
                     const bStyle = { style: 'thin', color: { rgb: "000000" } };
                     const cellStyle = { alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle } };
                     const headStyle = { font: { bold: true }, alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle }, fill: { fgColor: { rgb: "F1F5F9" } } };
@@ -7117,7 +7175,7 @@ window.shareVendorLink = function(link, vendor) {
                     let headers1 = [{ v: 'Date', s: headStyle }];
                     let headers2 = [{ v: '', s: headStyle }];
                     
-                    const colWidths = [{ wch: 12 }]; // Date ki width fix
+                    const colWidths = [{ wch: 12 }];
                     const merges = [];
 
                     emps.forEach((emp, i) => {
@@ -7128,8 +7186,8 @@ window.shareVendorLink = function(link, vendor) {
                         headers2.push({ v: 'Morn', s: headStyle });
                         headers2.push({ v: 'Aft', s: headStyle });
                         
-                        colWidths.push({ wch: 10 }, { wch: 10 }); // Morn & Aft ki width EQUAL (10)
-                        merges.push({ s: { r: 0, c: baseIdx }, e: { r: 0, c: baseIdx + 1 } }); // Naam ko 2 cell me merge karna
+                        colWidths.push({ wch: 10 }, { wch: 10 });
+                        merges.push({ s: { r: 0, c: baseIdx }, e: { r: 0, c: baseIdx + 1 } });
                     });
 
                     let data = [headers1, headers2];
@@ -7139,9 +7197,9 @@ window.shareVendorLink = function(link, vendor) {
                         let row = [{ v: dmy, s: { font: { bold: true }, alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle } } }];
                         
                         emps.forEach(emp => {
-                            const mLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Morning');
-                            const aLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Afternoon');
-                            row.push({ v: mLog ? mLog.drink : '-', s: cellStyle }); // Sabme Border aur center align
+                            const mLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Morning' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                            const aLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Afternoon' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                            row.push({ v: mLog ? mLog.drink : '-', s: cellStyle });
                             row.push({ v: aLog ? aLog.drink : '-', s: cellStyle });
                         });
                         data.push(row);
@@ -7153,88 +7211,79 @@ window.shareVendorLink = function(link, vendor) {
                     ws['!cols'] = colWidths;
                     
                     XLSX.utils.book_append_sheet(wb, ws, 'Monthly Grid');
-                    XLSX.writeFile(wb, `Monthly_Grid_${categoryVal}_${month}.xlsx`);
-                    appAlert('Downloaded', 'Monthly Grid Excel with borders downloaded successfully!');
+                    XLSX.writeFile(wb, `Monthly_Grid_${categoryVal}_${supplySource.replace(/\s+/g,'_')}_${month}.xlsx`);
+                    appAlert('Downloaded', 'Monthly Grid Excel downloaded successfully!');
 
-                } 
-                // ====== PDF / PRINT LOGIC (PAGINATED 8 NAMES PER PAGE) ======
-                        else {
-            let html = '';
-            const chunkSize = 8; // એક શીટ પર વધુમાં વધુ 8 નામ આવશે
-            
-            const dateObj = new Date(month + '-01');
-            const monthStr = dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' }); 
-            const displayCat = categoryVal === 'All' ? 'All Categories' : categoryVal;
+                } else {
+                    let html = '';
+                    const chunkSize = 8;
+                    const dateObj = new Date(month + '-01');
+                    const monthStr = dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' }); 
+                    const displayCat = categoryVal === 'All' ? 'All Categories' : categoryVal;
 
-            for (let i = 0; i < emps.length; i += chunkSize) {
-                const chunkEmps = emps.slice(i, i + chunkSize);
-                
-                html += `<div style="page-break-after: always; padding-bottom: 20px;">`;
-                html += `<h2 style="text-align:center; color:#0A56D0; margin-bottom: 12px; font-family: sans-serif; font-size: 16px;">Monthly Grid Export - ${displayCat} - ${monthStr} (Page ${Math.floor(i/chunkSize) + 1})</h2>`;
-                
-                // ટેબલને સચોટ પહોળાઈ (min-width: 880px) આપી જેથી મોબાઈલમાં અક્ષરો ભેગા ન થાય
-                html += `<table class="print-table" style="font-size:11px; width:100%; min-width:880px; text-align:center; border-collapse:collapse; table-layout:fixed; margin-bottom: 20px;"><thead><tr>`;
-                
-                // ડેટ કોલમ
-                html += `<th rowspan="2" style="border:1px solid #000; padding:6px 4px; background:#F1F5F9; width:95px; font-weight:700;">Date</th>`;
-                
-                // કર્મચારીઓના નામ (મોબાઈલમાં આડા અને કલીન વંચાશે)
-                chunkEmps.forEach(emp => {
-                    html += `<th colspan="2" style="border:1px solid #000; padding:6px 4px; background:#F1F5F9; font-size:11px; line-height:1.3; word-break:normal;">${safeStr(emp.name)}</th>`;
-                });
-                html += `</tr><tr>`;
-                
-                // મોર્નિંગ / આફ્ટરનૂન હેડર્સ
-                chunkEmps.forEach(() => {
-                    html += `<th style="border:1px solid #000; padding:4px; background:#F8FAFC; width:49px; min-width:49px; max-width:49px; font-weight:600;">Morn</th>`;
-                    html += `<th style="border:1px solid #000; padding:4px; background:#F8FAFC; width:49px; min-width:49px; max-width:49px; font-weight:600;">Aft</th>`;
-                });
-                html += `</tr></thead><tbody>`;
-                
-                // ડેટા રો અને દિવસોનું લોજિક
-                for (let d = 1; d <= daysInMonth; d++) {
-                    const dmy = `${String(d).padStart(2,'0')}/${mm}/${yy}`;
-                    
-                    const currentDayDate = new Date(yy, mm - 1, d);
-                    const dayName = currentDayDate.toLocaleDateString('en-US', { weekday: 'long' });
-
-                    html += `<tr>`;
-                    html += `<td style="border:1px solid #000; padding:6px 4px; font-weight:bold; line-height:1.3; background:#F8FAFC;">${dmy}<br><span style="font-size:9px; font-weight:normal; color:#44474E;">${dayName}</span></td>`;
-                    
-                    chunkEmps.forEach(emp => {
-                        const mLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Morning');
-                        const aLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Afternoon');
+                    for (let i = 0; i < emps.length; i += chunkSize) {
+                        const chunkEmps = emps.slice(i, i + chunkSize);
                         
-                        html += `<td style="border:1px solid #000; padding:4px; width:49px; min-width:49px; max-width:49px;">${mLog ? mLog.drink : '-'}</td>`;
-                        html += `<td style="border:1px solid #000; padding:4px; width:49px; min-width:49px; max-width:49px;">${aLog ? aLog.drink : '-'}</td>`;
-                    });
-                    html += `</tr>`;
+                        html += `<div style="page-break-after: always; padding-bottom: 20px;">`;
+                        html += `<h2 style="text-align:center; color:#0A56D0; margin-bottom: 12px; font-family: sans-serif; font-size: 16px;">Monthly Grid Export - ${displayCat} (${supplyText}) - ${monthStr} (Page ${Math.floor(i/chunkSize) + 1})</h2>`;
+                        
+                        html += `<table class="print-table" style="font-size:11px; width:100%; min-width:880px; text-align:center; border-collapse:collapse; table-layout:fixed; margin-bottom: 20px;"><thead><tr>`;
+                        
+                        html += `<th rowspan="2" style="border:1px solid #000; padding:6px 4px; background:#F1F5F9; width:95px; font-weight:700;">Date</th>`;
+                        
+                        chunkEmps.forEach(emp => {
+                            html += `<th colspan="2" style="border:1px solid #000; padding:6px 4px; background:#F1F5F9; font-size:11px; line-height:1.3; word-break:normal;">${safeStr(emp.name)}</th>`;
+                        });
+                        html += `</tr><tr>`;
+                        
+                        chunkEmps.forEach(() => {
+                            html += `<th style="border:1px solid #000; padding:4px; background:#F8FAFC; width:49px; min-width:49px; max-width:49px; font-weight:600;">Morn</th>`;
+                            html += `<th style="border:1px solid #000; padding:4px; background:#F8FAFC; width:49px; min-width:49px; max-width:49px; font-weight:600;">Aft</th>`;
+                        });
+                        html += `</tr></thead><tbody>`;
+                        
+                        for (let d = 1; d <= daysInMonth; d++) {
+                            const dmy = `${String(d).padStart(2,'0')}/${mm}/${yy}`;
+                            const currentDayDate = new Date(yy, mm - 1, d);
+                            const dayName = currentDayDate.toLocaleDateString('en-US', { weekday: 'long' });
+
+                            html += `<tr>`;
+                            html += `<td style="border:1px solid #000; padding:6px 4px; font-weight:bold; line-height:1.3; background:#F8FAFC;">${dmy}<br><span style="font-size:9px; font-weight:normal; color:#44474E;">${dayName}</span></td>`;
+                            
+                            chunkEmps.forEach(emp => {
+                                const mLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Morning' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                                const aLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Afternoon' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                                
+                                html += `<td style="border:1px solid #000; padding:4px; width:49px; min-width:49px; max-width:49px;">${mLog ? mLog.drink : '-'}</td>`;
+                                html += `<td style="border:1px solid #000; padding:4px; width:49px; min-width:49px; max-width:49px;">${aLog ? aLog.drink : '-'}</td>`;
+                            });
+                            html += `</tr>`;
+                        }
+                        html += `</tbody></table></div>`;
+                    }
+                    
+                    const container = document.getElementById('printAreaContainer');
+                    container.innerHTML = `
+                      <div class="preview-card" style="max-width:100%; width:98vw; height:95vh; max-height:95vh;">
+                        <div class="preview-header hide-on-print">
+                          <button onclick="window.print()" class="success">🖨️ Print Landscape</button>
+                          <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger">✕ Close</button>
+                        </div>
+                        <div class="preview-content" style="overflow-x:auto; -webkit-overflow-scrolling:touch; padding: 10px; background:#fff;">
+                          ${html}
+                        </div>
+                      </div>
+                      <style>
+                        @media print {
+                          @page { size: A4 landscape; margin: 8mm; }
+                          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background:#fff !important; }
+                          .print-table { min-width: 100% !important; width: 100% !important; table-layout: fixed !important; }
+                          .print-table th, .print-table td { padding: 4px !important; font-size: 10px !important; }
+                        }
+                      </style>
+                    `;
+                    container.classList.remove('hidden');
                 }
-                html += `</tbody></table></div>`;
-            }
-            
-            const container = document.getElementById('printAreaContainer');
-            container.innerHTML = `
-              <div class="preview-card" style="max-width:100%; width:98vw; height:95vh; max-height:95vh;">
-                <div class="preview-header hide-on-print">
-                  <button onclick="window.print()" class="success">🖨️ Print Landscape</button>
-                  <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger">✕ Close</button>
-                </div>
-                <div class="preview-content" style="overflow-x:auto; -webkit-overflow-scrolling:touch; padding: 10px; background:#fff;">
-                  ${html}
-                </div>
-              </div>
-              <style>
-                @media print {
-                  @page { size: A4 landscape; margin: 8mm; }
-                  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background:#fff !important; }
-                  .print-table { min-width: 100% !important; width: 100% !important; table-layout: fixed !important; }
-                  .print-table th, .print-table td { padding: 4px !important; font-size: 10px !important; }
-                }
-              </style>
-            `;
-            container.classList.remove('hidden');
-        }
             };
 
             // ============================================================
@@ -9512,3 +9561,4 @@ setTimeout(function() {
 </script>    
 </body>
 </html>
+a
