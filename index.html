@@ -3729,6 +3729,9 @@ window.shareVendorLink = function(link, vendor) {
             // ============================================================
             //  VENDOR VIEW (No login, view only) - WITH LIVE BILLING ENGINE
             // ============================================================
+            // ============================================================
+            //  VENDOR VIEW (No login, view only) - WITH LIVE BILLING ENGINE
+            // ============================================================
             function renderVendorView(vendorName) {
                 const appDiv = document.getElementById('app');
                 appDiv.classList.remove('hidden');
@@ -3749,15 +3752,17 @@ window.shareVendorLink = function(link, vendor) {
 
                 const content = document.getElementById('vendorViewContent');
                 const allItems = [];
+                
+                // 1. જૂના મોડ્યુલમાંથી ડેટા લાવવા
                 eventLogsData.forEach(ev => {
                     if (ev.items && Array.isArray(ev.items)) {
                         ev.items.forEach(item => {
                             const itemVendor = (item.vendor || ev.canteenSource || '').toLowerCase();
-                            if (itemVendor === vendorName.toLowerCase()) {
+                            if (vendorName === 'All Vendors' || itemVendor === vendorName.toLowerCase()) {
                                 const purposeText = `${ev.eventName || ''} ${ev.orderedBy || ''}`.toLowerCase();
                                 let head = 'Office';
                                 if (purposeText.includes('school of law') || purposeText.includes('law') || purposeText.includes('llm') || purposeText.includes('sol')) {
-                                    head = 'SOL';
+                                    head = 'SoL';
                                 } else if (purposeText.includes('admission')) {
                                     head = 'Admissions';
                                 } else if (purposeText.includes('placement')) {
@@ -3781,6 +3786,38 @@ window.shareVendorLink = function(link, vendor) {
                     }
                 });
                 
+                // 2. નવા મોડ્યુલ (Meetings & Guests) માંથી ડેટા લાવવા (આ ઉમેર્યું છે)
+                if (typeof mgRecordsData !== 'undefined' && mgRecordsData.length > 0) {
+                    mgRecordsData.filter(r => r.Status !== 'Review').forEach(rec => {
+                        const itemVendor = (rec.Vendor || '').toLowerCase();
+                        if (vendorName === 'All Vendors' || itemVendor === vendorName.toLowerCase()) {
+                            let head = 'Office';
+                            const purposeText = `${rec.Purpose || ''} ${rec.ReqName || ''}`.toLowerCase();
+                            
+                            if (purposeText.includes('school of law') || purposeText.includes('law') || purposeText.includes('llm') || purposeText.includes('sol')) {
+                                head = 'SoL';
+                            } else if (purposeText.includes('admission')) {
+                                head = 'Admissions';
+                            } else if (purposeText.includes('placement')) {
+                                head = 'Placement';
+                            }
+
+                            allItems.push({
+                                date: rec.DateFormatted || rec.RawDate,
+                                itemName: rec.Item || '',
+                                qty: rec.Qty || 0,
+                                rate: rec.Rate || 0,
+                                amount: rec.Amount || ((rec.Qty || 0) * (rec.Rate || 0)),
+                                vendor: rec.Vendor || '',
+                                requestedBy: rec.ReqName || '',
+                                meeting: rec.Purpose || '',
+                                servedBy: rec.ServedBy || '-',
+                                accountHead: head
+                            });
+                        }
+                    });
+                }
+
                 allItems.sort((a, b) => parseDMYToYMD(a.date).localeCompare(parseDMYToYMD(b.date)));
 
                 window.renderExternalVendorTable = function(selectedHead) {
@@ -3798,7 +3835,7 @@ window.shareVendorLink = function(link, vendor) {
                                 <label style="font-size:0.82rem; font-weight:700; color:#44474E; display:block; margin-bottom:4px;">📊 Select Department Head:</label>
                                 <select id="extVendorAccountHeadFilter" style="margin:0; padding:11px; border-radius:8px; border:1px solid #CBD5E1; font-size:0.95rem; width:100%; font-weight:500; background:#fff; cursor:pointer;">
                                     <option value="All" ${selectedHead==='All'?'selected':''}>All Combined View</option>
-                                    <option value="SOL" ${selectedHead==='SOL'?'selected':''}>SOL</option>
+                                    <option value="SoL" ${selectedHead==='SoL'?'selected':''}>SoL</option>
                                     <option value="Admissions" ${selectedHead==='Admissions'?'selected':''}>Admissions</option>
                                     <option value="Placement" ${selectedHead==='Placement'?'selected':''}>Placement</option>
                                     <option value="Office" ${selectedHead==='Office'?'selected':''}>Office</option>
@@ -3832,6 +3869,7 @@ window.shareVendorLink = function(link, vendor) {
                                     <tr>
                                         <th>S.R.</th>
                                         <th>Date</th>
+                                        ${vendorName === 'All Vendors' ? '<th>Vendor</th>' : ''}
                                         <th>Item Name</th>
                                         <th>Qty</th>
                                         <th>Rate</th>
@@ -3839,29 +3877,37 @@ window.shareVendorLink = function(link, vendor) {
                                         <th>Requested By</th>
                                         <th>Meeting / Event Purpose</th>
                                         <th>Department</th>
+                                        <th>Pantry Boy</th> <!-- Pantry Boy કોલમ ઉમેર્યું -->
                                     </tr>
                                 </thead>
                                 <tbody>`;
                         filteredItems.forEach(row => {
                             grandTotal += row.amount;
+                            let headBadgeColor = '#64748B';
+                            if(row.accountHead==='SoL') headBadgeColor='#7C3AED';
+                            if(row.accountHead==='Admissions') headBadgeColor='#D97706';
+                            if(row.accountHead==='Placement') headBadgeColor='#10B981';
+
                             tableHtml += `
                                 <tr>
                                     <td>${sr++}</td>
                                     <td>${safeStr(row.date)}</td>
+                                    ${vendorName === 'All Vendors' ? `<td style="color:#D97706; font-weight:700;">${safeStr(row.vendor)}</td>` : ''}
                                     <td><strong>${safeStr(row.itemName)}</strong></td>
                                     <td>${row.qty}</td>
                                     <td>₹${row.rate}</td>
                                     <td>₹${row.amount.toFixed(2)}</td>
                                     <td>${safeStr(row.requestedBy)}</td>
                                     <td>${safeStr(row.meeting)}</td>
-                                    <td><span style="background:#0A56D0; color:#fff; padding:3px 12px; border-radius:100px; font-size:0.75rem; font-weight:600;">${row.accountHead}</span></td>
+                                    <td><span style="background:${headBadgeColor}; color:#fff; padding:3px 12px; border-radius:100px; font-size:0.75rem; font-weight:600;">${row.accountHead}</span></td>
+                                    <td>${safeStr(row.servedBy)}</td> <!-- Pantry Boy ડેટા ઉમેર્યો -->
                                 </tr>`;
                         });
                         tableHtml += `
                                 <tr style="font-weight:700; background:#F1F5F9; font-size:0.95rem;">
-                                    <td colspan="5" style="text-align:right; padding-right:12px;">GRAND TOTAL</td>
+                                    <td colspan="${vendorName === 'All Vendors' ? 6 : 5}" style="text-align:right; padding-right:12px;">GRAND TOTAL</td>
                                     <td style="color:#0A56D0; font-weight:800;">₹${grandTotal.toFixed(2)}</td>
-                                    <td colspan="3"></td>
+                                    <td colspan="4"></td> <!-- COLSPAN સુધાર્યું -->
                                 </tr>
                                 </tbody>
                             </table>`;
@@ -3885,7 +3931,7 @@ window.shareVendorLink = function(link, vendor) {
                         const printContainer = document.getElementById('printAreaContainer');
                         printContainer.style.zIndex = "100000005";
                         printContainer.innerHTML = `
-                            <div class="preview-card" style="max-width:1050px; width:95vw; height:90vh;">
+                            <div class="preview-card" style="max-width:1150px; width:95vw; height:90vh;">
                               <div class="preview-header hide-on-print">
                                 <button onclick="window.print()" class="success">🖨️ Print Statement Table</button>
                                 <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger">✕ Close</button>
@@ -3901,7 +3947,7 @@ window.shareVendorLink = function(link, vendor) {
 
                     document.getElementById('extGenerateVendorBillBtn').onclick = function() {
                         if(!filteredItems.length) return appAlert('No Data', 'No items available.');
-                        
+                                
                         const vendorShort = vendorName.trim().slice(0, 3).toUpperCase();
                         const currentMonthYMD = new Date().toISOString().slice(0,7);
                         const [bYear, bMonth] = currentMonthYMD.split('-');
@@ -3913,7 +3959,21 @@ window.shareVendorLink = function(link, vendor) {
                             if (!evYMD || !evYMD.startsWith(currentMonthYMD)) return false;
                             return ev.items && ev.items.some(i => (i.vendor || ev.canteenSource || '').toLowerCase() === vendorName.toLowerCase());
                         });
-                        const bCount = String(Math.max(1, monthlyVendorEvents.length)).padStart(2, '0');
+                        
+                        const monthlyMgEvents = mgRecordsData.filter(rec => {
+                            let recYMD = '';
+                            if (rec.DateFormatted && rec.DateFormatted.includes('/')) {
+                                recYMD = parseDMYToYMD(rec.DateFormatted);
+                            } else if (rec.RawDate) {
+                                recYMD = rec.RawDate;
+                            } else {
+                                recYMD = new Date(rec.Timestamp).toISOString().split('T')[0];
+                            }
+                            if (!recYMD.startsWith(currentMonthYMD) || rec.Status === 'Review') return false;
+                            return (rec.Vendor || '').toLowerCase() === vendorName.toLowerCase();
+                        });
+
+                        const bCount = String(Math.max(1, monthlyVendorEvents.length + monthlyMgEvents.length)).padStart(2, '0');
                         const invoiceNumber = `${vendorShort}/${bMM}/${bYY}/${bCount}`;
 
                         let billRows = '';
@@ -4000,6 +4060,7 @@ window.shareVendorLink = function(link, vendor) {
                                         <tr style="background: #E2E8F0 !important; height:40px !important;">
                                             <th style="border:1px solid #000 !important; width: 8%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">S.R.</th>
                                             <th style="border:1px solid #000 !important; width: 15%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Date</th>
+                                            ${vendorName === 'All Vendors' ? '<th style="border:1px solid #000 !important; width: 15%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Vendor</th>' : ''}
                                             <th style="border:1px solid #000 !important; width: 45%; font-weight:700; font-size:13px !important; text-align:left; padding-left:10px; color:#000;">Item Description</th>
                                             <th style="border:1px solid #000 !important; width: 10%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Qty</th>
                                             <th style="border:1px solid #000 !important; width: 11%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Rate</th>
@@ -4033,7 +4094,7 @@ window.shareVendorLink = function(link, vendor) {
                         printContainer.innerHTML = `
                             <div class="preview-card" style="max-width:920px; width:95vw; height:90vh;">
                               <div class="preview-header hide-on-print">
-                                <button onclick="window.print()" class="success" style="font-size:.9rem; padding:10px 20px; border-radius:8px; min-height:40px; font-weight:700; cursor:pointer;">🖨️ Print Invoice / Save PDF</button>
+                                <button onclick="window.print()" class="success" style="font-size:.9rem; padding:10px 20px; border-radius:8px; min-height:40px; font-weight:700; cursor:pointer;">🖨️ Print Bill / Save PDF</button>
                                 <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger" style="font-size:.9rem; padding:10px 20px; border-radius:8px; min-height:40px; font-weight:700; cursor:pointer;">✕ Close Preview</button>
                               </div>
                               <div class="preview-content" style="background:#fff; padding:25px;">
@@ -9561,4 +9622,3 @@ setTimeout(function() {
 </script>    
 </body>
 </html>
-a
