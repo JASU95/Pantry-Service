@@ -5507,7 +5507,22 @@ window.shareVendorLink = function(link, vendor) {
                         </div>
                     </div>
 
-                    <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:6px;"><h5 style="color:#44474E; margin-bottom:8px; font-size:.9rem;">1. Regular Daily Tea Report</h5><select id="reportCategory" style="margin-bottom:8px; padding:12px; border-radius:10px; border:1px solid #CBD5E1;"><option value="All">All Categories</option><option>Faculty</option><option>Staff</option><option>Law</option><option>Outsourced</option></select><button id="previewRegularBtn" class="success report-btn">👁️ Preview & Print</button></div>
+                    <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:6px;">
+                        <h5 style="color:#44474E; margin-bottom:8px; font-size:.9rem;">1. Regular Daily Tea Report</h5>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; align-items:center;">
+                            <select id="reportCategory" style="padding:10px 12px; border-radius:10px; border:1px solid #CBD5E1; flex:1; min-width:140px;">
+                                <option value="All">All Categories</option>
+                                <option>Faculty</option>
+                                <option>Staff</option>
+                                <option>Law</option>
+                                <option>Outsourced</option>
+                            </select>
+                            <label style="display:flex; align-items:center; gap:6px; font-weight:600; font-size:12px; color:#0A56D0; background:#EFF6FF; padding:10px 12px; border-radius:10px; border:1px solid #BFDBFE; cursor:pointer;">
+                                <input type="checkbox" id="includeFeedbackCol" style="width:16px; height:16px; accent-color:#0A56D0;"> Add Feedback Column
+                            </label>
+                        </div>
+                        <button id="previewRegularBtn" class="success report-btn" style="width:100%;">👁️ Preview & Print</button>
+                    </div>
                     <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:8px;"><h5 style="color:#D97706; margin-bottom:8px; font-size:.9rem;">2. Extra Tea Report</h5><button id="previewExtraBtn" class="btn report-btn" style="background:#D97706;">👁️ Preview & Print</button></div>
                     <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:8px;"><h5 style="color:#0A56D0; margin-bottom:8px; font-size:.9rem;">3. Meeting Refreshment Report</h5><button id="previewMeetingBtn" class="btn report-btn" style="background:#0A56D0;">👁️ Preview & Print</button></div>
                     <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:8px;"><h5 style="color:#146C43; margin-bottom:8px; font-size:.9rem;">4. Regular Tea All Excel Download</h5><button id="downloadAllExcelBtn2" class="success report-btn" style="background:#146C43;">📊 Download All Categories Excel</button></div>
@@ -6681,10 +6696,7 @@ window.shareVendorLink = function(link, vendor) {
             };
 
             // ============================================================
-            //  PREVIEW / PRINT / EXCEL REPORTS (with A4 format, 48px rows)
-            // ============================================================
-            // ============================================================
-            // 1. PREVIEW / PRINT REPORT
+            // 1. PREVIEW / PRINT REPORT (Perfect Size & Full Width Fix)
             // ============================================================
             window.previewIndividualReport = function(type) {
                 const month = document.getElementById('reportMonth')?.value;
@@ -6698,6 +6710,8 @@ window.shareVendorLink = function(link, vendor) {
 
                 if (type === 'regular') {
                     const cat = document.getElementById('reportCategory').value;
+                    const incFb = document.getElementById('includeFeedbackCol')?.checked; // ફીડબેક ઓપ્શન ચેક કરવા
+
                     if (cat === 'All') return appAlert('Notice', 'Please select a specific category (Faculty, Staff, Law, Outsourced).');
                     const categoryMatch = cat.trim().toLowerCase();
                     const isDAU = (categoryMatch === 'faculty' || categoryMatch === 'staff') ? 'DAU ' : '';
@@ -6716,6 +6730,29 @@ window.shareVendorLink = function(link, vendor) {
                         return appAlert('No Data', `No employees in this category for ${supplyText}.`);
                     }
 
+                    // ડાયનેમિક હેડર (જો ફીડબેક સિલેક્ટ કર્યું હોય તો)
+                    const colCount = incFb ? 11 : 9;
+                    const theadHtml = `
+                      <thead>
+                        <tr><th colspan="${colCount}" style="border:none; font-size:18px; text-decoration:underline; padding-bottom:20px; text-align:center;">${title}</th></tr>
+                        <tr style="background:#F1F5F9;">
+                            <th ${incFb ? 'rowspan="2"' : ''} class="sr-col" style="border:1px solid #000;">SR.<br>NO.</th>
+                            <th ${incFb ? 'rowspan="2"' : ''} class="name-col" style="border:1px solid #000;">NAME</th>
+                            <th ${incFb ? 'rowspan="2"' : ''} class="drink-col" style="border:1px solid #000;">TEA</th>
+                            <th ${incFb ? 'rowspan="2"' : ''} class="drink-col" style="border:1px solid #000;">COFFEE</th>
+                            <th ${incFb ? 'rowspan="2"' : ''} class="drink-col" style="border:1px solid #000;">GREEN<br>TEA</th>
+                            <th ${incFb ? 'rowspan="2"' : ''} class="drink-col" style="border:1px solid #000;">LEMON<br>TEA</th>
+                            <th ${incFb ? 'rowspan="2"' : ''} class="drink-col" style="border:1px solid #000;">BLACK<br>TEA</th>
+                            <th ${incFb ? 'rowspan="2"' : ''} class="drink-col" style="border:1px solid #000;">BLACK<br>COFFEE</th>
+                            ${incFb ? '<th colspan="2" style="border:1px solid #000;">Tea/Coffee Feedback</th>' : ''}
+                            <th ${incFb ? 'rowspan="2"' : ''} class="sign-col" style="border:1px solid #000;">SIGNATURE</th>
+                        </tr>
+                        ${incFb ? '<tr style="background:#F1F5F9;"><th style="border:1px solid #000; width:50px;">Good</th><th style="border:1px solid #000; width:50px;">Bad</th></tr>' : ''}
+                      </thead>
+                    `;
+
+                    const fbCells = incFb ? `<td></td><td></td>` : '';
+
                     emps.forEach(emp => {
                         let t = 0, c = 0, gt = 0, lt = 0, bt = 0, bc = 0;
                         logsData.filter(l => l.employeeId === emp.id && parseDMYToYMD(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')))
@@ -6725,7 +6762,7 @@ window.shareVendorLink = function(link, vendor) {
                                 else if (d === 'lemon tea') lt++; else if (d === 'black tea') bt++; else if (d === 'black coffee') bc++;
                             });
                         sumT += t; sumC += c; sumGT += gt; sumLT += lt; sumBT += bt; sumBC += bc;
-                        trs += `<tr><td>${sr++}</td><td class="left-align">${safeStr(emp.name)}</td><td>${t}</td><td>${c}</td><td>${gt}</td><td>${lt}</td><td>${bt}</td><td>${bc}</td><td></td></tr>`;
+                        trs += `<tr><td>${sr++}</td><td class="left-align">${safeStr(emp.name)}</td><td>${t}</td><td>${c}</td><td>${gt}</td><td>${lt}</td><td>${bt}</td><td>${bc}</td>${fbCells}<td></td></tr>`;
                     });
 
                     let wT = 0, wC = 0;
@@ -6743,14 +6780,13 @@ window.shareVendorLink = function(link, vendor) {
                             }
                             const fullHtml = `
                     <table class="print-table">
-                      <thead><tr><th colspan="9" style="border:none; font-size:18px; text-decoration:underline; padding-bottom:20px; text-align:center;">${title}</th></tr>
-                      <tr><th class="sr-col">SR.<br>NO.</th><th class="name-col">NAME</th><th class="drink-col">TEA</th><th class="drink-col">COFFEE</th><th class="drink-col">GREEN<br>TEA</th><th class="drink-col">LEMON<br>TEA</th><th class="drink-col">BLACK<br>TEA</th><th class="drink-col">BLACK<br>COFFEE</th><th class="sign-col">SIGNATURE</th></tr></thead>
+                      ${theadHtml}
                       <tbody>${trs}</tbody>
                       <tbody class="total-row-grp">
-                        <tr style="background:#FFFFFF;"><td></td><td class="left-align" style="font-weight:600; color:#000000;">Housekeeping Staff (Safal)</td><td>${wT}</td><td>${wC}</td><td>0</td><td>0</td><td>0</td><td>0</td><td></td></tr>
-                        <tr style="background:#FFFFFF;"><td></td><td class="left-align" style="font-weight:600; color:#000000;">Horticulture Staff (Safal)</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td></td></tr>
-                        <tr style="background:#FFFFFF;"><td></td><td class="left-align" style="font-weight:600; color:#000000;">Security Staff (Kavach)</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td></td></tr>
-                        <tr class="total-row"><td></td><td class="left-align" style="text-align:center;">TOTAL</td><td>${sumT + wT}</td><td>${sumC + wC}</td><td>${sumGT}</td><td>${sumLT}</td><td>${sumBT}</td><td>${sumBC}</td><td></td></tr>
+                        <tr style="background:#FFFFFF;"><td></td><td class="left-align" style="font-weight:600; color:#000000;">Housekeeping Staff (Safal)</td><td>${wT}</td><td>${wC}</td><td>0</td><td>0</td><td>0</td><td>0</td>${fbCells}<td></td></tr>
+                        <tr style="background:#FFFFFF;"><td></td><td class="left-align" style="font-weight:600; color:#000000;">Horticulture Staff (Safal)</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>${fbCells}<td></td></tr>
+                        <tr style="background:#FFFFFF;"><td></td><td class="left-align" style="font-weight:600; color:#000000;">Security Staff (Kavach)</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>${fbCells}<td></td></tr>
+                        <tr class="total-row"><td></td><td class="left-align" style="text-align:center;">TOTAL</td><td>${sumT + wT}</td><td>${sumC + wC}</td><td>${sumGT}</td><td>${sumLT}</td><td>${sumBT}</td><td>${sumBC}</td>${fbCells}<td></td></tr>
                       </tbody>
                     </table>
                   `;
@@ -6761,10 +6797,9 @@ window.shareVendorLink = function(link, vendor) {
 
                     html = `
                 <table class="print-table">
-                  <thead><tr><th colspan="9" style="border:none; font-size:18px; text-decoration:underline; padding-bottom:20px; text-align:center;">${title}</th></tr>
-                  <tr><th class="sr-col">SR.<br>NO.</th><th class="name-col">NAME</th><th class="drink-col">TEA</th><th class="drink-col">COFFEE</th><th class="drink-col">GREEN<br>TEA</th><th class="drink-col">LEMON<br>TEA</th><th class="drink-col">BLACK<br>TEA</th><th class="drink-col">BLACK<br>COFFEE</th><th class="sign-col">SIGNATURE</th></tr></thead>
+                  ${theadHtml}
                   <tbody>${trs}</tbody>
-                  <tbody class="total-row-grp"><tr class="total-row"><td></td><td class="left-align" style="text-align:center;">TOTAL</td><td>${sumT}</td><td>${sumC}</td><td>${sumGT}</td><td>${sumLT}</td><td>${sumBT}</td><td>${sumBC}</td><td></td></tr></tbody>
+                  <tbody class="total-row-grp"><tr class="total-row"><td></td><td class="left-align" style="text-align:center;">TOTAL</td><td>${sumT}</td><td>${sumC}</td><td>${sumGT}</td><td>${sumLT}</td><td>${sumBT}</td><td>${sumBC}</td>${fbCells}<td></td></tr></tbody>
                 </table>`;
                 
                 } else if (type === 'extra') {
@@ -6785,7 +6820,7 @@ window.shareVendorLink = function(link, vendor) {
                     
                     if (!count) return appAlert('No Data', 'No extra tea logs for this month in ' + supplyText);
                     html = `
-                <table class="print-table" style="width:100%; border-collapse:collapse; font-size:12px;">
+                <table class="print-table" style="width:100%; border-collapse:collapse;">
                   <thead><tr><th colspan="7" style="border:none; font-size:18px; text-decoration:underline; padding-bottom:20px; text-align:center;">${title}</th></tr>
                   <tr style="background:#F1F5F9; height:40px;">
                     <th style="border:1px solid #000;">LOG ID</th>
@@ -6882,7 +6917,7 @@ window.shareVendorLink = function(link, vendor) {
                     });
 
                     html = `
-                        <table class="print-table" style="width:100%; border-collapse:collapse; font-size:12px;">
+                        <table class="print-table" style="width:100%; border-collapse:collapse;">
                           <thead>
                             <tr><th colspan="10" style="border:none; font-size:18px; text-decoration:underline; padding-bottom:20px; text-align:center; background:#fff !important; color:#000;">${title}</th></tr>
                             <tr style="background:#F1F5F9; height:44px;">
@@ -6905,21 +6940,45 @@ window.shareVendorLink = function(link, vendor) {
                 function showPreview(htmlContent) {
                     const container = document.getElementById('printAreaContainer');
                     container.innerHTML = `
-                <div class="preview-card">
+                <div class="preview-card" style="max-width:100%; width:100%;">
                   <div class="preview-header hide-on-print">
                     <button onclick="window.print()" class="success" style="font-size:.9rem; padding:10px 18px; border-radius:10px; min-height:40px;">🖨️ Print</button>
                     <button onclick="window.exportIndividualReport('${type}')" class="btn" style="font-size:.9rem; padding:10px 18px; border-radius:10px; min-height:40px; background:#0A56D0;">📊 Excel</button>
                     <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger" style="font-size:.9rem; padding:10px 18px; border-radius:10px; min-height:40px;">✕ Close</button>
                   </div>
-                  <div class="preview-content">${htmlContent}</div>
+                  <div class="preview-content" style="padding: 10px; overflow-x: auto; box-sizing: border-box;">
+                    ${htmlContent}
+                  </div>
                 </div>
+                <style>
+                  @media print {
+                    @page { size: A4 portrait; margin: 10mm; }
+                    body { background: #fff !important; margin: 0; padding: 0; }
+                    #printAreaContainer { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; padding: 0 !important; margin: 0 !important; background: #fff !important; display: block !important; overflow: visible !important; }
+                    .preview-card { box-shadow: none !important; border: none !important; width: 100% !important; max-width: 100% !important; padding: 0 !important; margin: 0 !important; border-radius: 0 !important; }
+                    .preview-content { padding: 0 !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; overflow: visible !important; }
+                    .preview-header { display: none !important; }
+                    
+                    /* ટેબલને કાગળની પૂરી સાઇઝ લેવા મજબૂર કરવું */
+                    table.print-table { 
+                        width: 100% !important; 
+                        max-width: 100% !important; 
+                        table-layout: auto !important; 
+                    }
+                    
+                    /* અક્ષર અને પેડિંગ ઓરિજિનલ કરતાં થોડાક જ નાના કર્યા (11.5px) જેથી 11 કોલમ પ્રોપર ફિટ થાય */
+                    table.print-table th, table.print-table td { 
+                        padding: 5px 4px !important; 
+                        font-size: 11.5px !important; 
+                        height: 38px !important;
+                    }
+                  }
+                </style>
               `;
                     container.classList.remove('hidden');
                 }
                 if (html) showPreview(html);
             };
-
-            // ============================================================
             // 2. EXCEL DOWNLOAD FROM PREVIEW
             // ============================================================
             window.exportIndividualReport = async function(type) {
@@ -6930,6 +6989,8 @@ window.shareVendorLink = function(link, vendor) {
 
                 if (type === 'regular') {
                     const cat = document.getElementById('reportCategory').value;
+                    const incFb = document.getElementById('includeFeedbackCol')?.checked; // ફીડબેક ઓપ્શન ચેક કરવા
+                    
                     filename = `Regular_Tea_${cat}_${supplyText}_${month}.xlsx`;
 
                     const wb = XLSX.utils.book_new();
@@ -6951,15 +7012,47 @@ window.shareVendorLink = function(link, vendor) {
                     const titleStr = `MONTHLY TEA OF ${isDAU}${cName.toUpperCase()} - ${supplyText.replace('_',' ')} (${monthStr})`;
                     const titleStyle = { font: { bold: true, sz: 14, underline: true }, alignment: { horizontal: 'center', vertical: 'center' } };
 
-                    const row1 = [{ v: titleStr, s: titleStyle }, '', '', '', '', '', '', '', ''];
-                    const row2 = [{ v: 'SR. NO.', s: headerStyle }, { v: 'NAME', s: headerStyle },
-                        { v: 'TEA', s: headerStyle }, { v: 'COFFEE', s: headerStyle },
-                        { v: 'GREEN\nTEA', s: headerStyle }, { v: 'LEMON\nTEA', s: headerStyle },
-                        { v: 'BLACK\nTEA', s: headerStyle }, { v: 'BLACK\nCOFFEE', s: headerStyle },
-                        { v: 'SIGNATURE', s: headerStyle }
-                    ];
+                    let row1 = []; let row2 = []; let row3 = [];
+                    let merges = []; let colWidths = [];
 
-                    let data = [row1, row2];
+                    // ફીડબેકના આધારે એક્સેલ હેડર જનરેટ કરવું
+                    if (incFb) {
+                        row1 = [{ v: titleStr, s: titleStyle }, '', '', '', '', '', '', '', '', '', ''];
+                        merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 10 } }); 
+                        
+                        row2 = [
+                            { v: 'SR. NO.', s: headerStyle }, { v: 'NAME', s: headerStyle },
+                            { v: 'TEA', s: headerStyle }, { v: 'COFFEE', s: headerStyle },
+                            { v: 'GREEN\nTEA', s: headerStyle }, { v: 'LEMON\nTEA', s: headerStyle },
+                            { v: 'BLACK\nTEA', s: headerStyle }, { v: 'BLACK\nCOFFEE', s: headerStyle },
+                            { v: 'Tea/Coffee Feedback', s: headerStyle }, '', 
+                            { v: 'SIGNATURE', s: headerStyle }
+                        ];
+                        
+                        row3 = [
+                            '', '', '', '', '', '', '', '', 
+                            { v: 'Good', s: headerStyle }, { v: 'Bad', s: headerStyle }, 
+                            ''
+                        ];
+
+                        [0, 1, 2, 3, 4, 5, 6, 7, 10].forEach(c => merges.push({ s: { r: 1, c: c }, e: { r: 2, c: c } }));
+                        merges.push({ s: { r: 1, c: 8 }, e: { r: 1, c: 9 } });
+
+                        colWidths = [{ wch: 6 }, { wch: 26 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 9 }, { wch: 9 }, { wch: 24 }];
+                    } else {
+                        row1 = [{ v: titleStr, s: titleStyle }, '', '', '', '', '', '', '', ''];
+                        merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 8 } });
+                        row2 = [
+                            { v: 'SR. NO.', s: headerStyle }, { v: 'NAME', s: headerStyle },
+                            { v: 'TEA', s: headerStyle }, { v: 'COFFEE', s: headerStyle },
+                            { v: 'GREEN\nTEA', s: headerStyle }, { v: 'LEMON\nTEA', s: headerStyle },
+                            { v: 'BLACK\nTEA', s: headerStyle }, { v: 'BLACK\nCOFFEE', s: headerStyle },
+                            { v: 'SIGNATURE', s: headerStyle }
+                        ];
+                        colWidths = [{ wch: 6 }, { wch: 26 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 24 }];
+                    }
+
+                    let data = incFb ? [row1, row2, row3] : [row1, row2];
                     let sumT = 0, sumC = 0, sumGT = 0, sumLT = 0, sumBT = 0, sumBC = 0;
                     let sr = 1;
 
@@ -6977,10 +7070,19 @@ window.shareVendorLink = function(link, vendor) {
                             else if (d === 'lemon tea') lt++; else if (d === 'black tea') bt++; else if (d === 'black coffee') bc++;
                         });
                         sumT += t; sumC += c; sumGT += gt; sumLT += lt; sumBT += bt; sumBC += bc;
-                        data.push([{ v: sr++, s: cellCenter }, { v: emp.name, s: cellLeft },
-                            { v: t, s: cellCenter }, { v: c, s: cellCenter }, { v: gt, s: cellCenter },
-                            { v: lt, s: cellCenter }, { v: bt, s: cellCenter }, { v: bc, s: cellCenter }, { v: '', s: cellCenter }
-                        ]);
+                        
+                        if (incFb) {
+                            data.push([{ v: sr++, s: cellCenter }, { v: emp.name, s: cellLeft },
+                                { v: t, s: cellCenter }, { v: c, s: cellCenter }, { v: gt, s: cellCenter },
+                                { v: lt, s: cellCenter }, { v: bt, s: cellCenter }, { v: bc, s: cellCenter }, 
+                                { v: '', s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }
+                            ]);
+                        } else {
+                            data.push([{ v: sr++, s: cellCenter }, { v: emp.name, s: cellLeft },
+                                { v: t, s: cellCenter }, { v: c, s: cellCenter }, { v: gt, s: cellCenter },
+                                { v: lt, s: cellCenter }, { v: bt, s: cellCenter }, { v: bc, s: cellCenter }, { v: '', s: cellCenter }
+                            ]);
+                        }
                     });
 
                     if ((cNameLower === 'outsourced' || cNameLower === 'outsource') && supplySource === 'Contractor') {
@@ -6993,28 +7095,50 @@ window.shareVendorLink = function(link, vendor) {
                                 }
                             }
                         }
-                        data.push([{ v: '', s: totalStyle }, { v: 'Housekeeping Staff (Safal)', s: cellLeft },
-                            { v: wT, s: cellCenter }, { v: wC, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
-                            { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }]);
-                        data.push([{ v: '', s: totalStyle }, { v: 'Horticulture Staff (Safal)', s: cellLeft },
-                            { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
-                            { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }]);
-                        data.push([{ v: '', s: totalStyle }, { v: 'Security Staff (Kavach)', s: cellLeft },
-                            { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
-                            { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }]);
+                        
+                        if (incFb) {
+                            data.push([{ v: '', s: totalStyle }, { v: 'Housekeeping Staff (Safal)', s: cellLeft },
+                                { v: wT, s: cellCenter }, { v: wC, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }]);
+                            data.push([{ v: '', s: totalStyle }, { v: 'Horticulture Staff (Safal)', s: cellLeft },
+                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }]);
+                            data.push([{ v: '', s: totalStyle }, { v: 'Security Staff (Kavach)', s: cellLeft },
+                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }]);
+                        } else {
+                            data.push([{ v: '', s: totalStyle }, { v: 'Housekeeping Staff (Safal)', s: cellLeft },
+                                { v: wT, s: cellCenter }, { v: wC, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }]);
+                            data.push([{ v: '', s: totalStyle }, { v: 'Horticulture Staff (Safal)', s: cellLeft },
+                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }]);
+                            data.push([{ v: '', s: totalStyle }, { v: 'Security Staff (Kavach)', s: cellLeft },
+                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }]);
+                        }
                         sumT += wT; sumC += wC;
                     }
 
-                    data.push([{ v: '', s: totalStyle }, { v: 'TOTAL', s: totalStyle },
-                        { v: sumT, s: totalStyle }, { v: sumC, s: totalStyle },
-                        { v: sumGT, s: totalStyle }, { v: sumLT, s: totalStyle },
-                        { v: sumBT, s: totalStyle }, { v: sumBC, s: totalStyle },
-                        { v: '', s: totalStyle }
-                    ]);
+                    if (incFb) {
+                        data.push([{ v: '', s: totalStyle }, { v: 'TOTAL', s: totalStyle },
+                            { v: sumT, s: totalStyle }, { v: sumC, s: totalStyle },
+                            { v: sumGT, s: totalStyle }, { v: sumLT, s: totalStyle },
+                            { v: sumBT, s: totalStyle }, { v: sumBC, s: totalStyle },
+                            { v: '', s: totalStyle }, { v: '', s: totalStyle }, { v: '', s: totalStyle }
+                        ]);
+                    } else {
+                        data.push([{ v: '', s: totalStyle }, { v: 'TOTAL', s: totalStyle },
+                            { v: sumT, s: totalStyle }, { v: sumC, s: totalStyle },
+                            { v: sumGT, s: totalStyle }, { v: sumLT, s: totalStyle },
+                            { v: sumBT, s: totalStyle }, { v: sumBC, s: totalStyle },
+                            { v: '', s: totalStyle }
+                        ]);
+                    }
 
                     const ws = XLSX.utils.aoa_to_sheet(data);
-                    ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 8 } }];
-                    ws['!cols'] = [{ wch: 6 }, { wch: 26 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 24 }];
+                    ws['!merges'] = merges;
+                    ws['!cols'] = colWidths;
                     ws['!rows'] = data.map(() => ({ hpt: 48 })); 
                     
                     XLSX.utils.book_append_sheet(wb, ws, cName.substring(0, 31).replace(/[\\/*?:\[\]]/g, '') || 'Report');
@@ -7023,6 +7147,7 @@ window.shareVendorLink = function(link, vendor) {
                     return; 
                 }
 
+                // બાકીનો કોડ જેમ છે તેમ રહેશે
                 const tableElement = document.querySelector('.preview-content table');
                 
                 if (!tableElement) {
@@ -7088,7 +7213,6 @@ window.shareVendorLink = function(link, vendor) {
                 XLSX.writeFile(wb, filename);
                 appAlert('Downloaded', 'Excel report downloaded perfectly!');
             };
-
             // ============================================================
             // 3. DOWNLOAD ALL CATEGORIES EXCEL
             // ============================================================
@@ -7096,6 +7220,7 @@ window.shareVendorLink = function(link, vendor) {
                 const month = document.getElementById('reportMonth')?.value;
                 const supplySource = document.getElementById('reportSupplySource')?.value || 'Contractor';
                 const supplyText = supplySource === 'Contractor' ? 'IA_Caterers' : 'DAU_Direct';
+                const incFb = document.getElementById('includeFeedbackCol')?.checked; // ફીડબેક ઓપ્શન ચેક કરવા
 
                 if (!month) return appAlert('Error', 'Select month.');
 
@@ -7119,15 +7244,42 @@ window.shareVendorLink = function(link, vendor) {
                     const titleStr = `MONTHLY TEA OF ${isDAU}${cName.toUpperCase()} - ${supplyText.replace('_',' ')} (${monthStr})`;
                     const titleStyle = { font: { bold: true, sz: 14, underline: true }, alignment: { horizontal: 'center', vertical: 'center' } };
 
-                    const row1 = [{ v: titleStr, s: titleStyle }, '', '', '', '', '', '', '', ''];
-                    const row2 = [{ v: 'SR. NO.', s: headerStyle }, { v: 'NAME', s: headerStyle },
-                    { v: 'TEA', s: headerStyle }, { v: 'COFFEE', s: headerStyle },
-                    { v: 'GREEN\nTEA', s: headerStyle }, { v: 'LEMON\nTEA', s: headerStyle },
-                    { v: 'BLACK\nTEA', s: headerStyle }, { v: 'BLACK\nCOFFEE', s: headerStyle },
-                    { v: 'SIGNATURE', s: headerStyle }
-                    ];
+                    let row1 = []; let row2 = []; let row3 = [];
+                    let merges = []; let colWidths = [];
 
-                    let data = [row1, row2];
+                    if (incFb) {
+                        row1 = [{ v: titleStr, s: titleStyle }, '', '', '', '', '', '', '', '', '', ''];
+                        merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 10 } }); 
+                        row2 = [
+                            { v: 'SR. NO.', s: headerStyle }, { v: 'NAME', s: headerStyle },
+                            { v: 'TEA', s: headerStyle }, { v: 'COFFEE', s: headerStyle },
+                            { v: 'GREEN\nTEA', s: headerStyle }, { v: 'LEMON\nTEA', s: headerStyle },
+                            { v: 'BLACK\nTEA', s: headerStyle }, { v: 'BLACK\nCOFFEE', s: headerStyle },
+                            { v: 'Tea/Coffee Feedback', s: headerStyle }, '', 
+                            { v: 'SIGNATURE', s: headerStyle }
+                        ];
+                        row3 = [
+                            '', '', '', '', '', '', '', '', 
+                            { v: 'Good', s: headerStyle }, { v: 'Bad', s: headerStyle }, 
+                            ''
+                        ];
+                        [0, 1, 2, 3, 4, 5, 6, 7, 10].forEach(c => merges.push({ s: { r: 1, c: c }, e: { r: 2, c: c } }));
+                        merges.push({ s: { r: 1, c: 8 }, e: { r: 1, c: 9 } });
+                        colWidths = [{ wch: 6 }, { wch: 26 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 9 }, { wch: 9 }, { wch: 24 }];
+                    } else {
+                        row1 = [{ v: titleStr, s: titleStyle }, '', '', '', '', '', '', '', ''];
+                        merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 8 } });
+                        row2 = [
+                            { v: 'SR. NO.', s: headerStyle }, { v: 'NAME', s: headerStyle },
+                            { v: 'TEA', s: headerStyle }, { v: 'COFFEE', s: headerStyle },
+                            { v: 'GREEN\nTEA', s: headerStyle }, { v: 'LEMON\nTEA', s: headerStyle },
+                            { v: 'BLACK\nTEA', s: headerStyle }, { v: 'BLACK\nCOFFEE', s: headerStyle },
+                            { v: 'SIGNATURE', s: headerStyle }
+                        ];
+                        colWidths = [{ wch: 6 }, { wch: 26 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 24 }];
+                    }
+
+                    let data = incFb ? [row1, row2, row3] : [row1, row2];
                     let sumT = 0, sumC = 0, sumGT = 0, sumLT = 0, sumBT = 0, sumBC = 0;
                     let sr = 1;
 
@@ -7145,10 +7297,19 @@ window.shareVendorLink = function(link, vendor) {
                             else if (d === 'lemon tea') lt++; else if (d === 'black tea') bt++; else if (d === 'black coffee') bc++;
                         });
                         sumT += t; sumC += c; sumGT += gt; sumLT += lt; sumBT += bt; sumBC += bc;
-                        data.push([{ v: sr++, s: cellCenter }, { v: emp.name, s: cellLeft },
-                        { v: t, s: cellCenter }, { v: c, s: cellCenter }, { v: gt, s: cellCenter },
-                        { v: lt, s: cellCenter }, { v: bt, s: cellCenter }, { v: bc, s: cellCenter }, { v: '', s: cellCenter }
-                        ]);
+                        
+                        if (incFb) {
+                            data.push([{ v: sr++, s: cellCenter }, { v: emp.name, s: cellLeft },
+                                { v: t, s: cellCenter }, { v: c, s: cellCenter }, { v: gt, s: cellCenter },
+                                { v: lt, s: cellCenter }, { v: bt, s: cellCenter }, { v: bc, s: cellCenter }, 
+                                { v: '', s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }
+                            ]);
+                        } else {
+                            data.push([{ v: sr++, s: cellCenter }, { v: emp.name, s: cellLeft },
+                                { v: t, s: cellCenter }, { v: c, s: cellCenter }, { v: gt, s: cellCenter },
+                                { v: lt, s: cellCenter }, { v: bt, s: cellCenter }, { v: bc, s: cellCenter }, { v: '', s: cellCenter }
+                            ]);
+                        }
                     });
 
                     if ((cNameLower === 'outsourced' || cNameLower === 'outsource') && supplySource === 'Contractor') {
@@ -7163,32 +7324,49 @@ window.shareVendorLink = function(link, vendor) {
                             }
                         }
 
-                        data.push([{ v: '', s: totalStyle }, { v: 'Housekeeping Staff (Safal)', s: cellLeft },
-                        { v: wT, s: cellCenter }, { v: wC, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
-                        { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }]);
-
-                        data.push([{ v: '', s: totalStyle }, { v: 'Horticulture Staff (Safal)', s: cellLeft },
-                        { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
-                        { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }]);
-
-                        data.push([{ v: '', s: totalStyle }, { v: 'Security Staff (Kavach)', s: cellLeft },
-                        { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
-                        { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }]);
-
-                        sumT += wT;
-                        sumC += wC;
+                        if (incFb) {
+                            data.push([{ v: '', s: totalStyle }, { v: 'Housekeeping Staff (Safal)', s: cellLeft },
+                                { v: wT, s: cellCenter }, { v: wC, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }]);
+                            data.push([{ v: '', s: totalStyle }, { v: 'Horticulture Staff (Safal)', s: cellLeft },
+                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }]);
+                            data.push([{ v: '', s: totalStyle }, { v: 'Security Staff (Kavach)', s: cellLeft },
+                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }]);
+                        } else {
+                            data.push([{ v: '', s: totalStyle }, { v: 'Housekeeping Staff (Safal)', s: cellLeft },
+                                { v: wT, s: cellCenter }, { v: wC, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }]);
+                            data.push([{ v: '', s: totalStyle }, { v: 'Horticulture Staff (Safal)', s: cellLeft },
+                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }]);
+                            data.push([{ v: '', s: totalStyle }, { v: 'Security Staff (Kavach)', s: cellLeft },
+                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }]);
+                        }
+                        sumT += wT; sumC += wC;
                     }
 
-                    data.push([{ v: '', s: totalStyle }, { v: 'TOTAL', s: totalStyle },
-                    { v: sumT, s: totalStyle }, { v: sumC, s: totalStyle },
-                    { v: sumGT, s: totalStyle }, { v: sumLT, s: totalStyle },
-                    { v: sumBT, s: totalStyle }, { v: sumBC, s: totalStyle },
-                    { v: '', s: totalStyle }
-                    ]);
+                    if (incFb) {
+                        data.push([{ v: '', s: totalStyle }, { v: 'TOTAL', s: totalStyle },
+                            { v: sumT, s: totalStyle }, { v: sumC, s: totalStyle },
+                            { v: sumGT, s: totalStyle }, { v: sumLT, s: totalStyle },
+                            { v: sumBT, s: totalStyle }, { v: sumBC, s: totalStyle },
+                            { v: '', s: totalStyle }, { v: '', s: totalStyle }, { v: '', s: totalStyle }
+                        ]);
+                    } else {
+                        data.push([{ v: '', s: totalStyle }, { v: 'TOTAL', s: totalStyle },
+                            { v: sumT, s: totalStyle }, { v: sumC, s: totalStyle },
+                            { v: sumGT, s: totalStyle }, { v: sumLT, s: totalStyle },
+                            { v: sumBT, s: totalStyle }, { v: sumBC, s: totalStyle },
+                            { v: '', s: totalStyle }
+                        ]);
+                    }
 
                     const ws = XLSX.utils.aoa_to_sheet(data);
-                    ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 8 } }];
-                    ws['!cols'] = [{ wch: 6 }, { wch: 26 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 11 }, { wch: 24 }];
+                    ws['!merges'] = merges;
+                    ws['!cols'] = colWidths;
                     ws['!rows'] = data.map(() => ({ hpt: 48 }));
                     XLSX.utils.book_append_sheet(wb, ws, cName.substring(0, 31).replace(/[\\/*?:\[\]]/g, '') || 'Report');
                 });
