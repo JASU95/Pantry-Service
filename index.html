@@ -4398,194 +4398,415 @@ window.shareVendorLink = function(link, vendor) {
                     return pantryId;
                 }
 
-                window.openMonthlyGridPopup = function openMonthlyGridPopup() {
-                    const popup = document.getElementById('monthlyGridPopup');
-                    const content = document.getElementById('monthlyGridPopupContent');
-                    popup.classList.remove('hidden');
+            // ============================================================
+            //  PANTRY - MONTHLY ENTRY GRID (With Smart Excel Import & Month Picker)
+            // ============================================================
+            window.openMonthlyGridPopup = function openMonthlyGridPopup() {
+                const popup = document.getElementById('monthlyGridPopup');
+                const content = document.getElementById('monthlyGridPopupContent');
+                popup.classList.remove('hidden');
 
-                    const dateVal = document.getElementById('beverageEntryDate')?.value;
-                    if (!dateVal) {
-                        content.innerHTML = `<p style="padding:20px; color:#74777F; text-align:center;">Select a date first.</p>`;
-                        return;
+                // 1. પોપઅપની અંદરથી જ મહિનો લેવાનો કોડ (નવો ઉમેર્યો)
+                let monthVal = document.getElementById('monthlyGridMonthPicker')?.value;
+                
+                // જો પોપઅપમાં મહિનો સિલેક્ટ ન હોય તો બહારની તારીખથી અથવા આજના મહિનાથી સેટ કરો
+                if (!monthVal) {
+                    const mainDate = document.getElementById('beverageEntryDate')?.value;
+                    if (mainDate) {
+                        monthVal = mainDate.slice(0, 7); // YYYY-MM
+                    } else {
+                        const today = new Date();
+                        monthVal = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
                     }
+                }
 
-                    const monthStr = dateVal.slice(0, 7);
-                    const [yy, mm] = monthStr.split('-').map(Number);
-                    const daysInMonth = getDaysInMonth(yy, mm);
+                const [yy, mm] = monthVal.split('-').map(Number);
+                const daysInMonth = getDaysInMonth(yy, mm);
 
-                    const hasDauAccess = window.hasDauPurchasePermission ? window.hasDauPurchasePermission(currentUser.id) : true;
-                    const supplySource = document.getElementById('monthlySupplySource')?.value || 'Contractor';
-                    
-                    const controlHtml = `
-                        <div style="margin-bottom: 12px; display:flex; gap: 10px; align-items: center; background:#EFF6FF; padding:8px; border-radius:8px; border:1px solid #BFDBFE;">
-                            <select id="monthlySupplySource" style="padding:8px; border-radius:6px; border:1px solid #0A56D0; font-weight:bold; color:#0A56D0; background:#fff; flex:1; margin:0;" onchange="window.refreshMonthlyGrid()">
-                                <option value="Contractor" ${supplySource === 'Contractor' ? 'selected' : ''}>☕ IA Caterers (Contractor)</option>
-                                ${hasDauAccess ? `<option value="DAU Direct Purchase" ${supplySource === 'DAU Direct Purchase' ? 'selected' : ''}>🛒 DAU Direct Purchase</option>` : ''}
-                            </select>
-                        </div>
-                    `;
-
-                    const effectivePantryId = getEffectivePantryId(currentUser.id);
-                    
-                    const myAssigned = employeeList.filter(emp => {
-                        let isMine = false;
-                        if (emp.assignedPantryId === effectivePantryId) isMine = true;
+                const hasDauAccess = window.hasDauPurchasePermission ? window.hasDauPurchasePermission(currentUser.id) : true;
+                const supplySource = document.getElementById('monthlySupplySource')?.value || 'Contractor';
+                
+                // પોપઅપમાં મહિનો સિલેક્ટ કરવાનું નવું બોક્સ ઉમેર્યું 
+                const controlHtml = `
+                    <div style="margin-bottom: 12px; display:flex; gap: 10px; align-items: center; background:#EFF6FF; padding:8px; border-radius:8px; border:1px solid #BFDBFE; flex-wrap:wrap;">
                         
-                        // જો સ્પેશિયલ ડ્યુટીમાં નામ હોય તો પણ મંથલી ગ્રીડમાં દેખાય
-                        if (typeof weekendDutiesData !== 'undefined') {
-                            ['Saturday', 'Sunday', 'Holiday'].forEach(dt => {
-                                if (weekendDutiesData[dt] && weekendDutiesData[dt][emp.id] === effectivePantryId) {
-                                    isMine = true;
-                                }
-                            });
-                        }
+                        <input type="month" id="monthlyGridMonthPicker" value="${monthVal}" style="padding:8px; border-radius:6px; border:1px solid #0A56D0; font-weight:bold; color:#0A56D0; background:#fff; margin:0;" onchange="window.refreshMonthlyGrid()">
+                        
+                        <select id="monthlySupplySource" style="padding:8px; border-radius:6px; border:1px solid #0A56D0; font-weight:bold; color:#0A56D0; background:#fff; flex:1; margin:0; min-width:180px;" onchange="window.refreshMonthlyGrid()">
+                            <option value="Contractor" ${supplySource === 'Contractor' ? 'selected' : ''}>☕ IA Caterers (Contractor)</option>
+                            ${hasDauAccess ? `<option value="DAU Direct Purchase" ${supplySource === 'DAU Direct Purchase' ? 'selected' : ''}>🛒 DAU Direct Purchase</option>` : ''}
+                        </select>
+                        <button type="button" onclick="window.downloadMonthlyGridTemplate()" class="btn outline" style="margin:0; padding:8px 16px; font-size:.85rem; font-weight:bold; border-radius:6px; background:#fff; white-space:nowrap;">📥 Format</button>
+                        <label class="btn success" style="margin:0; padding:8px 16px; font-size:.85rem; font-weight:bold; border-radius:6px; cursor:pointer; white-space:nowrap;">
+                            📤 Upload Excel
+                            <input type="file" id="monthlyGridExcelUpload" accept=".xlsx, .xls" style="display:none;" onchange="window.handleMonthlyGridExcelUpload(event)">
+                        </label>
+                    </div>
+                `;
 
-                        if (!isMine) return false;
-                        if (supplySource === 'DAU Direct Purchase' && emp.dauTeaEligible !== true) return false;
-                        return true;
+                const effectivePantryId = getEffectivePantryId(currentUser.id);
+                
+                const myAssigned = employeeList.filter(emp => {
+                    let isMine = false;
+                    if (emp.assignedPantryId === effectivePantryId) isMine = true;
+                    if (typeof weekendDutiesData !== 'undefined') {
+                        ['Saturday', 'Sunday', 'Holiday'].forEach(dt => {
+                            if (weekendDutiesData[dt] && weekendDutiesData[dt][emp.id] === effectivePantryId) {
+                                isMine = true;
+                            }
+                        });
+                    }
+                    if (!isMine) return false;
+                    if (supplySource === 'DAU Direct Purchase' && emp.dauTeaEligible !== true) return false;
+                    return true;
+                });
+
+                if (!myAssigned.length) {
+                    content.innerHTML = controlHtml + `<p style="padding:40px; color:#74777F; text-align:center; font-weight:600;">No employees allotted for ${supplySource}.</p>`;
+                    return;
+                }
+                
+                const contractorArr = typeof CONTRACTOR_BEVERAGES !== 'undefined' ? CONTRACTOR_BEVERAGES : ['Tea','Coffee'];
+                const dauArr = typeof DAU_PURCHASE_BEVERAGES !== 'undefined' ? DAU_PURCHASE_BEVERAGES : [];
+                const currentDrinkArr = supplySource === 'DAU Direct Purchase' ? dauArr : contractorArr;
+
+                let tableHtml = `<div style="overflow:auto; max-height:55vh;"><table style="border-collapse:collapse;"><thead><tr><th rowspan="2" style="min-width:80px; position:sticky; left:0; z-index:6; background:#F1F5F9; top:0; padding:4px; border:1px solid #CBD5E1; border-bottom:2px solid #0A56D0;">Date</th>`;
+                myAssigned.forEach(emp => {
+                    tableHtml += `<th colspan="2" class="merged-header" style="min-width:100px; position:sticky; top:0; background:#F1F5F9; z-index:5; padding:4px 2px 2px 2px; border:1px solid #CBD5E1; border-bottom:1px solid #94A3B8;">
+                        <span class="emp-name" data-id="${emp.id}" style="display:block; font-size:.78rem; margin-bottom:0;">${safeStr(emp.name)}</span>
+                    </th>`;
+                });
+                tableHtml += `</tr><tr>`;
+                myAssigned.forEach(() => {
+                    tableHtml += `<th class="session-label" style="position:sticky; top:24px; background:#F8FAFC; z-index:4; padding:2px; font-size:.65rem; border:1px solid #CBD5E1; border-top:none; border-bottom:2px solid #0A56D0;">Morn</th>
+                                  <th class="session-label" style="position:sticky; top:24px; background:#F8FAFC; z-index:4; padding:2px; font-size:.65rem; border:1px solid #CBD5E1; border-top:none; border-bottom:2px solid #0A56D0;">Aft</th>`;
+                });
+                tableHtml += `</tr></thead><tbody>`;
+
+                const monthPad = String(mm).padStart(2, '0');
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dd = String(d).padStart(2, '0');
+                    const dmy = `${dd}/${monthPad}/${yy}`;
+                    const dateDisplay = formatDateForGrid(d, mm, yy);
+                    
+                    const copyBtn = d > 1 ? `<button type="button" onclick="window.copyPrevDateRow(this)" style="background:transparent; border:none; cursor:pointer; font-size:1rem; padding:0 4px;" title="Copy from previous day">📋</button>` : '';
+                    const clearBtn = `<button type="button" onclick="window.clearDateRow(this)" style="background:transparent; border:none; cursor:pointer; font-size:1rem; padding:0 4px; color:#DC3545;" title="Clear this day's entry">🗑️</button>`;
+                    
+                    tableHtml += `<tr><td class="date-cell"><div style="display:flex; justify-content:space-between; align-items:center;"><span>${dateDisplay}</span><div style="display:flex; gap:4px;">${copyBtn}${clearBtn}</div></div></td>`;
+                    
+                    myAssigned.forEach(emp => {
+                        const mLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Morning' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                        const aLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Afternoon' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                        const mVal = mLog ? mLog.drink : '';
+                        const aVal = aLog ? aLog.drink : '';
+                        
+                        tableHtml += `<td><select class="grid-morn" data-emp="${emp.id}" data-date="${dmy}" data-logid="${mLog ? mLog.id : ''}" style="width:100%; padding:4px; font-size:.7rem; border:1px solid #CBD5E1; border-radius:4px;"><option value="">-</option>${currentDrinkArr.map(opt => `<option value="${opt}" ${opt === mVal ? 'selected' : ''}>${opt}</option>`).join('')}</select></td>
+                        <td><select class="grid-aft" data-emp="${emp.id}" data-date="${dmy}" data-logid="${aLog ? aLog.id : ''}" style="width:100%; padding:4px; font-size:.7rem; border:1px solid #CBD5E1; border-radius:4px; margin-top:2px;"><option value="">-</option>${currentDrinkArr.map(opt => `<option value="${opt}" ${opt === aVal ? 'selected' : ''}>${opt}</option>`).join('')}</select></td>`;
+                    });
+                    tableHtml += '</tr>';
+                }
+                tableHtml += '</tbody></table></div>';
+                
+                content.innerHTML = controlHtml + tableHtml;
+
+                window.refreshMonthlyGrid = function() { openMonthlyGridPopup(); };
+
+                window.copyPrevDateRow = function(btn) {
+                    const currentRow = btn.closest('tr');
+                    const prevRow = currentRow.previousElementSibling;
+                    if (!prevRow) return;
+
+                    const prevSelects = prevRow.querySelectorAll('select.grid-morn, select.grid-aft');
+                    const currSelects = currentRow.querySelectorAll('select.grid-morn, select.grid-aft');
+                    
+                    let copied = false;
+                    prevSelects.forEach((sel, idx) => {
+                        if (currSelects[idx] && !currSelects[idx].disabled) {
+                            currSelects[idx].value = sel.value;
+                            copied = true;
+                        }
+                    });
+                    if (copied) {
+                        const originalIcon = btn.innerText;
+                        btn.innerText = "✅";
+                        setTimeout(() => { btn.innerText = originalIcon; }, 1000);
+                    }
+                };
+
+                window.clearDateRow = function(btn) {
+                    const currentRow = btn.closest('tr');
+                    const currSelects = currentRow.querySelectorAll('select.grid-morn, select.grid-aft');
+                    let cleared = false;
+                    currSelects.forEach(sel => {
+                        if (!sel.disabled) { sel.value = ""; cleared = true; }
+                    });
+                    if (cleared) {
+                        const originalIcon = btn.innerText;
+                        btn.innerText = "✅";
+                        setTimeout(() => { btn.innerText = originalIcon; }, 1000);
+                    }
+                };
+
+                document.getElementById('saveMonthlyGridPopup').onclick = function() {
+                    const selects = content.querySelectorAll('select.grid-morn, select.grid-aft');
+                    const selectedSupplySource = document.getElementById('monthlySupplySource')?.value || 'Contractor';
+                    const updates = {};
+                    let saved = 0;
+                    const baseId = Date.now();
+
+                    selects.forEach((sel, idx) => {
+                        const val = sel.value;
+                        const empId = sel.dataset.emp;
+                        const dateDMY = sel.dataset.date;
+                        const session = sel.className.includes('grid-morn') ? 'Morning' : 'Afternoon';
+                        const existingLogId = sel.dataset.logid;
+                        const empObj = employeeList.find(e => e.id === empId);
+                        const empName = empObj ? empObj.name : 'Unknown';
+
+                        if (existingLogId) {
+                            if (val && val !== '-') {
+                                const existingLog = logsData.find(l => l.id === existingLogId);
+                                if (existingLog && existingLog.drink !== val) {
+                                    updates[existingLogId + '/drink'] = val;
+                                    saved++;
+                                }
+                            } else {
+                                updates[existingLogId] = null;
+                                sel.dataset.logid = '';
+                                saved++;
+                            }
+                        } else {
+                            if (val && val !== '-') {
+                                const newId = 'log_' + (baseId + idx) + '_' + Math.floor(Math.random() * 10000);
+                                updates[newId] = {
+                                    id: newId, employeeId: empId, employeeName: empName,
+                                    drink: val, session: session, date: dateDMY,
+                                    pantryId: currentUser.id, pantryName: currentUser.name,
+                                    supplySource: selectedSupplySource
+                                };
+                                sel.dataset.logid = newId;
+                                saved++;
+                            }
+                        }
                     });
 
-                    if (!myAssigned.length) {
-                        content.innerHTML = controlHtml + `<p style="padding:40px; color:#74777F; text-align:center; font-weight:600;">No employees allotted for ${supplySource}.</p>`;
-                        return;
+                    if (saved > 0) {
+                        db.ref('logs').update(updates).then(() => {
+                            appAlert('Success', `✅ ${saved} entries synced!`);
+                            if (typeof window.populateServe === 'function') window.populateServe();
+                            openMonthlyGridPopup();
+                        }).catch(err => { appAlert('Error', 'Save failed: ' + err.message); });
+                    } else {
+                        appAlert('Notice', 'No changes to save.');
                     }
+                };
+            };
+
+            // ડાયનેમિક ફોર્મેટ ડાઉનલોડ કરવાનું ફંક્શન
+            window.downloadMonthlyGridTemplate = function() {
+                // અહીં પણ નવો ઉમેરેલો મહિનો વાંચશે
+                const monthVal = document.getElementById('monthlyGridMonthPicker')?.value;
+                if (!monthVal) return appAlert('Error', 'Please select a month first.');
+                const [yy, mm] = monthVal.split('-');
+                const daysInMonth = getDaysInMonth(yy, mm);
+                
+                const supplySource = document.getElementById('monthlySupplySource')?.value || 'Contractor';
+                
+                const empHeaders = document.querySelectorAll('th.merged-header .emp-name');
+                if (empHeaders.length === 0) return appAlert('Error', 'No employees found in the grid to generate format.');
+                
+                const names = Array.from(empHeaders).map(el => el.innerText.trim());
+                
+                const row0 = ["Date"];
+                const row1 = [""];
+                
+                names.forEach(name => {
+                    row0.push(name, "");
+                    row1.push("Morning", "Afternoon");
+                });
+                
+                const data = [row0, row1];
+                
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dmy = `${String(d).padStart(2,'0')}/${mm}/${yy}`;
+                    const row = [dmy];
+                    for(let i=0; i<names.length; i++) {
+                        row.push("-", "-");
+                    }
+                    data.push(row);
+                }
+                
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(data);
+                
+                const merges = [];
+                for(let i=0; i<names.length; i++) {
+                    const baseCol = 1 + (i * 2);
+                    merges.push({s: {r: 0, c: baseCol}, e: {r: 0, c: baseCol + 1}});
+                }
+                ws['!merges'] = merges;
+                
+                const colWidths = [{wch: 12}];
+                for(let i=0; i<names.length*2; i++) colWidths.push({wch: 15});
+                ws['!cols'] = colWidths;
+                
+                XLSX.utils.book_append_sheet(wb, ws, "Format");
+                window.pantryDownloadExcelFile(wb, `Monthly_Entry_Format_${supplySource.replace(/\s+/g,'_')}_${yy}_${mm}.xlsx`);
+            };
+
+            // એક્સેલ ફાઈલ રીડ અને વેલિડેટ કરવાનું ફંક્શન
+            window.handleMonthlyGridExcelUpload = async function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                appAlert('Reading File', 'Please wait, checking data...');
+
+                try {
+                    const data = await file.arrayBuffer();
+                    const wb = XLSX.read(data, { cellDates: true });
+                    const sheet = wb.Sheets[wb.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
                     
+                    if (rows.length < 3) throw new Error("Invalid format. Missing headers or data rows.");
+
+                    const headerRow = rows[0];
+                    const sessionRow = rows[1];
+                    const errors = [];
+                    const empColMap = {};
+
+                    // અહીંયા પણ હવે નવો ઉમેરેલો મહિનો વાંચશે
+                    const monthVal = document.getElementById('monthlyGridMonthPicker')?.value;
+                    if (!monthVal) throw new Error("Please select a month first.");
+                    const [targetYY, targetMM] = monthVal.split('-');
+
+                    const supplySource = document.getElementById('monthlySupplySource')?.value || 'Contractor';
                     const contractorArr = typeof CONTRACTOR_BEVERAGES !== 'undefined' ? CONTRACTOR_BEVERAGES : ['Tea','Coffee'];
                     const dauArr = typeof DAU_PURCHASE_BEVERAGES !== 'undefined' ? DAU_PURCHASE_BEVERAGES : [];
                     const currentDrinkArr = supplySource === 'DAU Direct Purchase' ? dauArr : contractorArr;
 
-                    let tableHtml = `<div style="overflow:auto; max-height:55vh;"><table style="border-collapse:collapse;"><thead><tr><th rowspan="2" style="min-width:80px; position:sticky; left:0; z-index:6; background:#F1F5F9; top:0; padding:4px; border:1px solid #CBD5E1; border-bottom:2px solid #0A56D0;">Date</th>`;
-                    myAssigned.forEach(emp => {
-                        tableHtml += `<th colspan="2" class="merged-header" style="min-width:100px; position:sticky; top:0; background:#F1F5F9; z-index:5; padding:4px 2px 2px 2px; border:1px solid #CBD5E1; border-bottom:1px solid #94A3B8;">
-                            <span class="emp-name" style="display:block; font-size:.78rem; margin-bottom:0;">${safeStr(emp.name)}</span>
-                        </th>`;
-                    });
-                    tableHtml += `</tr><tr>`;
-                    myAssigned.forEach(() => {
-                        tableHtml += `<th class="session-label" style="position:sticky; top:24px; background:#F8FAFC; z-index:4; padding:2px; font-size:.65rem; border:1px solid #CBD5E1; border-top:none; border-bottom:2px solid #0A56D0;">Morn</th>
-                                      <th class="session-label" style="position:sticky; top:24px; background:#F8FAFC; z-index:4; padding:2px; font-size:.65rem; border:1px solid #CBD5E1; border-top:none; border-bottom:2px solid #0A56D0;">Aft</th>`;
-                    });
-                    tableHtml += `</tr></thead><tbody>`;
-
-                    const monthPad = String(mm).padStart(2, '0');
-                    for (let d = 1; d <= daysInMonth; d++) {
-                        const dd = String(d).padStart(2, '0');
-                        const dmy = `${dd}/${monthPad}/${yy}`;
-                        const dateDisplay = formatDateForGrid(d, mm, yy);
-                        
-                        const copyBtn = d > 1 ? `<button type="button" onclick="window.copyPrevDateRow(this)" style="background:transparent; border:none; cursor:pointer; font-size:1rem; padding:0 4px;" title="Copy from previous day">📋</button>` : '';
-                        const clearBtn = `<button type="button" onclick="window.clearDateRow(this)" style="background:transparent; border:none; cursor:pointer; font-size:1rem; padding:0 4px; color:#DC3545;" title="Clear this day's entry">🗑️</button>`;
-                        
-                        tableHtml += `<tr><td class="date-cell"><div style="display:flex; justify-content:space-between; align-items:center;"><span>${dateDisplay}</span><div style="display:flex; gap:4px;">${copyBtn}${clearBtn}</div></div></td>`;
-                        
-                        myAssigned.forEach(emp => {
-                            const mLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Morning' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
-                            const aLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Afternoon' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
-                            const mVal = mLog ? mLog.drink : '';
-                            const aVal = aLog ? aLog.drink : '';
+                    // 1. કોલમને એમ્પ્લોયી સાથે મેચ કરવા
+                    for (let i = 1; i < headerRow.length; i++) {
+                        const colName = String(headerRow[i]).trim();
+                        if (colName && !colName.toLowerCase().startsWith('unnamed')) {
+                            const empName = colName;
                             
-                            tableHtml += `<td><select class="grid-morn" data-emp="${emp.id}" data-date="${dmy}" data-logid="${mLog ? mLog.id : ''}" style="width:100%; padding:4px; font-size:.7rem; border:1px solid #CBD5E1; border-radius:4px;"><option value="">-</option>${currentDrinkArr.map(opt => `<option value="${opt}" ${opt === mVal ? 'selected' : ''}>${opt}</option>`).join('')}</select></td>
-                            <td><select class="grid-aft" data-emp="${emp.id}" data-date="${dmy}" data-logid="${aLog ? aLog.id : ''}" style="width:100%; padding:4px; font-size:.7rem; border:1px solid #CBD5E1; border-radius:4px; margin-top:2px;"><option value="">-</option>${currentDrinkArr.map(opt => `<option value="${opt}" ${opt === aVal ? 'selected' : ''}>${opt}</option>`).join('')}</select></td>`;
-                        });
-                        tableHtml += '</tr>';
-                    }
-                    tableHtml += '</tbody></table></div>';
-                    
-                    content.innerHTML = controlHtml + tableHtml;
-
-                    window.refreshMonthlyGrid = function() { openMonthlyGridPopup(); };
-
-                    window.copyPrevDateRow = function(btn) {
-                        const currentRow = btn.closest('tr');
-                        const prevRow = currentRow.previousElementSibling;
-                        if (!prevRow) return;
-
-                        const prevSelects = prevRow.querySelectorAll('select.grid-morn, select.grid-aft');
-                        const currSelects = currentRow.querySelectorAll('select.grid-morn, select.grid-aft');
-                        
-                        let copied = false;
-                        prevSelects.forEach((sel, idx) => {
-                            if (currSelects[idx] && !currSelects[idx].disabled) {
-                                currSelects[idx].value = sel.value;
-                                copied = true;
+                            const domEmpNode = Array.from(document.querySelectorAll('th.merged-header .emp-name')).find(el => el.innerText.trim().toLowerCase() === empName.toLowerCase());
+                            
+                            if (!domEmpNode) {
+                                errors.push(`Row 1: Employee "${empName}" is not allotted to this Pantry Boy or Supply Source.`);
+                                continue;
                             }
-                        });
-                        if (copied) {
-                            const originalIcon = btn.innerText;
-                            btn.innerText = "✅";
-                            setTimeout(() => { btn.innerText = originalIcon; }, 1000);
-                        }
-                    };
-
-                    window.clearDateRow = function(btn) {
-                        const currentRow = btn.closest('tr');
-                        const currSelects = currentRow.querySelectorAll('select.grid-morn, select.grid-aft');
-                        let cleared = false;
-                        currSelects.forEach(sel => {
-                            if (!sel.disabled) { sel.value = ""; cleared = true; }
-                        });
-                        if (cleared) {
-                            const originalIcon = btn.innerText;
-                            btn.innerText = "✅";
-                            setTimeout(() => { btn.innerText = originalIcon; }, 1000);
-                        }
-                    };
-
-                    document.getElementById('saveMonthlyGridPopup').onclick = function() {
-                        const selects = content.querySelectorAll('select.grid-morn, select.grid-aft');
-                        const selectedSupplySource = document.getElementById('monthlySupplySource')?.value || 'Contractor';
-                        const updates = {};
-                        let saved = 0;
-                        const baseId = Date.now();
-
-                        selects.forEach((sel, idx) => {
-                            const val = sel.value;
-                            const empId = sel.dataset.emp;
-                            const dateDMY = sel.dataset.date;
-                            const session = sel.className.includes('grid-morn') ? 'Morning' : 'Afternoon';
-                            const existingLogId = sel.dataset.logid;
-                            const empObj = employeeList.find(e => e.id === empId);
-                            const empName = empObj ? empObj.name : 'Unknown';
-
-                            if (existingLogId) {
-                                if (val && val !== '-') {
-                                    const existingLog = logsData.find(l => l.id === existingLogId);
-                                    if (existingLog && existingLog.drink !== val) {
-                                        updates[existingLogId + '/drink'] = val;
-                                        saved++;
-                                    }
-                                } else {
-                                    updates[existingLogId] = null;
-                                    sel.dataset.logid = '';
-                                    saved++;
-                                }
+                            
+                            const empId = domEmpNode.dataset.id;
+                            
+                            const mornSess = String(sessionRow[i]).trim().toLowerCase();
+                            const aftSess = String(sessionRow[i+1]).trim().toLowerCase();
+                            
+                            if (mornSess.includes('morn')) {
+                                empColMap[i] = { empId: empId, session: 'morn' };
                             } else {
-                                if (val && val !== '-') {
-                                    const newId = 'log_' + (baseId + idx) + '_' + Math.floor(Math.random() * 10000);
-                                    updates[newId] = {
-                                        id: newId, employeeId: empId, employeeName: empName,
-                                        drink: val, session: session, date: dateDMY,
-                                        pantryId: currentUser.id, pantryName: currentUser.name,
-                                        supplySource: selectedSupplySource
-                                    };
-                                    sel.dataset.logid = newId;
-                                    saved++;
+                                errors.push(`Row 2, Col ${i+1}: Expected 'Morning', found '${sessionRow[i]}'`);
+                            }
+                            
+                            if (aftSess.includes('aft')) {
+                                empColMap[i+1] = { empId: empId, session: 'aft' };
+                            } else {
+                                errors.push(`Row 2, Col ${i+2}: Expected 'Afternoon', found '${sessionRow[i+1]}'`);
+                            }
+                        }
+                    }
+
+                    if (Object.keys(empColMap).length === 0) {
+                        throw new Error("No valid employees matched from the Excel header.");
+                    }
+
+                    // 2. ડેટા ચેક અને વેલિડેટ કરવા
+                    const updatesDOM = [];
+                    for (let r = 2; r < rows.length; r++) {
+                        const row = rows[r];
+                        if (!row || row.length === 0) continue;
+                        
+                        let rawDate = row[0];
+                        if (!rawDate) continue; 
+                        
+                        let formattedDMY = window.parseExcelDateToDMY(rawDate);
+                        if (!formattedDMY) {
+                            errors.push(`Row ${r+1}: Invalid date format "${rawDate}"`);
+                            continue;
+                        }
+                        
+                        const parts = formattedDMY.split('/');
+                        if (parts.length === 3) {
+                            if (parts[1] !== targetMM || parts[2] !== targetYY) {
+                                errors.push(`Row ${r+1}: Date ${formattedDMY} does not match selected month ${targetMM}/${targetYY}`);
+                                continue;
+                            }
+                        }
+                        
+                        for (const colIdx in empColMap) {
+                            const mapping = empColMap[colIdx];
+                            let drinkVal = String(row[colIdx] || '').trim();
+                            
+                            if (drinkVal === '-' || drinkVal.toLowerCase() === 'none' || drinkVal === '') {
+                                drinkVal = "";
+                            }
+                            
+                            if (drinkVal !== "") {
+                                const isMatch = currentDrinkArr.find(d => d.toLowerCase() === drinkVal.toLowerCase());
+                                if (!isMatch) {
+                                    errors.push(`Row ${r+1}, Col ${Number(colIdx)+1}: Invalid drink "${drinkVal}". Must be: ${currentDrinkArr.join(', ')}`);
+                                } else {
+                                    drinkVal = isMatch;
                                 }
                             }
-                        });
-
-                        if (saved > 0) {
-                            db.ref('logs').update(updates).then(() => {
-                                appAlert('Success', `✅ ${saved} entries synced!`);
-                                populateServe();
-                                openMonthlyGridPopup();
-                            }).catch(err => { appAlert('Error', 'Save failed: ' + err.message); });
-                        } else {
-                            appAlert('Notice', 'No changes to save.');
+                            
+                            if (errors.length === 0) {
+                                const selector = `select.grid-${mapping.session}[data-emp="${mapping.empId}"][data-date="${formattedDMY}"]`;
+                                updatesDOM.push({ selector, value: drinkVal });
+                            }
                         }
-                    };
-                }
+                    }
 
+                    // 3. એરર બતાવવી અથવા ગ્રીડમાં ડેટા ભરી દેવો
+                    if (errors.length > 0) {
+                        const displayErrors = errors.slice(0, 15);
+                        const moreStr = errors.length > 15 ? `<li>...and ${errors.length - 15} more errors.</li>` : '';
+                        const modal = document.createElement('div');
+                        modal.className = 'popup-overlay';
+                        modal.style.zIndex = '9999999';
+                        modal.innerHTML = `
+                            <div class="popup-card" style="max-width: 500px;">
+                                <h3 style="color:#DC3545; margin-top:0;">❌ Import Failed (Errors Found)</h3>
+                                <p style="font-size:13px; color:#44474E; margin-bottom:12px;">Please fix the following issues in your Excel file and upload again:</p>
+                                <ul style="color:#DC3545; font-size:12px; background:#FEF2F2; padding:12px 12px 12px 24px; border-radius:8px; border:1px solid #FECACA; max-height:250px; overflow-y:auto; margin-bottom:16px;">
+                                    ${displayErrors.map(e => `<li style="margin-bottom:4px;">${e}</li>`).join('')}
+                                    ${moreStr}
+                                </ul>
+                                <button onclick="this.closest('.popup-overlay').remove()" class="danger" style="width:100%; padding:10px; border-radius:8px;">Close & Fix File</button>
+                            </div>
+                        `;
+                        document.body.appendChild(modal);
+                    } else {
+                        let appliedCount = 0;
+                        updatesDOM.forEach(upd => {
+                            const sel = document.querySelector(upd.selector);
+                            if (sel && !sel.disabled) {
+                                sel.value = upd.value;
+                                // લીલા કલરથી હાઈલાઈટ કરવું 
+                                sel.style.backgroundColor = '#DCFCE7';
+                                setTimeout(() => { sel.style.backgroundColor = ''; }, 2500);
+                                appliedCount++;
+                            }
+                        });
+                        appAlert('Import Success', `✅ Validated and applied ${appliedCount} entries. Click 'Save Monthly Entries' at the bottom to confirm.`);
+                    }
+
+                } catch (err) {
+                    appAlert('Import Error', err.message);
+                } finally {
+                    if (event.target) event.target.value = '';
+                }
+            };
                 document.getElementById('saveBulkEntries').onclick = function() {
                     if (currentMode === 'date') return;
                     const dateVal = document.getElementById('beverageEntryDate').value;
@@ -8872,30 +9093,34 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 if (!yesEl || !noEl) return;
                 if (value === 'Yes') { if (yesEl.checked) noEl.checked = false; } else { if (noEl.checked) yesEl.checked = false; }
             };
-            // નવો Date Parser કોડ (તારીખનો પ્રોબ્લેમ સોલ્વ કરવા માટે)
+            // નવો Date Parser કોડ (તારીખ અને ટાઈમઝોનનો પ્રોબ્લેમ સોલ્વ કરવા માટે)
             window.parseExcelDateToDMY = function(rawDate) {
                 try {
                     if (rawDate === undefined || rawDate === null || rawDate === '') return '';
                     
+                    // 1. જો તારીખ Date Object હોય (Excel માંથી ડાયરેક્ટ)
                     if (rawDate instanceof Date && !isNaN(rawDate)) { 
-                        const dd = String(rawDate.getDate()).padStart(2,'0'); 
-                        const mm = String(rawDate.getMonth()+1).padStart(2,'0'); 
-                        const yyyy = rawDate.getFullYear(); 
+                        // અહીંયા getUTCDate નો ઉપયોગ કર્યો છે જેથી તારીખ પાછળ ના જતી રહે
+                        const dd = String(rawDate.getUTCDate()).padStart(2,'0'); 
+                        const mm = String(rawDate.getUTCMonth()+1).padStart(2,'0'); 
+                        const yyyy = rawDate.getUTCFullYear(); 
                         return `${dd}/${mm}/${yyyy}`; 
                     }
                     
+                    // 2. જો તારીખ Excel Serial Number હોય
                     if (typeof rawDate === 'number' && !isNaN(rawDate)) { 
                         if (rawDate > 59 && rawDate < 60000) { 
                             const utc_days = Math.floor(rawDate - 25569); 
                             const utc_value = utc_days * 86400; 
                             const date_info = new Date(utc_value * 1000); 
-                            const dd = String(date_info.getDate()).padStart(2,'0'); 
-                            const mm = String(date_info.getMonth()+1).padStart(2,'0'); 
-                            const yyyy = date_info.getFullYear(); 
+                            const dd = String(date_info.getUTCDate()).padStart(2,'0'); 
+                            const mm = String(date_info.getUTCMonth()+1).padStart(2,'0'); 
+                            const yyyy = date_info.getUTCFullYear(); 
                             if (yyyy > 1900 && yyyy < 2100) return `${dd}/${mm}/${yyyy}`; 
                         } 
                     }
                     
+                    // 3. જો તારીખ String ફોર્મેટમાં હોય
                     let str = String(rawDate).trim(); 
                     if (!str) return ''; 
                     
@@ -8904,10 +9129,9 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                         if (parts.length === 3) { 
                             if (parts[2].length === 2) parts[2] = '20' + parts[2];
                             if (parts[2].length === 4) {
-                                if (Number(parts[0]) > 12) return `${parts[0].padStart(2,'0')}/${parts[1].padStart(2,'0')}/${parts[2]}`;
-                                return `${parts[1].padStart(2,'0')}/${parts[0].padStart(2,'0')}/${parts[2]}`; 
+                                // DD/MM/YYYY ને સીધું જ પકડી લેશે (ઉલટ-સુલટ નહિ કરે)
+                                return `${parts[0].padStart(2,'0')}/${parts[1].padStart(2,'0')}/${parts[2]}`;
                             }
-                            if (parts[0].length === 4) return `${parts[2].padStart(2,'0')}/${parts[1].padStart(2,'0')}/${parts[0]}`; 
                         } 
                     }
                     
@@ -8920,6 +9144,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                         } 
                     }
                     
+                    // 4. છેલ્લો ઓપ્શન (Fallback)
                     const d = new Date(str); 
                     if (!isNaN(d) && d.getFullYear() > 1900) { 
                         const dd = String(d.getDate()).padStart(2,'0'); 
