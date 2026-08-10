@@ -2289,47 +2289,60 @@ window.pantryDownloadExcelFile = function(wb, filename) {
 
 
             // ============================================================
-            //  DELETE / RESTORE HANDLERS
+            //  DELETE / RESTORE HANDLERS (With Archive/Soft Delete)
             // ============================================================
             window.pantryDeleteHandler = function(type, id) {
-                const typeMap = {
-                    employee: { ref: 'employees', binRef: 'recycleBin/employees', data: employeeList },
-                    pantry: { ref: 'pantryTeam', binRef: 'recycleBin/pantryTeam', data: pantryTeam },
-                    extra: { ref: 'extraLogs', binRef: 'recycleBin/extraLogs', data: extraLogsData },
-                    event: { ref: 'eventLogs', binRef: 'recycleBin/eventLogs', data: eventLogsData },
-                    regular_log: { ref: 'logs', binRef: 'recycleBin/logs', data: logsData },
-                    canteen: { ref: 'canteens', binRef: null, data: canteenList },
-                    venue: { ref: 'venues', binRef: null, data: venueList },
-                    upcoming_event: { ref: 'upcomingEvents', binRef: null, data: upcomingEventsData },
-                    supervisor_link: { ref: 'supervisorLinks', binRef: null, data: null }
-                };
-                const entry = typeMap[type];
-                if (!entry) return;
-                if (type === 'canteen' || type === 'venue' || type === 'upcoming_event' || type === 'supervisor_link') {
-                    appConfirm(`Delete ${type}`, `Permanently remove this ${type}?`, () => { db.ref(entry.ref + '/' + id)
-                            .remove(); });
-                    return;
-                }
-                appConfirm('Move to Recycle Bin', `Send this ${type} to recycle bin?`, () => {
-                    const target = entry.data.find(e => e.id === id);
-                    if (target) {
-                        db.ref(entry.binRef + '/' + id).set(target);
-                        db.ref(entry.ref + '/' + id).remove();
-                        if (type === 'pantry') {
-                            employeeList.forEach(emp => {
-                                if (emp.assignedPantryId === id) {
-                                    db.ref('employees/' + emp.id).update({ assignedPantryId: "" });
-                                }
+                const typeMap = { employee: { ref: 'employees', binRef: 'recycleBin/employees', data: employeeList }, pantry: { ref: 'pantryTeam', binRef: 'recycleBin/pantryTeam', data: pantryTeam }, extra: { ref: 'extraLogs', binRef: 'recycleBin/extraLogs', data: extraLogsData }, event: { ref: 'eventLogs', binRef: 'recycleBin/eventLogs', data: eventLogsData }, regular_log: { ref: 'logs', binRef: 'recycleBin/logs', data: logsData }, canteen: { ref: 'canteens', binRef: null, data: canteenList }, venue: { ref: 'venues', binRef: null, data: venueList }, upcoming_event: { ref: 'upcomingEvents', binRef: null, data: upcomingEventsData }, supervisor_link: { ref: 'supervisorLinks', binRef: null, data: null } };
+                const entry = typeMap[type]; 
+                if (!entry) return; 
+                
+                if (type === 'canteen' || type === 'venue' || type === 'upcoming_event' || type === 'supervisor_link') { 
+                    appConfirm(`Delete ${type}`, `Permanently remove this ${type}?`, () => { 
+                        db.ref(entry.ref + '/' + id).remove().then(() => { 
+                            const modal = document.getElementById('eventHistoryModal'); 
+                            if (modal && !modal.classList.contains('hidden') && type === 'event' && window.openEventHistoryModal) { 
+                                setTimeout(() => window.openEventHistoryModal(), 150); 
+                            } 
+                        }); 
+                    }); 
+                    return; 
+                } 
+                
+                appConfirm('Move to Recycle Bin', `Send this ${type} to recycle bin? (Past data remains safe in reports)`, () => { 
+                    const target = entry.data.find(e => e.id === id); 
+                    if (target) { 
+                        db.ref(entry.binRef + '/' + id).set(target); 
+                        if (type === 'employee' || type === 'pantry') {
+                            // નવું લોજીક: કાયમ માટે ડીલીટ કરવાને બદલે Inactive કરો
+                            db.ref(entry.ref + '/' + id).update({ status: 'Inactive', assignedPantryId: "" }).then(() => {
+                                appAlert('Archived', `${type} archived. Past data is safe.`);
                             });
+                        } else {
+                            db.ref(entry.ref + '/' + id).remove().then(() => { 
+                                try { 
+                                    const modal = document.getElementById('eventHistoryModal'); 
+                                    if (modal && !modal.classList.contains('hidden')) { 
+                                        const btn = modal.querySelector(`button[onclick*="'${id}'"]`); 
+                                        if (btn) { const tr = btn.closest('tr'); if (tr) tr.style.display = 'none'; } 
+                                        if (type === 'event' && window.openEventHistoryModal) { setTimeout(() => window.openEventHistoryModal(), 200); } 
+                                    } 
+                                } catch(e) {} 
+                            }); 
                         }
-                    }
-                });
+                    } 
+                }); 
             };
 
             window.pantryRestoreHandler = function(section, id) {
                 const target = binData[section]?.[id];
                 if (!target) return appAlert('Error', 'Data not found.');
-                db.ref(section + '/' + id).set(target);
+                
+                if (section === 'employees' || section === 'pantryTeam') {
+                    db.ref(section + '/' + id).update({ status: 'Active' });
+                } else {
+                    db.ref(section + '/' + id).set(target);
+                }
+                
                 db.ref('recycleBin/' + section + '/' + id).remove();
                 appAlert('Restored', 'Recovered successfully!');
             };
@@ -6479,12 +6492,14 @@ window.shareVendorLink = function(link, vendor) {
             // ============================================================
             //  EMPLOYEE LIST
             // ============================================================
-            function renderEmployeeList() {
+           function renderEmployeeList() {
                 const search = document.getElementById('employeeSearch')?.value.toLowerCase() || '';
                 const cat = document.getElementById('categoryFilter')?.value || '';
                 const pFilter = document.getElementById('pantryFilter')?.value || '';
-                const filtered = employeeList.filter(e => (e.name || '').toLowerCase().includes(search) && (!cat || e
-                    .category === cat) && (!pFilter || e.assignedPantryId === pFilter));
+                
+                // નવો ફેરફાર: Inactive એમ્પ્લોયીને એડમિન લિસ્ટમાંથી હાઈડ કરો
+                const filtered = employeeList.filter(e => e.status !== 'Inactive' && (e.name || '').toLowerCase().includes(search) && (!cat || e.category === cat) && (!pFilter || e.assignedPantryId === pFilter));
+                
                 const container = document.getElementById('employeeListContainer');
                 if (!container) return;
                 if (!filtered.length) { container.innerHTML =
@@ -6608,10 +6623,14 @@ window.shareVendorLink = function(link, vendor) {
             function renderPantryList() {
                 const c = document.getElementById('pantryListContainer');
                 if (!c) return;
-                if (!pantryTeam.length) { c.innerHTML =
+                
+                // નવો ફેરફાર: Inactive પેન્ટ્રી બોયને હાઈડ કરો
+                const activePantry = pantryTeam.filter(p => p.status !== 'Inactive');
+                
+                if (!activePantry.length) { c.innerHTML =
                     `<p style="text-align:center; padding:20px; color:#74777F; font-size:.9rem;">No pantry staff.</p>`; return; }
-                c.innerHTML = pantryTeam.map(p => {
-                    const assigned = employeeList.filter(e => e.assignedPantryId === p.id).map(e => e.name)
+                c.innerHTML = activePantry.map(p => {
+                    const assigned = employeeList.filter(e => e.status !== 'Inactive' && e.assignedPantryId === p.id).map(e => e.name)
                         .join(', ') || 'No employees';
                     const leaveBadge = p.onLeave ? ' <span style="color:#DC3545; font-weight:700;">(On Leave)</span>' : '';
                     
@@ -6976,12 +6995,19 @@ window.shareVendorLink = function(link, vendor) {
 
                     emps.forEach(emp => {
                         let t = 0, c = 0, gt = 0, lt = 0, bt = 0, bc = 0;
-                        logsData.filter(l => l.employeeId === emp.id && parseDMYToYMD(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')))
-                            .forEach(log => {
-                                const d = (log.drink || '').toLowerCase().trim();
-                                if (d === 'tea') t++; else if (d === 'coffee') c++; else if (d === 'green tea') gt++;
-                                else if (d === 'lemon tea') lt++; else if (d === 'black tea') bt++; else if (d === 'black coffee') bc++;
-                            });
+                        
+                        // --- નવો સુધારેલો કોડ શરૂ (Duplicate Fix) ---
+                        const empLogs = logsData.filter(l => l.employeeId === emp.id && parseDMYToYMD(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                        const uniqueLogs = {};
+                        empLogs.forEach(log => { uniqueLogs[log.date + '_' + log.session] = log; });
+                        
+                        Object.values(uniqueLogs).forEach(log => {
+                            const d = (log.drink || '').toLowerCase().trim();
+                            if (d === 'tea') t++; else if (d === 'coffee') c++; else if (d === 'green tea') gt++;
+                            else if (d === 'lemon tea') lt++; else if (d === 'black tea') bt++; else if (d === 'black coffee') bc++;
+                        });
+                        // --- નવો સુધારેલો કોડ પૂરો ---
+
                         sumT += t; sumC += c; sumGT += gt; sumLT += lt; sumBT += bt; sumBC += bc;
                         trs += `<tr><td>${sr++}</td><td class="left-align">${safeStr(emp.name)}</td><td>${t}</td><td>${c}</td><td>${gt}</td><td>${lt}</td><td>${bt}</td><td>${bc}</td>${fbCells}<td></td></tr>`;
                     });
@@ -7285,21 +7311,37 @@ window.shareVendorLink = function(link, vendor) {
 
                     emps.forEach(emp => {
                         let t = 0, c = 0, gt = 0, lt = 0, bt = 0, bc = 0;
-                        logsData.filter(l => l.employeeId === emp.id && parseDMYToYMD(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor'))).forEach(log => {
+                        
+                        // --- નવો સુધારેલો કોડ શરૂ (Duplicate Fix) ---
+                        const empLogs = logsData.filter(l => l.employeeId === emp.id && parseDMYToYMD(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                        const uniqueLogs = {};
+                        empLogs.forEach(log => { uniqueLogs[log.date + '_' + log.session] = log; });
+                        
+                        Object.values(uniqueLogs).forEach(log => {
                             const d = (log.drink || '').toLowerCase().trim();
                             if (d === 'tea') t++; else if (d === 'coffee') c++; else if (d === 'green tea') gt++;
                             else if (d === 'lemon tea') lt++; else if (d === 'black tea') bt++; else if (d === 'black coffee') bc++;
                         });
+                        // --- નવો સુધારેલો કોડ પૂરો ---
+                        
+                        const rowTotal = t + c + gt + lt + bt + bc;
+                        
+                        // નવો કોડ: એક્સેલમાં પણ Inactive અને 0 એન્ટ્રી વાળાને છુપાવો
+                        if (emp.status === 'Inactive' && rowTotal === 0) return;
+
                         sumT += t; sumC += c; sumGT += gt; sumLT += lt; sumBT += bt; sumBC += bc;
                         
+                        // નવો કોડ: એક્સેલમાં નામ પાછળ (Left) લખાશે
+                        const empDisplayName = emp.status === 'Inactive' ? `${emp.name} (Left)` : emp.name;
+                        
                         if (incFb) {
-                            data.push([{ v: sr++, s: cellCenter }, { v: emp.name, s: cellLeft },
+                            data.push([{ v: sr++, s: cellCenter }, { v: empDisplayName, s: cellLeft },
                                 { v: t, s: cellCenter }, { v: c, s: cellCenter }, { v: gt, s: cellCenter },
                                 { v: lt, s: cellCenter }, { v: bt, s: cellCenter }, { v: bc, s: cellCenter }, 
                                 { v: '', s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }
                             ]);
                         } else {
-                            data.push([{ v: sr++, s: cellCenter }, { v: emp.name, s: cellLeft },
+                            data.push([{ v: sr++, s: cellCenter }, { v: empDisplayName, s: cellLeft },
                                 { v: t, s: cellCenter }, { v: c, s: cellCenter }, { v: gt, s: cellCenter },
                                 { v: lt, s: cellCenter }, { v: bt, s: cellCenter }, { v: bc, s: cellCenter }, { v: '', s: cellCenter }
                             ]);
@@ -7512,11 +7554,19 @@ window.shareVendorLink = function(link, vendor) {
 
                     emps.forEach(emp => {
                         let t = 0, c = 0, gt = 0, lt = 0, bt = 0, bc = 0;
-                        logsData.filter(l => l.employeeId === emp.id && parseDMYToYMD(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor'))).forEach(log => {
+                        
+                        // --- નવો સુધારેલો કોડ શરૂ (Duplicate Fix) ---
+                        const empLogs = logsData.filter(l => l.employeeId === emp.id && parseDMYToYMD(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                        const uniqueLogs = {};
+                        empLogs.forEach(log => { uniqueLogs[log.date + '_' + log.session] = log; });
+                        
+                        Object.values(uniqueLogs).forEach(log => {
                             const d = (log.drink || '').toLowerCase().trim();
                             if (d === 'tea') t++; else if (d === 'coffee') c++; else if (d === 'green tea') gt++;
                             else if (d === 'lemon tea') lt++; else if (d === 'black tea') bt++; else if (d === 'black coffee') bc++;
                         });
+                        // --- નવો સુધારેલો કોડ પૂરો ---
+
                         sumT += t; sumC += c; sumGT += gt; sumLT += lt; sumBT += bt; sumBC += bc;
                         
                         if (incFb) {
