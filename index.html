@@ -6327,204 +6327,7 @@ window.shareVendorLink = function(link, vendor) {
 
                 renderTable();
             }
-			
-            // ============================================================
-            //  EDIT MEETING EVENT (COMPATIBLE WITH SPLIT ROWS)
-            // ============================================================
-            window.editMeetingEvent = function(id) {
-                const ev = eventLogsData.find(e => e.id === id);
-                if (!ev) return appAlert('Error', 'Event not found.');
-
-                const ymdDate = parseDMYToYMD(ev.date) || '';
-                const currentServedVal = ev.servedByName || ev.pantryName || '';
-                
-                const pantryOpts = pantryTeam.map(p => `<option value="${safeStr(p.name)}" ${currentServedVal === p.name ? 'selected' : ''}>${safeStr(p.name)}</option>`).join('');
-
-                const modal = document.createElement('div');
-                modal.className = 'popup-overlay';
-                modal.id = 'editMeetingPopupModal';
-                modal.innerHTML = `
-              <div class="popup-card" style="max-width:600px; max-height:85vh; overflow-y:auto;">
-                <h3 style="color:#0A56D0; margin-top:0; margin-bottom:12px;">✏️ Edit Meeting Event</h3>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-                    <div>
-                        <label style="font-size:.8rem; font-weight:600; color:#44474E; display:block; margin-bottom:4px;">📅 Main Date</label>
-                        <input type="date" id="editEvtDate" value="${ymdDate}" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; box-sizing:border-box;">
-                    </div>
-                    <div>
-                        <label style="font-size:.8rem; font-weight:600; color:#44474E; display:block; margin-bottom:4px;">🏢 Vendor / Canteen</label>
-                        <input type="text" id="editEvtVendor" value="${safeStr(ev.canteenSource)}" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; box-sizing:border-box;">
-                    </div>
-                </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-                    <div>
-                        <label style="font-size:.8rem; font-weight:600; color:#44474E; display:block; margin-bottom:4px;">👤 Requested By</label>
-                        <input type="text" id="editEvtOrderedBy" value="${safeStr(ev.orderedBy)}" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; box-sizing:border-box;">
-                    </div>
-                    <div>
-                        <label style="font-size:.8rem; font-weight:600; color:#44474E; display:block; margin-bottom:4px;">👨‍🍳 Served By </label>
-                        <select id="editEvtServedBy" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; box-sizing:border-box;">
-                            <option value="Direct Order (Canteen Staff)" ${currentServedVal === 'Direct Order (Canteen Staff)' ? 'selected' : ''}>Direct Order (Canteen Staff)</option>
-                            <option value="General / Multiple Pantry Boys" ${currentServedVal === 'General / Multiple Pantry Boys' ? 'selected' : ''}>General / Multiple Pantry Boys</option>
-                            ${pantryOpts}
-                        </select>
-                        <input type="text" id="editEvtCustomPantry" value="${currentServedVal}" placeholder="Multi profile selection" style="margin-top:4px; padding:6px; font-size:.78rem; border-radius:6px; border:1px solid #CBD5E1; width:100%; box-sizing:border-box;">
-                    </div>
-                </div>
-                <label style="font-size:.8rem; font-weight:600; color:#44474E; display:block; margin-bottom:4px;">?? Meeting Purpose</label>
-                <input type="text" id="editEvtName" value="${safeStr(ev.eventName)}" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; margin-bottom:10px; box-sizing:border-box;">
-
-                <div class="sub-section-title" style="margin-top:10px; font-weight:700; color:#0A56D0;">📋 Refreshment Items</div>
-                <div id="editEvtItemsContainer" style="margin-bottom:12px;"></div>
-                <button type="button" id="editEvtAddItemRowBtn" class="btn" style="background:#E2E8F0; color:#0A56D0; width:100%; margin-bottom:12px; font-weight:700; min-height:38px; padding:4px;">➕ Add Item Row</button>
-
-                <div class="card" style="background:#F0F4F9; margin-top:5px; padding:12px; text-align:center; border:1px dashed #0A56D0; box-shadow:none;">
-                  <span style="font-size:.85rem; color:#44474E; font-weight:700;">Calculated Total Amount:</span>
-                  <div id="editEvtCalcDisplay" style="font-size:1.3rem; font-weight:700; color:#0A56D0;">₹ 0.00</div>
-                </div>
-                <div style="display:flex; gap:8px; margin-top:14px;">
-                  <button onclick="this.closest('.popup-overlay').remove()" class="danger" style="flex:1; min-height:44px; border-radius:10px;">Cancel</button>
-                  <button id="editEvtSaveBtn" class="success" style="flex:1; min-height:44px; border-radius:10px;">Save Changes</button>
-                </div>
-              </div>
-            `;
-                document.body.appendChild(modal);
-
-                const selectBox = document.getElementById('editEvtServedBy');
-                const customInputBox = document.getElementById('editEvtCustomPantry');
-                if (selectBox && customInputBox) {
-                    selectBox.addEventListener('change', function() {
-                        if (this.value) customInputBox.value = this.value;
-                    });
-                }
-
-                const itemsContainer = document.getElementById('editEvtItemsContainer');
-
-                                function insertEditItemRow(name = '', qty = 1, rate = 0, dateDMY = '', vendor = '', servedBy = '', rowLocation = '') {
-                    const row = document.createElement('div');
-                    row.className = 'dynamic-item-row-edit';
-                    row.style.cssText = "display: flex; flex-direction: column; gap: 4px; background: #F8FAFC; padding: 6px; border-radius: 8px; border: 1px solid #CBD5E1; margin-bottom: 6px;";
-                    
-                    const rowYMD = dateDMY ? parseDMYToYMD(dateDMY) : parseDMYToYMD(ev.date);
-                    const vendorOpts = canteenList.map(c => `<option value="${safeStr(c.name)}" ${vendor === c.name ? 'selected' : ''}>${safeStr(c.name)}</option>`).join('');
-                    const pantryOpts = activePantryStaff.map(p => `<option value="${safeStr(p.name)}" ${servedBy === p.name ? 'selected' : ''}>${safeStr(p.name)}</option>`).join('');
-                    const locListId = 'editloc_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
-                    const hasCustomDate = dateDMY ? 'checked' : '';
-
-                    row.innerHTML = `
-                        <!-- રો ૧: તારીખ, વેન્યુ, વેન્ડર -->
-                        <div style="display: flex; gap: 4px;">
-                            <div style="display:flex; align-items:center; gap:2px; flex:1.2;">
-                                <input type="checkbox" class="e-date-toggle" ${hasCustomDate} style="width:14px; height:14px; margin:0;">
-                                <input type="date" class="e-item-date" value="${rowYMD}" ${dateDMY ? '' : 'disabled'} style="padding:4px; font-size:11px; border-radius:4px; border:1px solid #CBD5E1; width:100%; opacity:${dateDMY ? '1':'0.6'}; height:26px;">
-                            </div>
-                            <input type="text" list="${locListId}" class="e-item-location" value="${safeStr(rowLocation)}" placeholder="Loc" style="flex:0.8; padding:4px; font-size:11px; border:1px solid #CBD5E1; border-radius:4px; height:26px;">
-                            <datalist id="${locListId}">${venueList.map(v => `<option value="${safeStr(v.name)}">`).join('')}</datalist>
-                            <select class="e-item-vendor" style="flex:1; padding:4px; font-size:11px; border-radius:4px; border:1px solid #CBD5E1; height:26px;"><option value="">Vendor</option>${vendorOpts}</select>
-                        </div>
-                        <!-- રો ૨: પેન્ટ્રી બોય, આઇટમ, Qty, Rate, Delete -->
-                        <div style="display: flex; gap: 4px; align-items: center;">
-                            <select class="e-item-served-by" style="flex:1; padding:4px; font-size:11px; border-radius:4px; border:1px solid #CBD5E1; height:26px;"><option value="">ServedBy</option>${pantryOpts}</select>
-                            <input type="text" class="e-item-name" placeholder="Item Name" value="${safeStr(name)}" style="flex:1.5; padding:4px; font-size:11px; border:1px solid #CBD5E1; border-radius:4px; height:26px;">
-                            <input type="number" class="e-item-qty" placeholder="Qty" min="1" value="${qty}" style="flex:0.5; padding:4px; font-size:11px; border:1px solid #CBD5E1; border-radius:4px; height:26px;">
-                            <input type="number" class="e-item-rate" placeholder="₹ Rate" min="0" step="0.01" value="${rate}" style="flex:0.6; padding:4px; font-size:11px; border:1px solid #CBD5E1; border-radius:4px; height:26px;">
-                            <button type="button" class="e-remove-btn" style="background:#DC3545; color:#fff; border:none; padding:4px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:bold; width:26px; height:26px;">✕</button>
-                        </div>
-                    `;
-                    itemsContainer.appendChild(row);
-                    
-                    const toggle = row.querySelector('.e-date-toggle');
-                    const dateInp = row.querySelector('.e-item-date');
-                    toggle.onchange = function() {
-                        dateInp.disabled = !this.checked;
-                        dateInp.style.opacity = this.checked ? "1" : "0.6";
-                        if(!this.checked) dateInp.value = "";
-                    };
-
-                    row.querySelector('.e-remove-btn').onclick = () => { row.remove(); updateEditModalTotal(); };
-                    row.querySelectorAll('input, select').forEach(i => i.addEventListener('input', updateEditModalTotal));
-                }
-                function updateEditModalTotal() {
-                    let total = 0;
-                    itemsContainer.querySelectorAll('.dynamic-item-row-edit').forEach(row => {
-                        const q = Number(row.querySelector('.e-item-qty').value) || 0;
-                        const r = parseFloat(row.querySelector('.e-item-rate').value) || 0;
-                        total += q * r;
-                    });
-                    document.getElementById('editEvtCalcDisplay').innerText = "₹ " + total.toFixed(2);
-                }
-
-                if (ev.items && Array.isArray(ev.items) && ev.items.length > 0) {
-                    ev.items.forEach(item => {
-                        insertEditItemRow(item.name, item.qty, item.rate, item.itemSpecificDate, item.vendor || ev.canteenSource);
-                    });
-                } else {
-                    insertEditItemRow();
-                }
-
-                updateEditModalTotal();
-                document.getElementById('editEvtAddItemRowBtn').onclick = () => insertEditItemRow();
-
-                document.getElementById('editEvtSaveBtn').onclick = function() {
-                    const name = document.getElementById('editEvtName').value.trim();
-                    const orderedBy = document.getElementById('editEvtOrderedBy').value.trim();
-                    const mainDateVal = document.getElementById('editEvtDate').value;
-                    const mainDateDMY = mainDateVal ? convertYMDtoDMY(mainDateVal) : ev.date;
-                    
-                    let servedBy = document.getElementById('editEvtCustomPantry').value.trim() || document.getElementById('editEvtServedBy').value.trim();
-                    if (!name) return appAlert('Error', 'Event name required.');
-
-                    const newItems = [];
-                    let finalTotalAmount = 0;
-                    const summarySegments = [];
-
-                    itemsContainer.querySelectorAll('.dynamic-item-row-edit').forEach(row => {
-                        const vdr = row.querySelector('.e-item-vendor').value;
-                        const isToggled = row.querySelector('.e-date-toggle').checked;
-                        const rDateVal = row.querySelector('.e-item-date').value;
-                        let finalRowDate = (isToggled && rDateVal) ? convertYMDtoDMY(rDateVal) : mainDateDMY;
-
-                        const iName = row.querySelector('.e-item-name').value.trim();
-                        const iQty = parseInt(row.querySelector('.e-item-qty').value, 10) || 0;
-                        const iRate = parseFloat(row.querySelector('.e-item-rate').value) || 0;
-
-                        if (iName && iQty > 0) {
-                            const itemAmt = iQty * iRate;
-                            finalTotalAmount += itemAmt;
-                            summarySegments.push(`${iQty} ${iName} (${finalRowDate}) [${vdr}]`);
-
-                            newItems.push({
-                                vendor: vdr,
-                                type: '🍪 Snacks/Food',
-                                name: iName,
-                                qty: iQty,
-                                unit: 'Nos',
-                                rate: iRate,
-                                amount: itemAmt,
-                                itemSpecificDate: finalRowDate
-                            });
-                        }
-                    });
-
-                    db.ref('eventLogs/' + id).update({
-                        eventName: name,
-                        amount: finalTotalAmount,
-                        refreshmentSummary: summarySegments.join(', '),
-                        orderedBy: orderedBy,
-                        date: mainDateDMY,
-                        canteenSource: [...new Set(newItems.map(i => i.vendor))].join(', '),
-                        servedByName: servedBy,
-                        pantryName: servedBy,
-                        items: newItems
-                    });
-                    
-                    modal.remove();
-                    appAlert('Updated', 'Entries split saved successfully!');
-                    if (typeof renderAdminMeetingHistory === 'function') renderAdminMeetingHistory();
-                    if (typeof window.openEventHistoryModal === 'function') window.openEventHistoryModal();
-                };
-            };           
-
+           
             // ============================================================
             //  BACKUP & RESTORE
             // ============================================================
@@ -10018,7 +9821,6 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
             window.editMgGroup = function(encodedData) {
                 const slip = JSON.parse(decodeURIComponent(encodedData));
                 
-                // જો આ જૂની ઈવેન્ટ હોય તો જૂનું એડિટ ફોર્મ જ ખોલો
                 if (slip.idsToDelete.some(it => it.isOld)) {
                     const oldId = slip.idsToDelete.find(it => it.isOld).originalId;
                     window.editMeetingEvent(oldId);
@@ -10034,46 +9836,58 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     rawDate = slip.items[0].RawDate;
                 }
 
-                const vendorOpts = `<option value="DAU Direct Purchase" style="color:#059669; font-weight:bold;">🛒 DAU Direct</option>` + canteenList.map(c => `<option value="${safeStr(c.name)}" ${slip.Vendor === c.name ? 'selected':''}>${safeStr(c.name)}</option>`).join('');
+                const getVendorOpts = (selectedVendor) => {
+                    return `<option value="DAU Direct Purchase" ${selectedVendor === 'DAU Direct Purchase' ? 'selected' : ''} style="color:#059669; font-weight:bold;">🛒 DAU</option>` + 
+                    canteenList.map(c => `<option value="${safeStr(c.name)}" ${selectedVendor === c.name ? 'selected':''}>${safeStr(c.name).substring(0,6)}</option>`).join('');
+                };
                 
                 let itemsHtml = slip.items.map((it, idx) => `
-                    <div class="eg-row" style="display:flex; gap:4px; margin-bottom:6px; align-items:center; background:#f8fafc; padding:6px; border:1px solid #e2e8f0; border-radius:4px;">
-                        <input type="text" class="eg-item mg-cmp-inp" value="${it.Item}" style="flex:2; border-color:#38bdf8;">
-                        <input type="number" class="eg-qty mg-cmp-inp" value="${it.Qty}" style="flex:0.8; text-align:center; border-color:#38bdf8;">
-                        <input type="number" class="eg-rate mg-cmp-inp" value="${it.Rate}" style="flex:1; text-align:center; border-color:#38bdf8;">
-                        <button type="button" onclick="this.closest('.eg-row').remove()" style="flex:0.5; height:26px; background:#fee2e2; color:#dc3545; border:none; border-radius:4px; font-weight:bold; font-size:11px; cursor:pointer;">✕</button>
+                    <div class="eg-row" style="display:flex; gap:2px; margin-bottom:4px; background:#f8fafc; padding:2px; border:1px solid #e2e8f0; border-radius:4px; align-items:center; width:100%; box-sizing:border-box;">
+                        <input type="date" class="eg-date mg-cmp-inp ultra-cmp" value="${it.RawDate || rawDate}" style="width:68px; flex-shrink:0; height:24px; min-width:0;">
+                        <div style="position:relative; width:22px; height:24px; flex-shrink:0; border:1px solid #cbd5e1; border-radius:3px; background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden;" title="Select Time">
+                            <span style="font-size:10px; pointer-events:none;">⏰</span>
+                            <input type="time" class="eg-time" value="${it.Time || '09:00'}" style="position:absolute; opacity:0; width:100%; height:100%; cursor:pointer; left:0; top:0;">
+                        </div>
+                        <select class="eg-vendor mg-cmp-inp ultra-cmp" style="width:52px; flex-shrink:0; height:24px; text-overflow:ellipsis; min-width:0;"><option value="">Vndr</option>${getVendorOpts(it.Vendor)}</select>
+                        <input type="text" class="eg-item mg-cmp-inp ultra-cmp" value="${it.Item}" placeholder="Item" style="flex:1; min-width:0; height:24px;">
+                        <input type="number" class="eg-qty mg-cmp-inp ultra-cmp" value="${it.Qty}" placeholder="Qty" style="width:28px; text-align:center; flex-shrink:0; height:24px; min-width:0;">
+                        <input type="number" class="eg-rate mg-cmp-inp ultra-cmp" value="${it.Rate}" placeholder="₹" style="width:32px; text-align:center; flex-shrink:0; height:24px; min-width:0;">
+                        <button type="button" onclick="this.closest('.eg-row').remove()" style="width:22px; height:24px; flex-shrink:0; background:#fee2e2; color:#dc3545; border:none; border-radius:3px; font-weight:bold; font-size:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;">✕</button>
                     </div>
                 `).join('');
 
                 modal.innerHTML = `
-                    <div class="popup-card" style="width:95vw; max-width:450px; padding:10px; border-radius:8px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                            <h3 style="color:#0A56D0; margin:0; font-size:14px;">✏️ Edit Meeting</h3>
-                            <button onclick="document.getElementById('mgEditGroupPopupOverlay').remove()" style="background:transparent; border:none; color:#ef4444; font-size:16px; font-weight:bold;">✕</button>
+                    <style>
+                        .ultra-cmp { padding: 0 1px !important; font-size: 9px !important; border-radius: 3px !important; margin: 0 !important; }
+                        /* કેલેન્ડર અને નંબરના એરા સંપૂર્ણ કાઢી નાખવા */
+                        .ultra-cmp::-webkit-calendar-picker-indicator { display: none; -webkit-appearance: none; margin: 0; padding: 0; }
+                        .ultra-cmp::-webkit-inner-spin-button, .ultra-cmp::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+                    </style>
+                    <div class="popup-card full" style="width:98vw; max-width:900px; height:92vh; display:flex; flex-direction:column; padding:10px; border-radius:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-shrink:0;">
+                            <h3 style="color:#0A56D0; margin:0; font-size:16px;">✏️ Edit Meeting</h3>
+                            <button onclick="document.getElementById('mgEditGroupPopupOverlay').remove()" style="background:transparent; border:none; color:#ef4444; font-size:18px; font-weight:bold;">✕</button>
                         </div>
                         
-                        <div style="background:#eff6ff; padding:8px; border-radius:6px; border:1px solid #93c5fd; margin-bottom:8px; display:flex; flex-direction:column; gap:4px;">
-                            <div style="display:flex; gap:4px;">
-                                <input type="date" id="egDate" value="${rawDate}" class="mg-cmp-inp" style="flex:1;">
-                                <select id="egVendor" class="mg-cmp-inp" style="flex:1;"><option value="">Vendor</option>${vendorOpts}</select>
-                            </div>
-                            <div style="display:flex; gap:4px;">
-                                <input type="text" id="egPurpose" value="${slip.Purpose}" placeholder="Purpose" class="mg-cmp-inp" style="flex:1;">
-                                <input type="text" list="mgEmpListGlobal" id="egReqName" value="${slip.ReqName}" placeholder="Req By" class="mg-cmp-inp" style="flex:1;">
-                            </div>
+                        <div style="background:#eff6ff; padding:8px; border-radius:8px; border:1px solid #93c5fd; margin-bottom:8px; display:flex; gap:6px; flex-shrink:0;">
+                            <input type="text" id="egPurpose" value="${slip.Purpose}" placeholder="Purpose" class="mg-cmp-inp" style="flex:1;">
+                            <input type="text" list="mgEmpListGlobal" id="egReqName" value="${slip.ReqName}" placeholder="Req By" class="mg-cmp-inp" style="flex:1;">
                         </div>
 
-                        <div style="font-size:11px; font-weight:bold; color:#0A56D0; margin-bottom:4px;">📋 Edit Items:</div>
-                        <div id="egItemsContainer" style="max-height:200px; overflow-y:auto; border:1px solid #e2e8f0; padding:6px; border-radius:4px; background:#fff;">
+                        <div style="font-size:11px; font-weight:bold; color:#0A56D0; margin-bottom:4px; flex-shrink:0;">📋 Edit Items:</div>
+                        
+                        <!-- બધી રો એકદમ ફિટ થઈ જશે -->
+                        <div id="egItemsContainer" style="flex-grow:1; overflow-y:auto; overflow-x:hidden; border:1px solid #e2e8f0; padding:4px; border-radius:6px; background:#fff;">
                             ${itemsHtml}
                         </div>
-                        <button type="button" onclick="window.addEgRow()" style="width:100%; margin-top:6px; background:#10b981; color:#fff; border:none; border-radius:4px; font-size:12px; padding:6px; font-weight:bold; cursor:pointer;">➕ Add New Item</button>
+                        
+                        <button type="button" onclick="window.addEgRow()" style="width:100%; margin-top:6px; background:#10b981; color:#fff; border:none; border-radius:6px; font-size:12px; padding:8px; font-weight:bold; cursor:pointer; flex-shrink:0;">➕ Add New Item</button>
                         
                         <input type="hidden" id="egIdsToDelete" value="${encodeURIComponent(JSON.stringify(slip.idsToDelete))}">
 
-                        <div style="display:flex; gap:6px; margin-top:12px;">
-                            <button onclick="document.getElementById('mgEditGroupPopupOverlay').remove()" style="background:#fee2e2; color:#dc3545; border:none; flex:1; padding:8px; font-size:12px; font-weight:bold; border-radius:4px; cursor:pointer;">Cancel</button>
-                            <button onclick="window.saveEgGroup()" style="background:#2563eb; color:#fff; border:none; flex:1; padding:8px; font-size:12px; font-weight:bold; border-radius:4px; cursor:pointer;">💾 Update</button>
+                        <div style="display:flex; gap:6px; margin-top:8px; flex-shrink:0;">
+                            <button onclick="document.getElementById('mgEditGroupPopupOverlay').remove()" style="background:#fee2e2; color:#dc3545; border:none; flex:1; padding:8px; font-size:12px; font-weight:bold; border-radius:6px; cursor:pointer;">Cancel</button>
+                            <button onclick="window.saveEgGroup()" style="background:#2563eb; color:#fff; border:none; flex:1; padding:8px; font-size:12px; font-weight:bold; border-radius:6px; cursor:pointer;">💾 Update</button>
                         </div>
                     </div>
                 `;
@@ -10083,44 +9897,56 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
             window.addEgRow = function() {
                 const row = document.createElement('div');
                 row.className = 'eg-row';
-                row.style.cssText = "display:flex; gap:4px; margin-bottom:6px; align-items:center; background:#f8fafc; padding:6px; border:1px solid #e2e8f0; border-radius:4px;";
+                row.style.cssText = "display:flex; gap:2px; margin-bottom:4px; background:#f8fafc; padding:2px; border:1px solid #e2e8f0; border-radius:4px; align-items:center; width:100%; box-sizing:border-box;";
+                const vendorOpts = `<option value="DAU Direct Purchase" style="color:#059669; font-weight:bold;">🛒 DAU</option>` + canteenList.map(c => `<option value="${safeStr(c.name)}">${safeStr(c.name).substring(0,6)}</option>`).join('');
+                
+                let defaultDate = new Date().toISOString().split('T')[0];
+                const prevRows = document.querySelectorAll('.eg-date');
+                if(prevRows.length > 0) defaultDate = prevRows[prevRows.length-1].value;
+
                 row.innerHTML = `
-                    <input type="text" class="eg-item mg-cmp-inp" placeholder="Item Name" style="flex:2; border-color:#38bdf8;">
-                    <input type="number" class="eg-qty mg-cmp-inp" placeholder="Qty" style="flex:0.8; text-align:center; border-color:#38bdf8;">
-                    <input type="number" class="eg-rate mg-cmp-inp" placeholder="Rate" style="flex:1; text-align:center; border-color:#38bdf8;">
-                    <button type="button" onclick="this.closest('.eg-row').remove()" style="flex:0.5; height:26px; background:#fee2e2; color:#dc3545; border:none; border-radius:4px; font-weight:bold; font-size:11px; cursor:pointer;">✕</button>
+                    <input type="date" class="eg-date mg-cmp-inp ultra-cmp" value="${defaultDate}" style="width:68px; flex-shrink:0; height:24px; min-width:0;">
+                    <div style="position:relative; width:22px; height:24px; flex-shrink:0; border:1px solid #cbd5e1; border-radius:3px; background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden;" title="Select Time">
+                        <span style="font-size:10px; pointer-events:none;">⏰</span>
+                        <input type="time" class="eg-time" value="09:00" style="position:absolute; opacity:0; width:100%; height:100%; cursor:pointer; left:0; top:0;">
+                    </div>
+                    <select class="eg-vendor mg-cmp-inp ultra-cmp" style="width:52px; flex-shrink:0; height:24px; text-overflow:ellipsis; min-width:0;"><option value="">Vndr</option>${vendorOpts}</select>
+                    <input type="text" class="eg-item mg-cmp-inp ultra-cmp" placeholder="Item" style="flex:1; min-width:0; height:24px;">
+                    <input type="number" class="eg-qty mg-cmp-inp ultra-cmp" placeholder="Qty" style="width:28px; text-align:center; flex-shrink:0; height:24px; min-width:0;">
+                    <input type="number" class="eg-rate mg-cmp-inp ultra-cmp" placeholder="₹" style="width:34px; text-align:center; flex-shrink:0; height:24px; min-width:0;">
+                    <button type="button" onclick="this.closest('.eg-row').remove()" style="width:22px; height:24px; flex-shrink:0; background:#fee2e2; color:#dc3545; border:none; border-radius:3px; font-weight:bold; font-size:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;">✕</button>
                 `;
                 document.getElementById('egItemsContainer').appendChild(row);
-                // સ્ક્રોલ નીચે લઈ જવા
-                document.getElementById('egItemsContainer').scrollTop = document.getElementById('egItemsContainer').scrollHeight;
+                
+                const scrollWrapper = document.getElementById('egItemsContainer');
+                scrollWrapper.scrollTop = scrollWrapper.scrollHeight;
             };
 
             window.saveEgGroup = function() {
-                const rawDate = document.getElementById('egDate').value;
-                const vendor = document.getElementById('egVendor').value;
                 const purpose = document.getElementById('egPurpose').value.trim();
                 const reqName = document.getElementById('egReqName').value.trim();
 
-                if(!rawDate || !vendor || !purpose || !reqName) return appAlert('Error', 'Please fill all common details.');
+                if(!purpose || !reqName) return appAlert('Error', 'Please fill Purpose and Req By.');
 
                 const rows = document.querySelectorAll('.eg-row');
                 if(rows.length === 0) return appAlert('Error', 'Please add at least one item.');
 
                 let isValid = true;
                 rows.forEach(r => {
-                    if(!r.querySelector('.eg-item').value.trim() || !r.querySelector('.eg-qty').value) isValid = false;
+                    if(!r.querySelector('.eg-date').value || !r.querySelector('.eg-vendor').value || !r.querySelector('.eg-item').value.trim() || !r.querySelector('.eg-qty').value) isValid = false;
                 });
-                if(!isValid) return appAlert('Error', 'Item name and Qty are required for all rows.');
+                if(!isValid) return appAlert('Error', 'Date, Vendor, Item name and Qty are required for all rows.');
 
-                // ૧. જૂની એન્ટ્રીઓ ડીલીટ કરો
                 const idsToDelete = JSON.parse(decodeURIComponent(document.getElementById('egIdsToDelete').value));
                 const updates = {};
                 idsToDelete.forEach(it => {
                     updates['meetingsGuestsRecords/' + it.id] = null;
                 });
 
-                // ૨. નવી એન્ટ્રીઓ બનાવો
                 rows.forEach(row => {
+                    const rawDate = row.querySelector('.eg-date').value;
+                    const timeVal = row.querySelector('.eg-time').value || '09:00';
+                    const vendor = row.querySelector('.eg-vendor').value;
                     const item = row.querySelector('.eg-item').value.trim();
                     const qty = parseFloat(row.querySelector('.eg-qty').value) || 0;
                     const rate = parseFloat(row.querySelector('.eg-rate').value) || 0;
@@ -10133,7 +9959,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                         RawDate: rawDate,
                         DateFormatted: convertYMDtoDMY(rawDate),
                         Day: getDayOfWeek(convertYMDtoDMY(rawDate)),
-                        Time: '09:00',
+                        Time: timeVal,
                         Item: item, Qty: qty, Rate: rate, Amount: amt,
                         ReqName: reqName, Purpose: purpose, Location: 'Updated',
                         Vendor: vendor, ServedBy: currentUser ? currentUser.name : 'Admin',
