@@ -9684,10 +9684,8 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     });
                 }
 
-                // ડેટ અને પર્પઝ પ્રમાણે ગ્રુપિંગ (એક જ મીટિંગ માટે 1 રો)
                 const slips = {};
                 filteredRecords.forEach(rec => {
-                    // યુનિક કી: Date + Purpose + Vendor 
                     const key = `${rec.DateFormatted}_${rec.Purpose}_${rec.Vendor}`;
                     if(!slips[key]) {
                         slips[key] = {
@@ -9701,7 +9699,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                             totalAmt: 0,
                             itemCount: 0,
                             items: [],
-                            idsToDelete: [] // આખું બિલ ડીલીટ/એડિટ કરવા
+                            idsToDelete: [] 
                         };
                     }
                     slips[key].items.push(rec);
@@ -9731,8 +9729,9 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     `;
 
                     sortedSlips.forEach((slip, idx) => {
-                        const delData = encodeURIComponent(JSON.stringify(slip.idsToDelete));
-                        const itemsData = encodeURIComponent(JSON.stringify(slip));
+                        // અહીં સિંગલ ક્વોટ (') નો પ્રોબ્લેમ સોલ્વ કર્યો છે જેથી બટન કામ કરવાનું બંધ ના કરે
+                        const delData = encodeURIComponent(JSON.stringify(slip.idsToDelete)).replace(/'/g, "%27");
+                        const itemsData = encodeURIComponent(JSON.stringify(slip)).replace(/'/g, "%27");
 
                         html += `
                             <tr style="border-bottom:1px solid #e2e8f0; background:${idx%2===0?'#fff':'#f8fafc'};">
@@ -9759,7 +9758,6 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 if(containerMain) containerMain.innerHTML = html;
                 if(containerPopup) containerPopup.innerHTML = html;
             };
-
             // 📜 View Slip Function (કાચી ચિઠ્ઠી બતાવવા માટે)
             window.viewMgSlip = function(encodedData) {
                 const slip = JSON.parse(decodeURIComponent(encodedData));
@@ -9856,6 +9854,42 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     </div>
                 `).join('');
 
+                // અહી "Served By" નું Custom Dropdown ફંક્શન સેમ ટુ સેમ લાગુ કર્યું છે
+                let servedByHtml = '';
+                if(window.mgCurrentRole === 'admin') {
+                    let initDisp = slip.ServedBy || 'Served By';
+                    if (slip.ServedBy === 'Multiple Pantry Boys') initDisp = 'Multiple';
+                    else if (slip.ServedBy === 'Through Vendor') initDisp = 'Vendor';
+                    else if (slip.ServedBy) initDisp = slip.ServedBy.split(' ')[0];
+
+                    const customOptsHtml = `
+                        <div style="padding:10px 12px; border-bottom:1px solid #e2e8f0; cursor:pointer; font-size:12px; white-space:nowrap;" onclick="this.parentElement.previousElementSibling.style.display='none'; this.parentElement.style.display='none'; this.parentElement.parentElement.querySelector('span').innerText='Multiple'; this.parentElement.parentElement.querySelector('input').value='Multiple Pantry Boys';">Multiple Pantry Boys</div>
+                        <div style="padding:10px 12px; border-bottom:1px solid #e2e8f0; cursor:pointer; font-size:12px; white-space:nowrap;" onclick="this.parentElement.previousElementSibling.style.display='none'; this.parentElement.style.display='none'; this.parentElement.parentElement.querySelector('span').innerText='Vendor'; this.parentElement.parentElement.querySelector('input').value='Through Vendor';">Through Vendor</div>
+                        ` + pantryTeam.map(p => {
+                            let safeName = safeStr(p.name);
+                            let shortName = safeName.split(' ')[0];
+                            return `<div style="padding:10px 12px; border-bottom:1px solid #e2e8f0; cursor:pointer; font-size:12px; white-space:nowrap;" onclick="this.parentElement.previousElementSibling.style.display='none'; this.parentElement.style.display='none'; this.parentElement.parentElement.querySelector('span').innerText='${shortName}'; this.parentElement.parentElement.querySelector('input').value='${safeName}';">${safeName}</div>`;
+                        }).join('');
+
+                    servedByHtml = `
+                        <div style="position:relative; flex:1; min-width:85px;">
+                            <input type="hidden" id="egServedBy" value="${safeStr(slip.ServedBy || '')}">
+                            <div class="mg-cmp-inp" onclick="this.nextElementSibling.style.display='block'; this.nextElementSibling.nextElementSibling.style.display='block';" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding:0 4px; background:#fff; height:100%;">
+                                <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:11px;">${initDisp}</span>
+                                <span style="font-size:8px; margin-left:2px;">▼</span>
+                            </div>
+                            <!-- ઓવરલે: બહાર ક્લિક કરવાથી મેનુ બંધ થઈ જાય -->
+                            <div style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:9998;" onclick="this.style.display='none'; this.nextElementSibling.style.display='none';"></div>
+                            <!-- ડ્રોપડાઉન લિસ્ટ -->
+                            <div class="mg-custom-dd-list" style="display:none; position:absolute; top:100%; right:0; min-width:max-content; background:#fff; border:1px solid #0A56D0; border-radius:6px; max-height:250px; overflow-y:auto; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.2); font-weight:600; color:#1e293b; text-align:left;">
+                                ${customOptsHtml}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    servedByHtml = `<input type="text" id="egServedBy" value="${slip.ServedBy}" class="mg-cmp-inp" style="flex:1; min-width:85px; background:#e2e8f0; color:#64748b;" readonly title="Served By">`;
+                }
+
                 modal.innerHTML = `
                     <style>
                         .ultra-cmp { padding: 0 1px !important; font-size: 9px !important; border-radius: 3px !important; margin: 0 !important; }
@@ -9869,14 +9903,14 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                             <button onclick="document.getElementById('mgEditGroupPopupOverlay').remove()" style="background:transparent; border:none; color:#ef4444; font-size:18px; font-weight:bold;">✕</button>
                         </div>
                         
-                        <div style="background:#eff6ff; padding:8px; border-radius:8px; border:1px solid #93c5fd; margin-bottom:8px; display:flex; gap:6px; flex-shrink:0;">
-                            <input type="text" id="egPurpose" value="${slip.Purpose}" placeholder="Purpose" class="mg-cmp-inp" style="flex:1;">
-                            <input type="text" list="mgEmpListGlobal" id="egReqName" value="${slip.ReqName}" placeholder="Req By" class="mg-cmp-inp" style="flex:1;">
+                        <div style="background:#eff6ff; padding:6px; border-radius:8px; border:1px solid #93c5fd; margin-bottom:8px; display:flex; flex-wrap:wrap; gap:4px; flex-shrink:0;">
+                            <input type="text" id="egPurpose" value="${slip.Purpose}" placeholder="Purpose" class="mg-cmp-inp" style="flex:1.5; min-width:100px;">
+                            <input type="text" list="mgEmpListGlobal" id="egReqName" value="${slip.ReqName}" placeholder="Req By" class="mg-cmp-inp" style="flex:1; min-width:80px;">
+                            ${servedByHtml}
                         </div>
 
                         <div style="font-size:11px; font-weight:bold; color:#0A56D0; margin-bottom:4px; flex-shrink:0;">📋 Edit Items:</div>
                         
-                        <!-- બધી રો એકદમ ફિટ થઈ જશે -->
                         <div id="egItemsContainer" style="flex-grow:1; overflow-y:auto; overflow-x:hidden; border:1px solid #e2e8f0; padding:4px; border-radius:6px; background:#fff;">
                             ${itemsHtml}
                         </div>
@@ -9913,7 +9947,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     <select class="eg-vendor mg-cmp-inp ultra-cmp" style="width:52px; flex-shrink:0; height:24px; text-overflow:ellipsis; min-width:0;"><option value="">Vndr</option>${vendorOpts}</select>
                     <input type="text" class="eg-item mg-cmp-inp ultra-cmp" placeholder="Item" style="flex:1; min-width:0; height:24px;">
                     <input type="number" class="eg-qty mg-cmp-inp ultra-cmp" placeholder="Qty" style="width:28px; text-align:center; flex-shrink:0; height:24px; min-width:0;">
-                    <input type="number" class="eg-rate mg-cmp-inp ultra-cmp" placeholder="₹" style="width:34px; text-align:center; flex-shrink:0; height:24px; min-width:0;">
+                    <input type="number" class="eg-rate mg-cmp-inp ultra-cmp" placeholder="₹" style="width:32px; text-align:center; flex-shrink:0; height:24px; min-width:0;">
                     <button type="button" onclick="this.closest('.eg-row').remove()" style="width:22px; height:24px; flex-shrink:0; background:#fee2e2; color:#dc3545; border:none; border-radius:3px; font-weight:bold; font-size:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;">✕</button>
                 `;
                 document.getElementById('egItemsContainer').appendChild(row);
@@ -9925,6 +9959,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
             window.saveEgGroup = function() {
                 const purpose = document.getElementById('egPurpose').value.trim();
                 const reqName = document.getElementById('egReqName').value.trim();
+                const servedBy = document.getElementById('egServedBy') ? document.getElementById('egServedBy').value : (currentUser ? currentUser.name : 'Admin');
 
                 if(!purpose || !reqName) return appAlert('Error', 'Please fill Purpose and Req By.');
 
@@ -9962,7 +9997,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                         Time: timeVal,
                         Item: item, Qty: qty, Rate: rate, Amount: amt,
                         ReqName: reqName, Purpose: purpose, Location: 'Updated',
-                        Vendor: vendor, ServedBy: currentUser ? currentUser.name : 'Admin',
+                        Vendor: vendor, ServedBy: servedBy,
                         Status: 'Approved',
                         Timestamp: Date.now()
                     };
@@ -9974,7 +10009,6 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     window.renderMgHistoryTable();
                 }).catch(err => appAlert('Error', err.message));
             };
-
             window.deleteFullMgSlip = function(encodedData) {
                 appConfirm('Delete Slip', 'Are you sure you want to delete ALL items in this slip?', () => {
                     const items = JSON.parse(decodeURIComponent(encodedData));
