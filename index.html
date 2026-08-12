@@ -4138,84 +4138,64 @@ window.shareVendorLink = function(link, vendor) {
             }
 
             // ============================================================
-            //  PANTRY - DAILY / MONTHLY ENTRY (Professional Monthly Grid)
             // ============================================================
-                function renderServeEntry() {
+            //  PANTRY - DAILY / MONTHLY ENTRY (Ultra Slim Mobile Optimized)
+            // ============================================================
+            function renderServeEntry() {
                 activePantryTab = 'serve';
                 const todayYMD = new Date().toISOString().split('T')[0];
                 const container = document.getElementById('pantryContent');
-                container.innerHTML = `
-              <style>
-                /* ગ્લોબલ CSS ને બાયપાસ કરવા માટેની સ્પેશિયલ સ્ટાઇલ */
-                .custom-date-wrapper {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    width: 170px;
-                    height: 42px;
-                    background: #FFFFFF;
-                    border: 1px solid #CBD5E1;
-                    border-radius: 6px;
-                    overflow: hidden;
-                    cursor: pointer;
-                }
-                .custom-date-wrapper input {
-                    flex: 1 !important;
-                    width: 100% !important;
-                    height: 100% !important;
-                    border: none !important;
-                    background: transparent !important;
-                    text-align: center !important;
-                    font-weight: 500 !important;
-                    font-size: 1.05rem !important;
-                    color: #1E293B !important;
-                    outline: none !important;
-                    margin: 0 !important;
-                    padding: 0 !important;
-                    box-shadow: none !important;
-                }
-              </style>
-              <div class="card" style="padding:16px; margin-bottom:16px; display:flex; flex-direction:column; overflow:hidden; max-height:100%;">
-                <div style="margin-bottom:12px; flex-shrink:0;">
-                  <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px; width: 100%;">
-    
-                    <!-- ◀ પાછળની તારીખ માટે બટન -->
-                    <button type="button" onclick="window.changeDateBy(-1)" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 42px; padding: 0; background: #FFFFFF; border: 1.5px solid #0A56D0; color: #0A56D0; border-radius: 6px; font-weight: bold; font-size: 1.2rem; cursor: pointer; flex-shrink: 0;">◀</button>
+                
+                // નવો સ્લિમ CSS બ્લોક ખાસ ડેઈલી એન્ટ્રી માટે
+                const slimDailyCss = `
+                <style>
+                    .slim-ctrl-row { display: flex; gap: 4px; width: 100%; margin-bottom: 4px; }
+                    .slim-inp { flex: 1; height: 28px !important; min-height: 28px !important; padding: 0 4px !important; font-size: 11px !important; border-radius: 4px !important; border: 1px solid #CBD5E1 !important; box-sizing: border-box !important; text-align: center; background: #fff; color:#0A56D0; font-weight:bold; outline:none; }
+                    .slim-btn-nav { flex: 0.15; height: 28px !important; min-height: 28px !important; padding: 0 !important; font-size: 14px !important; border-radius: 4px !important; border: 1px solid #0A56D0 !important; color:#0A56D0; background:#fff; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor:pointer; }
+                    .slim-btn-mode { flex: 0.3; height: 28px !important; min-height: 28px !important; padding: 0 !important; font-size: 10px !important; border-radius: 4px !important; border: 1px solid #0A56D0 !important; color:#0A56D0; background:#fff; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor:pointer; }
+                    .slim-btn-mode.active { background: #0A56D0 !important; color: #fff !important; }
                     
-                    <!-- નવું ક્લીન તારીખ માટેનું બોક્સ -->
+                    /* Custom Date Wrapper Overrides */
+                    .custom-date-wrapper { flex: 0.5; height: 28px !important; background: #fff; border: 1px solid #0A56D0; border-radius: 4px; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+                    .custom-date-wrapper input { flex: 1 !important; width: 100% !important; height: 100% !important; border: none !important; background: transparent !important; text-align: center !important; font-weight: 800 !important; font-size: 11px !important; color: #0A56D0 !important; outline: none !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; cursor:pointer; }
+                    .custom-date-wrapper svg { width: 14px; height: 14px; margin-right: 4px; }
+                    
+                    /* Table Dropdown Overrides */
+                    .slim-daily-drop .my-drop-btn { min-height: 24px !important; height: 24px !important; padding: 0 4px !important; font-size: 10px !important; border-radius: 4px !important; border:1px solid #CBD5E1 !important; box-shadow:none !important; }
+                    .slim-daily-drop .my-drop-disabled { padding: 0 4px !important; font-size: 10px !important; border-radius: 4px !important; border:1px solid #CBD5E1 !important; height:24px !important; box-sizing:border-box !important; display:flex; align-items:center; justify-content:center; }
+                    .slim-daily-drop .my-drop-item { font-size: 13px !important; padding: 12px !important; font-weight:bold; }
+                </style>
+                `;
+
+                container.innerHTML = `
+              ${slimDailyCss}
+              <div class="card" style="padding:6px; margin-bottom:4px; display:flex; flex-direction:column; flex:1; overflow:hidden; border-radius:8px;">
+                <div style="flex-shrink:0;">
+                  <!-- 1. Row: Navigation & Date & Mode -->
+                  <div class="slim-ctrl-row">
+                    <button type="button" onclick="window.changeDateBy(-1)" class="slim-btn-nav">◀</button>
                     <div class="custom-date-wrapper" onclick="var fp = document.getElementById('beverageEntryDate')._flatpickr; if(fp) fp.open();">
                         <input type="text" id="beverageEntryDate" value="${todayYMD}" readonly>
-                        <div style="display: flex; align-items: center; justify-content: center; padding-right: 12px; color: #0A56D0; pointer-events: none;">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                <line x1="16" y1="2" x2="16" y2="6"></line>
-                                <line x1="8" y1="2" x2="8" y2="6"></line>
-                                <line x1="3" y1="10" x2="21" y2="10"></line>
-                            </svg>
+                        <div style="display: flex; align-items: center; justify-content: center; color: #0A56D0; pointer-events: none;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                         </div>
                     </div>
-                    
-                    <!-- ▶ આગળની તારીખ માટે બટન -->
-                    <button type="button" onclick="window.changeDateBy(1)" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 42px; padding: 0; background: #FFFFFF; border: 1.5px solid #0A56D0; color: #0A56D0; border-radius: 6px; font-weight: bold; font-size: 1.2rem; cursor: pointer; flex-shrink: 0;">▶</button>
-
-                  </div>
-                  <div class="mode-toggle">
-                    <button id="modeNameWise" class="active">👤  Daily Entry</button>
-                    <button id="modeDateWise">📅  Monthly Entry</button>
+                    <button type="button" onclick="window.changeDateBy(1)" class="slim-btn-nav">▶</button>
+                    <button id="modeNameWise" class="slim-btn-mode active" style="margin-left:4px;">👤 Daily</button>
+                    <button id="modeDateWise" class="slim-btn-mode">📅 Monthly</button>
                   </div>
                 </div>
-                <div id="beverageEntryModeContent" style="flex:1; overflow-y:auto; min-height:0;"></div>
-                <button id="saveBulkEntries" class="success" style="width:100%; padding:14px; font-size:1.05rem; flex-shrink:0; min-height:50px; margin-top:10px;">💾 SAVE ENTRIES</button>
+                <div id="beverageEntryModeContent" style="flex:1; display:flex; flex-direction:column; overflow:hidden; min-height:0;"></div>
+                <button id="saveBulkEntries" class="success" style="width:100%; padding:8px; font-size:13px; font-weight:bold; flex-shrink:0; min-height:38px; border-radius:6px; margin-top:4px;">💾 SAVE ENTRIES</button>
               </div>
             `;
 
-                // --- પેજ ખૂલતા જ કેલેન્ડરને DD/MM/YYYY માં ફેરવી દેશે ---
                 setTimeout(() => {
                     if (typeof flatpickr !== 'undefined') {
                         flatpickr("#beverageEntryDate", {
                             dateFormat: "Y-m-d",
                             altInput: true,
-                            altFormat: "d/m/Y",
+                            altFormat: "d/m/y (D)", // શોર્ટમાં ડેટ અને વાર
                             disableMobile: true,
                             onChange: function() {
                                 if (typeof window.refreshAllData === 'function') window.refreshAllData();
@@ -4223,65 +4203,62 @@ window.shareVendorLink = function(link, vendor) {
                         });
                     }
                 }, 50);
-                // ----------------------------------------------------------------
-
+                
                 let currentMode = 'name';
 
                 function switchMode(mode) {               
                     currentMode = mode;
-                    document.getElementById('modeNameWise').className = mode === 'name' ? 'active' : '';
-                    document.getElementById('modeDateWise').className = mode === 'date' ? 'active' : '';
+                    document.getElementById('modeNameWise').className = mode === 'name' ? 'slim-btn-mode active' : 'slim-btn-mode';
+                    document.getElementById('modeDateWise').className = mode === 'date' ? 'slim-btn-mode active' : 'slim-btn-mode';
                     renderBeverageModeContent(mode);
                 }
                 document.getElementById('modeNameWise').onclick = () => switchMode('name');
                 document.getElementById('modeDateWise').onclick = () => switchMode('date');
-                document.getElementById('beverageEntryDate').addEventListener('change', () => renderBeverageModeContent(
-                    currentMode));
+                document.getElementById('beverageEntryDate').addEventListener('change', () => renderBeverageModeContent(currentMode));
 
-                                function renderBeverageModeContent(mode) {
+                function renderBeverageModeContent(mode) {
                     const target = document.getElementById('beverageEntryModeContent');
                     if (!target) return;
                     
                     if (mode === 'name') {
                         const hasDauAccess = window.hasDauPurchasePermission ? window.hasDauPurchasePermission(currentUser.id) : true;
                         target.innerHTML = `
-                            <div class="merged-filter-row" style="flex-shrink:0; margin-bottom:8px;">
-                                <select id="dailySupplySource" style="flex:1; padding:10px; border-radius:8px; border:1px solid #CBD5E1; font-weight:bold; color:#0A56D0; background:#EFF6FF;">
-                                    <option value="Contractor">☕ IA Caterers (Contractor)</option>
-                                    ${hasDauAccess ? '<option value="DAU Direct Purchase">🛒 DAU Direct Purchase</option>' : ''}
+                            <!-- 2. Row: Supply, Category, Search -->
+                            <div class="slim-ctrl-row" style="flex-shrink:0;">
+                                <select id="dailySupplySource" class="slim-inp" style="flex:0.8; font-size:10px!important; text-align-last:center; appearance:none;">
+                                    <option value="Contractor">☕ IA Caterer</option>
+                                    ${hasDauAccess ? '<option value="DAU Direct Purchase">🛒 DAU Direct</option>' : ''}
                                 </select>
-                            </div>
-                            <div class="merged-filter-row" style="flex-shrink:0;">
-                                <input id="pantryStaffSearch" placeholder="🔍 Search Name..." style="flex:1.5;">
-                                <select id="entryCategory" style="flex:1;">
-                                    <option value="All">All Categories</option>
+                                <input id="pantryStaffSearch" class="slim-inp" placeholder="🔍 Search" style="flex:1; font-weight:normal; color:#1E293B;">
+                                <select id="entryCategory" class="slim-inp" style="flex:0.7; font-size:10px!important; text-align-last:center; font-weight:normal; color:#1E293B; appearance:none;">
+                                    <option value="All">All Cat.</option>
                                     <option value="Faculty">Faculty</option>
                                     <option value="Staff">Staff</option>
                                     <option value="Law">Law</option>
-                                    <option value="Outsourced">Outsourced</option>
+                                    <option value="Outsourced">Outsource</option>
                                 </select>
                             </div>
-                            <div style="margin-bottom:12px; border:2px solid #0A56D0; border-radius:10px; overflow:hidden;" id="dailyEntryMainBox">
-                                <div id="dailyEntryHeaderLabel" style="background:#EFF6FF; padding:8px 12px; font-weight:700; color:#0A56D0; font-size:.9rem; border-bottom:1px solid #BFDBFE;">☕ IA Caterers (Contractor) - Daily Tea</div>
-                                <div class="table-row table-header"><div>Name</div><div style="text-align:center;">Morning</div><div style="text-align:center;">Afternoon</div></div>
-                                <div id="bulkServeListContractor" style="max-height:350px; overflow-y:auto; margin-bottom:4px;"></div>
+                            
+                            <!-- 3. Main Table Box -->
+                            <div id="dailyEntryMainBox" style="flex:1; display:flex; flex-direction:column; border:1px solid #0A56D0; border-radius:6px; overflow:hidden; background:#fff; margin-top:2px;">
+                                <div id="dailyEntryHeaderLabel" style="background:#EFF6FF; padding:4px 6px; font-weight:800; color:#0A56D0; font-size:11px; border-bottom:1px solid #BFDBFE; display:flex;">
+                                    <div style="flex:2;">Name</div>
+                                    <div style="flex:1; text-align:center;">Morn</div>
+                                    <div style="flex:1; text-align:center;">Aft</div>
+                                </div>
+                                <div id="bulkServeListContractor" style="flex:1; overflow-y:auto; overflow-x:hidden; padding:2px;"></div>
                             </div>
                         `;
                         document.getElementById('entryCategory').addEventListener('change', populateServe);
                         document.getElementById('pantryStaffSearch').addEventListener('input', populateServe);
                         document.getElementById('dailySupplySource').addEventListener('change', function() {
-                            const lbl = document.getElementById('dailyEntryHeaderLabel');
                             const box = document.getElementById('dailyEntryMainBox');
                             if(this.value === 'Contractor') {
-                                lbl.innerHTML = '☕ IA Caterers (Contractor) - Daily Tea';
-                                lbl.style.background = '#EFF6FF'; lbl.style.color = '#0A56D0'; lbl.style.borderBottomColor = '#BFDBFE';
                                 box.style.borderColor = '#0A56D0';
-                                this.style.color = '#0A56D0'; this.style.background = '#EFF6FF';
+                                this.style.color = '#0A56D0';
                             } else {
-                                lbl.innerHTML = '🛒 DAU Direct Purchase - Daily Tea';
-                                lbl.style.background = '#ECFDF5'; lbl.style.color = '#047857'; lbl.style.borderBottomColor = '#BBF7D0';
                                 box.style.borderColor = '#059669';
-                                this.style.color = '#047857'; this.style.background = '#ECFDF5';
+                                this.style.color = '#047857';
                             }
                             populateServe();
                         });
@@ -4291,10 +4268,8 @@ window.shareVendorLink = function(link, vendor) {
                     }
                 }
 
-                                                window.populateServe = function populateServe() {
+                window.populateServe = function populateServe() {
                     const containerContractor = document.getElementById('bulkServeListContractor');
-                    const containerDAU = document.getElementById('bulkServeListDAU');
-                    const containerOld = document.getElementById('bulkServeList');
                     const cat = document.getElementById('entryCategory')?.value || 'All';
                     const search = document.getElementById('pantryStaffSearch')?.value.toLowerCase().trim() || '';
                     const selectedYMD = document.getElementById('beverageEntryDate')?.value || new Date().toISOString().split('T')[0];
@@ -4304,7 +4279,6 @@ window.shareVendorLink = function(link, vendor) {
                     let effectivePantryId = currentUser.id;
                     if(typeof getEffectivePantryId === 'function') effectivePantryId = getEffectivePantryId(currentUser.id);
 
-                    // 1. કયો દિવસ છે તે ચેક કરો (Saturday, Sunday, Holiday)
                     let dayType = '';
                     if (typeof publicHolidaysData !== 'undefined' && publicHolidaysData[selectedYMD]) {
                         dayType = 'Holiday';
@@ -4314,7 +4288,6 @@ window.shareVendorLink = function(link, vendor) {
                         else if (dNum === 0) dayType = 'Sunday';
                     }
 
-                    // 2. રેગ્યુલર એમ્પ્લોયી (જે રોજના એલોટ કરેલા છે)
                     let regularFiltered = employeeList.filter(emp => {
                         if (emp.assignedPantryId !== effectivePantryId) return false;
                         if (cat !== 'All' && emp.category !== cat) return false;
@@ -4323,12 +4296,11 @@ window.shareVendorLink = function(link, vendor) {
                         return true;
                     });
                     
-                    // 3. સ્પેશિયલ ડ્યુટી વાળા એમ્પ્લોયી (શનિ/રવિ/રજા માટે અલગથી એલોટ કરેલા)
                     let specialFiltered = [];
                     if (dayType && typeof weekendDutiesData !== 'undefined') {
                         const dayDuties = weekendDutiesData[dayType] || {};
                         specialFiltered = employeeList.filter(emp => {
-                            if (dayDuties[emp.id] !== effectivePantryId) return false; // માત્ર એલોટ કરેલા
+                            if (dayDuties[emp.id] !== effectivePantryId) return false;
                             if (cat !== 'All' && emp.category !== cat) return false;
                             if (search && !emp.name.toLowerCase().includes(search)) return false;
                             if (supplySource === 'DAU Direct Purchase' && emp.dauTeaEligible !== true) return false;
@@ -4336,7 +4308,6 @@ window.shareVendorLink = function(link, vendor) {
                         });
                     }
 
-                    // જો કોઈ એમ્પ્લોયી સ્પેશિયલમાં હોય તો તેને રેગ્યુલરમાંથી કાઢી નાખવો જેથી ડબલ વખત ના દેખાય
                     const specialIds = specialFiltered.map(e => e.id);
                     regularFiltered = regularFiltered.filter(e => !specialIds.includes(e.id));
                     
@@ -4345,7 +4316,7 @@ window.shareVendorLink = function(link, vendor) {
                     const currentDrinkArr = supplySource === 'DAU Direct Purchase' ? dauArr : contractorArr;
 
                     function buildRows(empList, drinkArr, supplySrc) {
-                        let optsHtml = `<div class="my-drop-item" style="color:#DC3545;" onclick="window.selectMyDrop(this, 'REMOVE_LOG', '✕ Clear')">✕ Clear/Remove</div>`;
+                        let optsHtml = `<div class="my-drop-item" style="color:#DC3545;" onclick="window.selectMyDrop(this, 'REMOVE_LOG', '✕ Clear')">✕ Clear</div>`;
                         optsHtml += `<div class="my-drop-item" onclick="window.selectMyDrop(this, '', '-')">- (None)</div>`;
                         drinkArr.forEach(d => {
                             optsHtml += `<div class="my-drop-item" onclick="window.selectMyDrop(this, '${d}', '${d}')">${d}</div>`;
@@ -4363,7 +4334,7 @@ window.shareVendorLink = function(link, vendor) {
                                 return `
                                 <div class="my-drop-wrap">
                                     <input type="hidden" class="${inputClass} drink-input" data-supply="${supplySrc}" value="">
-                                    <div class="my-drop-btn" onclick="window.openMyDrop(this)"><span>-</span> <small>▼</small></div>
+                                    <div class="my-drop-btn" onclick="window.openMyDrop(this)"><span>-</span> <small style="font-size:7px;margin-left:2px;">▼</small></div>
                                     <div class="my-drop-overlay" onclick="window.closeMyDrop(this)"></div>
                                     <div class="my-drop-list">${optsHtml}</div>
                                 </div>`;
@@ -4371,9 +4342,18 @@ window.shareVendorLink = function(link, vendor) {
 
                             const mEl = buildDrop(morn, 'mornDrink');
                             const aEl = buildDrop(aft, 'aftDrink');
-                            const editBtn = (morn || aft) ? `<button onclick="window.handleDirectRowEditTrigger('${emp.id}')" style="background:transparent; border:none; cursor:pointer; font-size:1rem; padding:4px 6px; border-radius:8px; color:#0A56D0;">✏️</button>` : '';
+                            const editBtn = (morn || aft) ? `<button onclick="window.handleDirectRowEditTrigger('${emp.id}')" style="background:transparent; border:none; cursor:pointer; font-size:12px; padding:0 2px; color:#0A56D0;">✏️</button>` : '';
                             
-                            return `<div class="table-row bulk-entry-row" data-id="${emp.id}" data-name="${safeStr(emp.name)}" data-supply="${supplySrc}"><div style="display:flex; align-items:center; justify-content:space-between; gap:4px;"><div style="font-size:.9rem;">${safeStr(emp.name)} <br><small style="color:#74777F; font-size:.7rem;">[${emp.category}]</small></div>${editBtn}</div><div style="padding:0 4px; flex:1;">${mEl}</div><div style="padding:0 4px; flex:1;">${aEl}</div></div>`;
+                            // સ્લિમ રો ડિઝાઇન (કોઈ વધારાનું પેડિંગ નહિ)
+                            return `
+                            <div class="bulk-entry-row" data-id="${emp.id}" data-name="${safeStr(emp.name)}" data-supply="${supplySrc}" style="display:flex; align-items:center; border-bottom:1px solid #E2E8F0; padding:4px 2px; min-height:28px; box-sizing:border-box;">
+                                <div style="flex:2; font-size:10px; font-weight:700; color:#1E293B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:2px; padding-right:4px;">
+                                    <div style="flex:1; overflow:hidden; text-overflow:ellipsis;">${safeStr(emp.name)} <span style="color:#64748B; font-weight:normal; font-size:8px;">[${emp.category.substring(0,3)}]</span></div>
+                                    ${editBtn}
+                                </div>
+                                <div class="slim-daily-drop" style="flex:1; padding:0 2px;">${mEl}</div>
+                                <div class="slim-daily-drop" style="flex:1; padding:0 2px;">${aEl}</div>
+                            </div>`;
                         }).join('');
                     }
 
@@ -4381,20 +4361,18 @@ window.shareVendorLink = function(link, vendor) {
                         if (!container) return;
                         let html = '';
                         
-                        // 1. રેગ્યુલર કર્મચારીઓનું લિસ્ટ
                         if (regularFiltered.length > 0) {
-                            html += `<div style="padding:8px 12px; background:#F8FAFC; border-bottom:1px solid #CBD5E1; color:#0A56D0; font-weight:bold; font-size:.85rem;">📌 Regular Assigned Employees</div>`;
+                            html += `<div style="padding:4px 6px; background:#F8FAFC; border-bottom:1px solid #CBD5E1; color:#0A56D0; font-weight:bold; font-size:9px; text-transform:uppercase;">📌 Regular Assigned</div>`;
                             html += buildRows(regularFiltered, drinkArr, supplySrc);
                         }
                         
-                        // 2. સ્પેશિયલ ડ્યુટી (શનિ/રવિ/રજા) વાળા કર્મચારીઓનું અલગ લિસ્ટ
                         if (specialFiltered.length > 0) {
-                            html += `<div style="padding:8px 12px; background:#FFFBEB; border-bottom:1px solid #FDE68A; border-top:4px solid #FCD34D; color:#D97706; font-weight:bold; font-size:.85rem;">🌟 ${dayType} Duty Employees</div>`;
+                            html += `<div style="padding:4px 6px; background:#FFFBEB; border-bottom:1px solid #FDE68A; border-top:2px solid #FCD34D; color:#D97706; font-weight:bold; font-size:9px; text-transform:uppercase;">🌟 ${dayType} Duty</div>`;
                             html += buildRows(specialFiltered, drinkArr, supplySrc);
                         }
 
                         if (!html) {
-                            container.innerHTML = `<p style="text-align:center; padding:20px; color:#74777F; font-size:.9rem;">No allotted employees found.</p>`;
+                            container.innerHTML = `<p style="text-align:center; padding:20px; color:#74777F; font-size:11px;">No employees found.</p>`;
                         } else {
                             container.innerHTML = html;
                         }
@@ -4410,23 +4388,44 @@ window.shareVendorLink = function(link, vendor) {
                     }
                     return pantryId;
                 }
-
             // ============================================================
-            //  PANTRY - MONTHLY ENTRY GRID (With Smart Excel Import & Month Picker)
+            //  PANTRY - MONTHLY ENTRY GRID (Format/Upload Bug Fixed)
             // ============================================================
             window.openMonthlyGridPopup = function openMonthlyGridPopup() {
                 const popup = document.getElementById('monthlyGridPopup');
                 const content = document.getElementById('monthlyGridPopupContent');
                 popup.classList.remove('hidden');
 
-                // 1. પોપઅપની અંદરથી જ મહિનો લેવાનો કોડ (નવો ઉમેર્યો)
+                const popupCard = popup.querySelector('.popup-card');
+                if (popupCard) {
+                    popupCard.style.padding = '8px 6px';
+                    popupCard.style.height = '99vh';
+                    popupCard.style.maxHeight = '99vh';
+                    popupCard.style.width = '100%';
+                    popupCard.style.maxWidth = '100vw'; 
+                    popupCard.style.boxSizing = 'border-box';
+                    popupCard.style.overflowX = 'hidden'; 
+                    popupCard.style.borderRadius = '12px';
+                    popupCard.style.display = 'flex';
+                    popupCard.style.flexDirection = 'column';
+                }
+
+                if (content) {
+                    content.style.flex = '1';
+                    content.style.display = 'flex';
+                    content.style.flexDirection = 'column';
+                    content.style.maxHeight = 'none'; 
+                    content.style.minHeight = '0';
+                    content.style.overflow = 'hidden';
+                    content.style.padding = '0';
+                    content.style.margin = '0';
+                }
+
                 let monthVal = document.getElementById('monthlyGridMonthPicker')?.value;
-                
-                // જો પોપઅપમાં મહિનો સિલેક્ટ ન હોય તો બહારની તારીખથી અથવા આજના મહિનાથી સેટ કરો
                 if (!monthVal) {
                     const mainDate = document.getElementById('beverageEntryDate')?.value;
                     if (mainDate) {
-                        monthVal = mainDate.slice(0, 7); // YYYY-MM
+                        monthVal = mainDate.slice(0, 7);
                     } else {
                         const today = new Date();
                         monthVal = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
@@ -4439,24 +4438,6 @@ window.shareVendorLink = function(link, vendor) {
                 const hasDauAccess = window.hasDauPurchasePermission ? window.hasDauPurchasePermission(currentUser.id) : true;
                 const supplySource = document.getElementById('monthlySupplySource')?.value || 'Contractor';
                 
-                // પોપઅપમાં મહિનો સિલેક્ટ કરવાનું નવું બોક્સ ઉમેર્યું 
-                const controlHtml = `
-                    <div style="margin-bottom: 12px; display:flex; gap: 10px; align-items: center; background:#EFF6FF; padding:8px; border-radius:8px; border:1px solid #BFDBFE; flex-wrap:wrap;">
-                        
-                        <input type="month" id="monthlyGridMonthPicker" value="${monthVal}" style="padding:8px; border-radius:6px; border:1px solid #0A56D0; font-weight:bold; color:#0A56D0; background:#fff; margin:0;" onchange="window.refreshMonthlyGrid()">
-                        
-                        <select id="monthlySupplySource" style="padding:8px; border-radius:6px; border:1px solid #0A56D0; font-weight:bold; color:#0A56D0; background:#fff; flex:1; margin:0; min-width:180px;" onchange="window.refreshMonthlyGrid()">
-                            <option value="Contractor" ${supplySource === 'Contractor' ? 'selected' : ''}>☕ IA Caterers (Contractor)</option>
-                            ${hasDauAccess ? `<option value="DAU Direct Purchase" ${supplySource === 'DAU Direct Purchase' ? 'selected' : ''}>🛒 DAU Direct Purchase</option>` : ''}
-                        </select>
-                        <button type="button" onclick="window.downloadMonthlyGridTemplate()" class="btn outline" style="margin:0; padding:8px 16px; font-size:.85rem; font-weight:bold; border-radius:6px; background:#fff; white-space:nowrap;">📥 Format</button>
-                        <label class="btn success" style="margin:0; padding:8px 16px; font-size:.85rem; font-weight:bold; border-radius:6px; cursor:pointer; white-space:nowrap;">
-                            📤 Upload Excel
-                            <input type="file" id="monthlyGridExcelUpload" accept=".xlsx, .xls" style="display:none;" onchange="window.handleMonthlyGridExcelUpload(event)">
-                        </label>
-                    </div>
-                `;
-
                 const effectivePantryId = getEffectivePantryId(currentUser.id);
                 
                 const myAssigned = employeeList.filter(emp => {
@@ -4474,8 +4455,60 @@ window.shareVendorLink = function(link, vendor) {
                     return true;
                 });
 
+                let selectedEmpId = document.getElementById('monthlyGridEmpPicker')?.value;
+                if (!selectedEmpId && myAssigned.length > 0) {
+                    selectedEmpId = myAssigned[0].id;
+                }
+
+                const currentIndex = myAssigned.findIndex(e => e.id === selectedEmpId);
+                const prevId = currentIndex > 0 ? myAssigned[currentIndex - 1].id : null;
+                const nextId = currentIndex < myAssigned.length - 1 ? myAssigned[currentIndex + 1].id : null;
+                const selectedEmp = myAssigned[currentIndex];
+
+                const styleOverrides = `
+                    <style>
+                        .us-top-ctrl { height:28px !important; min-height:28px !important; margin:0 !important; padding:0 2px !important; font-size:11px !important; font-weight:bold !important; border-radius:4px !important; border:1px solid #CBD5E1 !important; outline:none !important; appearance:none !important; -webkit-appearance:none !important; background:#fff !important; color:#0A56D0 !important; box-sizing:border-box !important; text-align:center !important; display:flex !important; align-items:center !important; justify-content:center !important; width:100% !important; min-width:0 !important; max-width:100% !important; }
+                        .us-tbl-wrapper { width:100% !important; max-width:100% !important; overflow-x:hidden !important; overflow-y:auto !important; flex:1 1 auto !important; min-height:0 !important; border:1px solid #CBD5E1 !important; border-radius:6px !important; background:#fff !important; margin-bottom:4px !important; box-sizing:border-box !important; display:block !important; }
+                        .us-tbl { width:100% !important; max-width:100% !important; min-width:0 !important; border-collapse:collapse !important; table-layout:fixed !important; margin:0 !important; box-sizing:border-box !important; }
+                        .us-th { min-width:0 !important; max-width:none !important; padding:4px 0 !important; font-size:10px !important; color:#0A56D0 !important; background:#F1F5F9 !important; border-bottom:1px solid #0A56D0 !important; border-right:1px solid #E2E8F0 !important; height:24px !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; box-sizing:border-box !important; text-align:center !important; }
+                        .us-td { min-width:0 !important; max-width:none !important; padding:0 !important; margin:0 !important; height:24px !important; border-bottom:1px solid #E2E8F0 !important; border-right:1px solid #E2E8F0 !important; vertical-align:middle !important; overflow:hidden !important; box-sizing:border-box !important; }
+                        .us-sel { width:100% !important; max-width:100% !important; min-width:0 !important; height:24px !important; padding:0 !important; margin:0 !important; font-size:10px !important; font-weight:700 !important; color:#0A56D0 !important; background:transparent !important; border:none !important; appearance:none !important; -webkit-appearance:none !important; outline:none !important; box-shadow:none !important; text-align:center !important; text-align-last:center !important; cursor:pointer !important; overflow:hidden !important; text-overflow:ellipsis !important; box-sizing:border-box !important; }
+                        .us-sel:focus { border:none !important; box-shadow:none !important; background:#E0F2FE !important; }
+                        .us-btn { background:transparent !important; border:none !important; padding:0 !important; margin:0 !important; width:48% !important; min-width:0 !important; height:24px !important; font-size:11px !important; display:inline-flex !important; align-items:center !important; justify-content:center !important; cursor:pointer !important; box-sizing:border-box !important; }
+                    </style>
+                `;
+
+                const controlHtml = `
+                    ${styleOverrides}
+                    <div style="display:flex; flex-direction:column; gap:4px; flex-shrink:0; max-width:100%; overflow:hidden;">
+                        <!-- Top 4 Controls -->
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:4px; width:100%;">
+                            <input type="month" id="monthlyGridMonthPicker" class="us-top-ctrl" value="${monthVal}" onchange="window.saveAndRefreshGrid()">
+                            <select id="monthlySupplySource" class="us-top-ctrl" onchange="window.saveAndRefreshGrid()">
+                                <option value="Contractor" ${supplySource === 'Contractor' ? 'selected' : ''}>IA Caterer</option>
+                                ${hasDauAccess ? `<option value="DAU Direct Purchase" ${supplySource === 'DAU Direct Purchase' ? 'selected' : ''}>DAU Direct</option>` : ''}
+                            </select>
+                            <button type="button" onclick="window.downloadMonthlyGridTemplate()" class="us-top-ctrl" style="cursor:pointer;">📥 Fmt</button>
+                            <label class="us-top-ctrl" style="cursor:pointer;">
+                                📤 Up<input type="file" id="monthlyGridExcelUpload" accept=".xlsx, .xls" style="display:none;" onchange="window.handleMonthlyGridExcelUpload(event)">
+                            </label>
+                        </div>
+
+                        <!-- Name Navigation -->
+                        <div style="display:flex; align-items:center; justify-content:space-between; background:#EFF6FF; border:1px solid #0A56D0; border-radius:6px; height:28px; margin-bottom:4px; width:100%; box-sizing:border-box;">
+                            <button type="button" onclick="document.getElementById('monthlyGridEmpPicker').value='${prevId}'; window.saveAndRefreshGrid();" ${!prevId ? 'disabled style="opacity:0.3;"' : ''} style="background:transparent; border:none; color:#0A56D0; font-size:16px; font-weight:bold; cursor:pointer; padding:0 8px; height:100%;">◀</button>
+                            
+                            <select id="monthlyGridEmpPicker" class="us-sel" onchange="window.saveAndRefreshGrid()" style="flex:1; height:100% !important; font-size:12px !important; color:#0A56D0;">
+                                ${myAssigned.map(e => `<option value="${e.id}" ${e.id === selectedEmpId ? 'selected' : ''}>👤 ${e.name}</option>`).join('')}
+                            </select>
+                            
+                            <button type="button" onclick="document.getElementById('monthlyGridEmpPicker').value='${nextId}'; window.saveAndRefreshGrid();" ${!nextId ? 'disabled style="opacity:0.3;"' : ''} style="background:transparent; border:none; color:#0A56D0; font-size:16px; font-weight:bold; cursor:pointer; padding:0 8px; height:100%;">▶</button>
+                        </div>
+                    </div>
+                `;
+
                 if (!myAssigned.length) {
-                    content.innerHTML = controlHtml + `<p style="padding:40px; color:#74777F; text-align:center; font-weight:600;">No employees allotted for ${supplySource}.</p>`;
+                    content.innerHTML = controlHtml + `<p style="padding:20px; text-align:center; font-weight:bold;">No employees.</p>`;
                     return;
                 }
                 
@@ -4483,45 +4516,70 @@ window.shareVendorLink = function(link, vendor) {
                 const dauArr = typeof DAU_PURCHASE_BEVERAGES !== 'undefined' ? DAU_PURCHASE_BEVERAGES : [];
                 const currentDrinkArr = supplySource === 'DAU Direct Purchase' ? dauArr : contractorArr;
 
-                let tableHtml = `<div style="overflow:auto; max-height:55vh;"><table style="border-collapse:collapse;"><thead><tr><th rowspan="2" style="min-width:80px; position:sticky; left:0; z-index:6; background:#F1F5F9; top:0; padding:4px; border:1px solid #CBD5E1; border-bottom:2px solid #0A56D0;">Date</th>`;
-                myAssigned.forEach(emp => {
-                    tableHtml += `<th colspan="2" class="merged-header" style="min-width:100px; position:sticky; top:0; background:#F1F5F9; z-index:5; padding:4px 2px 2px 2px; border:1px solid #CBD5E1; border-bottom:1px solid #94A3B8;">
-                        <span class="emp-name" data-id="${emp.id}" style="display:block; font-size:.78rem; margin-bottom:0;">${safeStr(emp.name)}</span>
-                    </th>`;
-                });
-                tableHtml += `</tr><tr>`;
-                myAssigned.forEach(() => {
-                    tableHtml += `<th class="session-label" style="position:sticky; top:24px; background:#F8FAFC; z-index:4; padding:2px; font-size:.65rem; border:1px solid #CBD5E1; border-top:none; border-bottom:2px solid #0A56D0;">Morn</th>
-                                  <th class="session-label" style="position:sticky; top:24px; background:#F8FAFC; z-index:4; padding:2px; font-size:.65rem; border:1px solid #CBD5E1; border-top:none; border-bottom:2px solid #0A56D0;">Aft</th>`;
-                });
-                tableHtml += `</tr></thead><tbody>`;
+                let tableHtml = `
+                <div class="us-tbl-wrapper">
+                    <table class="us-tbl">
+                        <thead style="position:sticky; top:0; z-index:10;">
+                            <!-- EXCEL માટે છુપાયેલું હેડર (ભૂલથી ડીલીટ થઇ ગયું હતું તે પાછું ઉમેર્યું) -->
+                            <tr style="display:none;">
+                                <th class="merged-header"><span class="emp-name" data-id="${selectedEmp.id}">${selectedEmp.name}</span></th>
+                            </tr>
+                            <tr>
+                                <th class="us-th" style="width:20%;">Date</th>
+                                <th class="us-th" style="width:30%;">Morning</th>
+                                <th class="us-th" style="width:30%;">Afternoon</th>
+                                <th class="us-th" style="width:20%; border-right:none;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
 
-                const monthPad = String(mm).padStart(2, '0');
-                for (let d = 1; d <= daysInMonth; d++) {
-                    const dd = String(d).padStart(2, '0');
-                    const dmy = `${dd}/${monthPad}/${yy}`;
-                    const dateDisplay = formatDateForGrid(d, mm, yy);
-                    
-                    const copyBtn = d > 1 ? `<button type="button" onclick="window.copyPrevDateRow(this)" style="background:transparent; border:none; cursor:pointer; font-size:1rem; padding:0 4px;" title="Copy from previous day">📋</button>` : '';
-                    const clearBtn = `<button type="button" onclick="window.clearDateRow(this)" style="background:transparent; border:none; cursor:pointer; font-size:1rem; padding:0 4px; color:#DC3545;" title="Clear this day's entry">🗑️</button>`;
-                    
-                    tableHtml += `<tr><td class="date-cell"><div style="display:flex; justify-content:space-between; align-items:center;"><span>${dateDisplay}</span><div style="display:flex; gap:4px;">${copyBtn}${clearBtn}</div></div></td>`;
-                    
-                    myAssigned.forEach(emp => {
-                        const mLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Morning' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
-                        const aLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Afternoon' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                if (selectedEmp) {
+                    const monthPad = String(mm).padStart(2, '0');
+                    for (let d = 1; d <= daysInMonth; d++) {
+                        const dd = String(d).padStart(2, '0');
+                        const dmy = `${dd}/${monthPad}/${yy}`;
+                        
+                        const dObj = new Date(yy, mm - 1, d);
+                        const dayStr = dObj.toLocaleDateString('en-US', { weekday: 'short' }); 
+
+                        const mLog = logsData.find(l => l.employeeId === selectedEmp.id && l.date === dmy && l.session === 'Morning' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                        const aLog = logsData.find(l => l.employeeId === selectedEmp.id && l.date === dmy && l.session === 'Afternoon' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
                         const mVal = mLog ? mLog.drink : '';
                         const aVal = aLog ? aLog.drink : '';
                         
-                        tableHtml += `<td><select class="grid-morn" data-emp="${emp.id}" data-date="${dmy}" data-logid="${mLog ? mLog.id : ''}" style="width:100%; padding:4px; font-size:.7rem; border:1px solid #CBD5E1; border-radius:4px;"><option value="">-</option>${currentDrinkArr.map(opt => `<option value="${opt}" ${opt === mVal ? 'selected' : ''}>${opt}</option>`).join('')}</select></td>
-                        <td><select class="grid-aft" data-emp="${emp.id}" data-date="${dmy}" data-logid="${aLog ? aLog.id : ''}" style="width:100%; padding:4px; font-size:.7rem; border:1px solid #CBD5E1; border-radius:4px; margin-top:2px;"><option value="">-</option>${currentDrinkArr.map(opt => `<option value="${opt}" ${opt === aVal ? 'selected' : ''}>${opt}</option>`).join('')}</select></td>`;
-                    });
-                    tableHtml += '</tr>';
+                        const copyBtn = d > 1 ? `<button type="button" onclick="window.copyPrevDateRow(this)" class="us-btn" title="Copy">📋</button>` : `<span style="width:50%;display:inline-block;"></span>`;
+                        const clearBtn = `<button type="button" onclick="window.clearDateRow(this)" class="us-btn" style="color:#DC3545;" title="Clear">✕</button>`;
+
+                        tableHtml += `
+                        <tr style="${dObj.getDay() === 0 ? 'background:#FFF5F5;' : ''}">
+                            <td class="us-td" style="font-weight:700; color:#1E293B; font-size:10px; text-align:center; line-height:1.2;">
+                                ${dd}/${monthPad}<br><span style="color:#64748B; font-weight:normal; font-size:9px;">${dayStr}</span>
+                            </td>
+                            <td class="us-td">
+                                <select class="us-sel grid-morn" data-emp="${selectedEmp.id}" data-date="${dmy}" data-logid="${mLog ? mLog.id : ''}">
+                                    <option value="">-</option>
+                                    ${currentDrinkArr.map(opt => `<option value="${opt}" ${opt === mVal ? 'selected' : ''}>${opt}</option>`).join('')}
+                                </select>
+                            </td>
+                            <td class="us-td">
+                                <select class="us-sel grid-aft" data-emp="${selectedEmp.id}" data-date="${dmy}" data-logid="${aLog ? aLog.id : ''}">
+                                    <option value="">-</option>
+                                    ${currentDrinkArr.map(opt => `<option value="${opt}" ${opt === aVal ? 'selected' : ''}>${opt}</option>`).join('')}
+                                </select>
+                            </td>
+                            <td class="us-td" style="border-right:none; font-size:0; text-align:center;">
+                                <div style="display:flex; gap:0; align-items:center; justify-content:center; height:100%; width:100%;">
+                                    ${copyBtn}${clearBtn}
+                                </div>
+                            </td>
+                        </tr>`;
+                    }
                 }
-                tableHtml += '</tbody></table></div>';
+                tableHtml += '</tbody></table></div>';                
                 
                 content.innerHTML = controlHtml + tableHtml;
 
+                window.saveAndRefreshGrid = function() { window.executeGridSave(true); openMonthlyGridPopup(); };
                 window.refreshMonthlyGrid = function() { openMonthlyGridPopup(); };
 
                 window.copyPrevDateRow = function(btn) {
@@ -4529,8 +4587,8 @@ window.shareVendorLink = function(link, vendor) {
                     const prevRow = currentRow.previousElementSibling;
                     if (!prevRow) return;
 
-                    const prevSelects = prevRow.querySelectorAll('select.grid-morn, select.grid-aft');
-                    const currSelects = currentRow.querySelectorAll('select.grid-morn, select.grid-aft');
+                    const prevSelects = prevRow.querySelectorAll('.grid-morn, .grid-aft');
+                    const currSelects = currentRow.querySelectorAll('.grid-morn, .grid-aft');
                     
                     let copied = false;
                     prevSelects.forEach((sel, idx) => {
@@ -4541,27 +4599,25 @@ window.shareVendorLink = function(link, vendor) {
                     });
                     if (copied) {
                         const originalIcon = btn.innerText;
-                        btn.innerText = "✅";
-                        setTimeout(() => { btn.innerText = originalIcon; }, 1000);
+                        btn.innerText = "✓";
+                        setTimeout(() => { btn.innerText = originalIcon; }, 500);
                     }
                 };
 
                 window.clearDateRow = function(btn) {
                     const currentRow = btn.closest('tr');
-                    const currSelects = currentRow.querySelectorAll('select.grid-morn, select.grid-aft');
+                    const currSelects = currentRow.querySelectorAll('.grid-morn, .grid-aft');
                     let cleared = false;
-                    currSelects.forEach(sel => {
-                        if (!sel.disabled) { sel.value = ""; cleared = true; }
-                    });
+                    currSelects.forEach(sel => { if (!sel.disabled) { sel.value = ""; cleared = true; } });
                     if (cleared) {
                         const originalIcon = btn.innerText;
-                        btn.innerText = "✅";
-                        setTimeout(() => { btn.innerText = originalIcon; }, 1000);
+                        btn.innerText = "✓";
+                        setTimeout(() => { btn.innerText = originalIcon; }, 500);
                     }
                 };
 
-                document.getElementById('saveMonthlyGridPopup').onclick = function() {
-                    const selects = content.querySelectorAll('select.grid-morn, select.grid-aft');
+                window.executeGridSave = function(silent = false) {
+                    const selects = content.querySelectorAll('.grid-morn, .grid-aft');
                     const selectedSupplySource = document.getElementById('monthlySupplySource')?.value || 'Contractor';
                     const updates = {};
                     let saved = 0;
@@ -4605,15 +4661,29 @@ window.shareVendorLink = function(link, vendor) {
 
                     if (saved > 0) {
                         db.ref('logs').update(updates).then(() => {
-                            appAlert('Success', `✅ ${saved} entries synced!`);
+                            if (!silent) appAlert('Success', `✅ ${saved} entries synced securely!`);
                             if (typeof window.populateServe === 'function') window.populateServe();
-                            openMonthlyGridPopup();
-                        }).catch(err => { appAlert('Error', 'Save failed: ' + err.message); });
+                        }).catch(err => { if(!silent) appAlert('Error', 'Save failed: ' + err.message); });
                     } else {
-                        appAlert('Notice', 'No changes to save.');
+                        if (!silent) appAlert('Notice', 'No changes to save.');
                     }
                 };
+
+                const saveBtn = document.getElementById('saveMonthlyGridPopup');
+                if(saveBtn) {
+                    saveBtn.onclick = function() {
+                        window.executeGridSave(false);
+                        setTimeout(() => { openMonthlyGridPopup(); }, 500);
+                    };
+                    saveBtn.style.minHeight = '42px';
+                    saveBtn.style.padding = '8px';
+                    saveBtn.style.fontSize = '14px';
+                    saveBtn.style.marginTop = 'auto'; 
+                    saveBtn.style.flexShrink = '0';
+                    saveBtn.style.borderRadius = '8px';
+                }
             };
+            // ===== END REPLACEMENT FOR openMonthlyGridPopup =====
 
             // ડાયનેમિક ફોર્મેટ ડાઉનલોડ કરવાનું ફંક્શન
             window.downloadMonthlyGridTemplate = function() {
@@ -5461,7 +5531,7 @@ window.shareVendorLink = function(link, vendor) {
                 };
             };
 
-            // ============================================================
+                        // ============================================================
             //  ADMIN CONSOLE
             // ============================================================
             function renderAdminConsole() {
@@ -5473,6 +5543,7 @@ window.shareVendorLink = function(link, vendor) {
               <div class="top-header">
                 <div class="brand">🛡️ Admin Portal</div>
                 <div class="nav-group">
+                  <button id="adminBackBtn" style="background:#0A56D0; color:#fff; font-weight:bold; display:none; border-radius:8px; padding:6px 12px; box-shadow:0 2px 4px rgba(10,86,208,0.2);">⬅ Back</button>
                   <button id="homeAdminBtn">🏠 Home</button>
                   <button id="logoutAdmin" class="danger">Logout</button>
                 </div>
@@ -5484,21 +5555,18 @@ window.shareVendorLink = function(link, vendor) {
                   <button class="dash-btn" data-tab="leaves" style="color:#D97706; border-color:#FDE68A; background:#FFFBEB;"><span class="icon">🌴</span><span class="label">Leave Mgmt</span></button>
                   <button class="dash-btn" data-tab="duty_transfer" style="color:#7C3AED; border-color:#C4B5FD; background:#F5F3FF;"><span class="icon">🔄</span><span class="label">Duty Transfer</span></button>
                   <button class="dash-btn" data-tab="canteens"><span class="icon">🏢</span><span class="label">Canteens</span></button>
-<button class="dash-btn" data-tab="meeting_guests" style="color:#0284c7; border-color:#bae6fd; background:#f0f9ff;"><span class="icon">🤝</span><span class="label">Meetings & Guests</span></button>
-                                    <button class="dash-btn" data-tab="plain_events" style="color:#10B981; border-color:#6EE7B7; background:#ECFDF5;"><span class="icon">📢</span><span class="label">Event Broadcast</span></button>
+                  <button class="dash-btn" data-tab="meeting_guests" style="color:#0284c7; border-color:#bae6fd; background:#f0f9ff;"><span class="icon">🤝</span><span class="label">Meetings & Guests</span></button>
+                  <button class="dash-btn" data-tab="plain_events" style="color:#10B981; border-color:#6EE7B7; background:#ECFDF5;"><span class="icon">📢</span><span class="label">Event Broadcast</span></button>
                   <button class="dash-btn" data-tab="reports"><span class="icon">📊</span><span class="label">Reports</span></button>
                   <button class="dash-btn" data-tab="locations" style="color:#0A56D0; border-color:#CBD5E1; background:#F0F7FF;"><span class="icon">📍</span><span class="label">Locations</span></button>
                   <button class="dash-btn" data-tab="workers" style="color:#8B5CF6; border-color:#C4B5FD; background:#F5F3FF;"><span class="icon">👷</span><span class="label">Workers Tea</span></button>
                   <button class="dash-btn" data-tab="bin" style="color:#DC3545; border-color:#FECACA; background:#FEF2F2;"><span class="icon">🗑️</span><span class="label">Recycle Bin</span></button>
                   <button class="dash-btn" data-tab="weekend_duty" style="color:#1E3A8A; border-color:#BFDBFE; background:#EFF6FF;"><span class="icon">📅</span><span class="label">Weekend/Holiday Duty</span></button>
-				  <button class="dash-btn" data-tab="dau_purchase" style="color:#059669; border-color:#A7F3D0; background:#ECFDF5;"><span class="icon">🛒</span><span class="label">DAU Purchase Allotment</span></button>
+                  <button class="dash-btn" data-tab="dau_purchase" style="color:#059669; border-color:#A7F3D0; background:#ECFDF5;"><span class="icon">🛒</span><span class="label">DAU Purchase Allotment</span></button>
                   <button class="dash-btn" data-tab="settings" style="color:#44474E; border-color:#E2E8F0; background:#F8FAFC;"><span class="icon">⚙️</span><span class="label">Settings</span></button>
                 </div>
               </div>
-              <div id="adminContentArea" class="hidden" style="display:flex; flex-direction:column; flex:1; overflow:hidden; min-height:0; padding-top:12px; border-top:1px solid #E2E8F0;">
-                <div style="display:flex; gap:8px; margin-bottom:12px; flex-shrink:0;">
-                  <button id="adminBackBtn" class="btn" style="background:#E2E8F0; color:#1E293B; min-height:36px; padding:8px 16px; font-size:.8rem;">⬅ Back</button>
-                </div>
+              <div id="adminContentArea" class="hidden" style="display:flex; flex-direction:column; flex:1; overflow:hidden; min-height:0; padding-top:8px; border-top:1px solid #E2E8F0;">
                 <div id="adminContent" style="flex:1; overflow-y:auto; padding-bottom:12px; min-height:0;"></div>
               </div>
             `;
@@ -5527,6 +5595,7 @@ window.shareVendorLink = function(link, vendor) {
                     contentArea.classList.add('hidden');
                     menuArea.classList.remove('hidden');
                     document.getElementById('adminContent').innerHTML = '';
+                    document.getElementById('adminBackBtn').style.display = 'none';
                 };
 
                 document.getElementById('adminBackBtn').onclick = goBack;
@@ -5536,12 +5605,12 @@ window.shareVendorLink = function(link, vendor) {
                         const tab = e.currentTarget.dataset.tab;
                         menuArea.classList.add('hidden');
                         contentArea.classList.remove('hidden');
+                        document.getElementById('adminBackBtn').style.display = 'inline-flex';
                         renderAdminTab(tab);
                         activeAdminTab = tab;
                     });
                 });
             }
-
             // ============================================================
             //  ADMIN TAB RENDERER
             // ============================================================
@@ -6316,26 +6385,36 @@ window.shareVendorLink = function(link, vendor) {
 
                 const itemsContainer = document.getElementById('editEvtItemsContainer');
 
-                function insertEditItemRow(name = '', qty = 1, rate = 0, itemSpecificDate = '', rowVendor = '') {
+                                function insertEditItemRow(name = '', qty = 1, rate = 0, dateDMY = '', vendor = '', servedBy = '', rowLocation = '') {
                     const row = document.createElement('div');
                     row.className = 'dynamic-item-row-edit';
-                    row.style.cssText = 'display:flex; gap:6px; margin-bottom:6px; align-items:center; background:#F1F5F9; padding:6px; border-radius:8px; border:1px solid #E2E8F0;';
+                    row.style.cssText = "display: flex; flex-direction: column; gap: 4px; background: #F8FAFC; padding: 6px; border-radius: 8px; border: 1px solid #CBD5E1; margin-bottom: 6px;";
                     
-                    const rowYMD = itemSpecificDate ? parseDMYToYMD(itemSpecificDate) : '';
-                    const hasCustomDate = itemSpecificDate ? 'checked' : '';
+                    const rowYMD = dateDMY ? parseDMYToYMD(dateDMY) : parseDMYToYMD(ev.date);
+                    const vendorOpts = canteenList.map(c => `<option value="${safeStr(c.name)}" ${vendor === c.name ? 'selected' : ''}>${safeStr(c.name)}</option>`).join('');
+                    const pantryOpts = activePantryStaff.map(p => `<option value="${safeStr(p.name)}" ${servedBy === p.name ? 'selected' : ''}>${safeStr(p.name)}</option>`).join('');
+                    const locListId = 'editloc_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+                    const hasCustomDate = dateDMY ? 'checked' : '';
 
                     row.innerHTML = `
-                        <select class="e-item-vendor" style="flex:1; padding:6px; font-size:.75rem; border-radius:6px; border:1px solid #CBD5E1;">
-                            ${canteenList.map(c => `<option value="${c.name}" ${rowVendor === c.name ? 'selected' : ''}>${c.name}</option>`).join('')}
-                        </select>
-                        <div style="display:flex; align-items:center; gap:2px; flex:0.9;">
-                            <input type="checkbox" class="e-date-toggle" ${hasCustomDate} style="width:14px; height:16px;">
-                            <input type="date" class="e-item-date" value="${rowYMD}" ${itemSpecificDate ? '' : 'disabled'} style="width:100%; opacity:${itemSpecificDate ? '1':'0.5'}; padding:6px; font-size:.75rem; border:1px solid #CBD5E1; border-radius:6px;">
+                        <!-- રો ૧: તારીખ, વેન્યુ, વેન્ડર -->
+                        <div style="display: flex; gap: 4px;">
+                            <div style="display:flex; align-items:center; gap:2px; flex:1.2;">
+                                <input type="checkbox" class="e-date-toggle" ${hasCustomDate} style="width:14px; height:14px; margin:0;">
+                                <input type="date" class="e-item-date" value="${rowYMD}" ${dateDMY ? '' : 'disabled'} style="padding:4px; font-size:11px; border-radius:4px; border:1px solid #CBD5E1; width:100%; opacity:${dateDMY ? '1':'0.6'}; height:26px;">
+                            </div>
+                            <input type="text" list="${locListId}" class="e-item-location" value="${safeStr(rowLocation)}" placeholder="Loc" style="flex:0.8; padding:4px; font-size:11px; border:1px solid #CBD5E1; border-radius:4px; height:26px;">
+                            <datalist id="${locListId}">${venueList.map(v => `<option value="${safeStr(v.name)}">`).join('')}</datalist>
+                            <select class="e-item-vendor" style="flex:1; padding:4px; font-size:11px; border-radius:4px; border:1px solid #CBD5E1; height:26px;"><option value="">Vendor</option>${vendorOpts}</select>
                         </div>
-                        <input type="text" class="e-item-name" placeholder="Item Name" value="${name}" style="flex:1.2; padding:8px; font-size:.8rem; border:1px solid #CBD5E1; border-radius:6px;">
-                        <input type="number" class="e-item-qty" placeholder="Qty" min="1" value="${qty}" style="flex:0.5; padding:8px; font-size:.8rem; border:1px solid #CBD5E1; border-radius:6px;">
-                        <input type="number" class="e-item-rate" placeholder="Rate" min="0" step="0.01" value="${rate}" style="flex:0.6; padding:8px; font-size:.8rem; border:1px solid #CBD5E1; border-radius:6px;">
-                        <button type="button" class="e-remove-btn" style="background:#DC3545; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer;">X</button>
+                        <!-- રો ૨: પેન્ટ્રી બોય, આઇટમ, Qty, Rate, Delete -->
+                        <div style="display: flex; gap: 4px; align-items: center;">
+                            <select class="e-item-served-by" style="flex:1; padding:4px; font-size:11px; border-radius:4px; border:1px solid #CBD5E1; height:26px;"><option value="">ServedBy</option>${pantryOpts}</select>
+                            <input type="text" class="e-item-name" placeholder="Item Name" value="${safeStr(name)}" style="flex:1.5; padding:4px; font-size:11px; border:1px solid #CBD5E1; border-radius:4px; height:26px;">
+                            <input type="number" class="e-item-qty" placeholder="Qty" min="1" value="${qty}" style="flex:0.5; padding:4px; font-size:11px; border:1px solid #CBD5E1; border-radius:4px; height:26px;">
+                            <input type="number" class="e-item-rate" placeholder="₹ Rate" min="0" step="0.01" value="${rate}" style="flex:0.6; padding:4px; font-size:11px; border:1px solid #CBD5E1; border-radius:4px; height:26px;">
+                            <button type="button" class="e-remove-btn" style="background:#DC3545; color:#fff; border:none; padding:4px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:bold; width:26px; height:26px;">✕</button>
+                        </div>
                     `;
                     itemsContainer.appendChild(row);
                     
@@ -6343,14 +6422,13 @@ window.shareVendorLink = function(link, vendor) {
                     const dateInp = row.querySelector('.e-item-date');
                     toggle.onchange = function() {
                         dateInp.disabled = !this.checked;
-                        dateInp.style.opacity = this.checked ? "1" : "0.5";
+                        dateInp.style.opacity = this.checked ? "1" : "0.6";
                         if(!this.checked) dateInp.value = "";
                     };
 
                     row.querySelector('.e-remove-btn').onclick = () => { row.remove(); updateEditModalTotal(); };
                     row.querySelectorAll('input, select').forEach(i => i.addEventListener('input', updateEditModalTotal));
                 }
-
                 function updateEditModalTotal() {
                     let total = 0;
                     itemsContainer.querySelectorAll('.dynamic-item-row-edit').forEach(row => {
@@ -7796,10 +7874,10 @@ window.shareVendorLink = function(link, vendor) {
                 }
             };
 
-            // ============================================================
+                        // ============================================================
             //  PANTRY DASHBOARD
             // ============================================================
-                        function renderPantryDashboard() {
+            function renderPantryDashboard() {
                 loginScreen.classList.add('hidden');
                 adminScreen.classList.add('hidden');
                 pantryScreen.classList.remove('hidden');
@@ -7809,6 +7887,7 @@ window.shareVendorLink = function(link, vendor) {
                 <div class="top-header">
                   <div class="brand">🧑‍🍳 <span id="currentPantryBoyNameDisplay"></span></div>
                   <div class="nav-group">
+                    <button id="pantryContentBackBtn" style="background:#0A56D0; color:#fff; font-weight:bold; display:none; border-radius:8px; padding:6px 12px; box-shadow:0 2px 4px rgba(10,86,208,0.2);">⬅ Back</button>
                     <button id="pantryDashBtn" style="background:#E2E8F0; color:#1E293B;">📊 Dashboard</button>
                     <button id="homePantryBtn" style="background:#E2E8F0; color:#1E293B;">🏠 Home</button>
                     <button id="logoutPantry" class="danger">Logout</button>
@@ -7819,18 +7898,13 @@ window.shareVendorLink = function(link, vendor) {
                 </div>
                 <div id="pantryMenuArea" class="dash-menu-modern">
                   <button class="dash-btn" data-tab="serve"><span class="icon">☕</span><span><span class="label">Daily / Monthly Entry</span><br><span class="sub">Name wise & date wise</span></span><span class="right">›</span></button>
-                  
-                  <!-- લીલા કલરનું નવું Upcoming Events બટન અહીં છે -->
                   <button class="dash-btn" data-tab="view_plain_events" style="color:#10B981; border-color:#A7F3D0; background:#ECFDF5;"><span class="icon">📢</span><span><span class="label">Upcoming Events</span><br><span class="sub">View admin broadcasts</span></span><span class="right">›</span></button>
                   <button class="dash-btn" data-tab="meeting_guests" style="color:#0284c7; border-color:#bae6fd; background:#f0f9ff;"><span class="icon">🤝</span><span><span class="label">Meetings & Guests</span><br><span class="sub">Log guest & meeting details</span></span><span class="right">›</span></button>
                   <button class="dash-btn" data-tab="logs" style="color:#7C3AED; border-color:#C4B5FD; background:#F5F3FF;"><span class="icon">📋</span><span><span class="label">My Records</span><br><span class="sub">Daily metrics & grid</span></span><span class="right">›</span></button>
                   <button class="dash-btn" data-tab="extra_tea" style="color:#D97706; border-color:#FDE68A; background:#FEF3C7;"><span class="icon">☕</span><span><span class="label">Extra Tea Record</span><br><span class="sub">Log extra tea consumption</span></span><span class="right">›</span></button>
                   <button class="dash-btn" data-tab="profile" style="color:#44474E; border-color:#CBD5E1; background:#F8FAFC;"><span class="icon">🔐</span><span><span class="label">Change Profile PIN</span><br><span class="sub">Security settings</span></span><span class="right">›</span></button>
                 </div>
-                <div id="pantryContentArea" class="hidden" style="display:flex; flex-direction:column; flex:1; overflow:hidden; min-height:0; border-top:1px solid #E2E8F0; padding-top:12px;">
-                  <div style="display:flex; gap:8px; margin-bottom:12px; flex-shrink:0;">
-                    <button id="pantryContentBackBtn" class="btn" style="background:#E2E8F0; color:#1E293B; min-height:36px; padding:8px 16px; font-size:.8rem;">⬅ Back</button>
-                  </div>
+                <div id="pantryContentArea" class="hidden" style="display:flex; flex-direction:column; flex:1; overflow:hidden; min-height:0; border-top:1px solid #E2E8F0; padding-top:8px;">
                   <div id="pantryContent" style="flex:1; overflow-y:auto; padding-bottom:12px; min-height:0;"></div>
                 </div>
               `;
@@ -7839,7 +7913,6 @@ window.shareVendorLink = function(link, vendor) {
                 document.getElementById('currentPantryBoyNameDisplay').innerText = safeStr(currentUser.name);
                 window.renderPantryLiveUpcomingEventsCard();
 
-                // --- NEW CODE: પેન્ટ્રી બોય ઓનલાઈન થાય તેનું ટ્રેકિંગ ---
                 const myPresenceRef = db.ref('presence/pantry_' + currentUser.id);
                 db.ref('.info/connected').on('value', function(snap) {
                     if (snap.val() === true) {
@@ -7848,7 +7921,6 @@ window.shareVendorLink = function(link, vendor) {
                         });
                     }
                 });
-                // -------------------------------------------------------
 
                 document.getElementById('homePantryBtn').onclick = () => {
                     pantryScreen.classList.add('hidden');
@@ -7859,9 +7931,7 @@ window.shareVendorLink = function(link, vendor) {
                 document.getElementById('logoutPantry').onclick = () => {
                     appConfirm('Logout', 'Logout account?', () => {
                         const old = currentUser.id;
-                        // --- NEW CODE: લોગઆઉટ થાય ત્યારે ઓફલાઇન સેટ કરો ---
                         db.ref('presence/pantry_' + old).set({ state: 'offline', last_changed: firebase.database.ServerValue.TIMESTAMP });
-                        // --------------------------------------------------
                         currentUser = null;
                         activePantryTab = null;
                         db.ref('sessionDevices/pantry_' + old).remove().then(() => {
@@ -7881,6 +7951,7 @@ window.shareVendorLink = function(link, vendor) {
                     menuArea.classList.remove('hidden');
                     if (liveAlert) liveAlert.classList.remove('hidden');
                     document.getElementById('pantryContent').innerHTML = '';
+                    document.getElementById('pantryContentBackBtn').style.display = 'none';
                     window.renderPantryLiveUpcomingEventsCard();
                 };
 
@@ -7893,6 +7964,7 @@ window.shareVendorLink = function(link, vendor) {
                         menuArea.classList.add('hidden');
                         if (liveAlert) liveAlert.classList.add('hidden');
                         contentArea.classList.remove('hidden');
+                        document.getElementById('pantryContentBackBtn').style.display = 'inline-flex';
                         activePantryTab = tab;
                         switch (tab) {
                             case 'serve':
@@ -7904,7 +7976,7 @@ window.shareVendorLink = function(link, vendor) {
                             case 'view_plain_events':
                                 window.renderPantryPlainEvents();
                                 break;
-								case 'meeting_guests':
+                            case 'meeting_guests':
                                 window.renderMeetingsGuestsUI('pantryContent', 'pantry');
                                 break;
                             case 'logs':
@@ -7920,6 +7992,7 @@ window.shareVendorLink = function(link, vendor) {
                     });
                 });
             }
+
 
             function renderPantryProfileSection() {
                 activePantryTab = 'profile';
@@ -9382,76 +9455,55 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
     } catch(e) { console.error(e); }
 };
 
+                        // નવું 1-લાઈન કોમ્પેક્ટ મીટીંગ એન્ટ્રી બોક્સ
             window.addMgRow = function(data = {}) {
                 const container = document.getElementById('mgDynamicRows');
                 if(!container) return;
                 const rowId = Date.now() + Math.random().toString(36).substring(2, 5);
-                
                 const today = new Date().toISOString().split('T')[0];
                 const initialDate = data.Date || today;
 
                 const div = document.createElement('div');
-                div.className = 'mg-entry-card';
+                div.className = 'mg-entry-card'; 
                 div.id = `row-${rowId}`;
-                
-                // Fetch dynamic data for dropdowns
+                // નવું સ્ટાઇલ: એકદમ સ્લિમ અને નાનું બોક્સ
+                div.style.cssText = "background:#fff; border:1px solid #cbd5e1; border-radius:8px; padding:6px 8px; margin-bottom:6px; box-shadow:0 1px 2px rgba(0,0,0,0.05);";
+
                 const vendorOpts = canteenList.map(c => `<option value="${safeStr(c.name)}" ${data.Vendor === c.name ? 'selected':''}>${safeStr(c.name)}</option>`).join('');
-                const pantryOpts = `<option value="Multiple Pantry Boys" ${data["Served By"] === 'Multiple Pantry Boys' ? 'selected':''}>Multiple Pantry Boys</option><option value="Through Vendor" ${data["Served By"] === 'Through Vendor' ? 'selected':''}>Through Vendor</option>` + pantryTeam.map(p => `<option value="${safeStr(p.name)}" ${data["Served By"] === p.name ? 'selected':''}>${safeStr(p.name)}</option>`).join('');
+                const pantryOpts = `<option value="Multiple Pantry Boys" ${data["Served By"] === 'Multiple Pantry Boys' ? 'selected':''}>Multiple</option><option value="Through Vendor" ${data["Served By"] === 'Through Vendor' ? 'selected':''}>Vendor</option>` + pantryTeam.map(p => `<option value="${safeStr(p.name)}" ${data["Served By"] === p.name ? 'selected':''}>${safeStr(p.name)}</option>`).join('');
 
                 div.innerHTML = `
-                    <div class="mg-entry-card-header">
-                        <span class="row-sr-text">#1</span>
-                        <div class="mg-action-container">
-                            <button type="button" class="mg-btn-icon" style="background-color: #8b5cf6;" onclick="window.duplicateMgRow('${rowId}')">📋</button>
-                            <button type="button" class="mg-btn-icon" style="background-color: #ef4444;" onclick="window.removeMgRow('row-${rowId}')">✕</button>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; padding-bottom:4px; border-bottom:1px dashed #e2e8f0;">
+                        <span class="row-sr-text" style="font-size:11px; font-weight:bold; color:#0A56D0; background:#EFF6FF; padding:2px 6px; border-radius:4px;">#1</span>
+                        <div style="display:flex; gap:4px;">
+                            <button type="button" onclick="window.duplicateMgRow('${rowId}')" style="background:#8b5cf6; color:white; border:none; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:bold;">📋 Dup</button>
+                            <button type="button" onclick="window.removeMgRow('row-${rowId}')" style="background:#ef4444; color:white; border:none; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:bold;">✕ Del</button>
                         </div>
                     </div>
-                    <div class="mg-form-grid">
-                        <div>
-                            <label>Date</label>
-                            <input type="date" class="row-date" value="${initialDate}" onclick="this.showPicker && this.showPicker()" onchange="window.updateMgDay('${rowId}')" style="cursor:pointer;">
-                        </div>
-                        <div>
-                            <label>Time ⏰</label>
-                            <input type="time" class="row-time" value="${data.Time || '09:00'}">
-                        </div>
-                        <div class="mg-full-width">
-                            <label>Purpose / Meeting Name 📝</label>
-                            <input type="text" class="row-purpose" placeholder="E.g. Board Meeting" value="${data.Purpose || ''}">
-                        </div>
-                        <div>
-                            <label>Vendor 🏢</label>
-                            <select class="row-vendor" onchange="window.updateMgVendorItems('${rowId}')"><option value="">-- Select --</option>${vendorOpts}</select>
-                        </div>
-                        <div>
-                            <label>Served By 👨‍🍳</label>
-                            <select class="row-served"><option value="">-- Select --</option>${pantryOpts}</select>
-                        </div>
-                        <div class="mg-full-width">
-                            <label>Item Name ☕</label>
-                            <input type="text" list="mg_list_${rowId}" class="row-item" placeholder="Type or Select Item" value="${data.Item || ''}" oninput="window.checkMgItemRate('${rowId}')">
-                            <datalist id="mg_list_${rowId}"></datalist>
-                        </div>
-                        <div>
-                            <label>Qty</label>
-                            <input type="number" class="row-qty" placeholder="0" value="${data.Qty || ''}" oninput="window.calcMgAmount('${rowId}')">
-                        </div>
-                        <div>
-                            <label>Rate</label>
-                            <input type="number" class="row-rate" placeholder="0.00" value="${data.Rate || ''}" oninput="window.calcMgAmount('${rowId}')">
-                        </div>
-                        <div class="mg-full-width">
-                            <label>Amount (₹)</label>
-                            <input type="number" class="row-amount" placeholder="0.00" value="${data.Amount || 0}" readonly style="background-color: #e2e8f0; font-weight: bold; color: #0f172a;">
-                        </div>
-                        <div class="mg-full-width">
-                            <label>Requisitioner's Name</label>
-                            <input type="text" class="row-req" placeholder="Who ordered?" value="${data.ReqName || ''}">
-                        </div>
-                        <div class="mg-full-width">
-                            <label>Location / Venue</label>
-                            <input type="text" class="row-location" placeholder="Where?" value="${data.Location || ''}">
-                        </div>
+                    <!-- લાઈન 1: Date, Time, Purpose -->
+                    <div style="display:flex; gap:4px; margin-bottom:4px;">
+                        <input type="date" class="row-date" value="${initialDate}" style="flex:1.2; padding:4px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; height:26px;">
+                        <input type="time" class="row-time" value="${data.Time || ''}" placeholder="Time" style="flex:0.8; padding:4px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; height:26px;">
+                        <input type="text" class="row-purpose" placeholder="Purpose (E.g. Board Meet)" value="${data.Purpose || ''}" style="flex:2; padding:4px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; height:26px;">
+                    </div>
+                    <!-- લાઈન 2: Req By, Location, Vendor -->
+                    <div style="display:flex; gap:4px; margin-bottom:4px;">
+                        <input type="text" class="row-req" placeholder="Req By" value="${data.ReqName || ''}" style="flex:1; padding:4px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; height:26px;">
+                        <input type="text" class="row-location" placeholder="Location" value="${data.Location || ''}" style="flex:1; padding:4px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; height:26px;">
+                        <select class="row-vendor" onchange="window.updateMgVendorItems('${rowId}')" style="flex:1; padding:4px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; height:26px; background:#fff;"><option value="">--Vendor--</option>${vendorOpts}</select>
+                    </div>
+                    <!-- લાઈન 3: Served By, Item, Qty, Rate -->
+                    <div style="display:flex; gap:4px; align-items:center;">
+                        <select class="row-served" style="flex:1; padding:4px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; height:26px; background:#fff;"><option value="">-Served By-</option>${pantryOpts}</select>
+                        <input type="text" list="mg_list_${rowId}" class="row-item" placeholder="Item Name" value="${data.Item || ''}" oninput="window.checkMgItemRate('${rowId}')" style="flex:1.5; padding:4px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; height:26px;">
+                        <datalist id="mg_list_${rowId}"></datalist>
+                        <input type="number" class="row-qty" placeholder="Qty" value="${data.Qty || ''}" oninput="window.calcMgAmount('${rowId}')" style="flex:0.6; padding:4px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; height:26px;">
+                        <input type="number" class="row-rate" placeholder="₹ Rate" value="${data.Rate || ''}" oninput="window.calcMgAmount('${rowId}')" style="flex:0.8; padding:4px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; height:26px;">
+                        <input type="hidden" class="row-amount" value="${data.Amount || 0}">
+                    </div>
+                    <!-- Amount Display -->
+                    <div style="text-align:right; font-size:11px; color:#10B981; font-weight:bold; margin-top:4px;">
+                        Amount: ₹<span id="amt_display_${rowId}">${data.Amount || 0}</span>
                     </div>
                 `;
                 container.appendChild(div);
@@ -9460,96 +9512,21 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 document.getElementById('mgFormArea').scrollTop = document.getElementById('mgFormArea').scrollHeight;
             };
 
-            window.updateMgVendorItems = function(rowId) {
-                const row = document.getElementById(`row-${rowId}`);
-                if (!row) return;
-                const vendor = row.querySelector('.row-vendor').value;
-                const datalist = row.querySelector(`#mg_list_${rowId}`);
-                if(!datalist) return;
-                datalist.innerHTML = '';
-                if (vendor) {
-                    const items = vendorItemsCatalog[vendor.toLowerCase().trim()] || [];
-                    items.forEach(it => {
-                        const opt = document.createElement('option');
-                        opt.value = it.name;
-                        datalist.appendChild(opt);
-                    });
-                }
-                window.checkMgItemRate(rowId);
-            };
-
-            window.checkMgItemRate = function(rowId) {
-                const row = document.getElementById(`row-${rowId}`);
-                if (!row) return;
-                const vendor = row.querySelector('.row-vendor').value;
-                const itemName = row.querySelector('.row-item').value.toLowerCase().trim();
-                const rateInput = row.querySelector('.row-rate');
-                if (vendor && itemName) {
-                    const items = vendorItemsCatalog[vendor.toLowerCase().trim()] || [];
-                    const match = items.find(it => it.name.toLowerCase() === itemName);
-                    if (match) {
-                        rateInput.value = match.rate;
-                        window.calcMgAmount(rowId);
-                    }
-                }
-            };
-
-            window.updateMgDay = function(rowId) {
-                // Day input removed to save space, but keeping function to avoid errors
-            };
-
             window.calcMgAmount = function(rowId) {
                 const row = document.getElementById(`row-${rowId}`);
                 if(!row) return;
                 const qty = parseFloat(row.querySelector('.row-qty').value) || 0;
                 const rate = parseFloat(row.querySelector('.row-rate').value) || 0;
-                row.querySelector('.row-amount').value = (qty * rate).toFixed(2);
-            };
-
-            window.removeMgRow = function(rowId) {
-                const rows = document.querySelectorAll('.mg-entry-card');
-                if (rows.length > 1) {
-                    document.getElementById(rowId).remove();
-                    window.updateMgFormSrNumbers();
-                } else {
-                    appAlert("Notice", "At least one entry card is required.");
-                }
-            };
-
-            window.duplicateMgRow = function(rowId) {
-                const sourceRow = document.getElementById(`row-${rowId}`);
-                const data = window.getMgRowData(sourceRow);
-                window.addMgRow(data);
-            };
-
-                        window.addWithSameHeaderMg = function() {
-                const rows = document.querySelectorAll('.mg-entry-card');
-                if (rows.length === 0) { window.addMgRow(); return; }
-                const lastData = window.getMgRowData(rows[rows.length - 1]);
-                const newData = {
-                    Date: lastData.RawDate,
-                    Time: lastData.Time,
-                    Purpose: lastData.Purpose,
-                    Item: '', Qty: '', Rate: '', Amount: 0,
-                    ReqName: lastData.ReqName,
-                    Location: lastData.Location,
-                    Vendor: lastData.Vendor,
-                    "Served By": lastData.ServedBy
-                };
-                window.addMgRow(newData);
-            };
-
-            window.updateMgFormSrNumbers = function() {
-                const rows = document.querySelectorAll('.mg-entry-card');
-                rows.forEach((row, idx) => {
-                    row.querySelector('.row-sr-text').textContent = `#${idx + 1}`;
-                });
+                const amt = (qty * rate).toFixed(2);
+                row.querySelector('.row-amount').value = amt;
+                const disp = document.getElementById(`amt_display_${rowId}`);
+                if(disp) disp.innerText = amt;
             };
 
             window.getMgRowData = function(row) {
                 return {
                     RawDate: row.querySelector('.row-date')?.value || '',
-                    Time: row.querySelector('.row-time')?.value || '09:00',
+                    Time: row.querySelector('.row-time')?.value || '', // ટાઈમ ખાલી રહી શકશે
                     Purpose: row.querySelector('.row-purpose')?.value || '',
                     Item: row.querySelector('.row-item')?.value || '',
                     Qty: parseFloat(row.querySelector('.row-qty')?.value) || 0,
@@ -9561,7 +9538,6 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     ServedBy: row.querySelector('.row-served')?.value || ''
                 };
             };
-;
 
             window.submitMgForm = function() {
     const rows = document.querySelectorAll('.mg-entry-card');
@@ -9862,34 +9838,50 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
             };
 
             // New Edit Function for New Records
+                        // એડિટ માટેનું નવું સ્લિમ પોપઅપ
             window.editNewMgRecord = function(id) {
                 const rec = mgRecordsData.find(r => r.id === id);
                 if(!rec) return appAlert('Error', 'Record not found.');
 
                 const vendorOpts = canteenList.map(c => `<option value="${safeStr(c.name)}" ${rec.Vendor === c.name ? 'selected':''}>${safeStr(c.name)}</option>`).join('');
-                const pantryOpts = `<option value="Multiple Pantry Boys" ${rec.ServedBy === 'Multiple Pantry Boys' ? 'selected':''}>Multiple Pantry Boys</option><option value="Through Vendor" ${rec.ServedBy === 'Through Vendor' ? 'selected':''}>Through Vendor</option>` + pantryTeam.map(p => `<option value="${safeStr(p.name)}" ${rec.ServedBy === p.name ? 'selected':''}>${safeStr(p.name)}</option>`).join('');
+                const pantryOpts = `<option value="Multiple Pantry Boys" ${rec.ServedBy === 'Multiple Pantry Boys' ? 'selected':''}>Multiple</option><option value="Through Vendor" ${rec.ServedBy === 'Through Vendor' ? 'selected':''}>Vendor</option>` + pantryTeam.map(p => `<option value="${safeStr(p.name)}" ${rec.ServedBy === p.name ? 'selected':''}>${safeStr(p.name)}</option>`).join('');
 
                 const modal = document.createElement('div');
                 modal.className = 'popup-overlay';
                 modal.id = 'editMgRecordModal';
                 modal.innerHTML = `
-                    <div class="popup-card" style="max-width:500px; max-height:90vh; overflow-y:auto;">
-                        <h3 style="color:#0A56D0; margin-top:0; margin-bottom:12px;">✏️ Edit Record</h3>
-                        <div class="mg-form-grid" style="text-align:left;">
-                            <div><label>Date</label><input type="date" id="emg_date" value="${rec.RawDate}"></div>
-                            <div><label>Vendor</label><select id="emg_vendor"><option value="">-- Select --</option>${vendorOpts}</select></div>
-                            <div class="mg-full-width"><label>Item Name</label><input type="text" id="emg_item" value="${rec.Item}"></div>
-                            <div><label>Qty</label><input type="number" id="emg_qty" value="${rec.Qty}" oninput="window.calcEditMgAmt()"></div>
-                            <div><label>Rate</label><input type="number" id="emg_rate" value="${rec.Rate}" oninput="window.calcEditMgAmt()"></div>
-                            <div class="mg-full-width"><label>Amount</label><input type="number" id="emg_amt" value="${rec.Amount}" readonly style="background:#e2e8f0; font-weight:bold;"></div>
-                            <div><label>Requisitioner</label><input type="text" id="emg_req" value="${rec.ReqName}"></div>
-                            <div><label>Purpose</label><input type="text" id="emg_purpose" value="${rec.Purpose}"></div>
-                            <div><label>Location</label><input type="text" id="emg_location" value="${rec.Location}"></div>
-                            <div><label>Served By</label><select id="emg_served"><option value="">-- Select --</option>${pantryOpts}</select></div>
+                    <div class="popup-card" style="width:95vw; max-width:450px; padding:12px; border-radius:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <h3 style="color:#0A56D0; margin:0; font-size:1.1rem;">✏️ Edit Record</h3>
+                            <button onclick="document.getElementById('editMgRecordModal').remove()" style="background:transparent; border:none; color:#ef4444; font-size:16px; font-weight:bold;">✕</button>
                         </div>
-                        <div style="display:flex; gap:8px; margin-top:16px;">
-                            <button onclick="document.getElementById('editMgRecordModal').remove()" class="danger" style="flex:1; min-height:44px;">Cancel</button>
-                            <button onclick="window.saveEditMgRecord('${id}')" class="success" style="flex:1; min-height:44px;">💾 Update</button>
+                        
+                        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:8px;">
+                            <div style="display:flex; gap:4px; margin-bottom:6px;">
+                                <input type="date" id="emg_date" value="${rec.RawDate}" style="flex:1.2; padding:6px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px;">
+                                <input type="time" id="emg_time" value="${rec.Time || ''}" style="flex:0.8; padding:6px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px;">
+                                <input type="text" id="emg_purpose" value="${rec.Purpose}" placeholder="Purpose" style="flex:2; padding:6px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px;">
+                            </div>
+                            <div style="display:flex; gap:4px; margin-bottom:6px;">
+                                <input type="text" id="emg_req" value="${rec.ReqName}" placeholder="Req By" style="flex:1; padding:6px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px;">
+                                <input type="text" id="emg_location" value="${rec.Location}" placeholder="Location" style="flex:1; padding:6px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px;">
+                                <select id="emg_vendor" style="flex:1; padding:6px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; background:#fff;"><option value="">Vendor</option>${vendorOpts}</select>
+                            </div>
+                            <div style="display:flex; gap:4px; align-items:center; margin-bottom:4px;">
+                                <select id="emg_served" style="flex:1; padding:6px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; background:#fff;"><option value="">Served By</option>${pantryOpts}</select>
+                                <input type="text" id="emg_item" value="${rec.Item}" placeholder="Item Name" style="flex:1.5; padding:6px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px;">
+                                <input type="number" id="emg_qty" value="${rec.Qty}" placeholder="Qty" oninput="window.calcEditMgAmt()" style="flex:0.6; padding:6px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px;">
+                                <input type="number" id="emg_rate" value="${rec.Rate}" placeholder="Rate" oninput="window.calcEditMgAmt()" style="flex:0.8; padding:6px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px;">
+                            </div>
+                            <div style="text-align:right; font-size:12px; color:#10B981; font-weight:bold;">
+                                Amount: ₹<span id="emg_amt_display">${rec.Amount}</span>
+                                <input type="hidden" id="emg_amt" value="${rec.Amount}">
+                            </div>
+                        </div>
+
+                        <div style="display:flex; gap:8px; margin-top:12px;">
+                            <button onclick="document.getElementById('editMgRecordModal').remove()" class="danger" style="flex:1; padding:8px; border-radius:8px;">Cancel</button>
+                            <button onclick="window.saveEditMgRecord('${id}')" class="success" style="flex:1; padding:8px; border-radius:8px;">💾 Update</button>
                         </div>
                     </div>
                 `;
@@ -9899,7 +9891,9 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
             window.calcEditMgAmt = function() {
                 const q = parseFloat(document.getElementById('emg_qty').value) || 0;
                 const r = parseFloat(document.getElementById('emg_rate').value) || 0;
-                document.getElementById('emg_amt').value = (q * r).toFixed(2);
+                const amt = (q * r).toFixed(2);
+                document.getElementById('emg_amt').value = amt;
+                document.getElementById('emg_amt_display').innerText = amt;
             };
 
             window.saveEditMgRecord = function(id) {
