@@ -3596,7 +3596,7 @@ window.pantrySmartShare = function(link, titleText, whatsappText) {
 
 window.openWhatsAppFallback = function(link, fullMessage) {
     navigator.clipboard.writeText(link).then(() => {
-        appAlert('Link Copied', 'લિંક કોપી થઈ ગઈ છે! હવે વૉટ્સએપ ઓપન થશે, ત્યાં ડાયરેક્ટ પેસ્ટ (Paste) કરી દો.');
+        appAlert('Link Copied', 'Link copied! Now WhatsApp will open, paste it directly there.');
         setTimeout(() => {
             const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(fullMessage)}`;
             window.open(waUrl, '_blank');
@@ -5531,7 +5531,7 @@ window.shareVendorLink = function(link, vendor) {
                 };
             };
 
-                        // ============================================================
+            // ============================================================
             //  ADMIN CONSOLE
             // ============================================================
             function renderAdminConsole() {
@@ -5540,12 +5540,12 @@ window.shareVendorLink = function(link, vendor) {
                 adminScreen.classList.remove('hidden');
 
                 adminScreen.innerHTML = `
-              <div class="top-header">
-                <div class="brand">🛡️ Admin Portal</div>
-                <div class="nav-group">
-                  <button id="adminBackBtn" style="background:#0A56D0; color:#fff; font-weight:bold; display:none; border-radius:8px; padding:6px 12px; box-shadow:0 2px 4px rgba(10,86,208,0.2);">⬅ Back</button>
-                  <button id="homeAdminBtn">🏠 Home</button>
-                  <button id="logoutAdmin" class="danger">Logout</button>
+              <div class="top-header" style="display:flex; flex-wrap:nowrap; padding:6px 4px; gap:4px; align-items:center; justify-content:space-between; width:100%; box-sizing:border-box; overflow:hidden;">
+                <div class="brand" style="font-size:13px; white-space:nowrap; flex-shrink:1; min-width:30px; max-width:25%; overflow:hidden; text-overflow:ellipsis;">🛡️ Admin</div>
+                <div class="nav-group" style="display:flex; flex-wrap:nowrap; gap:3px; align-items:center; justify-content:flex-end; flex-shrink:0;">
+                  <button id="adminBackBtn" style="background:#0A56D0; color:#fff; font-weight:bold; display:none; border-radius:4px; padding:4px 6px; font-size:10px; white-space:nowrap; min-height:26px;">⬅ Back</button>
+                  <button id="homeAdminBtn" style="border-radius:4px; padding:4px 6px; font-size:10px; white-space:nowrap; min-height:26px;">Home</button>
+                  <button id="logoutAdmin" class="danger" style="border-radius:4px; padding:4px 6px; font-size:10px; white-space:nowrap; min-height:26px;">Logout</button>
                 </div>
               </div>
               <div id="adminMenuArea" style="flex:1; overflow-y:auto; padding-bottom:8px;">
@@ -5572,18 +5572,33 @@ window.shareVendorLink = function(link, vendor) {
             `;
 
                 document.getElementById('homeAdminBtn').onclick = () => {
+                    document.getElementById('adminContentArea').classList.add('hidden');
+                    document.getElementById('adminMenuArea').classList.remove('hidden');
+                    document.getElementById('adminContent').innerHTML = '';
+                    document.getElementById('adminBackBtn').style.display = 'none';
+                    
                     adminScreen.classList.add('hidden');
+                    loginScreen.classList.remove('hidden');
+                    
                     activeAdminTab = null;
                     currentUser = null;
-                    renderLogin();
+                    if (typeof renderLogin === 'function') renderLogin();
                 };
+
                 document.getElementById('logoutAdmin').onclick = () => {
                     appConfirm('Logout', 'Logout from Admin Portal?', () => {
+                        document.getElementById('adminContentArea').classList.add('hidden');
+                        document.getElementById('adminMenuArea').classList.remove('hidden');
+                        document.getElementById('adminContent').innerHTML = '';
+                        document.getElementById('adminBackBtn').style.display = 'none';
+                        
+                        adminScreen.classList.add('hidden');
+                        loginScreen.classList.remove('hidden');
+                        
                         currentUser = null;
                         activeAdminTab = null;
                         localStorage.removeItem('dau_admin_session_persistent');
-                        adminScreen.classList.add('hidden');
-                        renderLogin();
+                        if (typeof renderLogin === 'function') renderLogin();
                     });
                 };
 
@@ -5606,7 +5621,7 @@ window.shareVendorLink = function(link, vendor) {
                         menuArea.classList.add('hidden');
                         contentArea.classList.remove('hidden');
                         document.getElementById('adminBackBtn').style.display = 'inline-flex';
-                        renderAdminTab(tab);
+                        if(typeof renderAdminTab === 'function') renderAdminTab(tab);
                         activeAdminTab = tab;
                     });
                 });
@@ -7874,7 +7889,7 @@ window.shareVendorLink = function(link, vendor) {
                 }
             };
 
-                        // ============================================================
+            // ============================================================
             //  PANTRY DASHBOARD
             // ============================================================
             function renderPantryDashboard() {
@@ -7884,13 +7899,13 @@ window.shareVendorLink = function(link, vendor) {
 
                 if (pantryScreen.innerHTML.indexOf('pantryDashboardUpcomingStream') === -1) {
                     pantryScreen.innerHTML = `
-                <div class="top-header">
-                  <div class="brand">🧑‍🍳 <span id="currentPantryBoyNameDisplay"></span></div>
-                  <div class="nav-group">
-                    <button id="pantryContentBackBtn" style="background:#0A56D0; color:#fff; font-weight:bold; display:none; border-radius:8px; padding:6px 12px; box-shadow:0 2px 4px rgba(10,86,208,0.2);">⬅ Back</button>
-                    <button id="pantryDashBtn" style="background:#E2E8F0; color:#1E293B;">📊 Dashboard</button>
-                    <button id="homePantryBtn" style="background:#E2E8F0; color:#1E293B;">🏠 Home</button>
-                    <button id="logoutPantry" class="danger">Logout</button>
+                <div class="top-header" style="display:flex; flex-wrap:nowrap; padding:6px 4px; gap:4px; align-items:center; justify-content:space-between; width:100%; box-sizing:border-box; overflow:hidden;">
+                  <div class="brand" style="font-size:11px; white-space:nowrap; flex-shrink:1; min-width:30px; max-width:35%; overflow:hidden; text-overflow:ellipsis;">🧑‍🍳<span id="currentPantryBoyNameDisplay"></span></div>
+                  <div class="nav-group" style="display:flex; flex-wrap:nowrap; gap:3px; align-items:center; justify-content:flex-end; flex-shrink:0;">
+                    <button id="pantryContentBackBtn" style="background:#0A56D0; color:#fff; font-weight:bold; display:none; border-radius:4px; padding:4px 6px; font-size:10px; white-space:nowrap; min-height:26px;">⬅ Back</button>
+                    <button id="pantryDashBtn" style="background:#E2E8F0; color:#1E293B; border-radius:4px; padding:4px 6px; font-size:10px; white-space:nowrap; min-height:26px;">Dash</button>
+                    <button id="homePantryBtn" style="background:#E2E8F0; color:#1E293B; border-radius:4px; padding:4px 6px; font-size:10px; white-space:nowrap; min-height:26px;">Home</button>
+                    <button id="logoutPantry" class="danger" style="border-radius:4px; padding:4px 6px; font-size:10px; white-space:nowrap; min-height:26px;">Logout</button>
                   </div>
                 </div>
                 <div id="livePantryBroadcastCard" class="card hidden" style="background:#FFFBEB; border:1px solid #D97706; padding:14px; margin-bottom:12px;">
@@ -7911,7 +7926,7 @@ window.shareVendorLink = function(link, vendor) {
                 }
 
                 document.getElementById('currentPantryBoyNameDisplay').innerText = safeStr(currentUser.name);
-                window.renderPantryLiveUpcomingEventsCard();
+                if(typeof window.renderPantryLiveUpcomingEventsCard === 'function') window.renderPantryLiveUpcomingEventsCard();
 
                 const myPresenceRef = db.ref('presence/pantry_' + currentUser.id);
                 db.ref('.info/connected').on('value', function(snap) {
@@ -7923,20 +7938,40 @@ window.shareVendorLink = function(link, vendor) {
                 });
 
                 document.getElementById('homePantryBtn').onclick = () => {
+                    document.getElementById('pantryContentArea').classList.add('hidden');
+                    document.getElementById('pantryMenuArea').classList.remove('hidden');
+                    document.getElementById('pantryContent').innerHTML = '';
+                    document.getElementById('pantryContentBackBtn').style.display = 'none';
+                    
+                    const liveAlert = document.getElementById('livePantryBroadcastCard');
+                    if (liveAlert) liveAlert.classList.remove('hidden');
+                    
                     pantryScreen.classList.add('hidden');
+                    loginScreen.classList.remove('hidden');
+                    
                     activePantryTab = null;
                     currentUser = null;
-                    renderLogin();
+                    if (typeof renderLogin === 'function') renderLogin();
+                    if (typeof window.renderPantryLiveUpcomingEventsCard === 'function') window.renderPantryLiveUpcomingEventsCard();
                 };
+
                 document.getElementById('logoutPantry').onclick = () => {
                     appConfirm('Logout', 'Logout account?', () => {
                         const old = currentUser.id;
                         db.ref('presence/pantry_' + old).set({ state: 'offline', last_changed: firebase.database.ServerValue.TIMESTAMP });
+                        
+                        document.getElementById('pantryContentArea').classList.add('hidden');
+                        document.getElementById('pantryMenuArea').classList.remove('hidden');
+                        document.getElementById('pantryContent').innerHTML = '';
+                        document.getElementById('pantryContentBackBtn').style.display = 'none';
+                        
+                        pantryScreen.classList.add('hidden');
+                        loginScreen.classList.remove('hidden');
+                        
                         currentUser = null;
                         activePantryTab = null;
                         db.ref('sessionDevices/pantry_' + old).remove().then(() => {
-                            pantryScreen.classList.add('hidden');
-                            renderLogin();
+                            if (typeof renderLogin === 'function') renderLogin();
                         });
                     });
                 };
@@ -7952,7 +7987,7 @@ window.shareVendorLink = function(link, vendor) {
                     if (liveAlert) liveAlert.classList.remove('hidden');
                     document.getElementById('pantryContent').innerHTML = '';
                     document.getElementById('pantryContentBackBtn').style.display = 'none';
-                    window.renderPantryLiveUpcomingEventsCard();
+                    if(typeof window.renderPantryLiveUpcomingEventsCard === 'function') window.renderPantryLiveUpcomingEventsCard();
                 };
 
                 document.getElementById('pantryDashBtn').onclick = goBack;
@@ -7968,32 +8003,30 @@ window.shareVendorLink = function(link, vendor) {
                         activePantryTab = tab;
                         switch (tab) {
                             case 'serve':
-                                renderServeEntry();
+                                if(typeof renderServeEntry === 'function') renderServeEntry();
                                 break;
                             case 'meeting':
-                                window.renderMeetingRefreshmentSection('pantryContent', 'pntMeet_');
+                                if(typeof window.renderMeetingRefreshmentSection === 'function') window.renderMeetingRefreshmentSection('pantryContent', 'pntMeet_');
                                 break;
                             case 'view_plain_events':
-                                window.renderPantryPlainEvents();
+                                if(typeof window.renderPantryPlainEvents === 'function') window.renderPantryPlainEvents();
                                 break;
                             case 'meeting_guests':
-                                window.renderMeetingsGuestsUI('pantryContent', 'pantry');
+                                if(typeof window.renderMeetingsGuestsUI === 'function') window.renderMeetingsGuestsUI('pantryContent', 'pantry');
                                 break;
                             case 'logs':
-                                renderLogsHistory();
+                                if(typeof renderLogsHistory === 'function') renderLogsHistory();
                                 break;
                             case 'extra_tea':
-                                renderExtraTeaView();
+                                if(typeof renderExtraTeaView === 'function') renderExtraTeaView();
                                 break;
                             case 'profile':
-                                renderPantryProfileSection();
+                                if(typeof renderPantryProfileSection === 'function') renderPantryProfileSection();
                                 break;
                         }
                     });
                 });
             }
-
-
             function renderPantryProfileSection() {
                 activePantryTab = 'profile';
                 const container = document.getElementById('pantryContent');
@@ -9387,305 +9420,387 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 renderIfNeeded(); // નવી લાઈન: આનાથી વેન્ડર લિંકમાં નવો ડેટા લાઈવ સિંક થઈ જશે!
             });
 
+            // ============================================================
+            //  NEW MEETINGS & GUESTS MODULE (2-Line Ultra Compact & Live Sync)
+            // ============================================================
             window.renderMeetingsGuestsUI = function(containerId, currentRole) {
-    try {
-        const container = document.getElementById(containerId);
-        if (!container) return;
+                try {
+                    const container = document.getElementById(containerId);
+                    if (!container) return;
 
-        window.mgCurrentRole = currentRole;
-        const currentMonthStr = new Date().toISOString().slice(0, 7);
+                    window.mgCurrentRole = currentRole;
+                    const currentMonthStr = new Date().toISOString().slice(0, 7);
 
-        container.innerHTML = `
-            <div style="display: flex; flex-direction: column; height: 100%;">
-                <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-shrink: 0;">
-                    <input type="file" id="mgExcelFileInput" accept=".xlsx, .xls" style="display: none;">
-                    <button onclick="document.getElementById('mgExcelFileInput').click()" style="flex: 1; padding: 10px; background-color: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer;">📂 Import Excel</button>
-                    <button onclick="window.openMgHistory()" style="flex: 1; padding: 10px; background-color: #fef3c7; color: #d97706; border: 1px solid #fde68a; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer;">📜 View History</button>
-                </div>
+                    let myPantryTeam = pantryTeam;
+                    let myEmployees = employeeList;
+                    
+                    if (currentRole === 'pantry' && typeof currentUser !== 'undefined') {
+                        myPantryTeam = pantryTeam.filter(p => p.id === currentUser.id);
+                        myEmployees = employeeList.filter(e => e.assignedPantryId === currentUser.id || (window.getEffectivePantryId && e.assignedPantryId === window.getEffectivePantryId(currentUser.id)));
+                    }
 
-                <div id="mgFormArea" style="flex-grow: 1; overflow-y: auto; padding: 10px; background: #f0f2f5; border-radius: 8px; border: 1px solid #cbd5e1;">
-                    <div id="mgDynamicRows"></div>
-                </div>
+                    const vendorOpts = `<option value="DAU Direct Purchase" style="color:#059669; font-weight:bold;">🛒 DAU Direct</option>` + canteenList.map(c => `<option value="${safeStr(c.name)}">${safeStr(c.name)}</option>`).join('');
+                    const venueOpts = venueList.map(v => `<option value="${safeStr(v.name)}">`).join('');
+                    const employeeOpts = myEmployees.map(e => `<option value="${safeStr(e.name)}">`).join('');
 
-                <div style="background: #ffffff; padding: 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); border-radius: 8px; margin-top: 10px; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0;">
-                    <div style="display: flex; gap: 10px;">
-                        <button type="button" onclick="window.addMgRow()" style="background-color: #10b981; color: white; flex: 1; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px; border: none; cursor:pointer;">+ Blank Row</button>
-                        <button type="button" onclick="window.addWithSameHeaderMg()" style="background-color: #f59e0b; color: white; flex: 1; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px; border: none; cursor:pointer;">🔄 Same Header</button>
-                    </div>
-                    <button type="button" onclick="window.submitMgForm()" style="background-color: #2563eb; color: white; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 15px; border: none; cursor:pointer;">💾 Save All Entries</button>
-                </div>
-            </div>
+                    let servedByOpts = '';
+                    if (currentRole === 'admin') {
+                        servedByOpts = `<option value="Multiple Pantry Boys">Multiple Pantry Boys</option><option value="Through Vendor">Vendor</option>` + pantryTeam.map(p => `<option value="${safeStr(p.name)}">${safeStr(p.name)}</option>`).join('');
+                    }
 
-            <!-- NEW PENDING / DUPLICATE REVIEW SECTION -->
-            <div id="mgReviewSection" style="display:none; margin-top: 15px;"></div>
+                    window.mgVendorOpts = vendorOpts;
+                    window.mgVenueOpts = venueOpts;
+                    window.mgEmployeeOpts = employeeOpts;
+                    window.mgServedByOpts = servedByOpts;
+                    window.mgCurrentPantryName = (currentRole === 'pantry' && currentUser) ? currentUser.name : '';
 
-            <div class="card" style="margin-top: 15px; border-top: 4px solid #f59e0b;">
-                <h3 style="color:#d97706; margin:0 0 10px 0; text-align:center;">📜 Sync History</h3>
-                <div class="mg-month-filter" style="flex-wrap: wrap; margin-bottom: 12px;">
-                    <input type="month" id="mgMainMonthFilter" value="${currentMonthStr}" onchange="window.renderMgHistoryTable()" style="flex:1; padding:8px; border-radius:6px; border:1px solid #cbd5e1; min-width:120px;">
-                    <input type="text" id="mgMainSearchFilter" placeholder="🔍 Search any word..." oninput="window.renderMgHistoryTable()" style="flex:2; padding:8px; border-radius:6px; border:1px solid #cbd5e1; min-width:150px;">
-                </div>
-                <div id="mgHistoryListMain" style="max-height: 400px; overflow-y: auto; padding: 4px;"></div>
-            </div>
-        `;
+                    container.innerHTML = `
+                        <style>
+                        /* અલ્ટ્રા કોમ્પેક્ટ ૨-લાઈન બોક્સ માટેની CSS */
+                        .mg-cmp-inp { padding:4px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; width:100%; box-sizing:border-box; height:26px; margin:0; outline:none; background:#fff; color:#1e293b; font-weight:600; min-width:40px; }
+                        .mg-cmp-inp:focus { border-color:#0A56D0; background:#eff6ff; }
+                        .mg-entry-card { background:#fff; border:1px solid #93c5fd; border-radius:6px; padding:6px; margin-bottom:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:4px; }
+                        .mg-btn-sm { height:26px; border:none; border-radius:4px; font-weight:bold; font-size:11px; cursor:pointer; padding:0 8px; display:flex; align-items:center; justify-content:center; }
+                        
+                        /* સ્લિપ માટેની CSS */
+                        .slip-card { background:#fff; border:1px dashed #94a3b8; border-radius:2px; padding:12px; margin:auto; max-width:400px; box-shadow: 2px 2px 8px rgba(0,0,0,0.1); font-family: 'Courier New', monospace; color:#000; }
+                        .slip-header { text-align:center; font-weight:bold; font-size:14px; text-decoration:underline; margin-bottom:10px; }
+                        .slip-date { position:absolute; top:12px; right:12px; font-size:10px; font-weight:bold; }
+                        .slip-to { font-size:11px; margin-bottom:10px; line-height:1.4; }
+                        .slip-table { width:100%; border-collapse:collapse; margin-bottom:10px; font-size:11px; border-top:1px solid #000; border-bottom:1px solid #000; }
+                        .slip-table th { text-align:left; padding:4px 2px; border-bottom:1px solid #000; }
+                        .slip-table td { padding:4px 2px; border-bottom:1px dashed #ccc; }
+                        </style>
 
-        document.getElementById('mgExcelFileInput').addEventListener('change', window.handleMgExcelUpload);
-        
-        let myPantryTeam = pantryTeam;
-        let myEmployees = employeeList;
-        
-        if (currentRole === 'pantry' && typeof currentUser !== 'undefined') {
-            myPantryTeam = pantryTeam.filter(p => p.id === currentUser.id);
-            myEmployees = employeeList.filter(e => e.assignedPantryId === currentUser.id || (window.getEffectivePantryId && e.assignedPantryId === window.getEffectivePantryId(currentUser.id)));
-        }
+                        <datalist id="mgLocListGlobal">${venueOpts}</datalist>
+                        <datalist id="mgEmpListGlobal">${employeeOpts}</datalist>
 
-        const vendorOpts = canteenList.map(c => `<option value="${safeStr(c.name)}">${safeStr(c.name)}</option>`).join('');
-        const pantryOpts = `<option value="Multiple Pantry Boys">Multiple Pantry Boys</option><option value="Through Vendor">Through Vendor</option>` + myPantryTeam.map(p => `<option value="${safeStr(p.name)}">${safeStr(p.name)}</option>`).join('');
-        const employeeOpts = myEmployees.map(e => `<option value="${safeStr(e.name)}">`).join('');
-        
-        window.mgVendorOpts = vendorOpts;
-        window.mgPantryOpts = pantryOpts;
-        
-        const datalist = document.getElementById('mgEmployeeDatalist');
-        if(datalist) datalist.innerHTML = employeeOpts;
+                        <div style="display: flex; flex-direction: column; height: 100%; overflow:hidden;">
+                            
+                            <!-- Action Bar -->
+                            <div style="display: flex; gap: 4px; margin-bottom: 8px; flex-shrink: 0;">
+                                <input type="file" id="mgExcelFileInput" accept=".xlsx, .xls" style="display: none;">
+                                <button onclick="window.downloadMgFormat()" style="flex:0.8;" class="mg-btn-sm" style="background:#f8fafc; color:#334155; border:1px solid #cbd5e1;">📥 Fmt</button>
+                                <button onclick="document.getElementById('mgExcelFileInput').click()" style="flex:1; background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd;" class="mg-btn-sm">📂 Import</button>
+                                <button onclick="window.openMgHistory()" style="flex:1.2; background:#fef3c7; color:#d97706; border:1px solid #fde68a;" class="mg-btn-sm">📜 History</button>
+                            </div>
 
-        window.addMgRow();
-        window.renderMgHistoryTable();
-        window.renderMgReviewSection(); // પેજ લોડ થાય ત્યારે ડુપ્લીકેટ ચેક કરશે
-    } catch(e) { console.error(e); }
-};
+                            <div style="flex-grow: 1; overflow-y: auto; background: #f1f5f9; border-radius: 6px; border: 1px solid #cbd5e1; display:flex; flex-direction:column; padding:6px;">
+                                
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-shrink:0;">
+                                    <h4 style="margin:0; color:#0A56D0; font-size:13px;">📝 Meeting Entries</h4>
+                                    <button type="button" onclick="window.addMgRow()" style="background:#10b981; color:#fff;" class="mg-btn-sm">➕ Add Blank Row</button>
+                                </div>
 
-                        // નવું 1-લાઈન કોમ્પેક્ટ મીટીંગ એન્ટ્રી બોક્સ
+                                <!-- અહી 2-લાઇન વાળા એન્ટ્રી કાર્ડ્સ ઉમેરાશે -->
+                                <div id="mgDynamicRowsContainer" style="flex-grow:1; min-height:100px;"></div>
+
+                                <div style="display:flex; justify-content:flex-end; align-items:center; padding:6px 0 2px 0; font-size:13px; color:#1e293b; flex-shrink:0;">
+                                    <b style="margin-right:8px;">Grand Total:</b>
+                                    <span style="font-weight:800; color:#2563eb; font-size:16px;">₹<span id="mgGrandTotalDisp">0.00</span></span>
+                                </div>
+                            </div>
+
+                            <!-- SAVE BUTTON -->
+                            <div style="padding: 6px 0 0 0; flex-shrink: 0;">
+                                <button type="button" onclick="window.submitMgForm()" style="background-color: #2563eb; color: white; width: 100%; height:40px; border-radius: 6px; font-weight: bold; font-size: 14px; border: none; cursor:pointer; box-shadow:0 2px 4px rgba(37,99,235,0.3);">💾 SAVE ALL ENTRIES</button>
+                            </div>
+                        </div>
+
+                        <!-- ડુપ્લીકેટ / પેન્ડીંગ રીવ્યુ સેક્શન -->
+                        <div id="mgReviewSection" style="display:none; margin-top: 10px;"></div>
+                        
+                        <!-- હિસ્ટ્રી સેક્શન -->
+                        <div class="card" style="margin-top: 10px; border-top: 3px solid #f59e0b; padding:8px;">
+                            <h3 style="color:#d97706; margin:0 0 8px 0; text-align:center; font-size:13px;">📜 Sync History</h3>
+                            <div style="display:flex; gap:4px; margin-bottom: 8px;">
+                                <input type="month" id="mgMainMonthFilter" value="${currentMonthStr}" onchange="window.renderMgHistoryTable()" class="mg-cmp-inp" style="flex:1;">
+                                <input type="text" id="mgMainSearchFilter" placeholder="🔍 Search..." oninput="window.renderMgHistoryTable()" class="mg-cmp-inp" style="flex:2;">
+                            </div>
+                            <div id="mgHistoryListMain" style="max-height: 400px; overflow-y: auto;"></div>
+                        </div>
+                    `;
+
+                    document.getElementById('mgExcelFileInput').addEventListener('change', window.handleMgExcelUpload);
+                    window.addMgRow(); // પેજ ખૂલતા જ એક ખાલી રો મૂકી દેશે
+                    window.renderMgHistoryTable();
+                    window.renderMgReviewSection(); 
+                } catch(e) { console.error(e); }
+            };
+
+            // નવો અલ્ટ્રા કોમ્પેક્ટ એન્ટ્રી રો (કાર્ડ) - Custom Dropdown સાથે
             window.addMgRow = function(data = {}) {
-                const container = document.getElementById('mgDynamicRows');
+                const container = document.getElementById('mgDynamicRowsContainer');
                 if(!container) return;
-                const rowId = Date.now() + Math.random().toString(36).substring(2, 5);
+
+                const rowId = 'mgr_' + Date.now() + Math.random().toString(36).substring(2, 5);
                 const today = new Date().toISOString().split('T')[0];
-                const initialDate = data.Date || today;
+                const dateVal = data.Date || today;
+                
+                let servedByHtml = '';
+                if(window.mgCurrentRole === 'admin') {
+                    let initDisp = 'Served By';
+                    if (data.ServedBy) {
+                        if (data.ServedBy === 'Multiple Pantry Boys') initDisp = 'Multiple';
+                        else if (data.ServedBy === 'Through Vendor') initDisp = 'Vendor';
+                        else initDisp = safeStr(data.ServedBy).split(' ')[0]; 
+                    }
+                    
+                    const customOptsHtml = `
+                        <div style="padding:10px 12px; border-bottom:1px solid #e2e8f0; cursor:pointer; font-size:12px; white-space:nowrap;" onclick="this.parentElement.previousElementSibling.style.display='none'; this.parentElement.style.display='none'; this.parentElement.parentElement.querySelector('span').innerText='Multiple'; this.parentElement.parentElement.querySelector('input').value='Multiple Pantry Boys';">Multiple Pantry Boys</div>
+                        <div style="padding:10px 12px; border-bottom:1px solid #e2e8f0; cursor:pointer; font-size:12px; white-space:nowrap;" onclick="this.parentElement.previousElementSibling.style.display='none'; this.parentElement.style.display='none'; this.parentElement.parentElement.querySelector('span').innerText='Vendor'; this.parentElement.parentElement.querySelector('input').value='Through Vendor';">Through Vendor</div>
+                        ` + pantryTeam.map(p => {
+                            let safeName = safeStr(p.name);
+                            let shortName = safeName.split(' ')[0];
+                            return `<div style="padding:10px 12px; border-bottom:1px solid #e2e8f0; cursor:pointer; font-size:12px; white-space:nowrap;" onclick="this.parentElement.previousElementSibling.style.display='none'; this.parentElement.style.display='none'; this.parentElement.parentElement.querySelector('span').innerText='${shortName}'; this.parentElement.parentElement.querySelector('input').value='${safeName}';">${safeName}</div>`;
+                        }).join('');
 
-                const div = document.createElement('div');
-                div.className = 'mg-entry-card'; 
-                div.id = `row-${rowId}`;
-                // નવું સ્ટાઇલ: એકદમ સ્લિમ અને નાનું બોક્સ
-                div.style.cssText = "background:#fff; border:1px solid #cbd5e1; border-radius:8px; padding:6px 8px; margin-bottom:6px; box-shadow:0 1px 2px rgba(0,0,0,0.05);";
+                    servedByHtml = `
+                        <div style="position:relative; flex:1.2;">
+                            <input type="hidden" class="row-served" value="${safeStr(data.ServedBy || '')}">
+                            <div class="mg-cmp-inp" onclick="this.nextElementSibling.style.display='block'; this.nextElementSibling.nextElementSibling.style.display='block';" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding:0 4px;">
+                                <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:10px;">${initDisp}</span>
+                                <span style="font-size:8px; margin-left:2px;">▼</span>
+                            </div>
+                            <!-- ઓવરલે: બહાર ક્લિક કરવાથી મેનુ બંધ થઈ જાય -->
+                            <div style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:9998;" onclick="this.style.display='none'; this.nextElementSibling.style.display='none';"></div>
+                            <!-- ડ્રોપડાઉન લિસ્ટ -->
+                            <div class="mg-custom-dd-list" style="display:none; position:absolute; top:100%; left:0; min-width:max-content; background:#fff; border:1px solid #0A56D0; border-radius:6px; max-height:250px; overflow-y:auto; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.2); font-weight:600; color:#1e293b; text-align:left;">
+                                ${customOptsHtml}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    servedByHtml = `<input type="hidden" class="row-served" value="${window.mgCurrentPantryName}">`;
+                }
 
-                const vendorOpts = canteenList.map(c => `<option value="${safeStr(c.name)}" ${data.Vendor === c.name ? 'selected':''}>${safeStr(c.name)}</option>`).join('');
-                const pantryOpts = `<option value="Multiple Pantry Boys" ${data["Served By"] === 'Multiple Pantry Boys' ? 'selected':''}>Multiple</option><option value="Through Vendor" ${data["Served By"] === 'Through Vendor' ? 'selected':''}>Vendor</option>` + pantryTeam.map(p => `<option value="${safeStr(p.name)}" ${data["Served By"] === p.name ? 'selected':''}>${safeStr(p.name)}</option>`).join('');
+                const card = document.createElement('div');
+                card.className = 'mg-entry-card';
+                card.id = rowId;
+                card.innerHTML = `
+                    <!-- 1st Line: Date | Time | Org | Purpose | Loc -->
+                    <div style="display:flex; gap:4px; align-items:center;">
+                        <input type="date" class="row-date mg-cmp-inp" value="${dateVal}" style="flex:1.8; padding:0 2px; font-size:10px;">
+                        
+                        <div style="display:flex; align-items:center; flex:1.2; background:#fff; border:1px solid #cbd5e1; https://www.flaticon.com/free-icon/maps-and-flags_447031-radius:4px; padding:0 2px; height:26px; box-sizing:border-box;">
+                            <span style="font-size:11px;">⏰</span>
+                            <input type="time" class="row-time" value="${data.Time || ''}" style="border:none; outline:none; background:transparent; font-size:11px; padding:0 2px; width:100%; font-weight:600; color:#1e293b;">
+                        </div>
+                        
+                        <input type="text" list="mgEmpListGlobal" class="row-req mg-cmp-inp" placeholder="Req. By" value="${safeStr(data.ReqBy)}" style="flex:1.3; border-color:#0A56D0;">
+                        <input type="text" class="row-purpose mg-cmp-inp" placeholder="Purpose" value="${safeStr(data.Purpose)}" style="flex:1.5;">
+                        <input type="text" list="mgLocListGlobal" class="row-loc mg-cmp-inp" placeholder="📍" value="${safeStr(data.Location)}" style="flex:0.8;">
+                    </div>
+                    
+                    <!-- 2nd Line: Vendor | ServedBy | Item | Qty | Rate | Amt | Action -->
+                    <div style="display:flex; gap:4px; align-items:center;">
+                        <select class="row-vendor mg-cmp-inp" onchange="window.updateMgItemDatalist('${rowId}')" style="flex:1.5; padding:0 2px;">
+                            <option value="">Vendor</option>
+                            ${window.mgVendorOpts}
+                        </select>
+                        ${servedByHtml}
+                        <input type="text" class="row-item mg-cmp-inp" placeholder="Item Name" oninput="window.fetchMgRate('${rowId}'); window.calcMgRowAmt('${rowId}')" list="dl_${rowId}" value="${safeStr(data.Item)}" style="flex:1.8; border-color:#38bdf8;">
+                        <datalist id="dl_${rowId}"></datalist>
+                        <input type="number" class="row-qty mg-cmp-inp" placeholder="Qty" oninput="window.calcMgRowAmt('${rowId}')" value="${data.Qty || ''}" style="flex:0.7; text-align:center; border-color:#38bdf8;">
+                        <input type="number" class="row-rate mg-cmp-inp" placeholder="Rate" oninput="window.calcMgRowAmt('${rowId}')" value="${data.Rate || ''}" style="flex:0.8; text-align:center; border-color:#38bdf8;">
+                        
+                        <div style="flex:1; text-align:right; font-weight:800; color:#10b981; font-size:12px; white-space:nowrap;">
+                            ₹<span id="amt_disp_${rowId}">${data.Amount || '0'}</span>
+                            <input type="hidden" class="row-amt" value="${data.Amount || 0}">
+                        </div>
 
-                div.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; padding-bottom:4px; border-bottom:1px dashed #e2e8f0;">
-                        <span class="row-sr-text" style="font-size:11px; font-weight:bold; color:#0A56D0; background:#EFF6FF; padding:2px 6px; border-radius:4px;">#1</span>
-                        <div style="display:flex; gap:4px;">
-                            <button type="button" onclick="window.duplicateMgRow('${rowId}')" style="background:#8b5cf6; color:white; border:none; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:bold;">📋 Dup</button>
-                            <button type="button" onclick="window.removeMgRow('row-${rowId}')" style="background:#ef4444; color:white; border:none; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:bold;">✕ Del</button>
+                        <!-- Copy and Delete Action Buttons -->
+                        <div style="display:flex; gap:2px; flex:1; justify-content:flex-end;">
+                            <button type="button" onclick="window.duplicateMgRow('${rowId}')" class="mg-btn-sm" style="background:#e0f2fe; color:#0284c7; flex:1;" title="Copy">📋</button>
+                            <button type="button" onclick="document.getElementById('${rowId}').remove(); window.calcMgGrandTotal();" class="mg-btn-sm" style="background:#fee2e2; color:#dc3545; flex:1;" title="Delete">✕</button>
                         </div>
                     </div>
-                    <!-- લાઈન 1: Date, Time, Purpose -->
-                    <div style="display:flex; gap:4px; margin-bottom:4px;">
-                        <input type="date" class="row-date" value="${initialDate}" style="flex:1.2; padding:4px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; height:26px;">
-                        <input type="time" class="row-time" value="${data.Time || ''}" placeholder="Time" style="flex:0.8; padding:4px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; height:26px;">
-                        <input type="text" class="row-purpose" placeholder="Purpose (E.g. Board Meet)" value="${data.Purpose || ''}" style="flex:2; padding:4px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; height:26px;">
-                    </div>
-                    <!-- લાઈન 2: Req By, Location, Vendor -->
-                    <div style="display:flex; gap:4px; margin-bottom:4px;">
-                        <input type="text" class="row-req" placeholder="Req By" value="${data.ReqName || ''}" style="flex:1; padding:4px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; height:26px;">
-                        <input type="text" class="row-location" placeholder="Location" value="${data.Location || ''}" style="flex:1; padding:4px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; height:26px;">
-                        <select class="row-vendor" onchange="window.updateMgVendorItems('${rowId}')" style="flex:1; padding:4px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; height:26px; background:#fff;"><option value="">--Vendor--</option>${vendorOpts}</select>
-                    </div>
-                    <!-- લાઈન 3: Served By, Item, Qty, Rate -->
-                    <div style="display:flex; gap:4px; align-items:center;">
-                        <select class="row-served" style="flex:1; padding:4px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; height:26px; background:#fff;"><option value="">-Served By-</option>${pantryOpts}</select>
-                        <input type="text" list="mg_list_${rowId}" class="row-item" placeholder="Item Name" value="${data.Item || ''}" oninput="window.checkMgItemRate('${rowId}')" style="flex:1.5; padding:4px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; height:26px;">
-                        <datalist id="mg_list_${rowId}"></datalist>
-                        <input type="number" class="row-qty" placeholder="Qty" value="${data.Qty || ''}" oninput="window.calcMgAmount('${rowId}')" style="flex:0.6; padding:4px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; height:26px;">
-                        <input type="number" class="row-rate" placeholder="₹ Rate" value="${data.Rate || ''}" oninput="window.calcMgAmount('${rowId}')" style="flex:0.8; padding:4px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; height:26px;">
-                        <input type="hidden" class="row-amount" value="${data.Amount || 0}">
-                    </div>
-                    <!-- Amount Display -->
-                    <div style="text-align:right; font-size:11px; color:#10B981; font-weight:bold; margin-top:4px;">
-                        Amount: ₹<span id="amt_display_${rowId}">${data.Amount || 0}</span>
-                    </div>
                 `;
-                container.appendChild(div);
-                window.updateMgFormSrNumbers();
-                setTimeout(() => { if (data.Vendor) window.updateMgVendorItems(rowId); }, 150);
-                document.getElementById('mgFormArea').scrollTop = document.getElementById('mgFormArea').scrollHeight;
+
+                container.appendChild(card);
+                
+                if(data.Vendor) {
+                    card.querySelector('.row-vendor').value = data.Vendor;
+                    window.updateMgItemDatalist(rowId);
+                }
+                
+                container.scrollTop = container.scrollHeight;
+            };
+            // ડુપ્લીકેટ (કોપી) ફંક્શન
+            window.duplicateMgRow = function(sourceId) {
+                const src = document.getElementById(sourceId);
+                if(!src) return;
+                
+                const sInp = src.querySelector('.row-served');
+                
+                const data = {
+                    Date: src.querySelector('.row-date').value,
+                    Time: src.querySelector('.row-time').value,
+                    ReqBy: src.querySelector('.row-req').value,
+                    Purpose: src.querySelector('.row-purpose').value,
+                    Location: src.querySelector('.row-loc').value,
+                    Vendor: src.querySelector('.row-vendor').value,
+                    ServedBy: sInp ? sInp.value : '',
+                    Item: src.querySelector('.row-item').value,
+                    Qty: src.querySelector('.row-qty').value,
+                    Rate: src.querySelector('.row-rate').value,
+                    Amount: src.querySelector('.row-amt').value
+                };
+                window.addMgRow(data);
+                window.calcMgGrandTotal();
             };
 
-            window.calcMgAmount = function(rowId) {
-                const row = document.getElementById(`row-${rowId}`);
+            // વેન્ડર બદલાય એટલે ડેટાલીસ્ટ અપડેટ થાય
+            window.updateMgItemDatalist = function(rowId) {
+                const row = document.getElementById(rowId);
                 if(!row) return;
-                const qty = parseFloat(row.querySelector('.row-qty').value) || 0;
-                const rate = parseFloat(row.querySelector('.row-rate').value) || 0;
-                const amt = (qty * rate).toFixed(2);
-                row.querySelector('.row-amount').value = amt;
-                const disp = document.getElementById(`amt_display_${rowId}`);
-                if(disp) disp.innerText = amt;
-            };
-
-            window.getMgRowData = function(row) {
-                return {
-                    RawDate: row.querySelector('.row-date')?.value || '',
-                    Time: row.querySelector('.row-time')?.value || '', // ટાઈમ ખાલી રહી શકશે
-                    Purpose: row.querySelector('.row-purpose')?.value || '',
-                    Item: row.querySelector('.row-item')?.value || '',
-                    Qty: parseFloat(row.querySelector('.row-qty')?.value) || 0,
-                    Rate: parseFloat(row.querySelector('.row-rate')?.value) || 0,
-                    Amount: parseFloat(row.querySelector('.row-amount')?.value) || 0,
-                    ReqName: row.querySelector('.row-req')?.value || '',
-                    Location: row.querySelector('.row-location')?.value || '',
-                    Vendor: row.querySelector('.row-vendor')?.value || '',
-                    ServedBy: row.querySelector('.row-served')?.value || ''
-                };
-            };
-
-            window.submitMgForm = function() {
-    const rows = document.querySelectorAll('.mg-entry-card');
-    let isValid = true;
-    const updates = {};
-    let duplicateCount = 0;
-
-    rows.forEach(row => {
-        if(!row.querySelector('.row-item').value || !row.querySelector('.row-qty').value) isValid = false;
-    });
-
-    if(!isValid) return appAlert("Error", "Please fill Item and Qty fields before saving.");
-
-    rows.forEach(row => {
-        const data = window.getMgRowData(row);
-        const id = 'mgrec_' + Date.now() + Math.random().toString(36).substring(2, 7);
-        
-        // --- DUPLICATE DETECTION LOGIC ---
-        // ચેક કરો કે સેમ તારીખ, સેમ પર્પઝ, સેમ આઇટમ, સેમ કવોન્ટીટી અને સેમ વ્યક્તિનું નામ છે કે નહિ
-        const isDuplicate = mgRecordsData.some(existing => 
-            existing.RawDate === data.RawDate &&
-            (existing.Purpose || '').toLowerCase() === (data.Purpose || '').toLowerCase() &&
-            (existing.Item || '').toLowerCase() === (data.Item || '').toLowerCase() &&
-            Number(existing.Qty) === Number(data.Qty) &&
-            (existing.ReqName || '').toLowerCase() === (data.ReqName || '').toLowerCase() &&
-            existing.Status !== 'Review' // જો પહેલેથી રિવ્યુમાં હોય તો ગણવું નહિ
-        );
-
-        let finalStatus = isDuplicate ? 'Review' : 'Approved';
-        if(isDuplicate) duplicateCount++;
-
-        // --- AUTO SAVE ITEM TO VENDOR CATALOG ---
-        if (data.Vendor && data.Item) {
-            const vKey = data.Vendor.toLowerCase().trim();
-            const currentCatalog = vendorItemsCatalog[vKey] || [];
-            if (!currentCatalog.some(it => it.name.toLowerCase() === data.Item.toLowerCase().trim())) {
-                currentCatalog.push({ name: data.Item.trim(), rate: data.Rate });
-                db.ref('vendorItems/' + vKey).set(currentCatalog);
-            }
-        }
-        
-        updates['meetingsGuestsRecords/' + id] = {
-            id: id,
-            RawDate: data.RawDate,
-            DateFormatted: convertYMDtoDMY(data.RawDate),
-            Day: getDayOfWeek(convertYMDtoDMY(data.RawDate)),
-            Time: data.Time || '09:00',
-            Item: data.Item, Qty: data.Qty, Rate: data.Rate, Amount: data.Amount,
-            ReqName: data.ReqName, Purpose: data.Purpose || "Meeting / Guest",
-            Location: data.Location, Vendor: data.Vendor, ServedBy: data.ServedBy,
-            Status: finalStatus, // 'Approved' અથવા 'Review'
-            Timestamp: Date.now()
-        };
-    });
-
-    db.ref().update(updates).then(() => {
-        if(duplicateCount > 0) {
-            appAlert("Notice", `Saved! But ${duplicateCount} entries look like Duplicates and are moved to the 'Pending Review' section.`);
-        } else {
-            appAlert("Success", "Data Saved Successfully!");
-        }
-        document.getElementById('mgDynamicRows').innerHTML = '';
-        window.addMgRow();
-        window.renderMgReviewSection();
-    }).catch(err => appAlert('Error', err.message));
-};
-
-            // EXACT EXCEL UPLOAD LOGIC
-            window.handleMgExcelUpload = function(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-                
-                appAlert('Reading File', 'Please wait, importing data from Excel...');
-                
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    try {
-                        const data = new Uint8Array(event.target.result);
-                        const workbook = XLSX.read(data, { type: 'array' });
-                        const firstSheet = workbook.SheetNames[0];
-                        const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { raw: true });
-
-                        const updates = {};
-                        let importCount = 0;
-
-                        jsonData.forEach(row => {
-                            let rawDate = new Date().toISOString().split('T')[0];
-                            
-                            if (row.Date) { 
-                                if (typeof row.Date === 'number') {
-                                    const excelEpoch = Date.UTC(1899, 11, 30);
-                                    const d = new Date(excelEpoch + (row.Date * 86400000));
-                                    const year = d.getUTCFullYear();
-                                    const month = String(d.getUTCMonth() + 1).padStart(2, '0');
-                                    const day = String(d.getUTCDate()).padStart(2, '0');
-                                    rawDate = `${year}-${month}-${day}`;
-                                } else if (typeof row.Date === 'string') {
-                                    let parts = row.Date.split(/[-/]/);
-                                    if (parts.length === 3) {
-                                        if (parts[2].length === 4) { rawDate = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`; } 
-                                        else if (parts[0].length === 4) { rawDate = `${parts[0]}-${parts[1].padStart(2,'0')}-${parts[2].padStart(2,'0')}`; }
-                                    }
-                                }
-                            }
-
-                            const item = row.Item || row['Item Name'] || row.Items || '';
-                            const qty = parseFloat(row.Qty || row.Quantity || 0) || 0;
-                            const rate = parseFloat(row.Rate || row.Price || 0) || 0;
-                            const amount = parseFloat(row.Amount) || (qty * rate);
-                            const reqName = row["Requisitioner's Name"] || row['Requisitioner Name'] || row['Requisitioner'] || row['Req Name'] || '';
-                            const purpose = row.Purpose || row['Event Name'] || 'Meeting / Guest';
-                            const location = row.Location || row.Place || '';
-                            const vendor = row.Vendor || row['Vendor Name'] || '';
-                            const servedBy = row["Served By"] || row['ServedBy'] || row['Served by'] || '';
-
-                            if(item && qty > 0) {
-                                const id = 'mgrec_' + Date.now() + Math.random().toString(36).substring(2, 7);
-                                updates['meetingsGuestsRecords/' + id] = {
-                                    id: id,
-                                    RawDate: rawDate, 
-                                    DateFormatted: convertYMDtoDMY(rawDate), 
-                                    Day: getDayOfWeek(convertYMDtoDMY(rawDate)),
-                                    Item: item, Qty: qty, Rate: rate, Amount: amount,
-                                    ReqName: reqName, Purpose: purpose, Location: location,
-                                    Vendor: vendor, ServedBy: servedBy, Status: 'Pending', Timestamp: Date.now()
-                                };
-                                importCount++;
-                            }
+                const vendor = row.querySelector('.row-vendor').value.toLowerCase().trim();
+                const dl = document.getElementById('dl_' + rowId);
+                if(dl) {
+                    dl.innerHTML = '';
+                    if(vendor && vendorItemsCatalog[vendor]) {
+                        vendorItemsCatalog[vendor].forEach(it => {
+                            dl.innerHTML += `<option value="${safeStr(it.name)}">`;
                         });
-
-                        if(importCount > 0) {
-                            db.ref().update(updates).then(() => {
-                                appAlert('Success', `✅ ${importCount} Records imported from Excel to Firebase!`);
-                            });
-                        } else {
-                            appAlert('Error', 'No valid records found in Excel.');
-                        }
-                    } catch (err) {
-                        console.error(err);
-                        appAlert("Error", "Failed to process Excel file.");
-                    } finally {
-                        document.getElementById('mgExcelFileInput').value = '';
                     }
-                };
-                reader.readAsArrayBuffer(file);
+                }
+                window.fetchMgRate(rowId);
             };
 
-            // HISTORY POPUP
+            // આઇટમ ટાઈપ કરે એટલે ભાવ ઓટોમેટીક આવે
+            window.fetchMgRate = function(rowId) {
+                const row = document.getElementById(rowId);
+                if(!row) return;
+                const vendor = row.querySelector('.row-vendor').value.toLowerCase().trim();
+                const itemName = row.querySelector('.row-item').value.toLowerCase().trim();
+                const rateInp = row.querySelector('.row-rate');
+                
+                if(vendor && itemName && vendorItemsCatalog[vendor]) {
+                    const match = vendorItemsCatalog[vendor].find(it => it.name.toLowerCase() === itemName);
+                    if(match) { 
+                        rateInp.value = match.rate; 
+                        window.calcMgRowAmt(rowId);
+                    }
+                }
+            };
+
+            window.calcMgRowAmt = function(rowId) {
+                const row = document.getElementById(rowId);
+                if(!row) return;
+                const q = parseFloat(row.querySelector('.row-qty').value) || 0;
+                const r = parseFloat(row.querySelector('.row-rate').value) || 0;
+                const amt = q * r;
+                row.querySelector('.row-amt').value = amt;
+                const disp = document.getElementById(`amt_disp_${rowId}`);
+                if(disp) disp.innerText = amt.toFixed(2);
+                window.calcMgGrandTotal();
+            };
+
+            window.calcMgGrandTotal = function() {
+                let total = 0;
+                document.querySelectorAll('.row-amt').forEach(inp => total += parseFloat(inp.value) || 0);
+                const gt = document.getElementById('mgGrandTotalDisp');
+                if(gt) gt.innerText = total.toFixed(2);
+            };
+
+            // સેવ બટન
+            window.submitMgForm = function() {
+                const rows = document.querySelectorAll('.mg-entry-card');
+                if(rows.length === 0) return appAlert("Error", "Please add at least one entry.");
+
+                let isValid = true;
+                const updates = {};
+                let duplicateCount = 0;
+
+                rows.forEach(row => {
+                    const req = row.querySelector('.row-req').value.trim();
+                    const purp = row.querySelector('.row-purpose').value.trim();
+                    const vend = row.querySelector('.row-vendor').value;
+                    const itm = row.querySelector('.row-item').value.trim();
+                    const qt = parseFloat(row.querySelector('.row-qty').value) || 0;
+                    
+                    if(!req || !purp || !vend || !itm || qt <= 0) isValid = false;
+                });
+
+                if(!isValid) return appAlert("Missing Info", "Please ensure Organizer, Purpose, Vendor, Item Name, and Qty are filled in all cards.");
+
+                rows.forEach(row => {
+                    const sInp = row.querySelector('.row-served');
+                    const data = {
+                        RawDate: row.querySelector('.row-date').value,
+                        Time: row.querySelector('.row-time').value || '09:00',
+                        ReqName: row.querySelector('.row-req').value.trim(),
+                        Purpose: row.querySelector('.row-purpose').value.trim(),
+                        Location: row.querySelector('.row-loc').value.trim(),
+                        Vendor: row.querySelector('.row-vendor').value,
+                        ServedBy: sInp ? sInp.value : window.mgCurrentPantryName,
+                        Item: row.querySelector('.row-item').value.trim(),
+                        Qty: parseFloat(row.querySelector('.row-qty').value) || 0,
+                        Rate: parseFloat(row.querySelector('.row-rate').value) || 0,
+                        Amount: parseFloat(row.querySelector('.row-amt').value) || 0
+                    };
+
+                    const id = 'mgrec_' + Date.now() + Math.random().toString(36).substring(2, 7);
+                    
+                    const isDuplicate = mgRecordsData.some(existing => 
+                        existing.RawDate === data.RawDate &&
+                        (existing.Purpose || '').toLowerCase() === data.Purpose.toLowerCase() &&
+                        (existing.Item || '').toLowerCase() === data.Item.toLowerCase() &&
+                        Number(existing.Qty) === Number(data.Qty) &&
+                        (existing.ReqName || '').toLowerCase() === data.ReqName.toLowerCase() &&
+                        existing.Status !== 'Review'
+                    );
+
+                    let finalStatus = isDuplicate ? 'Review' : 'Approved';
+                    if(isDuplicate) duplicateCount++;
+
+                    // વેન્ડરમાં આઇટમ ઓટો સિંક કરો
+                    if (data.Vendor && data.Item) {
+                        const vKey = data.Vendor.toLowerCase().trim();
+                        const currentCatalog = vendorItemsCatalog[vKey] || [];
+                        if (!currentCatalog.some(it => it.name.toLowerCase() === data.Item.toLowerCase())) {
+                            currentCatalog.push({ name: data.Item, rate: data.Rate });
+                            db.ref('vendorItems/' + vKey).set(currentCatalog);
+                        }
+                    }
+                    
+                    if (data.Location && !venueList.some(v => v.name.toLowerCase() === data.Location.toLowerCase())) {
+                        const vId = 'vnu_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+                        db.ref('venues/' + vId).set({ id: vId, name: data.Location });
+                    }
+                    
+                    updates['meetingsGuestsRecords/' + id] = {
+                        id: id,
+                        RawDate: data.RawDate,
+                        DateFormatted: convertYMDtoDMY(data.RawDate),
+                        Day: getDayOfWeek(convertYMDtoDMY(data.RawDate)),
+                        Time: data.Time,
+                        Item: data.Item, Qty: data.Qty, Rate: data.Rate, Amount: data.Amount,
+                        ReqName: data.ReqName, Purpose: data.Purpose, Location: data.Location,
+                        Vendor: data.Vendor, ServedBy: data.ServedBy,
+                        Status: finalStatus,
+                        Timestamp: Date.now()
+                    };
+                });
+
+                db.ref().update(updates).then(() => {
+                    if(duplicateCount > 0) {
+                        appAlert("Notice", `Saved! But ${duplicateCount} entries look like Duplicates and are moved to 'Pending Review'.`);
+                    } else {
+                        appAlert("Success", "All Entries Saved Successfully!");
+                    }
+                    
+                    document.getElementById('mgDynamicRowsContainer').innerHTML = '';
+                    window.addMgRow();
+                    window.calcMgGrandTotal();
+                    window.renderMgHistoryTable();
+                    window.renderMgReviewSection();
+                }).catch(err => appAlert('Error', err.message));
+            };
+
+            // ============================================================
+            // હિસ્ટ્રી ટેબલ અને સ્લિપ પોપઅપ
+            // ============================================================
             window.openMgHistory = function() {
                 const existing = document.getElementById('mgHistoryPopupOverlay');
                 if(existing) existing.remove();
@@ -9695,18 +9810,18 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 modal.className = 'popup-overlay';
                 modal.id = 'mgHistoryPopupOverlay';
                 modal.innerHTML = `
-                    <div class="popup-card full" style="display:flex; flex-direction:column; max-width:600px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; background:#1e293b; padding:15px; border-radius:10px 10px 0 0; color:white; flex-shrink:0;">
-                            <h3 style="margin:0; font-size:16px;">Sync History</h3>
-                            <button onclick="document.getElementById('mgHistoryPopupOverlay').remove()" style="background:transparent; border:none; color:white; font-size:20px; cursor:pointer;">✕</button>
+                    <div class="popup-card full" style="display:flex; flex-direction:column; max-width:600px; padding:6px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:#1e293b; padding:10px; border-radius:6px 6px 0 0; color:white; flex-shrink:0;">
+                            <h3 style="margin:0; font-size:14px;">Sync History</h3>
+                            <button onclick="document.getElementById('mgHistoryPopupOverlay').remove()" style="background:transparent; border:none; color:white; font-size:16px; cursor:pointer;">✕</button>
                         </div>
-                        <div style="background:#fff; padding:10px; border-bottom:1px solid #e2e8f0; flex-shrink:0;">
-                            <div class="mg-month-filter" style="margin:0; flex-wrap: wrap;">
-                                <input type="month" id="mgPopupMonthFilter" value="${currentMonthStr}" onchange="window.renderMgHistoryTable()" style="flex:1; padding:8px; border-radius:6px; border:1px solid #cbd5e1; min-width:120px;">
-                                <input type="text" id="mgPopupSearchFilter" placeholder="🔍 Search any word..." oninput="window.renderMgHistoryTable()" style="flex:2; padding:8px; border-radius:6px; border:1px solid #cbd5e1; min-width:150px;">
+                        <div style="background:#fff; padding:6px; border-bottom:1px solid #e2e8f0; flex-shrink:0;">
+                            <div style="display:flex; gap:4px;">
+                                <input type="month" id="mgPopupMonthFilter" value="${currentMonthStr}" onchange="window.renderMgHistoryTable()" class="mg-cmp-inp" style="flex:1;">
+                                <input type="text" id="mgPopupSearchFilter" placeholder="🔍 Smart Search..." oninput="window.renderMgHistoryTable()" class="mg-cmp-inp" style="flex:2;">
                             </div>
                         </div>
-                        <div id="mgHistoryListPopup" style="flex-grow:1; overflow:auto; background:#f0f2f5; padding:10px;"></div>
+                        <div id="mgHistoryListPopup" style="flex-grow:1; overflow-y:auto; background:#fff; padding:4px;"></div>
                     </div>
                 `;
                 document.body.appendChild(modal);
@@ -9732,278 +9847,391 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                         if (ev.items && Array.isArray(ev.items) && ev.items.length > 0) {
                             ev.items.forEach((item, idx) => {
                                 combinedRecords.push({
-                                    id: ev.id + '_' + idx,
-                                    DateFormatted: item.itemSpecificDate || ev.date,
-                                    Day: getDayOfWeek(item.itemSpecificDate || ev.date) || '',
-                                    Item: item.name, Qty: item.qty, Rate: item.rate || 0,
-                                    Amount: item.amount || (item.qty * (item.rate || 0)),
-                                    ReqName: ev.orderedBy || '-', Purpose: ev.eventName || '-',
-                                    Location: item.locationNode || '-', Vendor: item.vendor || ev.canteenSource || '-',
-                                    ServedBy: item.servedBy || ev.servedByName || ev.pantryName || '-',
-                                    Timestamp: ev.timestamp || new Date(parseDMYToYMD(item.itemSpecificDate || ev.date)).getTime() || 0,
+                                    id: ev.id + '_' + idx, DateFormatted: item.itemSpecificDate || ev.date, Day: getDayOfWeek(item.itemSpecificDate || ev.date) || '',
+                                    Item: item.name, Qty: item.qty, Rate: item.rate || 0, Amount: item.amount || (item.qty * (item.rate || 0)),
+                                    ReqName: ev.orderedBy || '-', Purpose: ev.eventName || '-', Location: item.locationNode || '-', Vendor: item.vendor || ev.canteenSource || '-',
+                                    ServedBy: item.servedBy || ev.servedByName || ev.pantryName || '-', Timestamp: ev.timestamp || new Date(parseDMYToYMD(item.itemSpecificDate || ev.date)).getTime() || 0,
                                     isOldEvent: true, originalId: ev.id
                                 });
                             });
                         } else {
                             combinedRecords.push({
-                                id: ev.id, DateFormatted: ev.date, Day: getDayOfWeek(ev.date) || '',
-                                Item: ev.refreshmentSummary || 'Meeting Details', Qty: '-', Rate: '-',
-                                Amount: ev.amount || 0, ReqName: ev.orderedBy || '-', Purpose: ev.eventName || '-',
-                                Location: '-', Vendor: ev.canteenSource || '-', ServedBy: ev.servedByName || ev.pantryName || '-',
-                                Timestamp: ev.timestamp || new Date(parseDMYToYMD(ev.date)).getTime() || 0,
-                                isOldEvent: true, originalId: ev.id
+                                id: ev.id, DateFormatted: ev.date, Day: getDayOfWeek(ev.date) || '', Item: ev.refreshmentSummary || 'Meeting Details', Qty: '-', Rate: '-',
+                                Amount: ev.amount || 0, ReqName: ev.orderedBy || '-', Purpose: ev.eventName || '-', Location: '-', Vendor: ev.canteenSource || '-', ServedBy: ev.servedByName || ev.pantryName || '-',
+                                Timestamp: ev.timestamp || new Date(parseDMYToYMD(ev.date)).getTime() || 0, isOldEvent: true, originalId: ev.id
                             });
                         }
                     });
                 }
 
-                // Role Base Filter (Pantry boy can only see his own, Admin sees all)
                 if (window.mgCurrentRole === 'pantry' && typeof currentUser !== 'undefined' && currentUser) {
-                    combinedRecords = combinedRecords.filter(rec => {
-                        const sBy = (rec.ServedBy || '').toLowerCase();
-                        return sBy.includes(currentUser.name.toLowerCase());
-                    });
+                    combinedRecords = combinedRecords.filter(rec => (rec.ServedBy || '').toLowerCase().includes(currentUser.name.toLowerCase()));
                 }
 
-                // Month Filter
                 let filteredRecords = combinedRecords.filter(rec => {
-                    let recYMD = '';
-                    if (rec.DateFormatted && rec.DateFormatted.includes('/')) {
-                        recYMD = parseDMYToYMD(rec.DateFormatted);
-                    } else if (rec.RawDate) {
-                        recYMD = rec.RawDate;
-                    } else {
-                        recYMD = new Date(rec.Timestamp).toISOString().split('T')[0];
-                    }
+                    let recYMD = rec.DateFormatted && rec.DateFormatted.includes('/') ? parseDMYToYMD(rec.DateFormatted) : (rec.RawDate || new Date(rec.Timestamp).toISOString().split('T')[0]);
                     return recYMD.startsWith(selectedMonthYMD);
                 });
 
-                // Search Filter
-                if (searchQuery) {
-                    filteredRecords = filteredRecords.filter(rec => 
-                        Object.values(rec).some(val => String(val).toLowerCase().includes(searchQuery))
-                    );
+                const searchTerms = searchQuery.split(/\s+/).filter(Boolean);
+                if (searchTerms.length > 0) {
+                    filteredRecords = filteredRecords.filter(rec => {
+                        const rowText = Object.values(rec).join(' ').toLowerCase();
+                        return searchTerms.every(term => rowText.includes(term));
+                    });
                 }
 
-                const sorted = filteredRecords.sort((a, b) => {
-                    let dateA = parseDMYToYMD(a.DateFormatted) || new Date(a.Timestamp).toISOString();
-                    let dateB = parseDMYToYMD(b.DateFormatted) || new Date(b.Timestamp).toISOString();
-                    return dateA.localeCompare(dateB); 
+                // ડેટ અને પર્પઝ પ્રમાણે ગ્રુપિંગ (એક જ મીટિંગ માટે 1 રો)
+                const slips = {};
+                filteredRecords.forEach(rec => {
+                    // યુનિક કી: Date + Purpose + Vendor 
+                    const key = `${rec.DateFormatted}_${rec.Purpose}_${rec.Vendor}`;
+                    if(!slips[key]) {
+                        slips[key] = {
+                            key: key,
+                            DateFormatted: rec.DateFormatted,
+                            Vendor: rec.Vendor,
+                            Purpose: rec.Purpose,
+                            ReqName: rec.ReqName,
+                            ServedBy: rec.ServedBy,
+                            Timestamp: rec.Timestamp,
+                            totalAmt: 0,
+                            itemCount: 0,
+                            items: [],
+                            idsToDelete: [] // આખું બિલ ડીલીટ/એડિટ કરવા
+                        };
+                    }
+                    slips[key].items.push(rec);
+                    slips[key].itemCount += 1;
+                    slips[key].totalAmt += Number(rec.Amount) || 0;
+                    slips[key].idsToDelete.push({ id: rec.id, isOld: !!rec.isOldEvent, originalId: rec.originalId });
                 });
 
-                let html = '';
-                if(sorted.length === 0) {
-                    html = `<div style="text-align:center; padding:30px; color:#64748b; font-weight:bold; background:#fff; border-radius:10px;">No records found.</div>`;
-                } else {
-                    html = sorted.map(rec => {
-                        let actionBtn = '';
-                        
-                        // Edit & Delete Buttons updated
-                        if (rec.isOldEvent) {
-                            actionBtn = `
-                                <button onclick="window.editMeetingEvent('${rec.originalId}')" style="background:#0284c7; color:white; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:11px; cursor:pointer;">✏️ Edit</button>
-                                <button onclick="window.pantryDeleteHandler('event', '${rec.originalId}')" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:11px; cursor:pointer;">🗑 Delete</button>
-                            `;
-                        } else {
-                            actionBtn = `
-                                <button onclick="window.editNewMgRecord('${rec.id}')" style="background:#0284c7; color:white; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:11px; cursor:pointer;">✏️ Edit</button>
-                                <button onclick="window.deleteMgRecord('${rec.id}')" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:11px; cursor:pointer;">🗑 Delete</button>
-                            `;
-                        }
+                const sortedSlips = Object.values(slips).sort((a, b) => b.Timestamp - a.Timestamp);
 
-                        return `
-                            <div class="mg-history-card">
-                                <div class="mg-hc-header">
-                                    <span class="mg-hc-date">📅 ${rec.DateFormatted} <span style="font-weight:normal; color:#64748b; font-size:11px;">(${rec.Day})</span></span>
-                                </div>
-                                <div class="mg-hc-body">
-                                    <div class="mg-hc-item">🔸 ${rec.Item}</div>
-                                    <div><b>Qty:</b> ${rec.Qty}</div>
-                                    <div><b>Rate:</b> ${rec.Rate !== '-' ? '₹'+rec.Rate : '-'}</div>
-                                    <div><b>Purpose:</b> ${rec.Purpose}</div>
-                                    <div><b>Req By:</b> ${rec.ReqName}</div>
-                                    <div><b>Location:</b> ${rec.Location}</div>
-                                    <div><b>Served By:</b> ${rec.ServedBy}</div>
-                                    <div class="mg-hc-full" style="margin-top:4px; grid-column: span 2;"><b>Vendor:</b> <span style="color:#d97706;">${rec.Vendor}</span></div>
-                                    <div class="mg-hc-amt">Total Amount: ₹${rec.Amount}</div>
-                                </div>
-                                <div class="mg-hc-footer">${actionBtn}</div>
-                            </div>
+                let html = '';
+                if(sortedSlips.length === 0) {
+                    html = `<div style="text-align:center; padding:20px; color:#64748b; font-weight:bold; background:#fff; border-radius:6px; border:1px solid #cbd5e1;">No records found.</div>`;
+                } else {
+                    html = `
+                    <div style="overflow-x:auto; border:1px solid #cbd5e1; border-radius:6px; background:#fff;">
+                        <table style="width:100%; border-collapse:collapse; font-size:10px; text-align:left; min-width:320px;">
+                            <thead style="background:#f1f5f9; border-bottom:2px solid #cbd5e1; position:sticky; top:0; z-index:5;">
+                                <tr>
+                                    <th style="padding:4px; width:20%;">Date</th>
+                                    <th style="padding:4px; width:35%;">Details</th>
+                                    <th style="padding:4px; width:15%; text-align:right;">Amt</th>
+                                    <th style="padding:4px; width:30%; text-align:center;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+                    sortedSlips.forEach((slip, idx) => {
+                        const delData = encodeURIComponent(JSON.stringify(slip.idsToDelete));
+                        const itemsData = encodeURIComponent(JSON.stringify(slip));
+
+                        html += `
+                            <tr style="border-bottom:1px solid #e2e8f0; background:${idx%2===0?'#fff':'#f8fafc'};">
+                                <td style="padding:8px 4px; font-weight:bold; color:#1e293b; vertical-align:top;">${slip.DateFormatted.slice(0,5)}</td>
+                                <td style="padding:8px 4px; vertical-align:top; line-height:1.4;">
+                                    <b style="color:#d97706; font-size:11px;">${slip.Purpose}</b><br>
+                                    <span style="color:#64748b; font-size:9px;">Req: ${slip.ReqName}</span><br>
+                                    <span style="color:#0284c7; font-size:9px;">${slip.Vendor} (${slip.itemCount} Items)</span>
+                                </td>
+                                <td style="padding:8px 4px; text-align:right; font-weight:bold; color:#10b981; vertical-align:top; font-size:12px;">₹${slip.totalAmt.toFixed(2)}</td>
+                                <td style="padding:4px 2px; text-align:center; vertical-align:top;">
+                                    <div style="display:flex; flex-direction:column; gap:4px; align-items:center;">
+                                        <button onclick="window.viewMgSlip('${itemsData}')" style="background:#fef3c7; color:#d97706; border:1px solid #fde68a; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:10px; cursor:pointer; width:100%;">📜 Slip</button>
+                                        <button onclick="window.editMgGroup('${itemsData}')" style="background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:10px; cursor:pointer; width:100%;">✏️ Edit</button>
+                                        <button onclick="window.deleteFullMgSlip('${delData}')" style="background:#fee2e2; color:#ef4444; border:1px solid #fecaca; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:10px; cursor:pointer; width:100%;">🗑 Del</button>
+                                    </div>
+                                </td>
+                            </tr>
                         `;
-                    }).join('');
+                    });
+                    html += `</tbody></table></div>`;
                 }
 
                 if(containerMain) containerMain.innerHTML = html;
                 if(containerPopup) containerPopup.innerHTML = html;
             };
 
-            // New Edit Function for New Records
-                        // એડિટ માટેનું નવું સ્લિમ પોપઅપ
-            window.editNewMgRecord = function(id) {
-                const rec = mgRecordsData.find(r => r.id === id);
-                if(!rec) return appAlert('Error', 'Record not found.');
+            // 📜 View Slip Function (કાચી ચિઠ્ઠી બતાવવા માટે)
+            window.viewMgSlip = function(encodedData) {
+                const slip = JSON.parse(decodeURIComponent(encodedData));
+                
+                const existing = document.getElementById('mgSlipPopupOverlay');
+                if(existing) existing.remove();
 
-                const vendorOpts = canteenList.map(c => `<option value="${safeStr(c.name)}" ${rec.Vendor === c.name ? 'selected':''}>${safeStr(c.name)}</option>`).join('');
-                const pantryOpts = `<option value="Multiple Pantry Boys" ${rec.ServedBy === 'Multiple Pantry Boys' ? 'selected':''}>Multiple</option><option value="Through Vendor" ${rec.ServedBy === 'Through Vendor' ? 'selected':''}>Vendor</option>` + pantryTeam.map(p => `<option value="${safeStr(p.name)}" ${rec.ServedBy === p.name ? 'selected':''}>${safeStr(p.name)}</option>`).join('');
+                let itemRows = slip.items.map(it => `
+                    <tr>
+                        <td style="padding:4px 2px; font-weight:bold; border-bottom:1px dashed #cbd5e1;">${it.Item}</td>
+                        <td style="padding:4px 2px; text-align:center; border-bottom:1px dashed #cbd5e1;">${it.Qty}</td>
+                        <td style="padding:4px 2px; text-align:center; border-bottom:1px dashed #cbd5e1;">${it.Rate !== '-' ? it.Rate : '-'}</td>
+                        <td style="padding:4px 2px; text-align:right; font-weight:bold; border-bottom:1px dashed #cbd5e1;">${it.Amount}</td>
+                    </tr>
+                `).join('');
 
                 const modal = document.createElement('div');
                 modal.className = 'popup-overlay';
-                modal.id = 'editMgRecordModal';
+                modal.id = 'mgSlipPopupOverlay';
                 modal.innerHTML = `
-                    <div class="popup-card" style="width:95vw; max-width:450px; padding:12px; border-radius:12px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                            <h3 style="color:#0A56D0; margin:0; font-size:1.1rem;">✏️ Edit Record</h3>
-                            <button onclick="document.getElementById('editMgRecordModal').remove()" style="background:transparent; border:none; color:#ef4444; font-size:16px; font-weight:bold;">✕</button>
+                    <div class="popup-card" style="width:95vw; max-width:400px; padding:12px; border-radius:8px;">
+                        <div style="display:flex; justify-content:flex-end; margin-bottom:4px;">
+                            <button onclick="document.getElementById('mgSlipPopupOverlay').remove()" style="background:transparent; border:none; color:#ef4444; font-size:18px; font-weight:bold;">✕</button>
                         </div>
                         
-                        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:8px;">
-                            <div style="display:flex; gap:4px; margin-bottom:6px;">
-                                <input type="date" id="emg_date" value="${rec.RawDate}" style="flex:1.2; padding:6px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px;">
-                                <input type="time" id="emg_time" value="${rec.Time || ''}" style="flex:0.8; padding:6px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px;">
-                                <input type="text" id="emg_purpose" value="${rec.Purpose}" placeholder="Purpose" style="flex:2; padding:6px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px;">
-                            </div>
-                            <div style="display:flex; gap:4px; margin-bottom:6px;">
-                                <input type="text" id="emg_req" value="${rec.ReqName}" placeholder="Req By" style="flex:1; padding:6px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px;">
-                                <input type="text" id="emg_location" value="${rec.Location}" placeholder="Location" style="flex:1; padding:6px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px;">
-                                <select id="emg_vendor" style="flex:1; padding:6px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; background:#fff;"><option value="">Vendor</option>${vendorOpts}</select>
-                            </div>
-                            <div style="display:flex; gap:4px; align-items:center; margin-bottom:4px;">
-                                <select id="emg_served" style="flex:1; padding:6px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; background:#fff;"><option value="">Served By</option>${pantryOpts}</select>
-                                <input type="text" id="emg_item" value="${rec.Item}" placeholder="Item Name" style="flex:1.5; padding:6px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px;">
-                                <input type="number" id="emg_qty" value="${rec.Qty}" placeholder="Qty" oninput="window.calcEditMgAmt()" style="flex:0.6; padding:6px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px;">
-                                <input type="number" id="emg_rate" value="${rec.Rate}" placeholder="Rate" oninput="window.calcEditMgAmt()" style="flex:0.8; padding:6px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px;">
-                            </div>
-                            <div style="text-align:right; font-size:12px; color:#10B981; font-weight:bold;">
-                                Amount: ₹<span id="emg_amt_display">${rec.Amount}</span>
-                                <input type="hidden" id="emg_amt" value="${rec.Amount}">
-                            </div>
-                        </div>
+                        <div class="slip-card">
+                            <div class="slip-header">Guest Slip</div>
+                            <div class="slip-date">Date: ${slip.DateFormatted}</div>
+                            <div class="slip-to">To,<br>Manager,<br><b style="font-size:14px; text-decoration:underline;">${slip.Vendor}</b></div>
+                            
+                            <table class="slip-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:45%;">Item</th>
+                                        <th style="width:15%; text-align:center;">Qty</th>
+                                        <th style="width:20%; text-align:center;">Rate</th>
+                                        <th style="width:20%; text-align:right;">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${itemRows}
+                                    <tr style="border-top:1px solid #000; border-bottom:1px solid #000; background:#f8fafc;">
+                                        <td colspan="3" style="text-align:right; padding:6px 4px; font-weight:bold; font-size:12px;">Grand Total:</td>
+                                        <td style="text-align:right; padding:6px 4px; font-weight:bold; font-size:13px; color:#1e293b;">₹${slip.totalAmt.toFixed(2)}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
 
-                        <div style="display:flex; gap:8px; margin-top:12px;">
-                            <button onclick="document.getElementById('editMgRecordModal').remove()" class="danger" style="flex:1; padding:8px; border-radius:8px;">Cancel</button>
-                            <button onclick="window.saveEditMgRecord('${id}')" class="success" style="flex:1; padding:8px; border-radius:8px;">💾 Update</button>
+                            <div class="slip-footer-text"><b>Requisitioner's Name:</b> ${slip.ReqName}</div>
+                            <div class="slip-footer-text"><b>Purpose:</b> ${slip.Purpose}</div>
+                            <div class="slip-footer-text"><b>Served By:</b> ${slip.ServedBy}</div>
                         </div>
                     </div>
                 `;
                 document.body.appendChild(modal);
             };
 
-            window.calcEditMgAmt = function() {
-                const q = parseFloat(document.getElementById('emg_qty').value) || 0;
-                const r = parseFloat(document.getElementById('emg_rate').value) || 0;
-                const amt = (q * r).toFixed(2);
-                document.getElementById('emg_amt').value = amt;
-                document.getElementById('emg_amt_display').innerText = amt;
+            // ✏️ Edit Group Function (આખી મીટિંગ એડિટ કરવા માટે)
+            window.editMgGroup = function(encodedData) {
+                const slip = JSON.parse(decodeURIComponent(encodedData));
+                
+                // જો આ જૂની ઈવેન્ટ હોય તો જૂનું એડિટ ફોર્મ જ ખોલો
+                if (slip.idsToDelete.some(it => it.isOld)) {
+                    const oldId = slip.idsToDelete.find(it => it.isOld).originalId;
+                    window.editMeetingEvent(oldId);
+                    return;
+                }
+
+                const modal = document.createElement('div');
+                modal.className = 'popup-overlay';
+                modal.id = 'mgEditGroupPopupOverlay';
+                
+                let rawDate = new Date().toISOString().split('T')[0];
+                if (slip.items.length > 0 && slip.items[0].RawDate) {
+                    rawDate = slip.items[0].RawDate;
+                }
+
+                const vendorOpts = `<option value="DAU Direct Purchase" style="color:#059669; font-weight:bold;">🛒 DAU Direct</option>` + canteenList.map(c => `<option value="${safeStr(c.name)}" ${slip.Vendor === c.name ? 'selected':''}>${safeStr(c.name)}</option>`).join('');
+                
+                let itemsHtml = slip.items.map((it, idx) => `
+                    <div class="eg-row" style="display:flex; gap:4px; margin-bottom:6px; align-items:center; background:#f8fafc; padding:6px; border:1px solid #e2e8f0; border-radius:4px;">
+                        <input type="text" class="eg-item mg-cmp-inp" value="${it.Item}" style="flex:2; border-color:#38bdf8;">
+                        <input type="number" class="eg-qty mg-cmp-inp" value="${it.Qty}" style="flex:0.8; text-align:center; border-color:#38bdf8;">
+                        <input type="number" class="eg-rate mg-cmp-inp" value="${it.Rate}" style="flex:1; text-align:center; border-color:#38bdf8;">
+                        <button type="button" onclick="this.closest('.eg-row').remove()" style="flex:0.5; height:26px; background:#fee2e2; color:#dc3545; border:none; border-radius:4px; font-weight:bold; font-size:11px; cursor:pointer;">✕</button>
+                    </div>
+                `).join('');
+
+                modal.innerHTML = `
+                    <div class="popup-card" style="width:95vw; max-width:450px; padding:10px; border-radius:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <h3 style="color:#0A56D0; margin:0; font-size:14px;">✏️ Edit Meeting</h3>
+                            <button onclick="document.getElementById('mgEditGroupPopupOverlay').remove()" style="background:transparent; border:none; color:#ef4444; font-size:16px; font-weight:bold;">✕</button>
+                        </div>
+                        
+                        <div style="background:#eff6ff; padding:8px; border-radius:6px; border:1px solid #93c5fd; margin-bottom:8px; display:flex; flex-direction:column; gap:4px;">
+                            <div style="display:flex; gap:4px;">
+                                <input type="date" id="egDate" value="${rawDate}" class="mg-cmp-inp" style="flex:1;">
+                                <select id="egVendor" class="mg-cmp-inp" style="flex:1;"><option value="">Vendor</option>${vendorOpts}</select>
+                            </div>
+                            <div style="display:flex; gap:4px;">
+                                <input type="text" id="egPurpose" value="${slip.Purpose}" placeholder="Purpose" class="mg-cmp-inp" style="flex:1;">
+                                <input type="text" list="mgEmpListGlobal" id="egReqName" value="${slip.ReqName}" placeholder="Req By" class="mg-cmp-inp" style="flex:1;">
+                            </div>
+                        </div>
+
+                        <div style="font-size:11px; font-weight:bold; color:#0A56D0; margin-bottom:4px;">📋 Edit Items:</div>
+                        <div id="egItemsContainer" style="max-height:200px; overflow-y:auto; border:1px solid #e2e8f0; padding:6px; border-radius:4px; background:#fff;">
+                            ${itemsHtml}
+                        </div>
+                        <button type="button" onclick="window.addEgRow()" style="width:100%; margin-top:6px; background:#10b981; color:#fff; border:none; border-radius:4px; font-size:12px; padding:6px; font-weight:bold; cursor:pointer;">➕ Add New Item</button>
+                        
+                        <input type="hidden" id="egIdsToDelete" value="${encodeURIComponent(JSON.stringify(slip.idsToDelete))}">
+
+                        <div style="display:flex; gap:6px; margin-top:12px;">
+                            <button onclick="document.getElementById('mgEditGroupPopupOverlay').remove()" style="background:#fee2e2; color:#dc3545; border:none; flex:1; padding:8px; font-size:12px; font-weight:bold; border-radius:4px; cursor:pointer;">Cancel</button>
+                            <button onclick="window.saveEgGroup()" style="background:#2563eb; color:#fff; border:none; flex:1; padding:8px; font-size:12px; font-weight:bold; border-radius:4px; cursor:pointer;">💾 Update</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
             };
 
-            window.saveEditMgRecord = function(id) {
-                const rawDate = document.getElementById('emg_date').value;
-                const item = document.getElementById('emg_item').value.trim();
-                const qty = parseFloat(document.getElementById('emg_qty').value) || 0;
+            window.addEgRow = function() {
+                const row = document.createElement('div');
+                row.className = 'eg-row';
+                row.style.cssText = "display:flex; gap:4px; margin-bottom:6px; align-items:center; background:#f8fafc; padding:6px; border:1px solid #e2e8f0; border-radius:4px;";
+                row.innerHTML = `
+                    <input type="text" class="eg-item mg-cmp-inp" placeholder="Item Name" style="flex:2; border-color:#38bdf8;">
+                    <input type="number" class="eg-qty mg-cmp-inp" placeholder="Qty" style="flex:0.8; text-align:center; border-color:#38bdf8;">
+                    <input type="number" class="eg-rate mg-cmp-inp" placeholder="Rate" style="flex:1; text-align:center; border-color:#38bdf8;">
+                    <button type="button" onclick="this.closest('.eg-row').remove()" style="flex:0.5; height:26px; background:#fee2e2; color:#dc3545; border:none; border-radius:4px; font-weight:bold; font-size:11px; cursor:pointer;">✕</button>
+                `;
+                document.getElementById('egItemsContainer').appendChild(row);
+                // સ્ક્રોલ નીચે લઈ જવા
+                document.getElementById('egItemsContainer').scrollTop = document.getElementById('egItemsContainer').scrollHeight;
+            };
 
-                if(!item || !qty) return appAlert('Error', 'Item and Qty are required.');
+            window.saveEgGroup = function() {
+                const rawDate = document.getElementById('egDate').value;
+                const vendor = document.getElementById('egVendor').value;
+                const purpose = document.getElementById('egPurpose').value.trim();
+                const reqName = document.getElementById('egReqName').value.trim();
 
-                db.ref('meetingsGuestsRecords/' + id).update({
-                    RawDate: rawDate,
-                    DateFormatted: convertYMDtoDMY(rawDate),
-                    Day: getDayOfWeek(convertYMDtoDMY(rawDate)),
-                    Vendor: document.getElementById('emg_vendor').value,
-                    Item: item,
-                    Qty: qty,
-                    Rate: parseFloat(document.getElementById('emg_rate').value) || 0,
-                    Amount: parseFloat(document.getElementById('emg_amt').value) || 0,
-                    ReqName: document.getElementById('emg_req').value,
-                    Purpose: document.getElementById('emg_purpose').value,
-                    Location: document.getElementById('emg_location').value,
-                    ServedBy: document.getElementById('emg_served').value
-                }).then(() => {
-                    document.getElementById('editMgRecordModal').remove();
-                    appAlert('Updated', 'Record updated successfully!');
+                if(!rawDate || !vendor || !purpose || !reqName) return appAlert('Error', 'Please fill all common details.');
+
+                const rows = document.querySelectorAll('.eg-row');
+                if(rows.length === 0) return appAlert('Error', 'Please add at least one item.');
+
+                let isValid = true;
+                rows.forEach(r => {
+                    if(!r.querySelector('.eg-item').value.trim() || !r.querySelector('.eg-qty').value) isValid = false;
                 });
-            };	
+                if(!isValid) return appAlert('Error', 'Item name and Qty are required for all rows.');
 
-            window.updateMgStatus = function(id, newStatus) {
-                db.ref('meetingsGuestsRecords/' + id).update({ Status: newStatus });
+                // ૧. જૂની એન્ટ્રીઓ ડીલીટ કરો
+                const idsToDelete = JSON.parse(decodeURIComponent(document.getElementById('egIdsToDelete').value));
+                const updates = {};
+                idsToDelete.forEach(it => {
+                    updates['meetingsGuestsRecords/' + it.id] = null;
+                });
+
+                // ૨. નવી એન્ટ્રીઓ બનાવો
+                rows.forEach(row => {
+                    const item = row.querySelector('.eg-item').value.trim();
+                    const qty = parseFloat(row.querySelector('.eg-qty').value) || 0;
+                    const rate = parseFloat(row.querySelector('.eg-rate').value) || 0;
+                    const amt = qty * rate;
+
+                    const id = 'mgrec_' + Date.now() + Math.random().toString(36).substring(2, 7);
+                    
+                    updates['meetingsGuestsRecords/' + id] = {
+                        id: id,
+                        RawDate: rawDate,
+                        DateFormatted: convertYMDtoDMY(rawDate),
+                        Day: getDayOfWeek(convertYMDtoDMY(rawDate)),
+                        Time: '09:00',
+                        Item: item, Qty: qty, Rate: rate, Amount: amt,
+                        ReqName: reqName, Purpose: purpose, Location: 'Updated',
+                        Vendor: vendor, ServedBy: currentUser ? currentUser.name : 'Admin',
+                        Status: 'Approved',
+                        Timestamp: Date.now()
+                    };
+                });
+
+                db.ref().update(updates).then(() => {
+                    document.getElementById('mgEditGroupPopupOverlay').remove();
+                    appAlert('Success', 'Meeting Updated successfully!');
+                    window.renderMgHistoryTable();
+                }).catch(err => appAlert('Error', err.message));
             };
 
-            window.deleteMgRecord = function(id) {
-                appConfirm('Delete Record', 'Are you sure you want to delete this record?', () => {
-                    db.ref('meetingsGuestsRecords/' + id).remove();
+            window.deleteFullMgSlip = function(encodedData) {
+                appConfirm('Delete Slip', 'Are you sure you want to delete ALL items in this slip?', () => {
+                    const items = JSON.parse(decodeURIComponent(encodedData));
+                    const updates = {};
+                    let oldEventsDeleted = new Set();
+
+                    items.forEach(item => {
+                        if (item.isOld) {
+                            if(!oldEventsDeleted.has(item.originalId)) {
+                                db.ref('eventLogs/' + item.originalId).remove();
+                                oldEventsDeleted.add(item.originalId);
+                            }
+                        } else {
+                            updates['meetingsGuestsRecords/' + item.id] = null;
+                        }
+                    });
+
+                    if (Object.keys(updates).length > 0) {
+                        db.ref().update(updates).then(() => {
+                            appAlert('Deleted', 'Entire slip removed successfully.');
+                            window.renderMgHistoryTable();
+                        });
+                    } else {
+                        appAlert('Deleted', 'Old events slip removed successfully.');
+                        window.renderMgHistoryTable();
+                    }
                 });
             };
-			// ============================================================
-            // NEW: PENDING REVIEW SECTION (Smart Duplicate Detection & Edit)
-            // ============================================================
+            
             window.renderMgReviewSection = function() {
                 const container = document.getElementById('mgReviewSection');
                 if(!container) return;
 
                 const groupMap = {};
-                
-                // બધા જ રેકોર્ડ્સને ચેક કરો (જે Approve થઈ ગયા છે તેને છોડીને)
                 mgRecordsData.forEach(r => {
                     if(r.Status === 'Approved') return; 
-                    
-                    // ડુપ્લીકેટ પકડવા માટેની યુનિક ચાવી (Key)
                     const key = `${r.DateFormatted}_${(r.Purpose||'').toLowerCase()}_${(r.Item||'').toLowerCase()}_${r.Qty}_${(r.ReqName||'').toLowerCase()}`;
-                    
                     if(!groupMap[key]) groupMap[key] = [];
                     groupMap[key].push(r);
                 });
 
                 const duplicatesToShow = [];
-                
-                // જે ગ્રુપમાં 1 કરતાં વધુ એન્ટ્રી હોય તેને ડુપ્લીકેટ ગણો
                 for (const key in groupMap) {
                     const group = groupMap[key];
                     const hasReviewItem = group.some(r => r.Status === 'Review');
-                    
-                    if (group.length > 1 || hasReviewItem) {
-                        group.forEach(r => duplicatesToShow.push(r));
-                    }
+                    if (group.length > 1 || hasReviewItem) { group.forEach(r => duplicatesToShow.push(r)); }
                 }
 
-                if(duplicatesToShow.length === 0) {
-                    container.style.display = 'none';
-                    return;
-                }
+                if(duplicatesToShow.length === 0) { container.style.display = 'none'; return; }
 
                 container.style.display = 'block';
-                let html = `<div class="card" style="border:2px solid #ef4444; background:#fef2f2; padding:15px;">
-                    <h3 style="color:#b91c1c; margin:0 0 8px 0; display:flex; align-items:center; gap:8px;">⚠️ Possible Duplicate Entries</h3>
-                    <p style="font-size:12px; color:#991b1b; margin-bottom:12px; font-weight:600;">System detected multiple entries with the exact same details (Old & New). Please Approve valid slips, or Edit / Delete duplicates.</p>
-                    <div style="display:flex; flex-direction:column; gap:10px;">`;
+                let html = `<div class="card" style="border:2px solid #ef4444; background:#fef2f2; padding:10px;"><h3 style="color:#b91c1c; margin:0 0 8px 0; font-size:13px;">⚠️ Possible Duplicates</h3><div style="display:flex; flex-direction:column; gap:6px;">`;
 
-                // નવી એન્ટ્રી સૌથી ઉપર દેખાય તે રીતે ગોઠવો
                 duplicatesToShow.sort((a, b) => b.Timestamp - a.Timestamp).forEach(rec => {
-                    html += `<div style="background:#fff; border:1px dashed #fca5a5; padding:12px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
-                        <div style="font-size:13px; color:#1e293b; margin-bottom:4px;">
-                            <b>Date:</b> ${rec.DateFormatted} | <b>Time:</b> ${rec.Time}
-                        </div>
-                        <div style="font-size:13px; color:#1e293b; margin-bottom:4px;">
-                            <b>Purpose:</b> ${rec.Purpose} | <b>Req By:</b> ${rec.ReqName}
-                        </div>
-                        <div style="font-size:14px; margin-bottom:8px;">
-                            <b style="color:#d97706;">Item:</b> ${rec.Item} x <b style="color:#0284c7;">${rec.Qty}</b> | <b>Amount:</b> ₹${rec.Amount}
-                        </div>
-                        <div style="display:flex; gap:8px;">
-                            <button onclick="window.approveMgDuplicate('${rec.id}')" style="background:#10b981; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:11px; flex:1;">✅ Approve</button>
-                            <button onclick="window.editNewMgRecord('${rec.id}')" style="background:#0284c7; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:11px; flex:1;">✏️ Edit</button>
-                            <button onclick="window.deleteMgRecord('${rec.id}')" style="background:#ef4444; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:11px; flex:1;">🗑 Delete</button>
+                    html += `<div style="background:#fff; border:1px dashed #fca5a5; padding:8px; border-radius:6px; font-size:11px;">
+                        <b>Date:</b> ${rec.DateFormatted} | <b>Req:</b> ${rec.ReqName}<br>
+                        <b style="color:#d97706;">Item:</b> ${rec.Item} x <b style="color:#0284c7;">${rec.Qty}</b> | <b>Amt:</b> ₹${rec.Amount}
+                        <div style="display:flex; gap:4px; margin-top:6px;">
+                            <button onclick="window.approveMgDuplicate('${rec.id}')" style="background:#10b981; color:white; border:none; padding:6px; border-radius:4px; font-weight:bold; font-size:11px; flex:1; cursor:pointer;">✅ Approve</button>
+                            <button onclick="window.deleteMgRecord('${rec.id}')" style="background:#ef4444; color:white; border:none; padding:6px; border-radius:4px; font-weight:bold; font-size:11px; flex:1; cursor:pointer;">🗑 Delete</button>
                         </div>
                     </div>`;
                 });
-
                 html += `</div></div>`;
                 container.innerHTML = html;
             };
 
-            window.approveMgDuplicate = function(id) {
-                appConfirm('Approve Entry', 'Are you sure this is a valid separate slip?', () => {
-                    db.ref('meetingsGuestsRecords/' + id).update({ Status: 'Approved' }).then(() => {
-                        appAlert('Approved', 'Entry marked as valid and added to history.');
-                    });
-                });
+            window.deleteMgRecord = function(id) { 
+                appConfirm('Delete Record', 'Are you sure?', () => { 
+                    db.ref('meetingsGuestsRecords/' + id).remove().then(() => {
+                        window.renderMgReviewSection();
+                    }); 
+                }); 
+            };
+            
+            window.approveMgDuplicate = function(id) { 
+                appConfirm('Approve Entry', 'Are you sure this is a valid separate slip?', () => { 
+                    db.ref('meetingsGuestsRecords/' + id).update({ Status: 'Approved' }).then(() => { 
+                        appAlert('Approved', 'Entry marked as valid.'); 
+                        window.renderMgReviewSection();
+                        window.renderMgHistoryTable();
+                    }); 
+                }); 
             };
         })();
       
