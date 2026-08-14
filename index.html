@@ -1770,16 +1770,16 @@
         flex-shrink: 0; /* પેન્સિલનું બટન નાનું થઈને ગાયબ ન થાય તે માટે */
         margin-left: 5px;
     }
-                    /* ===== CUSTOM INLINE DROPDOWN (CENTER POPUP) ===== */
-        .my-drop-wrap { position: static; width: 100%; text-align: left; }
-        .my-drop-btn { background: #fff; border: 1px solid #0A56D0; border-radius: 8px; padding: 6px 10px; font-size: 0.85rem; cursor: pointer; min-height: 38px; display: flex; justify-content: space-between; align-items: center; color: #0A56D0; font-weight: 700; box-shadow: 0 2px 4px rgba(10,86,208,0.1); }
-        .my-drop-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 999998; }
-        .my-drop-list { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 320px; background: #fff; border-radius: 12px; z-index: 999999; box-shadow: 0 10px 30px rgba(0,0,0,0.3); overflow: hidden; text-align: center; }
+        /* ===== CUSTOM INLINE DROPDOWN (SMART CONTEXTUAL POPUP) ===== */
+        .my-drop-wrap { position: relative; width: 100%; text-align: left; }
+        .my-drop-btn { background: #fff; border: 1px solid #0A56D0; border-radius: 6px; padding: 4px 8px; font-size: 0.8rem; cursor: pointer; min-height: 30px; display: flex; justify-content: space-between; align-items: center; color: #0A56D0; font-weight: 700; box-shadow: 0 1px 2px rgba(10,86,208,0.1); }
+        .my-drop-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: transparent; z-index: 999998; }
+        .my-drop-list { display: none; position: fixed; min-width: 110px; background: #fff; border-radius: 8px; border: 1px solid #CBD5E1; z-index: 999999; box-shadow: 0 4px 16px rgba(0,0,0,0.2); overflow: hidden; text-align: center; }
         .my-drop-wrap.active .my-drop-overlay, .my-drop-wrap.active .my-drop-list { display: block; }
-        .my-drop-item { padding: 15px; font-size: 1.1rem; border-bottom: 1px solid #E2E8F0; color: #1E293B; cursor: pointer; font-weight: 700; }
+        .my-drop-item { padding: 8px 10px; font-size: 0.85rem; border-bottom: 1px solid #E2E8F0; color: #1E293B; cursor: pointer; font-weight: 700; white-space: nowrap; }
         .my-drop-item:last-child { border-bottom: none; }
         .my-drop-item:active { background: #EFF6FF; color: #0A56D0; }
-        .my-drop-disabled { background: #E2E8F0; color: #146C43; font-weight: 800; padding: 8px; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.85rem; text-align: center; }
+        .my-drop-disabled { background: #E2E8F0; color: #146C43; font-weight: 800; padding: 4px; border-radius: 6px; border: 1px solid #CBD5E1; font-size: 0.75rem; text-align: center; }
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -2371,10 +2371,29 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                         appAlert('Updated', 'Drink corrected!'); }
                 };
             };
-                      // Custom Dropdown JS Helpers
+            // Custom Dropdown JS Helpers (Smart Positioning)
             window.openMyDrop = function(btn) {
                 document.querySelectorAll('.my-drop-wrap').forEach(w => w.classList.remove('active'));
-                btn.parentElement.classList.add('active');
+                const wrap = btn.parentElement;
+                wrap.classList.add('active');
+                
+                // ડ્રોપડાઉનને એક્ઝેટ બટનની નીચે સેટ કરવા માટેની ગણતરી
+                const list = wrap.querySelector('.my-drop-list');
+                const rect = btn.getBoundingClientRect();
+                
+                list.style.top = (rect.bottom + 4) + 'px';
+                list.style.left = (rect.left + (rect.width / 2)) + 'px';
+                list.style.transform = 'translateX(-50%)';
+                list.style.bottom = 'auto'; // Reset
+
+                // જો લિસ્ટ સ્ક્રીનની નીચે દબાઈ જતું હોય, તો તેને બટનની ઉપરની બાજુ ખોલો
+                setTimeout(() => {
+                    const listRect = list.getBoundingClientRect();
+                    if (listRect.bottom > window.innerHeight) {
+                        list.style.top = 'auto';
+                        list.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
+                    }
+                }, 0);
             };
             window.closeMyDrop = function(overlay) {
                 overlay.parentElement.classList.remove('active');
@@ -2401,13 +2420,11 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                 const drinkArr = supplySource === 'DAU Direct Purchase' ? 
                     (typeof DAU_PURCHASE_BEVERAGES !== 'undefined' ? DAU_PURCHASE_BEVERAGES : []) : 
                     (typeof CONTRACTOR_BEVERAGES !== 'undefined' ? CONTRACTOR_BEVERAGES : ['Tea','Coffee']);
-
-                // "Clear/Remove" કાઢીને સીધું "- (None)" ઓપ્શન જ રાખ્યું છે
-                let optsHtml = `<div class="my-drop-item" onclick="window.selectMyDrop(this, '', '-')">- (None)</div>`;
+                // માત્ર લાલ કલરમાં ✕ None બતાવવા માટે
+                let optsHtml = `<div class="my-drop-item" style="color:#DC3545; font-weight:bold;" onclick="window.selectMyDrop(this, '', '-')">✕ None</div>`;
                 drinkArr.forEach(d => {
                     optsHtml += `<div class="my-drop-item" onclick="window.selectMyDrop(this, '${d}', '${d}')">${d}</div>`;
                 });
-
                 const makeEditable = (sessionClass) => {
                     const hiddenInput = targetRow.querySelector(`input.${sessionClass}`);
                     if (!hiddenInput) return; 
@@ -3443,7 +3460,6 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                     };
                 }
             }
-
             // ============================================================
             //  WORKERS TEA ADMIN RENDER
             // ============================================================
@@ -3453,31 +3469,39 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                 const currentMonth = new Date().toISOString().split('T')[0].slice(0, 7);
 
                 cont.innerHTML = `
-              <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
-                <div style="flex:2; min-width:140px;"><label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">Select Month</label><input type="month" id="workersTeaMonthPicker" value="${currentMonth}" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;"></div>
+              <div class="card" style="border:2px solid #0A56D0; background:#F8FAFC; padding:16px; margin-bottom:16px;">
+                <h4 style="color:#0A56D0; margin:0 0 10px 0; font-size:1rem;">📤 Master Excel Upload</h4>
+                <p style="font-size:0.8rem; color:#44474E; margin-bottom:12px;">Upload your combined Excel file here (HK, Garden, Security). System will auto-sort and save.</p>
+                <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+                  <div style="flex:1; min-width:140px;">
+                    <label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">Select Month</label>
+                    <input type="month" id="workersTeaMonthPicker" value="${currentMonth}" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; width:100%; box-sizing:border-box;">
+                  </div>
+                  <div style="flex:1; min-width:140px; padding-top:16px; display:flex; gap:8px;">
+                    <button type="button" onclick="window.downloadCombinedWorkersTeaFormat()" class="btn" style="flex:1; background:#0A56D0; margin:0; padding:10px 4px; min-height:42px; border-radius:8px; font-size:.8rem; font-weight:bold;">📥 Format</button>
+                    <label class="btn success" style="flex:1.5; margin:0; padding:10px 4px; min-height:42px; border-radius:8px; cursor:pointer; font-size:.8rem; display:flex; justify-content:center; align-items:center; font-weight:bold;">
+                        📂 Upload
+                        <input type="file" accept=".xlsx, .xls" style="display:none;" onchange="window.masterImportWorkersTea(event)">
+                    </label>
+                  </div>
+                </div>
               </div>
-              <div class="android-section-title" style="margin-bottom:12px;">👷 Departments</div>
+              <div class="android-section-title" style="margin-bottom:12px;">👷 Manual Entry by Departments</div>
               <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
                 <button class="workers-dept-btn" data-dept="Housekeeping" style="background:#DBEAFE; border-color:#3B82F6;">🏠 Housekeeping</button>
-                <button class="workers-dept-btn" data-dept="Horticulture" style="background:#DCFCE7; border-color:#22C55E;">🌿 Horticulture</button>
+                <button class="workers-dept-btn" data-dept="Garden" style="background:#DCFCE7; border-color:#22C55E;">🌿 Garden</button>
                 <button class="workers-dept-btn" data-dept="Security" style="background:#FEE2E2; border-color:#EF4444;">🔒 Security</button>
-                <button class="workers-dept-btn" data-dept="Outsourcing" style="background:#FEF3C7; border-color:#D97706;">👷 Outsourcing</button>
               </div>
               <div class="android-section-title" style="margin-bottom:12px; margin-top:20px;">🔗 Share Direct Link (Valid for 24h)</div>
-              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
                 <button class="btn" id="genLinkHousekeeping" style="background:#0A56D0; flex:1; font-size:.8rem;">🔗 Housekeeping</button>
-                <button class="btn" id="genLinkHorticulture" style="background:#0A56D0; flex:1; font-size:.8rem;">🔗 Horticulture</button>
+                <button class="btn" id="genLinkGarden" style="background:#0A56D0; flex:1; font-size:.8rem;">🔗 Garden</button>
                 <button class="btn" id="genLinkSecurity" style="background:#0A56D0; flex:1; font-size:.8rem;">🔗 Security</button>
-                <button class="btn" id="genLinkOutsourcing" style="background:#0A56D0; flex:1; font-size:.8rem;">🔗 Outsourcing</button>
               </div>
             `;
 
                 document.getElementById('workersTeaMonthPicker').addEventListener('change', function() {
-                    const month = this.value;
-                    if (month) {
-                        workersTeaMonth = month;
-                        loadWorkersTeaData(month);
-                    }
+                    if (this.value) { workersTeaMonth = this.value; loadWorkersTeaData(this.value); }
                 });
 
                 document.querySelectorAll('.workers-dept-btn').forEach(btn => {
@@ -3494,61 +3518,98 @@ window.pantryDownloadExcelFile = function(wb, filename) {
 
                         const [yy, mm] = month.split('-');
                         const daysInMonth = new Date(yy, mm, 0).getDate();
-                        const shifts = ['Morning', 'Afternoon', 'Night First Half', 'Night Second Half'];
+                        const isSecurity = dept === 'Security';
 
-                        let html =
-                            `<table class="workers-tea-table"><thead><tr><th rowspan="3" style="vertical-align:middle; min-width:48px;">Date</th><th colspan="8" class="dep-header">${dept}</th></tr><tr>`;
-                        shifts.forEach(shift => {
-                            const label = shift === 'Night First Half' ? 'Night 1st' : shift ===
-                                'Night Second Half' ? 'Night 2nd' : shift;
-                            html += `<th colspan="2" class="shift-header">${label}</th>`;
-                        });
-                        html += '</tr><tr>';
-                        shifts.forEach(() => { html += `<th class="fs-small">Tea</th><th class="fs-small">Coffee</th>`; });
-                        html += '</tr></thead><tbody>';
+                        let html = `
+                            <style>
+                                .w-cmp-tbl { width: 100%; border-collapse: collapse; table-layout: auto; }
+                                .w-cmp-tbl th, .w-cmp-tbl td { border: 1px solid #CBD5E1; padding: 2px !important; text-align: center; vertical-align: middle; }
+                                .w-cmp-tbl th { background: #F1F5F9; color: #0A56D0; font-size: 11px; font-weight: 700; padding: 4px 2px !important; }
+                                .w-cmp-inp { width: 100%; min-width: 35px; max-width: 55px; height: 38px !important; text-align: center; padding: 0; margin: 0; border: none; border-radius: 4px; font-size: 14px; font-weight: bold; color: #1E293B; background: transparent; outline: none; }
+                                .w-cmp-inp:focus { background: #EFF6FF; border: 1px solid #0A56D0; }
+                                .w-cmp-inp::-webkit-inner-spin-button, .w-cmp-inp::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+                            </style>
+                            <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items:center;">
+                                <button type="button" onclick="const inps=document.querySelectorAll('#deptTeaGridContainer input'); inps.forEach(i=>{i.value=''; i.style.backgroundColor='';});" class="danger sm" style="border-radius:6px; font-weight:bold;">🗑 Clear</button>
+                                <div style="display:flex; gap:6px;">
+                                    <button type="button" onclick="window.downloadWorkersTeaFormat('${dept}', '${month}')" class="btn sm" style="background:#0A56D0; padding:6px 10px; font-weight:bold; border-radius:6px;">📥 Format</button>
+                                    <label class="btn sm success" style="margin:0; padding:6px 10px; font-weight:bold; border-radius:6px; cursor:pointer;">
+                                        📤 Import <input type="file" accept=".xlsx, .xls" style="display:none;" onchange="window.uploadWorkersTeaExcel(event, '${dept}', '${month}')">
+                                    </label>
+                                </div>
+                            </div>
+                            <div style="overflow-x:auto; width:100%; padding-bottom:10px;">
+                            <table class="w-cmp-tbl"><thead><tr><th rowspan="${isSecurity ? 3 : 2}" style="width:75px; min-width:75px;">Date</th><th colspan="${isSecurity ? 4 : 2}" style="font-size:12px;">${dept}</th><th rowspan="${isSecurity ? 3 : 2}" style="width:25px;">✕</th></tr>`;
+                        
+                        if (isSecurity) {
+                            html += `<tr><th colspan="2">Day</th><th colspan="2">Night</th></tr>`;
+                            html += `<tr><th style="font-size:10px;">Tea</th><th style="font-size:10px;">Coffee</th><th style="font-size:10px;">Tea</th><th style="font-size:10px;">Coffee</th></tr></thead><tbody>`;
+                        } else {
+                            html += `<tr><th style="font-size:10px;">Tea</th><th style="font-size:10px;">Coffee</th></tr></thead><tbody>`;
+                        }
 
                         for (let d = 1; d <= daysInMonth; d++) {
                             const dd = String(d).padStart(2, '0');
                             const dateStr = `${yy}-${mm}-${dd}`;
-                            const dateObj = new Date(dateStr);
-                            const dayLabel = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
-                            html +=
-                                `<tr><th style="white-space:nowrap;"><span class="date-label">${dd}</span><span class="day-label">${dayLabel}</span></th>`;
-                            shifts.forEach(shift => {
-                                const data = workersTeaData[dept]?.[dateStr]?.[shift] || {};
-                                const tea = data.tea || '';
-                                const coffee = data.coffee || '';
-                                html +=
-                                    `<td><input type="number" class="wt-input-dept" data-dept="${dept}" data-date="${dateStr}" data-shift="${shift}" data-drink="tea" value="${tea}" min="0" step="1" style="width:100%;" placeholder=""></td><td><input type="number" class="wt-input-dept" data-dept="${dept}" data-date="${dateStr}" data-shift="${shift}" data-drink="coffee" value="${coffee}" min="0" step="1" style="width:100%;" placeholder=""></td>`;
-                            });
-                            html += '</tr>';
+                            const dateObj = new Date(yy, mm - 1, d);
+                            const dayFull = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
+                            const dmyStr = `${dd}/${mm}/${yy}`;
+                            
+                            html += `<tr><th style="white-space:nowrap; padding:4px 2px!important; line-height:1.2; font-size:11px; color:#1E293B;">${dmyStr}<br><span style="font-size:9px; font-weight:normal; color:#64748B;">(${dayFull})</span></th>`;
+                            
+                            if (isSecurity) {
+                                const shifts = ['Day', 'Night'];
+                                shifts.forEach(shift => {
+                                    const data = workersTeaData[dept]?.[dateStr]?.[shift] || {};
+                                    html += `<td><input type="number" class="wt-input-dept w-cmp-inp" data-dept="${dept}" data-date="${dateStr}" data-shift="${shift}" data-drink="tea" value="${data.tea||''}" min="0" step="1"></td>`;
+                                    html += `<td><input type="number" class="wt-input-dept w-cmp-inp" data-dept="${dept}" data-date="${dateStr}" data-shift="${shift}" data-drink="coffee" value="${data.coffee||''}" min="0" step="1"></td>`;
+                                });
+                            } else {
+                                const data = workersTeaData[dept]?.[dateStr] || {};
+                                html += `<td><input type="number" class="wt-input-dept w-cmp-inp" data-dept="${dept}" data-date="${dateStr}" data-shift="None" data-drink="tea" value="${data.tea||''}" min="0" step="1"></td>`;
+                                html += `<td><input type="number" class="wt-input-dept w-cmp-inp" data-dept="${dept}" data-date="${dateStr}" data-shift="None" data-drink="coffee" value="${data.coffee||''}" min="0" step="1"></td>`;
+                            }
+                            html += `<td style="padding:0!important;"><button type="button" onclick="const row=this.closest('tr'); row.querySelectorAll('input').forEach(inp=>inp.value='');" style="background:#fee2e2; color:#dc3545; border:none; width:22px; height:24px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;" title="Clear Row">✕</button></td></tr>`;
                         }
-                        html += '</tbody></table>';
+                        html += '</tbody></table></div>';
                         container.innerHTML = html;
 
                         document.getElementById('saveDeptTeaBtn').onclick = function() {
-                            saveAllWorkersTea(month, container);
-                            popup.classList.add('hidden');
-                            appAlert('Saved', `${dept} data saved!`);
+                            const inputs = container.querySelectorAll('.wt-input-dept');
+                            const deptData = {}; // આખો ડિપાર્ટમેન્ટ ફ્રેશ બનાવશે
+                            
+                            inputs.forEach(inp => {
+                                const val = Number(inp.value) || 0;
+                                if (val > 0) {
+                                    const dateStr = inp.dataset.date;
+                                    const shift = inp.dataset.shift;
+                                    const drink = inp.dataset.drink;
+                                    
+                                    if (!deptData[dateStr]) deptData[dateStr] = {};
+                                    
+                                    if (shift !== 'None') {
+                                        if (!deptData[dateStr][shift]) deptData[dateStr][shift] = {};
+                                        deptData[dateStr][shift][drink] = val;
+                                    } else {
+                                        deptData[dateStr][drink] = val;
+                                    }
+                                }
+                            });
+
+                            // જૂનો બધો કચરો ડીલીટ કરીને ફક્ત નવો ડેટા જ સેવ કરશે
+                            db.ref(`Workers_Tea/${month}/${dept}`).set(deptData).then(() => {
+                                popup.classList.add('hidden');
+                                appAlert('Saved', `${dept} data properly saved and duplicates removed!`);
+                            }).catch(err => { appAlert('Error', 'Save failed: ' + err.message); });
                         };
                     };
                 });
 
-                // Supervisor link generation with direct clickable links
                 const genSupervisorLink = (dept) => {
                     const expTime = Date.now() + (24 * 60 * 60 * 1000);
                     const linkId = 'slink_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
                     const link = `${BASE_URL}?supervisor=${encodeURIComponent(dept)}&exp=${expTime}&link_id=${linkId}`;
-
-                    db.ref('supervisorLinks/' + linkId).set({
-                        id: linkId,
-                        department: dept,
-                        created: Date.now(),
-                        expiry: expTime,
-                        link: link,
-                        active: true
-                    });
-
+                    db.ref('supervisorLinks/' + linkId).set({ id: linkId, department: dept, created: Date.now(), expiry: expTime, link: link, active: true });
                     const popup = document.createElement('div');
                     popup.className = 'popup-overlay';
                     popup.innerHTML = `
@@ -3563,7 +3624,6 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                                 <button onclick="window.shareLink('${link}','${dept}')" style="padding:8px 16px; border-radius:8px; background:#25D366; color:#fff; border:none; cursor:pointer; font-size:.8rem; flex:1;">📤 Share</button>
                                 <button onclick="window.open('${link}','_blank')" style="padding:8px 16px; border-radius:8px; background:#0A56D0; color:#fff; border:none; cursor:pointer; font-size:.8rem; flex:1;">🔗 Open</button>
                             </div>
-                            <p style="font-size:.7rem; color:#64748B; margin-top:8px;">✅ Click "Open" to test. The link works across all devices and networks.</p>
                             <button onclick="this.closest('.popup-overlay').remove()" class="danger" style="width:100%; margin-top:16px; min-height:40px;">Close</button>
                         </div>
                     `;
@@ -3571,58 +3631,214 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                 };
 
                 document.getElementById('genLinkHousekeeping').onclick = () => genSupervisorLink('Housekeeping');
-                document.getElementById('genLinkHorticulture').onclick = () => genSupervisorLink('Horticulture');
+                document.getElementById('genLinkGarden').onclick = () => genSupervisorLink('Garden');
                 document.getElementById('genLinkSecurity').onclick = () => genSupervisorLink('Security');
-                document.getElementById('genLinkOutsourcing').onclick = () => genSupervisorLink('Outsourcing');
-
-                // ============================================================
-//  SMART MOBILE SHARING WITH AUTOMATIC WHATSAPP FALLBACK
-// ============================================================
-window.pantrySmartShare = function(link, titleText, whatsappText) {
-    const fullMessage = `${whatsappText}\n\n🔗 Link: ${link}`;
-    
-    if (navigator.share) {
-        navigator.share({
-            title: titleText,
-            text: whatsappText,
-            url: link
-        }).catch(() => {
-            window.openWhatsAppFallback(link, fullMessage);
-        });
-    } else {
-        window.openWhatsAppFallback(link, fullMessage);
-    }
-};
-
-window.openWhatsAppFallback = function(link, fullMessage) {
-    navigator.clipboard.writeText(link).then(() => {
-        appAlert('Link Copied', 'Link copied! Now WhatsApp will open, paste it directly there.');
-        setTimeout(() => {
-            const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(fullMessage)}`;
-            window.open(waUrl, '_blank');
-        }, 1500);
-    }).catch(() => {
-        const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(fullMessage)}`;
-        window.open(waUrl, '_blank');
-    });
-};
-
-window.shareLink = function(link, dept) {
-    window.pantrySmartShare(link, `DAU Pantry - ${dept}`, `Please fill daily tea consumption for ${dept} using this secure link (valid 24 hours):`);
-};
-
-window.shareVendorLink = function(link, vendor) {
-    window.pantrySmartShare(link, `DAU Pantry - ${vendor}`, `Official ${vendor} Statement Portal Link. View and verify live refreshment records here:`);
-};
-
 
                 setTimeout(() => {
                     const month = document.getElementById('workersTeaMonthPicker').value;
-                    if (month) {
-                        workersTeaMonth = month;
-                        loadWorkersTeaData(month);
-                    }
+                    if (month) { workersTeaMonth = month; loadWorkersTeaData(month); }
                 }, 200);
+            };
+
+            window.downloadCombinedWorkersTeaFormat = function() {
+                const month = document.getElementById('workersTeaMonthPicker').value;
+                if (!month) return appAlert('Error', 'Select month first.');
+                const [yy, mm] = month.split('-');
+                const daysInMonth = new Date(yy, mm, 0).getDate();
+                
+                const row0 = ["Date", "Day", "Housekeeping Staff", "", "Garden Staff", "", "Security (Day)", "", "Security (Night)", ""];
+                const row1 = ["", "", "Tea", "Coffee", "Tea", "Coffee", "Tea", "Coffee", "Tea", "Coffee"];
+                const data = [row0, row1];
+                
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dd = String(d).padStart(2,'0');
+                    const dateObj = new Date(yy, mm - 1, d);
+                    data.push([`${dd}/${mm}/${yy}`, dateObj.toLocaleDateString('en-US', { weekday: 'long' }), "", "", "", "", "", "", "", ""]);
+                }
+                
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(data);
+                ws['!merges'] = [ {s:{r:0,c:2},e:{r:0,c:3}}, {s:{r:0,c:4},e:{r:0,c:5}}, {s:{r:0,c:6},e:{r:0,c:7}}, {s:{r:0,c:8},e:{r:0,c:9}} ];
+                const headStyle = { font:{bold:true}, alignment:{horizontal:"center", vertical:"center"}, fill:{fgColor:{rgb:"F1F5F9"}} };
+                const cellCenter = { alignment: { horizontal: "center", vertical: "center" } };
+
+                for (let R = 0; R < data.length; ++R) {
+                    for (let C = 0; C < data[R].length; ++C) {
+                        let cellRef = XLSX.utils.encode_cell({c:C, r:R});
+                        if(!ws[cellRef]) continue;
+                        ws[cellRef].s = (R === 0 || R === 1) ? headStyle : cellCenter;
+                    }
+                }
+                ws['!cols'] = [{wch: 12}, {wch: 12}, {wch: 10}, {wch: 10}, {wch: 10}, {wch: 10}, {wch: 10}, {wch: 10}, {wch: 10}, {wch: 10}];
+                XLSX.utils.book_append_sheet(wb, ws, "Combined_Format");
+                window.pantryDownloadExcelFile(wb, `Workers_Tea_Combined_${yy}_${mm}.xlsx`);
+            };
+
+            window.masterImportWorkersTea = async function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                const targetMonth = document.getElementById('workersTeaMonthPicker').value;
+                if(!targetMonth) return appAlert('Error', 'Please select a month first.');
+
+                appAlert('Reading File', 'Extracting combined data (Housekeeping, Garden, Security)...');
+                try {
+                    const data = await file.arrayBuffer();
+                    const wb = XLSX.read(data, { cellDates: true });
+                    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: "" });
+                    if (rows.length < 3) throw new Error("Invalid format.");
+
+                    const [targetYY, targetMM] = targetMonth.split('-');
+                    let validRows = 0;
+                    
+                    const newMonthData = { Housekeeping: {}, Garden: {}, Security: {} };
+
+                    for (let r = 2; r < rows.length; r++) {
+                        const row = rows[r];
+                        let rawDate = row[0];
+                        if (!rawDate || String(rawDate).trim().toLowerCase() === 'total') continue;
+                        
+                        let formattedDMY = window.parseExcelDateToDMY(rawDate);
+                        if (!formattedDMY) continue;
+                        
+                        const parts = formattedDMY.split('/');
+                        if (parts.length === 3 && parts[1] === targetMM && parts[2] === targetYY) {
+                            const dateStr = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                            
+                            const parseVal = (v) => { const n = parseInt(v, 10); return isNaN(n) ? 0 : n; };
+
+                            const hkTea = parseVal(row[2]); const hkCof = parseVal(row[3]);
+                            if (hkTea > 0 || hkCof > 0) {
+                                newMonthData.Housekeeping[dateStr] = {};
+                                if (hkTea > 0) newMonthData.Housekeeping[dateStr].tea = hkTea;
+                                if (hkCof > 0) newMonthData.Housekeeping[dateStr].coffee = hkCof;
+                            }
+
+                            const gdTea = parseVal(row[4]); const gdCof = parseVal(row[5]);
+                            if (gdTea > 0 || gdCof > 0) {
+                                newMonthData.Garden[dateStr] = {};
+                                if (gdTea > 0) newMonthData.Garden[dateStr].tea = gdTea;
+                                if (gdCof > 0) newMonthData.Garden[dateStr].coffee = gdCof;
+                            }
+
+                            const secDayTea = parseVal(row[6]); const secDayCof = parseVal(row[7]);
+                            const secNightTea = parseVal(row[8]); const secNightCof = parseVal(row[9]);
+                            if (secDayTea > 0 || secDayCof > 0 || secNightTea > 0 || secNightCof > 0) {
+                                newMonthData.Security[dateStr] = {};
+                                if (secDayTea > 0 || secDayCof > 0) {
+                                    newMonthData.Security[dateStr].Day = {};
+                                    if (secDayTea > 0) newMonthData.Security[dateStr].Day.tea = secDayTea;
+                                    if (secDayCof > 0) newMonthData.Security[dateStr].Day.coffee = secDayCof;
+                                }
+                                if (secNightTea > 0 || secNightCof > 0) {
+                                    newMonthData.Security[dateStr].Night = {};
+                                    if (secNightTea > 0) newMonthData.Security[dateStr].Night.tea = secNightTea;
+                                    if (secNightCof > 0) newMonthData.Security[dateStr].Night.coffee = secNightCof;
+                                }
+                            }
+                            validRows++;
+                        }
+                    }
+                    
+                    if(validRows > 0) {
+                        const updates = {};
+                        // આ લાઈનથી આખા મહિનાનો જૂનો ખરાબ ડેટા ડીલીટ થઈને 100% નવો જ ડેટા સેવ થશે!
+                        updates[`Workers_Tea/${targetMonth}/Housekeeping`] = newMonthData.Housekeeping;
+                        updates[`Workers_Tea/${targetMonth}/Garden`] = newMonthData.Garden;
+                        updates[`Workers_Tea/${targetMonth}/Security`] = newMonthData.Security;
+                        
+                        await db.ref().update(updates);
+                        appAlert('Success', `✅ Extracted ${validRows} rows.\nAll old duplicate entries are cleared and new data is saved!`);
+                        loadWorkersTeaData(targetMonth);
+                    } else {
+                        appAlert('Notice', 'No valid numeric dates found matching the selected month ('+targetMonth+').');
+                    }
+                } catch (err) { appAlert('Error', err.message); } finally { if (event.target) event.target.value = ''; }
+            };
+            window.downloadWorkersTeaFormat = function(dept, month) {
+                const [yy, mm] = month.split('-');
+                const daysInMonth = new Date(yy, mm, 0).getDate();
+                const isSec = dept === 'Security';
+                
+                const row0 = isSec ? ["Date", "Day", "Day Shift", "", "Night Shift", ""] : ["Date", "Day", dept, ""];
+                const row1 = isSec ? ["", "", "Tea", "Coffee", "Tea", "Coffee"] : ["", "", "Tea", "Coffee"];
+                const data = [row0, row1];
+                
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dd = String(d).padStart(2,'0');
+                    const dObj = new Date(yy, mm - 1, d);
+                    if(isSec) data.push([`${dd}/${mm}/${yy}`, dObj.toLocaleDateString('en-US',{weekday:'long'}), "", "", "", ""]);
+                    else data.push([`${dd}/${mm}/${yy}`, dObj.toLocaleDateString('en-US',{weekday:'long'}), "", ""]);
+                }
+                
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(data);
+                ws['!merges'] = isSec ? [{s:{r:0,c:2},e:{r:0,c:3}}, {s:{r:0,c:4},e:{r:0,c:5}}] : [{s:{r:0,c:2},e:{r:0,c:3}}];
+                
+                for (let R = 0; R < data.length; ++R) {
+                    for (let C = 0; C < data[R].length; ++C) {
+                        let ref = XLSX.utils.encode_cell({c:C, r:R});
+                        if(!ws[ref]) continue;
+                        ws[ref].s = { alignment: { horizontal: "center", vertical: "center" } };
+                        if (R === 0 || R === 1) { ws[ref].s.font = { bold: true }; ws[ref].s.fill = { fgColor: { rgb: "F1F5F9" } }; }
+                    }
+                }
+                ws['!cols'] = isSec ? [{wch: 12},{wch: 12},{wch: 10},{wch: 10},{wch: 10},{wch: 10}] : [{wch: 12},{wch: 12},{wch: 10},{wch: 10}];
+                XLSX.utils.book_append_sheet(wb, ws, "Format");
+                window.pantryDownloadExcelFile(wb, `Workers_Tea_${dept}_${yy}_${mm}.xlsx`);
+            };
+
+            window.uploadWorkersTeaExcel = async function(event, dept, targetMonth) {
+                const file = event.target.files[0];
+                if (!file) return;
+                appAlert('Reading File', 'Extracting data...');
+                try {
+                    const data = await file.arrayBuffer();
+                    const rows = XLSX.utils.sheet_to_json(XLSX.read(data, { cellDates: true }).Sheets[wb.SheetNames[0]], { header: 1, defval: "" });
+                    if (rows.length < 3) throw new Error("Invalid format.");
+
+                    const [targetYY, targetMM] = targetMonth.split('-');
+                    let appliedCount = 0;
+                    const isSec = dept === 'Security';
+
+                    for (let r = 2; r < rows.length; r++) {
+                        const row = rows[r];
+                        let rawDate = row[0];
+                        if (!rawDate || String(rawDate).trim().toLowerCase() === 'total') continue;
+                        let formattedDMY = window.parseExcelDateToDMY(rawDate);
+                        if (!formattedDMY) continue;
+                        const parts = formattedDMY.split('/');
+                        
+                        if (parts.length === 3 && parts[1] === targetMM && parts[2] === targetYY) {
+                            const dateStr = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                            
+                            const parseVal = (v) => { const n = parseInt(v, 10); return isNaN(n) ? '' : n; };
+                            
+                            if (isSec) {
+                                const dT = parseVal(row[2]); const dC = parseVal(row[3]);
+                                const nT = parseVal(row[4]); const nC = parseVal(row[5]);
+                                
+                                const idT = document.querySelector(`input.wt-input-dept[data-dept="${dept}"][data-date="${dateStr}"][data-shift="Day"][data-drink="tea"]`);
+                                const idC = document.querySelector(`input.wt-input-dept[data-dept="${dept}"][data-date="${dateStr}"][data-shift="Day"][data-drink="coffee"]`);
+                                const inT = document.querySelector(`input.wt-input-dept[data-dept="${dept}"][data-date="${dateStr}"][data-shift="Night"][data-drink="tea"]`);
+                                const inC = document.querySelector(`input.wt-input-dept[data-dept="${dept}"][data-date="${dateStr}"][data-shift="Night"][data-drink="coffee"]`);
+                                
+                                if(idT && dT!=='') { idT.value = dT; idT.style.background = '#DCFCE7'; appliedCount++; }
+                                if(idC && dC!=='') { idC.value = dC; idC.style.background = '#DCFCE7'; }
+                                if(inT && nT!=='') { inT.value = nT; inT.style.background = '#DCFCE7'; }
+                                if(inC && nC!=='') { inC.value = nC; inC.style.background = '#DCFCE7'; }
+                            } else {
+                                const t = parseVal(row[2]); const c = parseVal(row[3]);
+                                const iT = document.querySelector(`input.wt-input-dept[data-dept="${dept}"][data-date="${dateStr}"][data-drink="tea"]`);
+                                const iC = document.querySelector(`input.wt-input-dept[data-dept="${dept}"][data-date="${dateStr}"][data-drink="coffee"]`);
+                                
+                                if(iT && t!=='') { iT.value = t; iT.style.background = '#DCFCE7'; appliedCount++; }
+                                if(iC && c!=='') { iC.value = c; iC.style.background = '#DCFCE7'; }
+                            }
+                        }
+                    }
+                    if(appliedCount > 0) appAlert('Import Success', `✅ Extracted ${appliedCount} entries. Click 'Save Entries' to confirm.`);
+                    else appAlert('Notice', 'No valid numeric data found for this month.');
+                } catch (err) { appAlert('Error', err.message); } finally { if (event.target) event.target.value = ''; }
             };
 
             // ============================================================
@@ -4293,6 +4509,12 @@ window.shareVendorLink = function(link, vendor) {
                         if (cat !== 'All' && emp.category !== cat) return false;
                         if (search && !emp.name.toLowerCase().includes(search)) return false;
                         if (supplySource === 'DAU Direct Purchase' && emp.dauTeaEligible !== true) return false;
+                        
+                        // જો કર્મચારી ડીલીટ (Inactive) હોય, તો જ બતાવો જો આજના દિવસે તેની કોઈ એન્ટ્રી હોય
+                        if (emp.status === 'Inactive') {
+                            const hasLogToday = logsData.some(l => l.employeeId === emp.id && l.date === selectedDMY);
+                            if (!hasLogToday) return false;
+                        }
                         return true;
                     });
                     
@@ -4304,24 +4526,26 @@ window.shareVendorLink = function(link, vendor) {
                             if (cat !== 'All' && emp.category !== cat) return false;
                             if (search && !emp.name.toLowerCase().includes(search)) return false;
                             if (supplySource === 'DAU Direct Purchase' && emp.dauTeaEligible !== true) return false;
+                            
+                            // જો કર્મચારી ડીલીટ (Inactive) હોય, તો જ બતાવો જો આજના દિવસે તેની કોઈ એન્ટ્રી હોય
+                            if (emp.status === 'Inactive') {
+                                const hasLogToday = logsData.some(l => l.employeeId === emp.id && l.date === selectedDMY);
+                                if (!hasLogToday) return false;
+                            }
                             return true;
                         });
                     }
-
                     const specialIds = specialFiltered.map(e => e.id);
                     regularFiltered = regularFiltered.filter(e => !specialIds.includes(e.id));
                     
                     const contractorArr = typeof CONTRACTOR_BEVERAGES !== 'undefined' ? CONTRACTOR_BEVERAGES : ['Tea','Coffee'];
                     const dauArr = typeof DAU_PURCHASE_BEVERAGES !== 'undefined' ? DAU_PURCHASE_BEVERAGES : [];
                     const currentDrinkArr = supplySource === 'DAU Direct Purchase' ? dauArr : contractorArr;
-
-                    function buildRows(empList, drinkArr, supplySrc) {
-                        let optsHtml = `<div class="my-drop-item" style="color:#DC3545;" onclick="window.selectMyDrop(this, 'REMOVE_LOG', '✕ Clear')">✕ Clear</div>`;
-                        optsHtml += `<div class="my-drop-item" onclick="window.selectMyDrop(this, '', '-')">- (None)</div>`;
+                                        function buildRows(empList, drinkArr, supplySrc) {
+                        let optsHtml = `<div class="my-drop-item" style="color:#DC3545; font-weight:bold;" onclick="window.selectMyDrop(this, '', '-')">✕ None</div>`;
                         drinkArr.forEach(d => {
                             optsHtml += `<div class="my-drop-item" onclick="window.selectMyDrop(this, '${d}', '${d}')">${d}</div>`;
                         });
-
                         return empList.map(emp => {
                             const logs = logsData.filter(l => l.employeeId === emp.id && l.date === selectedDMY && (l.supplySource === supplySrc || (!l.supplySource && supplySrc === 'Contractor')));
                             const morn = logs.find(l => l.session === 'Morning');
@@ -4452,9 +4676,14 @@ window.shareVendorLink = function(link, vendor) {
                     }
                     if (!isMine) return false;
                     if (supplySource === 'DAU Direct Purchase' && emp.dauTeaEligible !== true) return false;
+                    
+                    // જો કર્મચારી ડીલીટ (Inactive) હોય, તો જ બતાવો જો આ આખા મહિનામાં તેની કોઈ એન્ટ્રી હોય
+                    if (emp.status === 'Inactive') {
+                        const hasLogThisMonth = logsData.some(l => l.employeeId === emp.id && parseDMYToYMD(l.date).startsWith(monthVal));
+                        if (!hasLogThisMonth) return false;
+                    }
                     return true;
                 });
-
                 let selectedEmpId = document.getElementById('monthlyGridEmpPicker')?.value;
                 if (!selectedEmpId && myAssigned.length > 0) {
                     selectedEmpId = myAssigned[0].id;
@@ -6472,11 +6701,14 @@ window.shareVendorLink = function(link, vendor) {
                     checks.forEach(cb => {
                         const id = cb.dataset.id;
                         const emp = employeeList.find(e => e.id === id);
-                        if (emp) { db.ref('recycleBin/employees/' + id).set(emp);
-                            db.ref('employees/' + id).remove(); }
+                        if (emp) { 
+                            db.ref('recycleBin/employees/' + id).set(emp);
+                            // SOFT DELETE: Mark Inactive, do not remove
+                            db.ref('employees/' + id).update({ status: 'Inactive' }); 
+                        }
                     });
-                    if (document.getElementById('selectAllEmployees')) document.getElementById('selectAllEmployees')
-                        .checked = false;
+                    if (document.getElementById('selectAllEmployees')) document.getElementById('selectAllEmployees').checked = false;
+                    appAlert('Deleted', 'Selected employees marked as inactive.');
                 });
             }
 
@@ -6846,7 +7078,7 @@ window.shareVendorLink = function(link, vendor) {
 
                 if (type === 'regular') {
                     const cat = document.getElementById('reportCategory').value;
-                    const incFb = document.getElementById('includeFeedbackCol')?.checked; // ફીડબેક ઓપ્શન ચેક કરવા
+                    const incFb = document.getElementById('includeFeedbackCol')?.checked;
 
                     if (cat === 'All') return appAlert('Notice', 'Please select a specific category (Faculty, Staff, Law, Outsourced).');
                     const categoryMatch = cat.trim().toLowerCase();
@@ -6866,7 +7098,6 @@ window.shareVendorLink = function(link, vendor) {
                         return appAlert('No Data', `No employees in this category for ${supplyText}.`);
                     }
 
-                    // ડાયનેમિક હેડર (જો ફીડબેક સિલેક્ટ કર્યું હોય તો)
                     const colCount = incFb ? 11 : 9;
                     const theadHtml = `
                       <thead>
@@ -6892,7 +7123,6 @@ window.shareVendorLink = function(link, vendor) {
                     emps.forEach(emp => {
                         let t = 0, c = 0, gt = 0, lt = 0, bt = 0, bc = 0;
                         
-                        // --- નવો સુધારેલો કોડ શરૂ (Duplicate Fix) ---
                         const empLogs = logsData.filter(l => l.employeeId === emp.id && parseDMYToYMD(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
                         const uniqueLogs = {};
                         empLogs.forEach(log => { uniqueLogs[log.date + '_' + log.session] = log; });
@@ -6902,33 +7132,41 @@ window.shareVendorLink = function(link, vendor) {
                             if (d === 'tea') t++; else if (d === 'coffee') c++; else if (d === 'green tea') gt++;
                             else if (d === 'lemon tea') lt++; else if (d === 'black tea') bt++; else if (d === 'black coffee') bc++;
                         });
-                        // --- નવો સુધારેલો કોડ પૂરો ---
 
                         sumT += t; sumC += c; sumGT += gt; sumLT += lt; sumBT += bt; sumBC += bc;
                         trs += `<tr><td>${sr++}</td><td class="left-align">${safeStr(emp.name)}</td><td>${t}</td><td>${c}</td><td>${gt}</td><td>${lt}</td><td>${bt}</td><td>${bc}</td>${fbCells}<td></td></tr>`;
                     });
 
-                    let wT = 0, wC = 0;
                     if ((categoryMatch === 'outsourced' || categoryMatch === 'outsource') && supplySource === 'Contractor') {
                         db.ref('Workers_Tea/' + month).once('value', snap => {
                             const dataSnap = snap.val() || {};
+                            let hkT = 0, hkC = 0, gdT = 0, gdC = 0, secT = 0, secC = 0;
                             for (const dept in dataSnap) {
                                 for (const dateStr in dataSnap[dept]) {
-                                    for (const shift in dataSnap[dept][dateStr]) {
-                                        const entry = dataSnap[dept][dateStr][shift];
-                                        wT += Number(entry.tea) || 0;
-                                        wC += Number(entry.coffee) || 0;
+                                    if (dept === 'Security') {
+                                        for (const shift in dataSnap[dept][dateStr]) {
+                                            const entry = dataSnap[dept][dateStr][shift];
+                                            secT += Number(entry.tea) || 0; secC += Number(entry.coffee) || 0;
+                                        }
+                                    } else {
+                                        const entry = dataSnap[dept][dateStr];
+                                        const t = Number(entry.tea) || 0; const c = Number(entry.coffee) || 0;
+                                        if (dept === 'Housekeeping') { hkT += t; hkC += c; }
+                                        else if (dept === 'Garden') { gdT += t; gdC += c; }
                                     }
                                 }
                             }
+                            let wT = hkT + gdT + secT;
+                            let wC = hkC + gdC + secC;
+                            
                             const fullHtml = `
                     <table class="print-table">
                       ${theadHtml}
                       <tbody>${trs}</tbody>
                       <tbody class="total-row-grp">
-                        <tr style="background:#FFFFFF;"><td></td><td class="left-align" style="font-weight:600; color:#000000;">Housekeeping Staff (Safal)</td><td>${wT}</td><td>${wC}</td><td>0</td><td>0</td><td>0</td><td>0</td>${fbCells}<td></td></tr>
-                        <tr style="background:#FFFFFF;"><td></td><td class="left-align" style="font-weight:600; color:#000000;">Horticulture Staff (Safal)</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>${fbCells}<td></td></tr>
-                        <tr style="background:#FFFFFF;"><td></td><td class="left-align" style="font-weight:600; color:#000000;">Security Staff (Kavach)</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>${fbCells}<td></td></tr>
+                        <tr style="background:#FFFFFF;"><td></td><td class="left-align" style="font-weight:600; color:#000000;">Housekeeping Staff (Safal)</td><td>${hkT}</td><td>${hkC}</td><td>0</td><td>0</td><td>0</td><td>0</td>${fbCells}<td></td></tr>
+                        <tr style="background:#FFFFFF;"><td></td><td class="left-align" style="font-weight:600; color:#000000;">Garden Staff (Safal)</td><td>${gdT}</td><td>${gdC}</td><td>0</td><td>0</td><td>0</td><td>0</td>${fbCells}<td></td></tr>
+                        <tr style="background:#FFFFFF;"><td></td><td class="left-align" style="font-weight:600; color:#000000;">Security Staff (Kavach)</td><td>${secT}</td><td>${secC}</td><td>0</td><td>0</td><td>0</td><td>0</td>${fbCells}<td></td></tr>
                         <tr class="total-row"><td></td><td class="left-align" style="text-align:center;">TOTAL</td><td>${sumT + wT}</td><td>${sumC + wC}</td><td>${sumGT}</td><td>${sumLT}</td><td>${sumBT}</td><td>${sumBC}</td>${fbCells}<td></td></tr>
                       </tbody>
                     </table>
@@ -7101,20 +7339,8 @@ window.shareVendorLink = function(link, vendor) {
                     .preview-card { box-shadow: none !important; border: none !important; width: 100% !important; max-width: 100% !important; padding: 0 !important; margin: 0 !important; border-radius: 0 !important; }
                     .preview-content { padding: 0 !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; overflow: visible !important; }
                     .preview-header { display: none !important; }
-                    
-                    /* ટેબલને કાગળની પૂરી સાઇઝ લેવા મજબૂર કરવું */
-                    table.print-table { 
-                        width: 100% !important; 
-                        max-width: 100% !important; 
-                        table-layout: auto !important; 
-                    }
-                    
-                    /* અક્ષર અને પેડિંગ ઓરિજિનલ કરતાં થોડાક જ નાના કર્યા (11.5px) જેથી 11 કોલમ પ્રોપર ફિટ થાય */
-                    table.print-table th, table.print-table td { 
-                        padding: 5px 4px !important; 
-                        font-size: 11.5px !important; 
-                        height: 38px !important;
-                    }
+                    table.print-table { width: 100% !important; max-width: 100% !important; table-layout: auto !important; }
+                    table.print-table th, table.print-table td { padding: 5px 4px !important; font-size: 11.5px !important; height: 38px !important; }
                   }
                 </style>
               `;
@@ -7122,6 +7348,8 @@ window.shareVendorLink = function(link, vendor) {
                 }
                 if (html) showPreview(html);
             };
+
+            // ============================================================
             // 2. EXCEL DOWNLOAD FROM PREVIEW
             // ============================================================
             window.exportIndividualReport = async function(type) {
@@ -7132,7 +7360,7 @@ window.shareVendorLink = function(link, vendor) {
 
                 if (type === 'regular') {
                     const cat = document.getElementById('reportCategory').value;
-                    const incFb = document.getElementById('includeFeedbackCol')?.checked; // ફીડબેક ઓપ્શન ચેક કરવા
+                    const incFb = document.getElementById('includeFeedbackCol')?.checked;
                     
                     filename = `Regular_Tea_${cat}_${supplyText}_${month}.xlsx`;
 
@@ -7158,7 +7386,6 @@ window.shareVendorLink = function(link, vendor) {
                     let row1 = []; let row2 = []; let row3 = [];
                     let merges = []; let colWidths = [];
 
-                    // ફીડબેકના આધારે એક્સેલ હેડર જનરેટ કરવું
                     if (incFb) {
                         row1 = [{ v: titleStr, s: titleStyle }, '', '', '', '', '', '', '', '', '', ''];
                         merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 10 } }); 
@@ -7208,7 +7435,6 @@ window.shareVendorLink = function(link, vendor) {
                     emps.forEach(emp => {
                         let t = 0, c = 0, gt = 0, lt = 0, bt = 0, bc = 0;
                         
-                        // --- નવો સુધારેલો કોડ શરૂ (Duplicate Fix) ---
                         const empLogs = logsData.filter(l => l.employeeId === emp.id && parseDMYToYMD(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
                         const uniqueLogs = {};
                         empLogs.forEach(log => { uniqueLogs[log.date + '_' + log.session] = log; });
@@ -7218,16 +7444,12 @@ window.shareVendorLink = function(link, vendor) {
                             if (d === 'tea') t++; else if (d === 'coffee') c++; else if (d === 'green tea') gt++;
                             else if (d === 'lemon tea') lt++; else if (d === 'black tea') bt++; else if (d === 'black coffee') bc++;
                         });
-                        // --- નવો સુધારેલો કોડ પૂરો ---
                         
                         const rowTotal = t + c + gt + lt + bt + bc;
-                        
-                        // નવો કોડ: એક્સેલમાં પણ Inactive અને 0 એન્ટ્રી વાળાને છુપાવો
                         if (emp.status === 'Inactive' && rowTotal === 0) return;
 
                         sumT += t; sumC += c; sumGT += gt; sumLT += lt; sumBT += bt; sumBC += bc;
                         
-                        // નવો કોડ: એક્સેલમાં નામ પાછળ (Left) લખાશે
                         const empDisplayName = emp.status === 'Inactive' ? `${emp.name} (Left)` : emp.name;
                         
                         if (incFb) {
@@ -7245,38 +7467,45 @@ window.shareVendorLink = function(link, vendor) {
                     });
 
                     if ((cNameLower === 'outsourced' || cNameLower === 'outsource') && supplySource === 'Contractor') {
-                        let wT = 0, wC = 0;
+                        let hkT = 0, hkC = 0, gdT = 0, gdC = 0, secT = 0, secC = 0;
                         for (const dept in workerTeaDataSnap) {
                             for (const dateStr in workerTeaDataSnap[dept]) {
-                                for (const shift in workerTeaDataSnap[dept][dateStr]) {
-                                    const entry = workerTeaDataSnap[dept][dateStr][shift];
-                                    wT += Number(entry.tea) || 0; wC += Number(entry.coffee) || 0;
+                                if (dept === 'Security') {
+                                    for (const shift in workerTeaDataSnap[dept][dateStr]) {
+                                        const entry = workerTeaDataSnap[dept][dateStr][shift];
+                                        secT += Number(entry.tea) || 0; secC += Number(entry.coffee) || 0;
+                                    }
+                                } else {
+                                    const entry = workerTeaDataSnap[dept][dateStr];
+                                    const t = Number(entry.tea) || 0; const c = Number(entry.coffee) || 0;
+                                    if (dept === 'Housekeeping') { hkT += t; hkC += c; }
+                                    else if (dept === 'Garden') { gdT += t; gdC += c; }
                                 }
                             }
                         }
                         
                         if (incFb) {
                             data.push([{ v: '', s: totalStyle }, { v: 'Housekeeping Staff (Safal)', s: cellLeft },
-                                { v: wT, s: cellCenter }, { v: wC, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                                { v: hkT, s: cellCenter }, { v: hkC, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
                                 { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }]);
-                            data.push([{ v: '', s: totalStyle }, { v: 'Horticulture Staff (Safal)', s: cellLeft },
-                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                            data.push([{ v: '', s: totalStyle }, { v: 'Garden Staff (Safal)', s: cellLeft },
+                                { v: gdT, s: cellCenter }, { v: gdC, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
                                 { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }]);
                             data.push([{ v: '', s: totalStyle }, { v: 'Security Staff (Kavach)', s: cellLeft },
-                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                                { v: secT, s: cellCenter }, { v: secC, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
                                 { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }]);
                         } else {
                             data.push([{ v: '', s: totalStyle }, { v: 'Housekeeping Staff (Safal)', s: cellLeft },
-                                { v: wT, s: cellCenter }, { v: wC, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                                { v: hkT, s: cellCenter }, { v: hkC, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
                                 { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }]);
-                            data.push([{ v: '', s: totalStyle }, { v: 'Horticulture Staff (Safal)', s: cellLeft },
-                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                            data.push([{ v: '', s: totalStyle }, { v: 'Garden Staff (Safal)', s: cellLeft },
+                                { v: gdT, s: cellCenter }, { v: gdC, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
                                 { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }]);
                             data.push([{ v: '', s: totalStyle }, { v: 'Security Staff (Kavach)', s: cellLeft },
-                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                                { v: secT, s: cellCenter }, { v: secC, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
                                 { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }]);
                         }
-                        sumT += wT; sumC += wC;
+                        sumT += (hkT + gdT + secT); sumC += (hkC + gdC + secC);
                     }
 
                     if (incFb) {
@@ -7306,9 +7535,7 @@ window.shareVendorLink = function(link, vendor) {
                     return; 
                 }
 
-                // બાકીનો કોડ જેમ છે તેમ રહેશે
                 const tableElement = document.querySelector('.preview-content table');
-                
                 if (!tableElement) {
                     appAlert("Error", "No table found to export.");
                     return;
@@ -7335,43 +7562,26 @@ window.shareVendorLink = function(link, vendor) {
                         }
 
                         cell.s = cell.s || {};
-                        cell.s.border = {
-                            top: { style: "thin", color: { rgb: "000000" } },
-                            bottom: { style: "thin", color: { rgb: "000000" } },
-                            left: { style: "thin", color: { rgb: "000000" } },
-                            right: { style: "thin", color: { rgb: "000000" } }
-                        };
-
+                        cell.s.border = { top: { style: "thin", color: { rgb: "000000" } }, bottom: { style: "thin", color: { rgb: "000000" } }, left: { style: "thin", color: { rgb: "000000" } }, right: { style: "thin", color: { rgb: "000000" } } };
                         cell.s.alignment = cell.s.alignment || {};
                         cell.s.alignment.vertical = "center";
                         cell.s.alignment.horizontal = "center"; 
-
                         if (R > 1 && C === 1) {
                             const text = String(cell.v).trim().toUpperCase();
-                            if (text !== "TOTAL") {
-                                cell.s.alignment.horizontal = "left";
-                            }
+                            if (text !== "TOTAL") { cell.s.alignment.horizontal = "left"; }
                         }
-
-                        if (R === 0) {
-                            cell.s.font = { bold: true, sz: 14 };
-                        } else if (R === 1) {
-                            cell.s.font = { bold: true };
-                        }
+                        if (R === 0) { cell.s.font = { bold: true, sz: 14 }; } else if (R === 1) { cell.s.font = { bold: true }; }
                     }
                 }
-
                 ws['!cols'] = colWidths;
                 
-                if (type === 'extra') {
-                    filename = `Extra_Tea_${supplyText}_${month}.xlsx`;
-                } else if (type === 'meeting') {
-                    filename = `Meeting_Refreshment_${supplyText}_${month}.xlsx`;
-                }
+                if (type === 'extra') { filename = `Extra_Tea_${supplyText}_${month}.xlsx`; }
+                else if (type === 'meeting') { filename = `Meeting_Refreshment_${supplyText}_${month}.xlsx`; }
 
                 XLSX.writeFile(wb, filename);
                 appAlert('Downloaded', 'Excel report downloaded perfectly!');
             };
+
             // ============================================================
             // 3. DOWNLOAD ALL CATEGORIES EXCEL
             // ============================================================
@@ -7379,7 +7589,7 @@ window.shareVendorLink = function(link, vendor) {
                 const month = document.getElementById('reportMonth')?.value;
                 const supplySource = document.getElementById('reportSupplySource')?.value || 'Contractor';
                 const supplyText = supplySource === 'Contractor' ? 'IA_Caterers' : 'DAU_Direct';
-                const incFb = document.getElementById('includeFeedbackCol')?.checked; // ફીડબેક ઓપ્શન ચેક કરવા
+                const incFb = document.getElementById('includeFeedbackCol')?.checked;
 
                 if (!month) return appAlert('Error', 'Select month.');
 
@@ -7450,8 +7660,6 @@ window.shareVendorLink = function(link, vendor) {
 
                     emps.forEach(emp => {
                         let t = 0, c = 0, gt = 0, lt = 0, bt = 0, bc = 0;
-                        
-                        // --- નવો સુધારેલો કોડ શરૂ (Duplicate Fix) ---
                         const empLogs = logsData.filter(l => l.employeeId === emp.id && parseDMYToYMD(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
                         const uniqueLogs = {};
                         empLogs.forEach(log => { uniqueLogs[log.date + '_' + log.session] = log; });
@@ -7461,7 +7669,6 @@ window.shareVendorLink = function(link, vendor) {
                             if (d === 'tea') t++; else if (d === 'coffee') c++; else if (d === 'green tea') gt++;
                             else if (d === 'lemon tea') lt++; else if (d === 'black tea') bt++; else if (d === 'black coffee') bc++;
                         });
-                        // --- નવો સુધારેલો કોડ પૂરો ---
 
                         sumT += t; sumC += c; sumGT += gt; sumLT += lt; sumBT += bt; sumBC += bc;
                         
@@ -7480,39 +7687,45 @@ window.shareVendorLink = function(link, vendor) {
                     });
 
                     if ((cNameLower === 'outsourced' || cNameLower === 'outsource') && supplySource === 'Contractor') {
-                        let wT = 0, wC = 0;
+                        let hkT = 0, hkC = 0, gdT = 0, gdC = 0, secT = 0, secC = 0;
                         for (const dept in workerTeaDataSnap) {
                             for (const dateStr in workerTeaDataSnap[dept]) {
-                                for (const shift in workerTeaDataSnap[dept][dateStr]) {
-                                    const entry = workerTeaDataSnap[dept][dateStr][shift];
-                                    wT += Number(entry.tea) || 0;
-                                    wC += Number(entry.coffee) || 0;
+                                if (dept === 'Security') {
+                                    for (const shift in workerTeaDataSnap[dept][dateStr]) {
+                                        const entry = workerTeaDataSnap[dept][dateStr][shift];
+                                        secT += Number(entry.tea) || 0; secC += Number(entry.coffee) || 0;
+                                    }
+                                } else {
+                                    const entry = workerTeaDataSnap[dept][dateStr];
+                                    const t = Number(entry.tea) || 0; const c = Number(entry.coffee) || 0;
+                                    if (dept === 'Housekeeping') { hkT += t; hkC += c; }
+                                    else if (dept === 'Garden') { gdT += t; gdC += c; }
                                 }
                             }
                         }
 
                         if (incFb) {
                             data.push([{ v: '', s: totalStyle }, { v: 'Housekeeping Staff (Safal)', s: cellLeft },
-                                { v: wT, s: cellCenter }, { v: wC, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                                { v: hkT, s: cellCenter }, { v: hkC, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
                                 { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }]);
-                            data.push([{ v: '', s: totalStyle }, { v: 'Horticulture Staff (Safal)', s: cellLeft },
-                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                            data.push([{ v: '', s: totalStyle }, { v: 'Garden Staff (Safal)', s: cellLeft },
+                                { v: gdT, s: cellCenter }, { v: gdC, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
                                 { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }]);
                             data.push([{ v: '', s: totalStyle }, { v: 'Security Staff (Kavach)', s: cellLeft },
-                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                                { v: secT, s: cellCenter }, { v: secC, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
                                 { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }, { v: '', s: cellCenter }]);
                         } else {
                             data.push([{ v: '', s: totalStyle }, { v: 'Housekeeping Staff (Safal)', s: cellLeft },
-                                { v: wT, s: cellCenter }, { v: wC, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                                { v: hkT, s: cellCenter }, { v: hkC, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
                                 { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }]);
-                            data.push([{ v: '', s: totalStyle }, { v: 'Horticulture Staff (Safal)', s: cellLeft },
-                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                            data.push([{ v: '', s: totalStyle }, { v: 'Garden Staff (Safal)', s: cellLeft },
+                                { v: gdT, s: cellCenter }, { v: gdC, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
                                 { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }]);
                             data.push([{ v: '', s: totalStyle }, { v: 'Security Staff (Kavach)', s: cellLeft },
-                                { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
+                                { v: secT, s: cellCenter }, { v: secC, s: cellCenter }, { v: 0, s: cellCenter }, { v: 0, s: cellCenter },
                                 { v: 0, s: cellCenter }, { v: 0, s: cellCenter }, { v: '', s: cellCenter }]);
                         }
-                        sumT += wT; sumC += wC;
+                        sumT += (hkT + gdT + secT); sumC += (hkC + gdC + secC);
                     }
 
                     if (incFb) {
@@ -7541,7 +7754,6 @@ window.shareVendorLink = function(link, vendor) {
                 window.pantryDownloadExcelFile(wb, `All_Categories_Tea_Report_${supplyText}_${month}.xlsx`);
                 appAlert('Downloaded', 'All categories combined Excel downloaded successfully!');
             };
-
             // ============================================================
             // 4. ADMIN MONTHLY GRID EXPORT (EXCEL / PDF)
             // ============================================================
@@ -9197,9 +9409,47 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
             };
             window.importMeetingExcelFile = async function(event) {
                 const file = event.target.files[0]; if (!file) return; appAlert('Reading File', 'Please wait, reading ' + file.name + '...'); try { const data = await file.arrayBuffer(); const wb = XLSX.read(data, { cellDates: true, raw: false }); const firstSheetName = wb.SheetNames[0]; const sheet = wb.Sheets[firstSheetName]; const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" }); if (!rows || rows.length === 0) { appAlert('Import Error', 'Excel is empty'); event.target.value = ''; return; } let importCount = 0; const groups = {}; rows.forEach((row) => { let rawDate = getExcelField(row, ['Date']); let itemName = getExcelField(row, ['Item', 'Item Name']); let qty = Number(getExcelField(row, ['Qty', 'Quantity']) || 1); let rate = Number(getExcelField(row, ['Rate']) || 0); let amount = Number(getExcelField(row, ['Amount']) || (qty * rate)); let reqName = getExcelField(row, ["Requisitioner's Name", 'Ordered By', 'Organizer']) || 'General'; let purpose = getExcelField(row, ['Purpose', 'Meeting Purpose']) || 'Meeting Refreshment'; let location = getExcelField(row, ['Location', 'Venue']) || 'Campus'; let vendor = getExcelField(row, ['Vendor']) || 'Padmakamal'; let servedBy = getExcelField(row, ['Served By', 'Pantry Boy']) || 'General'; if (!itemName.toString().trim()) return; let formattedDMY = parseExcelDateToDMY(rawDate); if (!formattedDMY) formattedDMY = getTodayInDMY(); const groupKey = `${purpose.trim()}_${reqName.trim()}_${formattedDMY}`; if (!groups[groupKey]) { groups[groupKey] = { purpose: purpose, orderedBy: reqName, date: formattedDMY, items: [] }; } groups[groupKey].items.push({ vendor: vendor, type: '🍪 Snacks/Food', name: itemName, qty: qty, unit: 'Nos', rate: rate, amount: amount, itemSpecificDate: formattedDMY, servedBy: servedBy, locationNode: location }); }); const updates = {}; for (const key in groups) { const grp = groups[key]; const eventId = 'event_imp_' + Date.now() + '_' + Math.floor(Math.random() * 100000); const totalAmt = grp.items.reduce((sum, i) => sum + (Number(i.amount)||0), 0); const vendors = [...new Set(grp.items.map(i => i.vendor))].join(', '); const pantryBoys = [...new Set(grp.items.map(i => i.servedBy))].join(', '); const summary = grp.items.map(i => `${i.qty} ${i.name} (${i.locationNode})`).join(', '); updates['eventLogs/' + eventId] = { id: eventId, canteenSource: vendors, orderedBy: grp.orderedBy, servedByName: pantryBoys, eventName: grp.purpose, date: grp.date, time: '09:00', items: grp.items, amount: totalAmt, pantryName: pantryBoys, refreshmentSummary: summary, showNotification: false, guestSlipCreated: false, guestSlipSigned: false, guestSlipReturned: false }; importCount++; } if (importCount > 0) { await db.ref().update(updates); appAlert('Import Successful', `✅ ${importCount} meeting log(s) imported! Dates from Excel saved correctly.`); } else { appAlert('Import Failed', 'No valid rows'); } } catch (err) { appAlert('Import Error', err.message); console.error(err); } finally { if(event.target) event.target.value = ''; } };
-            window.pantryDeleteHandler = function(type, id) {
+                        window.pantryDeleteHandler = function(type, id) {
                 const typeMap = { employee: { ref: 'employees', binRef: 'recycleBin/employees', data: employeeList }, pantry: { ref: 'pantryTeam', binRef: 'recycleBin/pantryTeam', data: pantryTeam }, extra: { ref: 'extraLogs', binRef: 'recycleBin/extraLogs', data: extraLogsData }, event: { ref: 'eventLogs', binRef: 'recycleBin/eventLogs', data: eventLogsData }, regular_log: { ref: 'logs', binRef: 'recycleBin/logs', data: logsData }, canteen: { ref: 'canteens', binRef: null, data: canteenList }, venue: { ref: 'venues', binRef: null, data: venueList }, upcoming_event: { ref: 'upcomingEvents', binRef: null, data: upcomingEventsData }, supervisor_link: { ref: 'supervisorLinks', binRef: null, data: null } };
-                const entry = typeMap[type]; if (!entry) return; if (type === 'canteen' || type === 'venue' || type === 'upcoming_event' || type === 'supervisor_link') { appConfirm(`Delete ${type}`, `Permanently remove this ${type}?`, () => { db.ref(entry.ref + '/' + id).remove().then(() => { const modal = document.getElementById('eventHistoryModal'); if (modal && !modal.classList.contains('hidden') && type === 'event' && window.openEventHistoryModal) { setTimeout(() => window.openEventHistoryModal(), 150); } }); }); return; } appConfirm('Move to Recycle Bin', `Send this ${type} to recycle bin?`, () => { const target = entry.data.find(e => e.id === id); if (target) { db.ref(entry.binRef + '/' + id).set(target); db.ref(entry.ref + '/' + id).remove().then(() => { try { const modal = document.getElementById('eventHistoryModal'); if (modal && !modal.classList.contains('hidden')) { const btn = modal.querySelector(`button[onclick*="'${id}'"]`); if (btn) { const tr = btn.closest('tr'); if (tr) tr.style.display = 'none'; } if (type === 'event' && window.openEventHistoryModal) { setTimeout(() => window.openEventHistoryModal(), 200); } } } catch(e) {} }); if (type === 'pantry') { employeeList.forEach(emp => { if (emp.assignedPantryId === id) { db.ref('employees/' + emp.id).update({ assignedPantryId: "" }); } }); } } }); };
+                const entry = typeMap[type]; 
+                if (!entry) return; 
+                
+                if (type === 'canteen' || type === 'venue' || type === 'upcoming_event' || type === 'supervisor_link') { 
+                    appConfirm(`Delete ${type}`, `Permanently remove this ${type}?`, () => { 
+                        db.ref(entry.ref + '/' + id).remove().then(() => { 
+                            const modal = document.getElementById('eventHistoryModal'); 
+                            if (modal && !modal.classList.contains('hidden') && type === 'event' && window.openEventHistoryModal) { 
+                                setTimeout(() => window.openEventHistoryModal(), 150); 
+                            } 
+                        }); 
+                    }); 
+                    return; 
+                } 
+                
+                appConfirm('Move to Recycle Bin', `Send this ${type} to recycle bin? (Past data remains safe)`, () => { 
+                    const target = entry.data.find(e => e.id === id); 
+                    if (target) { 
+                        db.ref(entry.binRef + '/' + id).set(target); 
+                        if (type === 'employee' || type === 'pantry') {
+                            // કાયમ ડીલીટ કરવાને બદલે Inactive કરો જેથી જૂનો ડેટા સચવાય
+                            db.ref(entry.ref + '/' + id).update({ status: 'Inactive' }).then(() => {
+                                appAlert('Archived', `${type} archived safely.`);
+                            });
+                        } else {
+                            db.ref(entry.ref + '/' + id).remove().then(() => { 
+                                try { 
+                                    const modal = document.getElementById('eventHistoryModal'); 
+                                    if (modal && !modal.classList.contains('hidden')) { 
+                                        const btn = modal.querySelector(`button[onclick*="'${id}'"]`); 
+                                        if (btn) { const tr = btn.closest('tr'); if (tr) tr.style.display = 'none'; } 
+                                        if (type === 'event' && window.openEventHistoryModal) { setTimeout(() => window.openEventHistoryModal(), 200); } 
+                                    } 
+                                } catch(e) {} 
+                            }); 
+                        }
+                    } 
+                }); 
+            };
 
             // ===== DAILY TEA - TWO SECTION FIX (IA Caterer + DAU Purchased) =====
             // Override populateServe to show two sections if has DAU permission
