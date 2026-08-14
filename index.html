@@ -9580,6 +9580,108 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     window.renderMgReviewSection(); 
                 } catch(e) { console.error(e); }
             };
+// ============================================================
+            // EXCEL UPLOAD AND FORMAT FOR MEETINGS & GUESTS
+            // ============================================================
+            window.downloadMgFormat = function() {
+                try {
+                    const sampleData = [
+                        ["Date", "Item", "Qty", "Rate", "Amount", "Requisitioner's Name", "Purpose", "Location", "Vendor", "Served By"],
+                        ["15/08/2026", "Tea", 10, 15, 150, "Admin Dept", "NAAC Meeting", "Conference Hall", "IA Caterers", "Ramesh"],
+                        ["16/08/2026", "Samosa", 10, 20, 200, "Admin Dept", "Audit Meeting", "Room 101", "DAU Direct Purchase", "Suresh"]
+                    ];
+                    const ws = XLSX.utils.aoa_to_sheet(sampleData);
+                    ws['!cols'] = [{wch:12},{wch:18},{wch:8},{wch:8},{wch:10},{wch:20},{wch:20},{wch:15},{wch:15},{wch:15}];
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "Meeting_Format");
+                    window.pantryDownloadExcelFile(wb, "Meeting_Excel_Format.xlsx");
+                } catch(err) {
+                    appAlert('Download Error', err.message);
+                }
+            };
+
+            window.handleMgExcelUpload = async function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                appAlert('Reading File', 'Extracting Meeting entries from Excel...');
+                try {
+                    const data = await file.arrayBuffer();
+                    const wb = XLSX.read(data, { cellDates: true });
+                    const sheet = wb.Sheets[wb.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+                    if (!rows || rows.length === 0) throw new Error("Excel file is empty.");
+
+                    const updates = {};
+                    let importCount = 0;
+
+                    rows.forEach(row => {
+                        const getVal = (keys) => {
+                            for (let k in row) {
+                                if (keys.some(key => k.toLowerCase().includes(key.toLowerCase()))) return row[k];
+                            }
+                            return '';
+                        };
+
+                        let rawDate = getVal(['Date']);
+                        let itemName = getVal(['Item']);
+                        let qty = Number(getVal(['Qty', 'Quantity'])) || 1;
+                        let rate = Number(getVal(['Rate'])) || 0;
+                        let amount = Number(getVal(['Amount'])) || (qty * rate);
+                        let reqName = getVal(['Requisitioner', 'Ordered']);
+                        let purpose = getVal(['Purpose', 'Event']);
+                        let location = getVal(['Location', 'Venue']) || 'Campus';
+                        let vendor = getVal(['Vendor', 'Canteen']);
+                        let servedBy = getVal(['Served By', 'Pantry']);
+
+                        if (!itemName || !itemName.toString().trim()) return;
+
+                        let formattedDMY = window.parseExcelDateToDMY(rawDate);
+                        if (!formattedDMY) {
+                            const t = new Date();
+                            formattedDMY = String(t.getDate()).padStart(2, '0') + '/' + String(t.getMonth() + 1).padStart(2, '0') + '/' + t.getFullYear();
+                        }
+
+                        const parts = formattedDMY.split('/');
+                        const rawYMD = parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : new Date().toISOString().split('T')[0];
+
+                        const id = 'mgrec_' + Date.now() + Math.random().toString(36).substring(2, 7);
+                        updates['meetingsGuestsRecords/' + id] = {
+                            id: id,
+                            RawDate: rawYMD,
+                            DateFormatted: formattedDMY,
+                            Day: window.getDayOfWeek ? window.getDayOfWeek(formattedDMY) : '',
+                            Time: '09:00',
+                            Item: itemName.toString().trim(),
+                            Qty: qty,
+                            Rate: rate,
+                            Amount: amount,
+                            ReqName: reqName.toString().trim() || 'General',
+                            Purpose: purpose.toString().trim() || 'Meeting',
+                            Location: location.toString().trim(),
+                            Vendor: vendor.toString().trim() || 'Various',
+                            ServedBy: servedBy.toString().trim() || 'Multiple Pantry Boys',
+                            Status: 'Approved',
+                            Timestamp: Date.now()
+                        };
+                        importCount++;
+                    });
+
+                    if (importCount > 0) {
+                        await db.ref().update(updates);
+                        appAlert('Success', `✅ ${importCount} Meeting records imported successfully!`);
+                        if (typeof window.renderMgHistoryTable === 'function') window.renderMgHistoryTable();
+                        if (typeof window.renderMgReviewSection === 'function') window.renderMgReviewSection();
+                    } else {
+                        appAlert('Notice', 'No valid rows found to import.');
+                    }
+                } catch (err) {
+                    appAlert('Import Error', err.message);
+                } finally {
+                    if (event.target) event.target.value = '';
+                }
+            };
 
             // નવો અલ્ટ્રા કોમ્પેક્ટ એન્ટ્રી રો (કાર્ડ) - Custom Dropdown સાથે
             window.addMgRow = function(data = {}) {
