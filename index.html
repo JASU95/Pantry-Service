@@ -1933,12 +1933,19 @@ window.pantryDownloadExcelFile = function(wb, filename) {
 
             function parseDMYToYMD(dmy) {
                 if (!dmy) return '';
-                if (dmy.includes('-')) return dmy;
+                if (dmy.includes('-')) {
+                    const parts = dmy.split('-');
+                    if (parts.length === 3 && parts[2].length === 4) {
+                        return `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+                    }
+                    return dmy;
+                }
                 const parts = dmy.split('/');
-                if (parts.length !== 3) return dmy;
-                return `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+                if (parts.length === 3) {
+                    return `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+                }
+                return dmy;
             }
-
             function parseSnap(snap) {
                 const arr = [];
                 if (snap.exists()) {
@@ -2556,10 +2563,10 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                     }
                 });                
                                 // નવી Meetings & Guests નો ડેટા સિંક કરવા માટે
-                if (typeof mgRecordsData !== 'undefined' && mgRecordsData.length > 0) {
+                                if (typeof mgRecordsData !== 'undefined' && mgRecordsData.length > 0) {
                     mgRecordsData.filter(r => r.Status !== 'Review').forEach(rec => {
-                                                const itemVendor = (rec.Vendor || '').toLowerCase();
-                        if (vendorName === 'All Vendors' || itemVendor === vendorName.toLowerCase()) {
+                        const itemVendor = (rec.Vendor || '').toLowerCase().trim();
+                        if (vendorName === 'All Vendors' || itemVendor === vendorName.toLowerCase().trim()) {
                             let head = 'Office';
                             const purposeText = `${rec.Purpose || ''} ${rec.ReqName || ''}`.toLowerCase();
                             
@@ -2589,7 +2596,10 @@ window.pantryDownloadExcelFile = function(wb, filename) {
 
                 allItems.sort((a, b) => parseDMYToYMD(a.date).localeCompare(parseDMYToYMD(b.date)));
                 
-                window.renderFilteredVendorTable = function(selectedHead) {
+                let currentStatementMonth = new Date().toISOString().slice(0, 7);
+
+                window.renderFilteredVendorTable = function(selectedHead, selectedMonth = currentStatementMonth) {
+                    currentStatementMonth = selectedMonth;
                     // ફિલ્ટર બદલતી વખતે ઓલરેડી લખેલી બેંક ડિટેલ્સ મેમરીમાં સેવ રાખો જેથી ગાયબ ના થાય
                     const savedBankName = document.getElementById('iaBankName')?.value || '';
                     const savedBankAcc = document.getElementById('iaBankAccountNo')?.value || '';
@@ -2597,10 +2607,19 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                     const savedBankBranch = document.getElementById('iaBankBranch')?.value || '';
 
                     const isAll = selectedHead.toLowerCase() === 'all' || selectedHead === '';
-                    const filteredItems = isAll ? allItems : allItems.filter(item => item.accountHead.toLowerCase() === selectedHead.toLowerCase());
+                    const filteredItems = allItems.filter(item => {
+                        const headMatch = isAll || item.accountHead.toLowerCase() === selectedHead.toLowerCase();
+                        const itemYMD = parseDMYToYMD(item.date) || '';
+                        const monthMatch = itemYMD.startsWith(currentStatementMonth);
+                        return headMatch && monthMatch;
+                    });
                     
                     let controlHtml = `
                         <div class="merged-filter-row" style="margin-bottom:16px; background:#F8FAFC; padding:14px; border-radius:12px; border:1px solid #CBD5E1; display:flex; gap:16px; align-items:center; flex-wrap:wrap; flex-shrink:0;">
+                            <div style="flex:1; min-width:180px; text-align:left;">
+                                <label style="font-size:0.82rem; font-weight:700; color:#44474E; display:block; margin-bottom:4px;">📅 Select Month:</label>
+                                <input type="month" id="vendorStatementMonthFilter" value="${currentStatementMonth}" style="margin:0; padding:11px; border-radius:8px; border:1px solid #CBD5E1; font-size:0.95rem; width:100%; font-weight:500; background:#fff; cursor:pointer;">
+                            </div>
                             <div style="flex:1; min-width:240px; text-align:left;">
                                 <label style="font-size:0.82rem; font-weight:700; color:#44474E; display:block; margin-bottom:4px;">📊 Select Department Head:</label>
                                 <select id="vendorAccountHeadFilter" style="margin:0; padding:11px; border-radius:8px; border:1px solid #CBD5E1; font-size:0.95rem; width:100%; font-weight:500; background:#fff; cursor:pointer;">
@@ -2695,7 +2714,11 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                     }
 
                     document.getElementById('vendorAccountHeadFilter').onchange = function() {
-                        window.renderFilteredVendorTable(this.value);
+                        window.renderFilteredVendorTable(this.value, document.getElementById('vendorStatementMonthFilter').value);
+                    };
+
+                    document.getElementById('vendorStatementMonthFilter').onchange = function() {
+                        window.renderFilteredVendorTable(document.getElementById('vendorAccountHeadFilter').value, this.value);
                     };
 
                     document.getElementById('printRawStatementBtn').onclick = function() {
@@ -2721,7 +2744,7 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                         if(!filteredItems.length) return appAlert('No Data', 'No items available.');
                         
                         const vendorShort = vendorName.trim().slice(0, 3).toUpperCase();
-                        const reportMonthVal = document.getElementById('reportMonth')?.value || new Date().toISOString().slice(0,7);
+                        const reportMonthVal = document.getElementById('vendorStatementMonthFilter')?.value || currentStatementMonth;
                         const [bYear, bMonth] = reportMonthVal.split('-');
                         const bYY = bYear ? bYear.slice(-2) : '26';
                         const bMM = bMonth || '07';
@@ -4018,11 +4041,10 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                 // 2. નવા મોડ્યુલ (Meetings & Guests) માંથી ડેટા લાવવા (આ ઉમેર્યું છે)
                 if (typeof mgRecordsData !== 'undefined' && mgRecordsData.length > 0) {
                     mgRecordsData.filter(r => r.Status !== 'Review').forEach(rec => {
-                        const itemVendor = (rec.Vendor || '').toLowerCase();
-                        if (vendorName === 'All Vendors' || itemVendor === vendorName.toLowerCase()) {
+                        const itemVendor = (rec.Vendor || '').toLowerCase().trim();
+                        if (vendorName === 'All Vendors' || itemVendor === vendorName.toLowerCase().trim()) {
                             let head = 'Office';
-                            const purposeText = `${rec.Purpose || ''} ${rec.ReqName || ''}`.toLowerCase();
-                            
+                            const purposeText = `${rec.Purpose || ''} ${rec.ReqName || ''}`.toLowerCase();                            
                             if (purposeText.includes('school of law') || purposeText.includes('law') || purposeText.includes('llm') || purposeText.includes('sol')) {
                                 head = 'SoL';
                             } else if (purposeText.includes('admission')) {
@@ -4049,17 +4071,29 @@ window.pantryDownloadExcelFile = function(wb, filename) {
 
                 allItems.sort((a, b) => parseDMYToYMD(a.date).localeCompare(parseDMYToYMD(b.date)));
 
-                window.renderExternalVendorTable = function(selectedHead) {
+                let currentStatementMonth = new Date().toISOString().slice(0, 7);
+
+                window.renderExternalVendorTable = function(selectedHead, selectedMonth = currentStatementMonth) {
+                    currentStatementMonth = selectedMonth;
                     const savedBankName = document.getElementById('extBankName')?.value || '';
                     const savedBankAcc = document.getElementById('extBankAccountNo')?.value || '';
                     const savedBankIfsc = document.getElementById('extBankIFSC')?.value || '';
                     const savedBankBranch = document.getElementById('extBankBranch')?.value || '';
 
                     const isAll = selectedHead.toLowerCase() === 'all' || selectedHead === '';
-                    const filteredItems = isAll ? allItems : allItems.filter(item => item.accountHead.toLowerCase() === selectedHead.toLowerCase());
+                    const filteredItems = allItems.filter(item => {
+                        const headMatch = isAll || item.accountHead.toLowerCase() === selectedHead.toLowerCase();
+                        const itemYMD = parseDMYToYMD(item.date) || '';
+                        const monthMatch = itemYMD.startsWith(currentStatementMonth);
+                        return headMatch && monthMatch;
+                    });
                     
                     let controlHtml = `
                         <div class="merged-filter-row" style="margin-bottom:16px; background:#F8FAFC; padding:14px; border-radius:12px; border:1px solid #CBD5E1; display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+                            <div style="flex:1; min-width:180px; text-align:left;">
+                                <label style="font-size:0.82rem; font-weight:700; color:#44474E; display:block; margin-bottom:4px;">📅 Select Month:</label>
+                                <input type="month" id="extVendorStatementMonthFilter" value="${currentStatementMonth}" style="margin:0; padding:11px; border-radius:8px; border:1px solid #CBD5E1; font-size:0.95rem; width:100%; font-weight:500; background:#fff; cursor:pointer;">
+                            </div>
                             <div style="flex:1; min-width:240px; text-align:left;">
                                 <label style="font-size:0.82rem; font-weight:700; color:#44474E; display:block; margin-bottom:4px;">📊 Select Department Head:</label>
                                 <select id="extVendorAccountHeadFilter" style="margin:0; padding:11px; border-radius:8px; border:1px solid #CBD5E1; font-size:0.95rem; width:100%; font-weight:500; background:#fff; cursor:pointer;">
@@ -4152,7 +4186,11 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                     }
 
                     document.getElementById('extVendorAccountHeadFilter').onchange = function() {
-                        window.renderExternalVendorTable(this.value);
+                        window.renderExternalVendorTable(this.value, document.getElementById('extVendorStatementMonthFilter').value);
+                    };
+
+                    document.getElementById('extVendorStatementMonthFilter').onchange = function() {
+                        window.renderExternalVendorTable(document.getElementById('extVendorAccountHeadFilter').value, this.value);
                     };
 
                     document.getElementById('extPrintStatementBtn').onclick = function() {
@@ -4178,7 +4216,7 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                         if(!filteredItems.length) return appAlert('No Data', 'No items available.');
                                 
                         const vendorShort = vendorName.trim().slice(0, 3).toUpperCase();
-                        const currentMonthYMD = new Date().toISOString().slice(0,7);
+                        const currentMonthYMD = document.getElementById('extVendorStatementMonthFilter')?.value || currentStatementMonth;
                         const [bYear, bMonth] = currentMonthYMD.split('-');
                         const bYY = bYear ? bYear.slice(-2) : '26';
                         const bMM = bMonth || '07';
@@ -5783,7 +5821,7 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                   <button class="dash-btn" data-tab="pantry"><span class="icon">👨‍🍳</span><span class="label">Pantry Team</span></button>
                   <button class="dash-btn" data-tab="leaves" style="color:#D97706; border-color:#FDE68A; background:#FFFBEB;"><span class="icon">🌴</span><span class="label">Leave Mgmt</span></button>
                   <button class="dash-btn" data-tab="duty_transfer" style="color:#7C3AED; border-color:#C4B5FD; background:#F5F3FF;"><span class="icon">🔄</span><span class="label">Duty Transfer</span></button>
-                  <button class="dash-btn" data-tab="canteens"><span class="icon">🏢</span><span class="label">Canteens</span></button>
+                  <button class="dash-btn" data-tab="canteens"><span class="icon">🏢</span><span class="label">Vendors</span></button>
                   <button class="dash-btn" data-tab="meeting_guests" style="color:#0284c7; border-color:#bae6fd; background:#f0f9ff;"><span class="icon">🤝</span><span class="label">Meetings & Guests</span></button>
                   <button class="dash-btn" data-tab="plain_events" style="color:#10B981; border-color:#6EE7B7; background:#ECFDF5;"><span class="icon">📢</span><span class="label">Event Broadcast</span></button>
                   <button class="dash-btn" data-tab="reports"><span class="icon">📊</span><span class="label">Reports</span></button>
@@ -5912,7 +5950,7 @@ window.pantryDownloadExcelFile = function(wb, filename) {
 
                     case 'canteens':
                         cont.innerHTML = `
-                                    <div class="card"><h4 style="margin-bottom:12px; color:#0A56D0; font-size:1rem;">Add Authorized Canteen</h4><input id="cantNameInput" placeholder="Enter Canteen Name" style="text-align:left; padding:14px; border-radius:10px; border:1px solid #CBD5E1;"><button id="saveCanteenBtn" class="success" style="width:100%; min-height:44px;">Add Canteen Vendor</button></div>
+                                    <div class="card"><h4 style="margin-bottom:12px; color:#0A56D0; font-size:1rem;">Add Authorized Vendor</h4><input id="cantNameInput" placeholder="Enter Vendor Name" style="text-align:left; padding:14px; border-radius:10px; border:1px solid #CBD5E1;"><button id="saveCanteenBtn" class="success" style="width:100%; min-height:44px;">Add Vendor</button></div>
                   <div style="display:flex; justify-content:space-between; align-items:center; margin:12px 4px 8px 4px;">
                       <h4 style="color:#44474E; font-size:.95rem; margin:0;">Available Vendors</h4>
                       <button onclick="window.openVendorSheet('all_vendors', 'All Vendors')" class="btn" style="background:#1E293B; font-size:.8rem; padding:6px 12px; min-height:32px; border-radius:8px; cursor:pointer;">📋 Consolidated Statement</button>
@@ -6093,7 +6131,31 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                       </div>
                     </div>
 
-                    <!-- 6. NEW VERIFICATION MODULE (Dynamically adapts to IA or DAU) -->
+                    <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:8px;">
+                      <h5 style="color:#059669; margin-bottom:8px; font-size:.9rem;">6. Pantry Boy Delivery Report (Regular Entry)</h5>
+                      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <select id="pbReportPantryReg" style="flex:2; min-width:120px; padding:10px; border-radius:8px; border:1px solid #CBD5E1;">
+                          <option value="All">All Pantry Boys</option>
+                          ${pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+                        </select>
+                        <button onclick="window.generatePantryBoyReport('regular', false)" class="btn report-btn" style="background:#059669; flex:1;">👁️ Preview</button>
+                        <button onclick="window.generatePantryBoyReport('regular', true)" class="success report-btn" style="background:#047857; flex:1;">📊 Excel</button>
+                      </div>
+                    </div>
+
+                    <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:8px;">
+                      <h5 style="color:#D97706; margin-bottom:8px; font-size:.9rem;">7. Pantry Boy Delivery Report (Meetings - Beverages Only)</h5>
+                      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <select id="pbReportPantryMeet" style="flex:2; min-width:120px; padding:10px; border-radius:8px; border:1px solid #CBD5E1;">
+                          <option value="All">All Pantry Boys</option>
+                          ${pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+                        </select>
+                        <button onclick="window.generatePantryBoyReport('meeting', false)" class="btn report-btn" style="background:#D97706; flex:1;">👁️ Preview</button>
+                        <button onclick="window.generatePantryBoyReport('meeting', true)" class="success report-btn" style="background:#B45309; flex:1;">📊 Excel</button>
+                      </div>
+                    </div>
+
+                    <!-- 8. NEW VERIFICATION MODULE (Dynamically adapts to IA or DAU) -->
                     <div style="border-top:3px double #0A56D0; padding-top:16px; margin-top:16px; background:#F0FDF4; border-radius:12px; padding:14px; border:1px solid #BBF7D0;">
                       <h5 style="color:#15803D; margin-bottom:4px; font-size:1rem; font-weight:700; display:flex; align-items:center; gap:6px;" id="verificationTitleLabel">🏪 Monthly Bill / Statement Verification</h5>
                       <p style="font-size:0.78rem; color:#166534; margin-bottom:12px;">Compare and verify bill based on selected Supply Source.</p>
@@ -7580,6 +7642,258 @@ window.pantryDownloadExcelFile = function(wb, filename) {
 
                 XLSX.writeFile(wb, filename);
                 appAlert('Downloaded', 'Excel report downloaded perfectly!');
+            };
+            // ============================================================
+            // NEW: PANTRY BOY DELIVERY REPORT (REGULAR & MEETINGS)
+            // ============================================================
+            window.generatePantryBoyReport = function(type, isExcel) {
+                const month = document.getElementById('reportMonth')?.value;
+                if (!month) return appAlert('Error', 'Select month from top.');
+                
+                const supplySource = document.getElementById('reportSupplySource')?.value || 'Contractor';
+                const supplyText = supplySource === 'Contractor' ? 'IA Caterer' : 'DAU Direct';
+                
+                const pantrySelectId = type === 'regular' ? 'pbReportPantryReg' : 'pbReportPantryMeet';
+                const selectedPantryId = document.getElementById(pantrySelectId).value;
+                const pantryName = selectedPantryId === 'All' ? 'All Pantry Boys' : pantryTeam.find(p => p.id === selectedPantryId)?.name || 'Unknown';
+                
+                const dateObj = new Date(month + '-01');
+                const monthStr = dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
+                const title = `PANTRY BOY DELIVERY REPORT (${type.toUpperCase()}) - ${monthStr} [${supplyText}]`;
+
+                const [yy, mm] = month.split('-');
+                const daysInMonth = new Date(yy, mm, 0).getDate();
+
+                const bevCols = ['Tea', 'Coffee', 'Green Tea', 'Lemon Tea', 'Black Tea', 'Black Coffee'];
+                let reportData = {}; 
+                
+                const isBeverage = (name) => {
+                    const n = name.toLowerCase();
+                    return bevCols.some(b => n.includes(b.toLowerCase())) || n.includes('milk') || n.includes('soup') || n.includes('bournvita');
+                };
+
+                const mapBeverageType = (name) => {
+                    const n = name.toLowerCase();
+                    if (n.includes('green')) return 'Green Tea';
+                    if (n.includes('lemon')) return 'Lemon Tea';
+                    if (n.includes('black tea')) return 'Black Tea';
+                    if (n.includes('black coffee')) return 'Black Coffee';
+                    if (n.includes('coffee')) return 'Coffee';
+                    return 'Tea'; 
+                };
+
+                if (type === 'regular') {
+                    const filtered = logsData.filter(l => l.date && parseDMYToYMD(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                    
+                    filtered.forEach(log => {
+                        if (selectedPantryId !== 'All' && log.pantryId !== selectedPantryId) return;
+                        
+                        const ymd = parseDMYToYMD(log.date);
+                        const pName = log.pantryName || 'Unknown';
+                        const drink = mapBeverageType(log.drink);
+                        
+                        if (!reportData[ymd]) reportData[ymd] = {};
+                        if (!reportData[ymd][pName]) reportData[ymd][pName] = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0 };
+                        
+                        reportData[ymd][pName][drink] += 1;
+                    });
+                } else if (type === 'meeting') {
+                    const flatMeetingItems = [];
+                    
+                    eventLogsData.forEach(ev => {
+                        if (!ev.date || !parseDMYToYMD(ev.date).startsWith(month)) return;
+                        if (ev.items && ev.items.length > 0) {
+                            ev.items.forEach(item => {
+                                const vName = (item.vendor || ev.canteenSource || '').toLowerCase();
+                                const isDAU = vName.includes('dau direct');
+                                if ((supplySource === 'DAU Direct Purchase' && isDAU) || (supplySource === 'Contractor' && !isDAU)) {
+                                    if (isBeverage(item.name)) {
+                                        flatMeetingItems.push({
+                                            date: item.itemSpecificDate || ev.date,
+                                            pantryName: item.servedBy || ev.servedByName || ev.pantryName || 'Unknown',
+                                            drink: item.name,
+                                            qty: Number(item.qty) || 0
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                    });
+
+                    mgRecordsData.forEach(rec => {
+                        if (rec.Status === 'Review') return;
+                        const recYMD = rec.DateFormatted && rec.DateFormatted.includes('/') ? parseDMYToYMD(rec.DateFormatted) : (rec.RawDate || new Date(rec.Timestamp).toISOString().split('T')[0]);
+                        if(!recYMD.startsWith(month)) return;
+                        
+                        const vName = (rec.Vendor || '').toLowerCase();
+                        const isDAU = vName.includes('dau direct');
+                        if ((supplySource === 'DAU Direct Purchase' && isDAU) || (supplySource === 'Contractor' && !isDAU)) {
+                            if (isBeverage(rec.Item)) {
+                                flatMeetingItems.push({
+                                    date: rec.DateFormatted || convertYMDtoDMY(rec.RawDate),
+                                    pantryName: rec.ServedBy || 'Unknown',
+                                    drink: rec.Item,
+                                    qty: Number(rec.Qty) || 0
+                                });
+                            }
+                        }
+                    });
+
+                    flatMeetingItems.forEach(item => {
+                        if (selectedPantryId !== 'All') {
+                            const pObj = pantryTeam.find(p => p.id === selectedPantryId);
+                            if (pObj && !item.pantryName.toLowerCase().includes(pObj.name.toLowerCase())) return;
+                        }
+                        
+                        const ymd = parseDMYToYMD(item.date);
+                        const pName = item.pantryName;
+                        const drink = mapBeverageType(item.drink);
+                        
+                        if (!reportData[ymd]) reportData[ymd] = {};
+                        if (!reportData[ymd][pName]) reportData[ymd][pName] = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0 };
+                        
+                        reportData[ymd][pName][drink] += item.qty;
+                    });
+                }
+
+                let trs = '';
+                let grandTotals = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0 };
+                let excelData = [];
+                const bStyle = { style: 'thin', color: { rgb: "000000" } };
+                const headStyle = { font: { bold: true }, alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle }, fill: { fgColor: { rgb: "F1F5F9" } } };
+                const cellCenter = { alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle } };
+                
+                excelData.push([{ v: title, s: { font: { bold: true, sz: 14 }, alignment: { horizontal: 'center' } } }, '', '', '', '', '', '', '', '']);
+                excelData.push([
+                    {v:'Date', s:headStyle}, {v:'Pantry Boy', s:headStyle}, 
+                    {v:'Tea', s:headStyle}, {v:'Coffee', s:headStyle}, {v:'Green Tea', s:headStyle}, 
+                    {v:'Lemon Tea', s:headStyle}, {v:'Black Tea', s:headStyle}, {v:'Black Coffee', s:headStyle}, {v:'Total', s:headStyle}
+                ]);
+
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dd = String(d).padStart(2, '0');
+                    const ymd = `${yy}-${mm}-${dd}`;
+                    const dmy = `${dd}/${mm}/${yy}`;
+                    
+                    if (reportData[ymd]) {
+                        for (const pName in reportData[ymd]) {
+                            const rowD = reportData[ymd][pName];
+                            const rowTot = rowD['Tea'] + rowD['Coffee'] + rowD['Green Tea'] + rowD['Lemon Tea'] + rowD['Black Tea'] + rowD['Black Coffee'];
+                            
+                            grandTotals['Tea'] += rowD['Tea'];
+                            grandTotals['Coffee'] += rowD['Coffee'];
+                            grandTotals['Green Tea'] += rowD['Green Tea'];
+                            grandTotals['Lemon Tea'] += rowD['Lemon Tea'];
+                            grandTotals['Black Tea'] += rowD['Black Tea'];
+                            grandTotals['Black Coffee'] += rowD['Black Coffee'];
+
+                            trs += `<tr>
+                                <td>${dmy}</td>
+                                <td style="text-align:left; padding-left:8px; font-weight:bold;">${pName}</td>
+                                <td>${rowD['Tea'] || '-'}</td>
+                                <td>${rowD['Coffee'] || '-'}</td>
+                                <td>${rowD['Green Tea'] || '-'}</td>
+                                <td>${rowD['Lemon Tea'] || '-'}</td>
+                                <td>${rowD['Black Tea'] || '-'}</td>
+                                <td>${rowD['Black Coffee'] || '-'}</td>
+                                <td style="font-weight:bold; color:#0A56D0;">${rowTot}</td>
+                            </tr>`;
+
+                            excelData.push([
+                                {v: dmy, s: cellCenter}, {v: pName, s: { ...cellCenter, alignment:{horizontal:'left'} }},
+                                {v: rowD['Tea'] || 0, s: cellCenter}, {v: rowD['Coffee'] || 0, s: cellCenter},
+                                {v: rowD['Green Tea'] || 0, s: cellCenter}, {v: rowD['Lemon Tea'] || 0, s: cellCenter},
+                                {v: rowD['Black Tea'] || 0, s: cellCenter}, {v: rowD['Black Coffee'] || 0, s: cellCenter},
+                                {v: rowTot, s: { ...cellCenter, font:{bold:true} }}
+                            ]);
+                        }
+                    }
+                }
+
+                const grandAll = Object.values(grandTotals).reduce((a,b)=>a+b, 0);
+
+                if (trs === '') {
+                    trs = `<tr><td colspan="9" style="padding:20px; text-align:center; color:#64748B;">No delivery data found for this selection.</td></tr>`;
+                } else {
+                    trs += `<tr style="background:#F1F5F9; font-weight:bold;">
+                        <td colspan="2" style="text-align:right; padding-right:12px;">GRAND TOTAL</td>
+                        <td>${grandTotals['Tea']}</td>
+                        <td>${grandTotals['Coffee']}</td>
+                        <td>${grandTotals['Green Tea']}</td>
+                        <td>${grandTotals['Lemon Tea']}</td>
+                        <td>${grandTotals['Black Tea']}</td>
+                        <td>${grandTotals['Black Coffee']}</td>
+                        <td style="color:#0A56D0;">${grandAll}</td>
+                    </tr>`;
+
+                    excelData.push([
+                        {v: '', s: headStyle}, {v: 'GRAND TOTAL', s: headStyle},
+                        {v: grandTotals['Tea'], s: headStyle}, {v: grandTotals['Coffee'], s: headStyle},
+                        {v: grandTotals['Green Tea'], s: headStyle}, {v: grandTotals['Lemon Tea'], s: headStyle},
+                        {v: grandTotals['Black Tea'], s: headStyle}, {v: grandTotals['Black Coffee'], s: headStyle},
+                        {v: grandAll, s: headStyle}
+                    ]);
+                }
+
+                if (isExcel) {
+                    if (grandAll === 0) return appAlert('No Data', 'No data to export.');
+                    const wb = XLSX.utils.book_new();
+                    const ws = XLSX.utils.aoa_to_sheet(excelData);
+                    ws['!merges'] = [{ s: {r:0, c:0}, e: {r:0, c:8} }];
+                    ws['!cols'] = [{wch: 12}, {wch: 25}, {wch: 10}, {wch: 10}, {wch: 12}, {wch: 12}, {wch: 12}, {wch: 14}, {wch: 10}];
+                    XLSX.utils.book_append_sheet(wb, ws, "Delivery Report");
+                    window.pantryDownloadExcelFile(wb, `PantryBoy_${type}_Report_${month}.xlsx`);
+                    appAlert('Downloaded', 'Excel downloaded successfully!');
+                } else {
+                    const htmlContent = `
+                        <div style="text-align:center; margin-bottom:16px;">
+                            <h2 style="color:#0A56D0; font-size:18px; margin:0;">${title}</h2>
+                            <p style="margin:4px 0 0 0; font-size:12px; color:#444;">Pantry Boy: <b>${pantryName}</b></p>
+                        </div>
+                        <table class="print-table" style="width:100%; border-collapse:collapse; font-size:11.5px;">
+                            <thead>
+                                <tr style="background:#F1F5F9;">
+                                    <th style="border:1px solid #000; padding:6px;">Date</th>
+                                    <th style="border:1px solid #000; padding:6px;">Pantry Boy</th>
+                                    <th style="border:1px solid #000; padding:6px;">Tea</th>
+                                    <th style="border:1px solid #000; padding:6px;">Coffee</th>
+                                    <th style="border:1px solid #000; padding:6px;">Green Tea</th>
+                                    <th style="border:1px solid #000; padding:6px;">Lemon Tea</th>
+                                    <th style="border:1px solid #000; padding:6px;">Black Tea</th>
+                                    <th style="border:1px solid #000; padding:6px;">Black Coffee</th>
+                                    <th style="border:1px solid #000; padding:6px;">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>${trs}</tbody>
+                        </table>
+                    `;
+                    const container = document.getElementById('printAreaContainer');
+                    container.innerHTML = `
+                        <div class="preview-card" style="max-width:100%; width:100%;">
+                            <div class="preview-header hide-on-print">
+                                <button onclick="window.print()" class="success" style="font-size:.9rem; padding:10px 18px; border-radius:10px; min-height:40px;">🖨️ Print</button>
+                                <button onclick="window.generatePantryBoyReport('${type}', true)" class="btn" style="font-size:.9rem; padding:10px 18px; border-radius:10px; min-height:40px; background:#0A56D0;">📊 Excel</button>
+                                <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger" style="font-size:.9rem; padding:10px 18px; border-radius:10px; min-height:40px;">✕ Close</button>
+                            </div>
+                            <div class="preview-content" style="padding: 15px; overflow-x: auto; box-sizing: border-box;">
+                                ${htmlContent}
+                            </div>
+                        </div>
+                        <style>
+                            @media print {
+                                @page { size: A4 portrait; margin: 10mm; }
+                                body { background: #fff !important; margin: 0; padding: 0; }
+                                #printAreaContainer { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; padding: 0 !important; margin: 0 !important; background: #fff !important; display: block !important; overflow: visible !important; }
+                                .preview-card { box-shadow: none !important; border: none !important; width: 100% !important; max-width: 100% !important; padding: 0 !important; margin: 0 !important; border-radius: 0 !important; }
+                                .preview-content { padding: 0 !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; overflow: visible !important; }
+                                .preview-header { display: none !important; }
+                                table.print-table { width: 100% !important; max-width: 100% !important; table-layout: auto !important; }
+                                table.print-table th, table.print-table td { padding: 5px 4px !important; font-size: 11.5px !important; height: 38px !important; text-align:center; border:1px solid #000; }
+                            }
+                        </style>
+                    `;
+                    container.classList.remove('hidden');
+                }
             };
 
             // ============================================================
@@ -9532,7 +9846,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                             
                             <!-- Action Bar -->
                             <div style="display: flex; gap: 4px; margin-bottom: 8px; flex-shrink: 0;">
-                                <input type="file" id="mgExcelFileInput" accept=".xlsx, .xls" style="display: none;">
+                                <input type="file" id="mgExcelFileInput" accept=".xlsx, .xls" style="display: none;" onchange="window.handleMgExcelUpload(event)">
                                 <button onclick="window.downloadMgFormat()" style="flex:0.8;" class="mg-btn-sm" style="background:#f8fafc; color:#334155; border:1px solid #cbd5e1;">📥 Fmt</button>
                                 <button onclick="document.getElementById('mgExcelFileInput').click()" style="flex:1; background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd;" class="mg-btn-sm">📂 Import</button>
                                 <button onclick="window.openMgHistory()" style="flex:1.2; background:#fef3c7; color:#d97706; border:1px solid #fde68a;" class="mg-btn-sm">📜 History</button>
@@ -9579,19 +9893,19 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     window.renderMgHistoryTable();
                     window.renderMgReviewSection(); 
                 } catch(e) { console.error(e); }
-            };
-// ============================================================
-            // EXCEL UPLOAD AND FORMAT FOR MEETINGS & GUESTS
+            }; 
+            // ============================================================
+            // 100% WORKING EXCEL UPLOAD FOR MEETINGS & GUESTS (FILE READER)
             // ============================================================
             window.downloadMgFormat = function() {
                 try {
                     const sampleData = [
-                        ["Date", "Item", "Qty", "Rate", "Amount", "Requisitioner's Name", "Purpose", "Location", "Vendor", "Served By"],
-                        ["15/08/2026", "Tea", 10, 15, 150, "Admin Dept", "NAAC Meeting", "Conference Hall", "IA Caterers", "Ramesh"],
-                        ["16/08/2026", "Samosa", 10, 20, 200, "Admin Dept", "Audit Meeting", "Room 101", "DAU Direct Purchase", "Suresh"]
+                        ["Date", "Time", "Item", "Qty", "Rate", "Amount", "Requisitioner's Name", "Purpose", "Location", "Vendor", "Served By"],
+                        ["15-08-2026", "09:30", "Tea", 10, 15, 150, "Admin Dept", "NAAC Meeting", "Conference Hall", "IA Caterers", "Ramesh"],
+                        ["16-08-2026", "14:00", "Samosa", 10, 20, 200, "Admin Dept", "Audit Meeting", "Room 101", "DAU Direct Purchase", "Suresh"]
                     ];
                     const ws = XLSX.utils.aoa_to_sheet(sampleData);
-                    ws['!cols'] = [{wch:12},{wch:18},{wch:8},{wch:8},{wch:10},{wch:20},{wch:20},{wch:15},{wch:15},{wch:15}];
+                    ws['!cols'] = [{wch:12},{wch:8},{wch:18},{wch:8},{wch:8},{wch:10},{wch:20},{wch:20},{wch:15},{wch:15},{wch:15}];
                     const wb = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(wb, ws, "Meeting_Format");
                     window.pantryDownloadExcelFile(wb, "Meeting_Excel_Format.xlsx");
@@ -9600,90 +9914,158 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 }
             };
 
-            window.handleMgExcelUpload = async function(event) {
+            window.handleMgExcelUpload = function(event) {
                 const file = event.target.files[0];
                 if (!file) return;
                 
                 appAlert('Reading File', 'Extracting Meeting entries from Excel...');
-                try {
-                    const data = await file.arrayBuffer();
-                    const wb = XLSX.read(data, { cellDates: true });
-                    const sheet = wb.Sheets[wb.SheetNames[0]];
-                    const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+                
+                const reader = new FileReader();
+                
+                reader.onload = async function(e) {
+                    try {
+                        const data = e.target.result;
+                        const wb = XLSX.read(data, { type: 'array', cellDates: true, raw: false });
+                        const sheet = wb.Sheets[wb.SheetNames[0]];
+                        const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
-                    if (!rows || rows.length === 0) throw new Error("Excel file is empty.");
+                        if (!rows || rows.length === 0) throw new Error("Excel file is empty.");
 
-                    const updates = {};
-                    let importCount = 0;
+                        const updates = {};
+                        let importCount = 0;
 
-                    rows.forEach(row => {
-                        const getVal = (keys) => {
-                            for (let k in row) {
-                                if (keys.some(key => k.toLowerCase().includes(key.toLowerCase()))) return row[k];
+                        rows.forEach((row, idx) => {
+                            const getVal = (keys) => {
+                                for (let k in row) {
+                                    const cleanKey = k.toString().trim().toLowerCase();
+                                    if (keys.some(key => cleanKey.includes(key.toLowerCase()))) return row[k];
+                                }
+                                return '';
+                            };
+
+                            let rawDate = getVal(['date']);
+                            let timeVal = String(getVal(['time'])).trim() || '09:00';
+                            let itemName = String(getVal(['item'])).trim();
+                            let qty = Number(getVal(['qty', 'quantity'])) || 1;
+                            let rate = Number(getVal(['rate'])) || 0;
+                            let amount = Number(getVal(['amount'])) || (qty * rate);
+                            let reqName = String(getVal(['requisitioner', 'ordered', 'req'])).trim() || 'General';
+                            let purpose = String(getVal(['purpose', 'event'])).trim() || 'Meeting';
+                            let location = String(getVal(['location', 'venue'])).trim() || 'Campus';
+                            let vendor = String(getVal(['vendor', 'canteen'])).trim() || 'Various';
+                            let servedBy = String(getVal(['served', 'pantry'])).trim() || 'Multiple Pantry Boys';
+
+                            if (!itemName) return; 
+
+                            // Time ફોર્મેટ 09:30 જેવું સેટ કરવું
+                            if (timeVal.length > 5) timeVal = timeVal.substring(0,5);
+// 100% BULLETPROOF DATE PARSER FOR EXCEL
+                            let formattedDMY = '';
+                            let rawYMD = '';
+
+                            if (typeof rawDate === 'number') {
+                                // Excel ના Serial Number ને સીધો જ તારીખમાં ફેરવશે (No Timezone Issues)
+                                const date_info = new Date((rawDate - 25569) * 86400 * 1000);
+                                const dd = String(date_info.getUTCDate()).padStart(2, '0');
+                                const mm = String(date_info.getUTCMonth() + 1).padStart(2, '0');
+                                const yyyy = date_info.getUTCFullYear();
+                                formattedDMY = `${dd}-${mm}-${yyyy}`;
+                                rawYMD = `${yyyy}-${mm}-${dd}`;
+                            } else if (rawDate instanceof Date && !isNaN(rawDate)) {
+                                // 12 કલાક આગળ કરીને દિવસ બદલાતો અટકાવશે
+                                const safeDate = new Date(rawDate.getTime() + (12 * 60 * 60 * 1000));
+                                const dd = String(safeDate.getUTCDate()).padStart(2, '0');
+                                const mm = String(safeDate.getUTCMonth() + 1).padStart(2, '0');
+                                const yyyy = safeDate.getUTCFullYear();
+                                formattedDMY = `${dd}-${mm}-${yyyy}`;
+                                rawYMD = `${yyyy}-${mm}-${dd}`;
+                            } else if (typeof rawDate === 'string' && rawDate.trim() !== '') {
+                                // જો એક્સેલમાંથી ટેક્સ્ટ તરીકે આવે તો 
+                                let str = rawDate.trim().replace(/\//g, '-'); 
+                                const p = str.split('-');
+                                if (p.length === 3) {
+                                    if (p[0].length === 4) { 
+                                        rawYMD = `${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;
+                                        formattedDMY = `${p[2].padStart(2,'0')}-${p[1].padStart(2,'0')}-${p[0]}`;
+                                    } else { 
+                                        rawYMD = `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+                                        formattedDMY = `${p[0].padStart(2,'0')}-${p[1].padStart(2,'0')}-${p[2]}`;
+                                    }
+                                }
                             }
-                            return '';
-                        };
 
-                        let rawDate = getVal(['Date']);
-                        let itemName = getVal(['Item']);
-                        let qty = Number(getVal(['Qty', 'Quantity'])) || 1;
-                        let rate = Number(getVal(['Rate'])) || 0;
-                        let amount = Number(getVal(['Amount'])) || (qty * rate);
-                        let reqName = getVal(['Requisitioner', 'Ordered']);
-                        let purpose = getVal(['Purpose', 'Event']);
-                        let location = getVal(['Location', 'Venue']) || 'Campus';
-                        let vendor = getVal(['Vendor', 'Canteen']);
-                        let servedBy = getVal(['Served By', 'Pantry']);
+                            if (!formattedDMY || !rawYMD) {
+                                const t = new Date();
+                                const dd = String(t.getDate()).padStart(2, '0');
+                                const mm = String(t.getMonth() + 1).padStart(2, '0');
+                                const yyyy = t.getFullYear();
+                                formattedDMY = `${dd}-${mm}-${yyyy}`;
+                                rawYMD = `${yyyy}-${mm}-${dd}`;
+                            }
 
-                        if (!itemName || !itemName.toString().trim()) return;
+                            const cleanStr = (str) => (str || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+                            
+                            const isDuplicate = mgRecordsData.some(existing => {
+                                if (existing.Status === 'Review') return false;
+                                if (existing.RawDate !== rawYMD) return false;                              
+                                const exPurp = cleanStr(existing.Purpose);
+                                const newPurp = cleanStr(purpose);
+                                const purpMatch = exPurp && newPurp && (exPurp.includes(newPurp) || newPurp.includes(exPurp));
+                                
+                                const exItem = cleanStr(existing.Item);
+                                const newItem = cleanStr(itemName);
+                                const itemMatch = (exItem === newItem);
+                                
+                                return purpMatch && itemMatch;
+                            });
 
-                        let formattedDMY = window.parseExcelDateToDMY(rawDate);
-                        if (!formattedDMY) {
-                            const t = new Date();
-                            formattedDMY = String(t.getDate()).padStart(2, '0') + '/' + String(t.getMonth() + 1).padStart(2, '0') + '/' + t.getFullYear();
+                            const finalStatus = isDuplicate ? 'Review' : 'Approved';
+                            const id = 'mgrec_' + Date.now() + '_' + idx + '_' + Math.random().toString(36).substring(2, 6);
+                            
+                            updates['meetingsGuestsRecords/' + id] = {
+                                id: id,
+                                RawDate: rawYMD,
+                                DateFormatted: formattedDMY,
+                                Day: typeof getDayOfWeek === 'function' ? getDayOfWeek(formattedDMY.replace(/-/g, '/')) : '',
+                                Time: timeVal,
+                                Item: itemName,
+                                Qty: qty,
+                                Rate: rate,
+                                Amount: amount,
+                                ReqName: reqName,
+                                Purpose: purpose,
+                                Location: location,
+                                Vendor: vendor,
+                                ServedBy: servedBy,
+                                Status: finalStatus,
+                                Timestamp: Date.now() + idx
+                            };
+                            importCount++;
+                        });
+
+                        if (importCount > 0) {
+                            await db.ref().update(updates);
+                            appAlert('Success', `✅ ${importCount} Meeting records processed!\n(Duplicates sent to Review Section)`);
+                            if (typeof window.renderMgHistoryTable === 'function') window.renderMgHistoryTable();
+                            if (typeof window.renderMgReviewSection === 'function') window.renderMgReviewSection();
+                        } else {
+                            appAlert('Notice', 'No valid rows found in Excel.');
                         }
-
-                        const parts = formattedDMY.split('/');
-                        const rawYMD = parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : new Date().toISOString().split('T')[0];
-
-                        const id = 'mgrec_' + Date.now() + Math.random().toString(36).substring(2, 7);
-                        updates['meetingsGuestsRecords/' + id] = {
-                            id: id,
-                            RawDate: rawYMD,
-                            DateFormatted: formattedDMY,
-                            Day: window.getDayOfWeek ? window.getDayOfWeek(formattedDMY) : '',
-                            Time: '09:00',
-                            Item: itemName.toString().trim(),
-                            Qty: qty,
-                            Rate: rate,
-                            Amount: amount,
-                            ReqName: reqName.toString().trim() || 'General',
-                            Purpose: purpose.toString().trim() || 'Meeting',
-                            Location: location.toString().trim(),
-                            Vendor: vendor.toString().trim() || 'Various',
-                            ServedBy: servedBy.toString().trim() || 'Multiple Pantry Boys',
-                            Status: 'Approved',
-                            Timestamp: Date.now()
-                        };
-                        importCount++;
-                    });
-
-                    if (importCount > 0) {
-                        await db.ref().update(updates);
-                        appAlert('Success', `✅ ${importCount} Meeting records imported successfully!`);
-                        if (typeof window.renderMgHistoryTable === 'function') window.renderMgHistoryTable();
-                        if (typeof window.renderMgReviewSection === 'function') window.renderMgReviewSection();
-                    } else {
-                        appAlert('Notice', 'No valid rows found to import.');
+                    } catch (err) {
+                        appAlert('Import Error', err.message);
+                    } finally {
+                        if (event.target) event.target.value = '';
                     }
-                } catch (err) {
-                    appAlert('Import Error', err.message);
-                } finally {
+                };
+                
+                reader.onerror = function() {
+                    appAlert('ફાઈલ પરમિશન એરર', 'મોબાઈલ આ ફાઈલ વાંચી શકતો નથી. કૃપા કરીને ફાઈલને ડાયરેક્ટ WhatsApp કે Drive માંથી સિલેક્ટ કરવાને બદલે, પહેલા ફોનના "Downloads" અથવા "Documents" ફોલ્ડરમાં સેવ કરો અને પછી ત્યાંથી સિલેક્ટ કરો.');
                     if (event.target) event.target.value = '';
-                }
+                };
+                
+                reader.readAsArrayBuffer(file);
             };
-
-            // નવો અલ્ટ્રા કોમ્પેક્ટ એન્ટ્રી રો (કાર્ડ) - Custom Dropdown સાથે
+        // નવો અલ્ટ્રા કોમ્પેક્ટ એન્ટ્રી રો (કાર્ડ) - Custom Dropdown સાથે
             window.addMgRow = function(data = {}) {
                 const container = document.getElementById('mgDynamicRowsContainer');
                 if(!container) return;
@@ -9897,18 +10279,30 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
 
                     const id = 'mgrec_' + Date.now() + Math.random().toString(36).substring(2, 7);
                     
-                    const isDuplicate = mgRecordsData.some(existing => 
-                        existing.RawDate === data.RawDate &&
-                        (existing.Purpose || '').toLowerCase() === data.Purpose.toLowerCase() &&
-                        (existing.Item || '').toLowerCase() === data.Item.toLowerCase() &&
-                        Number(existing.Qty) === Number(data.Qty) &&
-                        (existing.ReqName || '').toLowerCase() === data.ReqName.toLowerCase() &&
-                        existing.Status !== 'Review'
-                    );
+                   // સ્માર્ટ ડુપ્લીકેટ ચેકર: કૌંસ, ડેશ, સ્પેસ કાઢીને શબ્દો મેચ કરશે
+                    const cleanStr = (str) => (str || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+                    
+                    const isDuplicate = mgRecordsData.some(existing => {
+                        if (existing.Status === 'Review') return false; 
+                        if (existing.RawDate !== data.RawDate) return false; // તારીખ સેમ હોવી જોઈએ                        
+                        // Purpose માં થોડું પણ મળતું આવતું હોય તો પકડી લેશે
+                        const exPurp = cleanStr(existing.Purpose);
+                        const newPurp = cleanStr(data.Purpose);
+                        const purpMatch = exPurp && newPurp && (exPurp.includes(newPurp) || newPurp.includes(exPurp));
+                        
+                        // Item સેમ હોવી જોઈએ
+                        const exItem = cleanStr(existing.Item);
+                        const newItem = cleanStr(data.Item);
+                        const itemMatch = (exItem === newItem);
+                        
+                        return purpMatch && itemMatch;
+                    });
 
                     let finalStatus = isDuplicate ? 'Review' : 'Approved';
                     if(isDuplicate) duplicateCount++;
 
+                    // તારીખમાં ડેસ સેટ કરવું 
+                    let dmyDashFormat = convertYMDtoDMY(data.RawDate).replace(/\//g, '-');                    
                     // વેન્ડરમાં આઇટમ ઓટો સિંક કરો
                     if (data.Vendor && data.Item) {
                         const vKey = data.Vendor.toLowerCase().trim();
@@ -10060,7 +10454,17 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     slips[key].idsToDelete.push({ id: rec.id, isOld: !!rec.isOldEvent, originalId: rec.originalId });
                 });
 
-                const sortedSlips = Object.values(slips).sort((a, b) => b.Timestamp - a.Timestamp);
+                // તારીખ પ્રમાણે સોર્ટિંગ (1 થી 31 - Ascending Order)
+                const sortedSlips = Object.values(slips).sort((a, b) => {
+                    const dateA = window.parseDMYToYMD ? window.parseDMYToYMD(a.DateFormatted) : a.DateFormatted;
+                    const dateB = window.parseDMYToYMD ? window.parseDMYToYMD(b.DateFormatted) : b.DateFormatted;
+                    
+                    // જો તારીખ સરખી હોય તો સમય/Timestamp પ્રમાણે
+                    if (dateA === dateB) {
+                        return a.Timestamp - b.Timestamp;
+                    }
+                    return dateA.localeCompare(dateB);
+                });
 
                 let html = '';
                 if(sortedSlips.length === 0) {
@@ -10194,10 +10598,10 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 let itemsHtml = slip.items.map((it, idx) => `
                     <div class="eg-row" style="display:flex; gap:2px; margin-bottom:4px; background:#f8fafc; padding:2px; border:1px solid #e2e8f0; border-radius:4px; align-items:center; width:100%; box-sizing:border-box;">
                         <input type="date" class="eg-date mg-cmp-inp ultra-cmp" value="${it.RawDate || rawDate}" style="width:68px; flex-shrink:0; height:24px; min-width:0;">
-                        <div style="position:relative; width:22px; height:24px; flex-shrink:0; border:1px solid #cbd5e1; border-radius:3px; background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden;" title="Select Time">
-                            <span style="font-size:10px; pointer-events:none;">⏰</span>
-                            <input type="time" class="eg-time" value="${it.Time || '09:00'}" style="position:absolute; opacity:0; width:100%; height:100%; cursor:pointer; left:0; top:0;">
-                        </div>
+                        <div style="display:flex; align-items:center; background:#EFF6FF; border:1px solid #0A56D0; border-radius:4px; padding:0 4px; height:26px; box-sizing:border-box; flex-shrink:0;">
+    <span style="font-size:12px; margin-right:2px;">🕒</span>
+    <input type="time" class="eg-time" value="09:00" style="border:none; outline:none; background:transparent; font-size:12px; padding:0; width:55px; font-weight:800; color:#0A56D0; cursor:pointer;">
+</div>
                         <select class="eg-vendor mg-cmp-inp ultra-cmp" style="width:52px; flex-shrink:0; height:24px; text-overflow:ellipsis; min-width:0;"><option value="">Vndr</option>${getVendorOpts(it.Vendor)}</select>
                         <input type="text" class="eg-item mg-cmp-inp ultra-cmp" value="${it.Item}" placeholder="Item" style="flex:1; min-width:0; height:24px;">
                         <input type="number" class="eg-qty mg-cmp-inp ultra-cmp" value="${it.Qty}" placeholder="Qty" style="width:28px; text-align:center; flex-shrink:0; height:24px; min-width:0;">
@@ -10390,60 +10794,100 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 });
             };
             
-            window.renderMgReviewSection = function() {
+           window.renderMgReviewSection = function() {
                 const container = document.getElementById('mgReviewSection');
-                if(!container) return;
-
-                const groupMap = {};
-                mgRecordsData.forEach(r => {
-                    if(r.Status === 'Approved') return; 
-                    const key = `${r.DateFormatted}_${(r.Purpose||'').toLowerCase()}_${(r.Item||'').toLowerCase()}_${r.Qty}_${(r.ReqName||'').toLowerCase()}`;
-                    if(!groupMap[key]) groupMap[key] = [];
-                    groupMap[key].push(r);
-                });
-
-                const duplicatesToShow = [];
-                for (const key in groupMap) {
-                    const group = groupMap[key];
-                    const hasReviewItem = group.some(r => r.Status === 'Review');
-                    if (group.length > 1 || hasReviewItem) { group.forEach(r => duplicatesToShow.push(r)); }
-                }
-
+                if (!container) return;
+                
+                const duplicatesToShow = typeof mgRecordsData !== 'undefined' ? mgRecordsData.filter(r => r.Status === 'Review') : [];
                 if(duplicatesToShow.length === 0) { container.style.display = 'none'; return; }
 
                 container.style.display = 'block';
-                let html = `<div class="card" style="border:2px solid #ef4444; background:#fef2f2; padding:10px;"><h3 style="color:#b91c1c; margin:0 0 8px 0; font-size:13px;">⚠️ Possible Duplicates</h3><div style="display:flex; flex-direction:column; gap:6px;">`;
+                
+                // લાંબા લિસ્ટના બદલે એક જ મોટું બટન બતાવશે
+                container.innerHTML = `
+                    <div style="background:#fef2f2; border:2px solid #ef4444; border-radius:8px; padding:12px; text-align:center; margin-bottom:16px;">
+                        <h3 style="color:#b91c1c; margin:0 0 8px 0; font-size:14px;">⚠️ ${duplicatesToShow.length} Possible Duplicates Found</h3>
+                        <p style="font-size:11px; color:#444; margin-bottom:10px;">Some entries look exactly like existing ones. Please review them.</p>
+                        <button onclick="window.openDuplicateReviewModal()" class="btn danger" style="width:100%; font-weight:bold; padding:10px; border-radius:6px;">🔍 Review & Manage Duplicates</button>
+                    </div>
+                `;
+            };
 
-                duplicatesToShow.sort((a, b) => b.Timestamp - a.Timestamp).forEach(rec => {
-                    html += `<div style="background:#fff; border:1px dashed #fca5a5; padding:8px; border-radius:6px; font-size:11px;">
-                        <b>Date:</b> ${rec.DateFormatted} | <b>Req:</b> ${rec.ReqName}<br>
-                        <b style="color:#d97706;">Item:</b> ${rec.Item} x <b style="color:#0284c7;">${rec.Qty}</b> | <b>Amt:</b> ₹${rec.Amount}
-                        <div style="display:flex; gap:4px; margin-top:6px;">
-                            <button onclick="window.approveMgDuplicate('${rec.id}')" style="background:#10b981; color:white; border:none; padding:6px; border-radius:4px; font-weight:bold; font-size:11px; flex:1; cursor:pointer;">✅ Approve</button>
-                            <button onclick="window.deleteMgRecord('${rec.id}')" style="background:#ef4444; color:white; border:none; padding:6px; border-radius:4px; font-weight:bold; font-size:11px; flex:1; cursor:pointer;">🗑 Delete</button>
-                        </div>
-                    </div>`;
+            window.openDuplicateReviewModal = function() {
+                const duplicatesToShow = mgRecordsData.filter(r => r.Status === 'Review');
+                
+                // તારીખ પ્રમાણે સોર્ટિંગ (1 થી 31)
+                duplicatesToShow.sort((a, b) => {
+                    const dateA = window.parseDMYToYMD ? window.parseDMYToYMD(a.DateFormatted) : a.DateFormatted;
+                    const dateB = window.parseDMYToYMD ? window.parseDMYToYMD(b.DateFormatted) : b.DateFormatted;
+                    if (dateA === dateB) return a.Timestamp - b.Timestamp;
+                    return dateA.localeCompare(dateB);
                 });
-                html += `</div></div>`;
-                container.innerHTML = html;
+
+                let rowsHtml = duplicatesToShow.map(rec => `
+                    <label class="dup-row" style="display:flex; align-items:center; gap:12px; padding:12px; border-bottom:1px solid #e2e8f0; background:#fff; cursor:pointer;">
+                        <input type="checkbox" class="dup-chk" value="${rec.id}" style="width:20px; height:20px; cursor:pointer; flex-shrink:0;">
+                        <div style="flex:1; font-size:12px; line-height:1.5;">
+                            <b>Date:</b> ${rec.DateFormatted} <span style="color:#64748B;">(${rec.Time || '09:00'})</span> | <b>Req:</b> ${rec.ReqName}<br>
+                            <b>Item:</b> <span style="color:#0A56D0; font-weight:bold;">${rec.Item} x ${rec.Qty}</span> | <b>Amt:</b> ₹${rec.Amount}<br>
+                            <span style="color:#64748b; font-size:10px;">Purpose: ${rec.Purpose}</span>
+                        </div>
+                    </label>
+                `).join('');
+
+                const modalHtml = `
+                    <div id="dupReviewModal" class="popup-overlay" style="display:flex; align-items:center; justify-content:center; z-index:999999; background:rgba(0,0,0,0.6);">
+                        <div class="popup-card" style="width:95%; max-width:500px; height:85vh; display:flex; flex-direction:column; padding:0; overflow:hidden; border-radius:12px;">
+                            
+                            <div style="background:#ef4444; color:#fff; padding:14px 16px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+                                <h3 style="margin:0; font-size:16px;">⚠️ Manage Duplicates</h3>
+                                <button onclick="document.getElementById('dupReviewModal').remove()" style="background:transparent; border:none; color:#fff; font-size:20px; cursor:pointer; line-height:1;">✕</button>
+                            </div>
+                            
+                            <div style="padding:12px 16px; background:#f8fafc; border-bottom:1px solid #cbd5e1; display:flex; align-items:center; gap:10px; flex-shrink:0;">
+                                <input type="checkbox" id="selectAllDups" style="width:20px; height:20px; cursor:pointer;" onchange="const chks = document.querySelectorAll('.dup-chk'); chks.forEach(c => c.checked = this.checked);">
+                                <label for="selectAllDups" style="font-weight:bold; font-size:14px; cursor:pointer; color:#1e293b;">Select All (${duplicatesToShow.length})</label>
+                            </div>
+
+                            <div style="flex:1; overflow-y:auto; background:#f1f5f9;">
+                                ${rowsHtml}
+                            </div>
+
+                            <div style="padding:14px 16px; background:#fff; border-top:1px solid #e2e8f0; display:flex; gap:10px; flex-shrink:0;">
+                                <button onclick="window.bulkDuplicateAction('approve')" class="success" style="flex:1; padding:12px; font-weight:bold; font-size:13px; border-radius:8px;">✅ Approve Selected</button>
+                                <button onclick="window.bulkDuplicateAction('delete')" class="danger" style="flex:1; padding:12px; font-weight:bold; font-size:13px; border-radius:8px;">🗑 Delete Selected</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                const existing = document.getElementById('dupReviewModal');
+                if(existing) existing.remove();
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
             };
 
-            window.deleteMgRecord = function(id) { 
-                appConfirm('Delete Record', 'Are you sure?', () => { 
-                    db.ref('meetingsGuestsRecords/' + id).remove().then(() => {
-                        window.renderMgReviewSection();
-                    }); 
-                }); 
-            };
-            
-            window.approveMgDuplicate = function(id) { 
-                appConfirm('Approve Entry', 'Are you sure this is a valid separate slip?', () => { 
-                    db.ref('meetingsGuestsRecords/' + id).update({ Status: 'Approved' }).then(() => { 
-                        appAlert('Approved', 'Entry marked as valid.'); 
-                        window.renderMgReviewSection();
-                        window.renderMgHistoryTable();
-                    }); 
-                }); 
+            window.bulkDuplicateAction = function(action) {
+                const checked = document.querySelectorAll('.dup-chk:checked');
+                if(checked.length === 0) return appAlert('Select Items', 'Please select at least one entry using the checkboxes.');
+                
+                const actionText = action === 'approve' ? 'Approve' : 'Delete';
+                appConfirm('Confirm Bulk Action', `Are you sure you want to ${actionText} ${checked.length} selected entries?`, async () => {
+                    const updates = {};
+                    checked.forEach(cb => {
+                        if(action === 'approve') {
+                            updates['meetingsGuestsRecords/' + cb.value + '/Status'] = 'Approved';
+                        } else {
+                            updates['meetingsGuestsRecords/' + cb.value] = null;
+                        }
+                    });
+                    
+                    await db.ref().update(updates);
+                    document.getElementById('dupReviewModal').remove();
+                    appAlert('Success', `${checked.length} entries successfully ${action === 'approve' ? 'approved' : 'deleted'}.`);
+                    
+                    if (typeof window.renderMgHistoryTable === 'function') window.renderMgHistoryTable();
+                    if (typeof window.renderMgReviewSection === 'function') window.renderMgReviewSection();
+                });
             };
         })();
       
