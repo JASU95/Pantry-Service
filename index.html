@@ -5222,39 +5222,384 @@ window.pantryDownloadExcelFile = function(wb, filename) {
             // ============================================================
             //  MY RECORDS (Only Tea/Coffee history)
             // ============================================================
-            function renderLogsHistory() {
+                        function renderLogsHistory() {
                 activePantryTab = 'logs';
                 const todayYMD = new Date().toISOString().split('T')[0];
                 const container = document.getElementById('pantryContent');
 
                 container.innerHTML = `
-              <div class="card" style="padding:16px; display:flex; flex-direction:column; overflow:hidden; max-height:100%;">
-                <div style="margin-bottom:12px; flex-shrink:0;">
-                  <label style="font-size:.85rem; color:#44474E; font-weight:700; display:block;">📅 Select Date</label>
-                  <div style="display:flex; gap:8px;">
-                    <input type="date" id="myRecordsDate" value="${todayYMD}" style="flex:2; margin:0; padding:12px; border-radius:10px; border:1px solid #CBD5E1;">
-                    <button id="downloadMyRecordsExcel" class="success" style="flex:1; padding:10px; font-size:.8rem; min-height:44px; background:#146C43;">📊 Excel</button>
+              <div class="card" style="padding:10px; margin-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                  <label style="font-size:12px; color:#1E293B; font-weight:800; margin:0;">☕ Daily Matrix</label>
+                  <input type="date" id="myRecordsDate" value="${todayYMD}" style="margin:0; padding:6px; border-radius:6px; border:1px solid #CBD5E1; font-size:11px; width:130px; font-weight:bold; color:#0A56D0;">
+                </div>
+                
+                <div style="display:flex; justify-content:space-between; text-align:center; gap:4px; font-size:10px;" id="dailyMetricGrid">
+                  <div style="flex:1; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; padding:4px 2px;">
+                    <div style="color:#64748B; font-weight:700; margin-bottom:2px;">Tea</div>
+                    <div id="mStatTea" style="font-size:13px; font-weight:800; color:#1E293B;">0</div>
+                  </div>
+                  <div style="flex:1; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; padding:4px 2px;">
+                    <div style="color:#64748B; font-weight:700; margin-bottom:2px;">Coffee</div>
+                    <div id="mStatCoffee" style="font-size:13px; font-weight:800; color:#1E293B;">0</div>
+                  </div>
+                  <div style="flex:1; background:#ECFDF5; border:1px solid #D1FAE5; border-radius:6px; padding:4px 2px;">
+                    <div style="color:#065F46; font-weight:700; margin-bottom:2px;">Green</div>
+                    <div id="mStatGreen" style="font-size:13px; font-weight:800; color:#065F46;">0</div>
+                  </div>
+                  <div style="flex:1; background:#FFFBEB; border:1px solid #FEF3C7; border-radius:6px; padding:4px 2px;">
+                    <div style="color:#92400E; font-weight:700; margin-bottom:2px;">Lemon</div>
+                    <div id="mStatLemon" style="font-size:13px; font-weight:800; color:#92400E;">0</div>
+                  </div>
+                  <div style="flex:1; background:#F5F3FF; border:1px solid #EDE9FE; border-radius:6px; padding:4px 2px;">
+                    <div style="color:#5B21B6; font-weight:700; margin-bottom:2px;">Blk Tea</div>
+                    <div id="mStatBlackTea" style="font-size:13px; font-weight:800; color:#5B21B6;">0</div>
+                  </div>
+                  <div style="flex:1; background:#FEF2F2; border:1px solid #FEE2E2; border-radius:6px; padding:4px 2px;">
+                    <div style="color:#991B1B; font-weight:700; margin-bottom:2px;">Blk Cof</div>
+                    <div id="mStatBlackCoffee" style="font-size:13px; font-weight:800; color:#991B1B;">0</div>
                   </div>
                 </div>
-                <div class="android-section-title">☕ Daily Entry Matrix <span class="badge">Date Total</span></div>
-                <div class="android-metric-grid" id="dailyMetricGrid">
-                  <div class="android-metric-card"><div class="label">🍵 Tea</div><div class="value" id="mStatTea">0</div></div>
-                  <div class="android-metric-card"><div class="label">☕ Coffee</div><div class="value" id="mStatCoffee">0</div></div>
-                  <div class="android-metric-card"><div class="label">🍵 Green Tea</div><div class="value green" id="mStatGreen">0</div></div>
-                  <div class="android-metric-card"><div class="label">🍋 Lemon Tea</div><div class="value orange" id="mStatLemon">0</div></div>
-                  <div class="android-metric-card"><div class="label">☕ Black Tea</div><div class="value purple" id="mStatBlackTea">0</div></div>
-                  <div class="android-metric-card"><div class="label">☕ Black Coffee</div><div class="value red" id="mStatBlackCoffee">0</div></div>
-                  <div class="android-metric-card" style="grid-column: span 3; background:#EFF6FF; border-color:#0A56D0;"><div class="label">🏆 Grand Total</div><div class="value" id="mStatGrand" style="font-size:1.5rem;">0</div></div>
+                <div style="margin-top:6px; background:#EFF6FF; border:1px solid #BFDBFE; border-radius:6px; padding:6px; text-align:center; font-size:12px; font-weight:800; color:#1E40AF;">
+                  GRAND TOTAL: <span id="mStatGrand">0</span> Cups
                 </div>
-                <div id="myRecordsGridContainer" class="my-records-table-wrap"></div>
               </div>
+              <div class="card" style="padding:12px;">
+                <h4 style="margin-bottom:10px; color:#44474E; font-size:.95rem;">📥 My Reports & Downloads</h4>      
+                <div style="display:flex; gap:8px; margin-bottom:12px; background:#F1F5F9; padding:8px; border-radius:8px; border:1px solid #CBD5E1;">
+                    <div style="flex:1;">
+                        <label style="font-size:.75rem; color:#44474E; font-weight:700;">Select Month</label>
+                        <input type="month" id="pbReportMonth" value="${new Date().toISOString().slice(0,7)}" style="width:100%; padding:8px; border-radius:6px; border:1px solid #CBD5E1; margin-top:4px; font-size:.8rem;">
+                    </div>
+                    <div style="flex:1;">
+                        <label style="font-size:.75rem; color:#0A56D0; font-weight:700;">Supply Source</label>
+                        <select id="pbReportSupplySource" style="width:100%; padding:8px; border-radius:6px; border:1px solid #0A56D0; color:#0A56D0; font-weight:bold; background:#fff; margin-top:4px; font-size:.8rem;">
+                            <option value="Contractor">☕ IA Caterers</option>
+                            <option value="DAU Direct Purchase">🛒 DAU Direct</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="border-top:1px solid #E2E8F0; padding-top:10px; margin-top:6px;">
+                  <h5 style="color:#7C3AED; margin-bottom:6px; font-size:.85rem;">1. All Tea Entry Preview</h5>
+                  <div style="display:flex; gap:6px; align-items:center;">
+                    <select id="pbGridExportCategory" style="flex:1; margin:0; padding:0 8px; height:38px; border-radius:6px; border:1px solid #CBD5E1; font-size:.8rem; box-sizing:border-box;">
+                      <option value="All">All Categories</option>
+                      <option value="Faculty">Faculty</option>
+                      <option value="Staff">Staff</option>
+                      <option value="Law">Law</option>
+                      <option value="Outsourced">Outsourced</option>
+                    </select>
+                    <button id="pbDownloadGridExcelBtn" class="btn" style="background:#7C3AED; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">👁️ Preview</button>
+                  </div>
+                </div>
+
+                <div style="border-top:1px solid #E2E8F0; padding-top:10px; margin-top:10px;">
+                  <h5 style="color:#059669; margin-bottom:6px; font-size:.85rem;">2. Delivery Report (Regular)</h5>
+                  <div style="display:flex; gap:6px;">
+                    <button onclick="window.generateMyPantryReport('regular', false)" class="btn" style="background:#059669; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">👁️ Preview</button>
+                    <button onclick="window.generateMyPantryReport('regular', true)" class="success" style="background:#047857; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">📊 Excel</button>
+                  </div>
+                </div>
+
+                <div style="border-top:1px solid #E2E8F0; padding-top:10px; margin-top:10px;">
+                  <h5 style="color:#D97706; margin-bottom:6px; font-size:.85rem;">3. Delivery Report (Meetings)</h5>
+                  <div style="display:flex; gap:6px;">
+                    <button onclick="window.generateMyPantryReport('meeting', false)" class="btn" style="background:#D97706; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">👁️ Preview</button>
+                    <button onclick="window.generateMyPantryReport('meeting', true)" class="success" style="background:#B45309; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">📊 Excel</button>
+                  </div>
+                </div>
             `;
 
                 document.getElementById('myRecordsDate').addEventListener('change', window.loadMyRecordsData);
-                document.getElementById('downloadMyRecordsExcel').onclick = window.downloadMyRecordsExcel;
+                
+
+                document.getElementById('pbDownloadGridExcelBtn').onclick = () => {
+                    const month = document.getElementById('pbReportMonth').value;
+                    const supply = document.getElementById('pbReportSupplySource').value;
+                    const cat = document.getElementById('pbGridExportCategory').value;
+                    window.previewPantryMonthlyGrid(month, supply, currentUser.id, cat);
+                };
+
+                window.previewPantryMonthlyGrid = function(month, supplySource, pantryId, categoryVal) {
+                    if (!month) return appAlert('Error', 'Select month.');
+                    const [yy, mm] = month.split('-');
+                    const daysInMonth = getDaysInMonth(yy, mm);
+                    
+                    let emps = employeeList.filter(e => {
+                        if (e.assignedPantryId !== pantryId) return false;
+                        if (e.status === 'Inactive') {
+                            const hasLogThisMonth = logsData.some(l => l.employeeId === e.id && parseDMYToYMD(l.date).startsWith(month));
+                            if (!hasLogThisMonth) return false;
+                        }
+                        return true;
+                    });
+                    
+                    if (categoryVal !== 'All') {
+                        const catMatch = categoryVal.trim().toLowerCase();
+                        emps = emps.filter(e => {
+                            const c = (e.category || '').trim().toLowerCase();
+                            if (catMatch === 'outsourced' || catMatch === 'outsource') return c.includes('outsource');
+                            return c === catMatch;
+                        });
+                    }
+                    
+                    if(!emps.length) return appAlert('Notice', 'No employees found for this selection.');
+
+                    let empTotals = {};
+                    emps.forEach(e => {
+                        empTotals[e.id] = { tea:0, coffee:0, green:0, lemon:0, blackTea:0, blackCoffee:0 };
+                    });
+
+                    let html = `<div style="overflow-x:auto; background:#fff; border:1px solid #CBD5E1; border-radius:8px; box-shadow:inset 0 0 4px rgba(0,0,0,0.05); padding-bottom:8px;">
+                        <table style="width:100%; border-collapse:separate; border-spacing:0; font-size:12px; text-align:center; min-width:${emps.length * 75 + 55}px;">
+                            <thead style="background:#F1F5F9; position:sticky; top:0; z-index:3;">
+                                <tr>
+                                    <th rowspan="2" style="border-bottom:2px solid #0A56D0; border-right:1px solid #CBD5E1; padding:6px; min-width:55px; position:sticky; left:0; background:#F1F5F9; z-index:4;">Date</th>`;
+                    emps.forEach(emp => {
+                        let nameParts = emp.name.split(' ');
+                        let shortName = nameParts[0] + (nameParts.length > 1 ? ' ' + nameParts[nameParts.length-1].charAt(0) + '.' : '');
+                        html += `<th colspan="2" style="border-bottom:1px solid #CBD5E1; border-right:1px solid #CBD5E1; padding:6px 4px; font-size:12px; color:#1E293B; line-height:1.2;">${safeStr(shortName)}</th>`;
+                    });
+                    html += `</tr><tr>`;
+                    emps.forEach(() => {
+                        html += `<th style="border-bottom:2px solid #0A56D0; border-right:1px dashed #CBD5E1; padding:4px; font-weight:800; color:#44474E; background:#F8FAFC; width:35px;">M</th>
+                                 <th style="border-bottom:2px solid #0A56D0; border-right:1px solid #CBD5E1; padding:4px; font-weight:800; color:#44474E; background:#F8FAFC; width:35px;">A</th>`;
+                    });
+                    html += `</tr></thead><tbody>`;
+
+                    const formatDrink = (val) => {
+                        if(!val || val === '-') return '-';
+                        let v = val.toLowerCase();
+                        if(v === 'tea') return '<span style="font-size:11px; font-weight:800; color:#1E3A8A;">Tea</span>';
+                        if(v === 'coffee') return '<span style="font-size:11px; font-weight:800; color:#475569;">Coffee</span>';
+                        if(v === 'green tea') return '<span style="font-size:11px; font-weight:800; color:#065F46;">Green Tea</span>';
+                        if(v === 'lemon tea') return '<span style="font-size:11px; font-weight:800; color:#92400E;">Lemon Tea</span>';
+                        if(v === 'black tea') return '<span style="font-size:11px; font-weight:800; color:#5B21B6;">Black Tea</span>';
+                        if(v === 'black coffee') return '<span style="font-size:11px; font-weight:800; color:#991B1B;">Black Coffee</span>';
+                        return `<span style="font-size:11px; font-weight:800;">${val}</span>`;
+                    };
+
+                    for (let d = 1; d <= daysInMonth; d++) {
+                        const dd = String(d).padStart(2,'0');
+                        const dmy = `${dd}/${mm}/${yy}`;
+                        const dObj = new Date(yy, mm - 1, d);
+                        const dayName = dObj.toLocaleDateString('en-US', { weekday: 'short' });
+                        
+                        html += `<tr><td style="border-bottom:1px solid #E2E8F0; border-right:1px solid #CBD5E1; padding:6px 4px; font-weight:bold; position:sticky; left:0; background:#F8FAFC; z-index:1; color:#0A56D0;">${dd}<br><span style="font-size:9px; font-weight:normal; color:#64748B;">${dayName}</span></td>`;
+                        
+                        emps.forEach(emp => {
+                            const mLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Morning' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                            const aLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Afternoon' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                            
+                            const mVal = mLog ? mLog.drink : '-';
+                            const aVal = aLog ? aLog.drink : '-';
+                            
+                            html += `<td style="border-bottom:1px solid #E2E8F0; border-right:1px dashed #E2E8F0; padding:6px 2px;">${formatDrink(mVal)}</td>`;
+                            html += `<td style="border-bottom:1px solid #E2E8F0; border-right:1px solid #CBD5E1; padding:6px 2px;">${formatDrink(aVal)}</td>`;
+                            
+                            [mVal, aVal].forEach(val => {
+                                let v = (val || '').toLowerCase();
+                                if(v === 'tea') empTotals[emp.id].tea++;
+                                else if(v === 'coffee') empTotals[emp.id].coffee++;
+                                else if(v === 'green tea') empTotals[emp.id].green++;
+                                else if(v === 'lemon tea') empTotals[emp.id].lemon++;
+                                else if(v === 'black tea') empTotals[emp.id].blackTea++;
+                                else if(v === 'black coffee') empTotals[emp.id].blackCoffee++;
+                            });
+                        });
+                        html += `</tr>`;
+                    }
+                    
+                    const drinksArr = [
+                        { key: 'tea', label: 'Tea', color: '#1E3A8A', bg: '#EFF6FF' },
+                        { key: 'coffee', label: 'Coffee', color: '#475569', bg: '#F1F5F9' },
+                        { key: 'green', label: 'Green Tea', color: '#065F46', bg: '#ECFDF5' },
+                        { key: 'lemon', label: 'Lemon Tea', color: '#92400E', bg: '#FFFBEB' },
+                        { key: 'blackTea', label: 'Black Tea', color: '#5B21B6', bg: '#F5F3FF' },
+                        { key: 'blackCoffee', label: 'Black Coffee', color: '#991B1B', bg: '#FEF2F2' }
+                    ];
+                    
+                    drinksArr.forEach(d => {
+                        let anyDrank = false;
+                        emps.forEach(e => { if(empTotals[e.id][d.key] > 0) anyDrank = true; });
+                        
+                        if (anyDrank) {
+                            html += `<tr><td style="border-bottom:1px solid #CBD5E1; border-right:1px solid #CBD5E1; padding:8px 2px; font-weight:bold; position:sticky; left:0; background:${d.bg}; z-index:1; color:${d.color}; font-size:11px;">${d.label}</td>`;
+                            emps.forEach(emp => {
+                                let val = empTotals[emp.id][d.key] || '-';
+                                html += `<td colspan="2" style="border-bottom:1px solid #CBD5E1; border-right:1px solid #CBD5E1; padding:8px; font-weight:800; background:${d.bg}; color:${d.color}; font-size:13px;">${val}</td>`;
+                            });
+                            html += `</tr>`;
+                        }
+                    });
+
+                    html += `</tbody></table></div>`;
+
+                    const container = document.getElementById('printAreaContainer');
+                    container.style.zIndex = "99999999";
+                    
+                    container.innerHTML = `
+                        <div class="preview-card" style="max-width:95vw; width:450px; height:90vh; max-height:90vh; padding:12px; border-radius:12px; display:flex; flex-direction:column; overflow:hidden; background:#F8FAFC;">
+                            <div class="preview-header hide-on-print" style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <h3 style="margin:0; font-size:14px; color:#0A56D0;">📊 Monthly Preview</h3>
+                                    <input type="month" value="${month}" onchange="window.previewPantryMonthlyGrid(this.value, '${supplySource}', '${pantryId}', '${categoryVal}')" style="padding:4px 6px; border-radius:6px; border:1px solid #0A56D0; font-size:12px; font-weight:bold; color:#0A56D0; background:#fff; outline:none;">
+                                </div>
+                                <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" style="background:#FEE2E2; border:none; color:#DC3545; padding:6px 12px; font-size:12px; border-radius:6px; font-weight:bold; cursor:pointer;">✕ Close</button>
+                            </div>
+                            <div class="preview-content" style="padding:0; overflow-y:auto; overflow-x:hidden; display:flex; flex-direction:column; flex:1; background:transparent;">
+                                ${html}
+                            </div>
+                        </div>
+                    `;
+                    container.classList.remove('hidden');
+                }
+                window.previewPantryMonthlyGrid = function(month, supplySource, pantryId, categoryVal) {
+                    if (!month) return appAlert('Error', 'Select month.');
+                    const [yy, mm] = month.split('-');
+                    const daysInMonth = getDaysInMonth(yy, mm);
+                    
+                    // 1. Filter active employees properly + logic for category 'All'
+                    let emps = employeeList.filter(e => {
+                        if (e.assignedPantryId !== pantryId) return false;
+                        // Remove Inactive if no logs in this month
+                        if (e.status === 'Inactive') {
+                            const hasLogThisMonth = logsData.some(l => l.employeeId === e.id && parseDMYToYMD(l.date).startsWith(month));
+                            if (!hasLogThisMonth) return false;
+                        }
+                        return true;
+                    });
+                    
+                    if (categoryVal !== 'All') {
+                        const catMatch = categoryVal.trim().toLowerCase();
+                        emps = emps.filter(e => {
+                            const c = (e.category || '').trim().toLowerCase();
+                            if (catMatch === 'outsourced' || catMatch === 'outsource') return c.includes('outsource');
+                            return c === catMatch;
+                        });
+                    }
+                    
+                    if(!emps.length) return appAlert('Notice', 'No employees found for this selection.');
+
+                    // Track individual totals
+                    let empTotals = {};
+                    emps.forEach(e => {
+                        empTotals[e.id] = { tea:0, coffee:0, green:0, lemon:0, blackTea:0, blackCoffee:0, total:0 };
+                    });
+
+                    let html = `<div style="overflow-x:auto; background:#fff; border:1px solid #CBD5E1; border-radius:8px; box-shadow:inset 0 0 4px rgba(0,0,0,0.05);">
+                        <table style="width:100%; border-collapse:separate; border-spacing:0; font-size:11px; text-align:center; min-width:${emps.length * 60 + 45}px;">
+                            <thead style="background:#F1F5F9; position:sticky; top:0; z-index:3;">
+                                <tr>
+                                    <th rowspan="2" style="border-bottom:2px solid #0A56D0; border-right:1px solid #CBD5E1; padding:6px; min-width:45px; position:sticky; left:0; background:#F1F5F9; z-index:4;">Date</th>`;
+                    emps.forEach(emp => {
+                        let nameParts = emp.name.split(' ');
+                        let shortName = nameParts[0] + (nameParts.length > 1 ? ' ' + nameParts[nameParts.length-1].charAt(0) + '.' : '');
+                        html += `<th colspan="2" style="border-bottom:1px solid #CBD5E1; border-right:1px solid #CBD5E1; padding:4px; font-size:10px; color:#1E293B; line-height:1.2;">${safeStr(shortName)}</th>`;
+                    });
+                    html += `</tr><tr>`;
+                    emps.forEach(() => {
+                        html += `<th style="border-bottom:2px solid #0A56D0; border-right:1px dashed #CBD5E1; padding:4px; font-weight:800; color:#44474E; background:#F8FAFC;">M</th>
+                                 <th style="border-bottom:2px solid #0A56D0; border-right:1px solid #CBD5E1; padding:4px; font-weight:800; color:#44474E; background:#F8FAFC;">A</th>`;
+                    });
+                    html += `</tr></thead><tbody>`;
+
+                    const formatDrink = (val) => {
+                        if(!val || val === '-') return '-';
+                        let v = val.toLowerCase();
+                        if(v === 'tea') return '<span style="font-size:9px; font-weight:800;">Tea</span>';
+                        if(v === 'coffee') return '<span style="font-size:9px; font-weight:800;">Coffee</span>';
+                        if(v === 'green tea') return '<span style="font-size:9px; font-weight:800; color:#065F46;">Green Tea</span>';
+                        if(v === 'lemon tea') return '<span style="font-size:9px; font-weight:800; color:#92400E;">Lemon Tea</span>';
+                        if(v === 'black tea') return '<span style="font-size:9px; font-weight:800; color:#5B21B6;">Black Tea</span>';
+                        if(v === 'black coffee') return '<span style="font-size:9px; font-weight:800; color:#991B1B;">Black Coffee</span>';
+                        return `<span style="font-size:9px; font-weight:800;">${val}</span>`;
+                    };
+
+                    for (let d = 1; d <= daysInMonth; d++) {
+                        const dd = String(d).padStart(2,'0');
+                        const dmy = `${dd}/${mm}/${yy}`;
+                        const dObj = new Date(yy, mm - 1, d);
+                        const dayName = dObj.toLocaleDateString('en-US', { weekday: 'short' });
+                        
+                        html += `<tr><td style="border-bottom:1px solid #E2E8F0; border-right:1px solid #CBD5E1; padding:4px; font-weight:bold; position:sticky; left:0; background:#F8FAFC; z-index:1; color:#0A56D0;">${dd}<br><span style="font-size:8px; font-weight:normal; color:#64748B;">${dayName}</span></td>`;
+                        
+                        emps.forEach(emp => {
+                            const mLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Morning' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                            const aLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Afternoon' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                            
+                            const mVal = mLog ? mLog.drink : '-';
+                            const aVal = aLog ? aLog.drink : '-';
+                            
+                            html += `<td style="border-bottom:1px solid #E2E8F0; border-right:1px dashed #E2E8F0; padding:2px;">${formatDrink(mVal)}</td>`;
+                            html += `<td style="border-bottom:1px solid #E2E8F0; border-right:1px solid #CBD5E1; padding:2px;">${formatDrink(aVal)}</td>`;
+                            
+                            [mVal, aVal].forEach(val => {
+                                let v = (val || '').toLowerCase();
+                                if(v === 'tea') empTotals[emp.id].tea++;
+                                else if(v === 'coffee') empTotals[emp.id].coffee++;
+                                else if(v === 'green tea') empTotals[emp.id].green++;
+                                else if(v === 'lemon tea') empTotals[emp.id].lemon++;
+                                else if(v === 'black tea') empTotals[emp.id].blackTea++;
+                                else if(v === 'black coffee') empTotals[emp.id].blackCoffee++;
+                                
+                                if (v && v !== '-') empTotals[emp.id].total++;
+                            });
+                        });
+                        html += `</tr>`;
+                    }
+                    
+                    // Add Individual Employee Totals Rows
+                    const drinksArr = [
+                        { key: 'tea', label: 'Tea', color: '#1E3A8A', bg: '#EFF6FF' },
+                        { key: 'coffee', label: 'Coffee', color: '#475569', bg: '#F1F5F9' },
+                        { key: 'green', label: 'Green Tea', color: '#065F46', bg: '#ECFDF5' },
+                        { key: 'lemon', label: 'Lemon Tea', color: '#92400E', bg: '#FFFBEB' },
+                        { key: 'blackTea', label: 'Black Tea', color: '#5B21B6', bg: '#F5F3FF' },
+                        { key: 'blackCoffee', label: 'Black Coffee', color: '#991B1B', bg: '#FEF2F2' }
+                    ];
+                    
+                    drinksArr.forEach(d => {
+                        let anyDrank = false;
+                        emps.forEach(e => { if(empTotals[e.id][d.key] > 0) anyDrank = true; });
+                        
+                        if (anyDrank) {
+                            html += `<tr><td style="border-bottom:1px solid #CBD5E1; border-right:1px solid #CBD5E1; padding:4px 2px; font-weight:bold; position:sticky; left:0; background:${d.bg}; z-index:1; color:${d.color}; font-size:9px;">${d.label}</td>`;
+                            emps.forEach(emp => {
+                                let val = empTotals[emp.id][d.key] || '-';
+                                html += `<td colspan="2" style="border-bottom:1px solid #CBD5E1; border-right:1px solid #CBD5E1; padding:4px; font-weight:800; background:${d.bg}; color:${d.color}; font-size:12px;">${val}</td>`;
+                            });
+                            html += `</tr>`;
+                        }
+                    });
+
+                    html += `</tbody></table></div>`;
+
+                    const container = document.getElementById('printAreaContainer');
+                    container.style.zIndex = "99999999";
+                    
+                    const dateObjForTitle = new Date(month + '-01');
+                    const monthDisplayStr = dateObjForTitle.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+
+                    container.innerHTML = `
+                        <div class="preview-card" style="max-width:95vw; width:450px; height:90vh; max-height:90vh; padding:12px; border-radius:12px; display:flex; flex-direction:column; overflow:hidden; background:#F8FAFC;">
+                            <div class="preview-header hide-on-print" style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+                                <div style="display:flex; flex-direction:column; gap:4px;">
+                                    <h3 style="margin:0; font-size:14px; color:#0A56D0;">📊 Preview (${monthDisplayStr})</h3>
+                                    <input type="month" value="${month}" onchange="window.previewPantryMonthlyGrid(this.value, '${supplySource}', '${pantryId}', '${categoryVal}')" style="padding:4px 6px; border-radius:6px; border:1px solid #0A56D0; font-size:12px; font-weight:bold; color:#0A56D0; background:#fff; outline:none; max-width:140px;">
+                                </div>
+                                <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" style="background:#FEE2E2; border:none; color:#DC3545; padding:6px 12px; font-size:12px; border-radius:6px; font-weight:bold; cursor:pointer;">✕ Close</button>
+                            </div>
+                            <div class="preview-content" style="padding:0; overflow-y:auto; overflow-x:hidden; display:flex; flex-direction:column; flex:1; background:transparent;">
+                                ${html}
+                            </div>
+                        </div>
+                    `;
+                    container.classList.remove('hidden');
+                }               
                 setTimeout(window.loadMyRecordsData, 200);
             }
-
+                
             window.loadMyRecordsData = function() {
                 const dateVal = document.getElementById('myRecordsDate').value;
                 if (!dateVal) return;
@@ -5284,23 +5629,6 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                 document.getElementById('mStatBlackTea').textContent = blackTea;
                 document.getElementById('mStatBlackCoffee').textContent = blackCoffee;
                 document.getElementById('mStatGrand').textContent = grand;
-
-                const gridContainer = document.getElementById('myRecordsGridContainer');
-                if (gridContainer) {
-                    if (myLogs.length === 0) {
-                        gridContainer.innerHTML =
-                            `<p style="padding:20px; text-align:center; color:#64748B;">No entries for this date.</p>`;
-                    } else {
-                        let html =
-                            `<table class="my-records-table"><thead><tr><th>Employee</th><th>Session</th><th>Drink</th></tr></thead><tbody>`;
-                        myLogs.forEach(l => {
-                            html +=
-                                `<tr><td>${safeStr(l.employeeName)}</td><td>${safeStr(l.session)}</td><td>${safeStr(l.drink)}</td></tr>`;
-                        });
-                        html += '</tbody></table>';
-                        gridContainer.innerHTML = html;
-                    }
-                }
             };
 
             window.downloadMyRecordsExcel = function() {
@@ -6035,45 +6363,6 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                     case 'reports':
                         const todayYMD = new Date().toISOString().split('T')[0];
                         cont.innerHTML = `
-                  <div class="card" style="border:2px solid #0A56D0; background:#F8FAFC;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;"><h4 style="color:#0A56D0; font-size:1rem; margin:0;">📡 Live Daily Entry</h4></div>
-                    
-                    <div style="display:flex; gap:8px; margin-bottom:8px;">
-                        <input type="date" id="liveReportDate" value="${todayYMD}" style="flex:1; padding:10px; border-radius:8px; border:1px solid #CBD5E1;">
-                        <select id="liveReportType" style="flex:1; padding:10px; border-radius:8px; border:1px solid #CBD5E1;">
-                            <option value="regular">Regular Entries</option>
-                            <option value="extra">Extra Logs</option>
-                        </select>
-                    </div>
-                    <div style="display:flex; gap:8px; margin-bottom:12px;">
-                        <select id="liveReportPantry" style="flex:1; padding:10px; border-radius:8px; border:1px solid #CBD5E1;">
-                            <option value="All">All Pantry Boys</option>
-                            ${pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
-                        </select>
-                        <select id="liveReportSupply" style="flex:1; padding:10px; border-radius:8px; border:1px solid #CBD5E1; color:#0A56D0; font-weight:bold; background:#EFF6FF;">
-                            <option value="All">All Supply Sources</option>
-                            <option value="Contractor">☕ IA Caterers</option>
-                            <option value="DAU Direct Purchase">🛒 DAU Direct</option>
-                        </select>
-                    </div>
-
-                    <div style="overflow-x:auto; border-radius:8px; border:1px solid #CBD5E1; margin-bottom:12px;">
-                      <table style="width:100%; border-collapse:collapse; background:#fff; font-size:.85rem; text-align:left;">
-                        <thead style="background:#F1F5F9; color:#44474E;"><tr><th style="padding:10px; border-bottom:1px solid #CBD5E1;">Beverage Type</th><th style="padding:10px; border-bottom:1px solid #CBD5E1; text-align:center;">Total Cups</th></tr></thead>
-                        <tbody>
-                          <tr><td style="padding:8px 10px; border-bottom:1px solid #E2E8F0;">🍵 Tea</td><td style="padding:8px 10px; border-bottom:1px solid #E2E8F0; text-align:center; font-weight:bold;" id="liveTeaTotal">0</td></tr>
-                          <tr><td style="padding:8px 10px; border-bottom:1px solid #E2E8F0;">☕ Coffee</td><td style="padding:8px 10px; border-bottom:1px solid #E2E8F0; text-align:center; font-weight:bold;" id="liveCoffeeTotal">0</td></tr>
-                          <tr><td style="padding:8px 10px; border-bottom:1px solid #E2E8F0;">🍵 Green Tea</td><td style="padding:8px 10px; border-bottom:1px solid #E2E8F0; text-align:center; font-weight:bold;" id="liveGreenTotal">0</td></tr>
-                          <tr><td style="padding:8px 10px; border-bottom:1px solid #E2E8F0;">🍋 Lemon Tea</td><td style="padding:8px 10px; border-bottom:1px solid #E2E8F0; text-align:center; font-weight:bold;" id="liveLemonTotal">0</td></tr>
-                          <tr><td style="padding:8px 10px; border-bottom:1px solid #E2E8F0;">☕ Black Tea</td><td style="padding:8px 10px; border-bottom:1px solid #E2E8F0; text-align:center; font-weight:bold;" id="liveBlackTeaTotal">0</td></tr>
-                          <tr><td style="padding:8px 10px; border-bottom:1px solid #E2E8F0;">☕ Black Coffee</td><td style="padding:8px 10px; border-bottom:1px solid #E2E8F0; text-align:center; font-weight:bold;" id="liveBlackCoffeeTotal">0</td></tr>
-                        </tbody>
-                        <tfoot style="background:#EFF6FF;"><tr><td style="padding:10px; font-weight:bold; color:#146C43;">🏆 GRAND TOTAL</td><td style="padding:10px; font-weight:bold; color:#146C43; text-align:center;" id="liveGrandTotal">0</td></tr></tfoot>
-                      </table>
-                    </div>
-                    <div id="liveReportList" class="scroll-list-box" style="max-height:250px;"></div>
-                  </div>
-                  
                   <div class="card">
                     <h4 style="margin-bottom:14px; color:#44474E; font-size:1rem;">📥 Download & Print Reports</h4>
                     
@@ -6820,9 +7109,11 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                 if (!activePantry.length) { c.innerHTML =
                     `<p style="text-align:center; padding:20px; color:#74777F; font-size:.9rem;">No pantry staff.</p>`; return; }
                 c.innerHTML = activePantry.map(p => {
-                    const assigned = employeeList.filter(e => e.status !== 'Inactive' && e.assignedPantryId === p.id).map(e => e.name)
-                        .join(', ') || 'No employees';
-                    const leaveBadge = p.onLeave ? ' <span style="color:#DC3545; font-weight:700;">(On Leave)</span>' : '';
+                    // એમ્પ્લોયીનું લિસ્ટ એરે (Array) તરીકે લીધું છે 
+                    const assignedEmps = employeeList.filter(e => e.status !== 'Inactive' && e.assignedPantryId === p.id).map(e => e.name);
+                    const assignedCount = assignedEmps.length;
+
+                    const leaveBadge = p.onLeave ? ' <div style="color:#DC3545; font-weight:700; font-size:0.75rem; margin-top:2px;">(On Leave)</div>' : '';
                     
                     // --- NEW CODE: Online/Offline Badge બતાવવા માટે ---
                     const presence = (typeof pantryPresenceData !== 'undefined' && pantryPresenceData['pantry_' + p.id]) ? pantryPresenceData['pantry_' + p.id] : { state: 'offline' };
@@ -6835,22 +7126,50 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                         lastSeenText = ` • Last seen: ${dateStr} ${timeStr}`;
                     }
                     const statusBadge = isOnline 
-                        ? `<span style="background:#DCFCE7; color:#166534; padding:2px 6px; border-radius:12px; font-size:0.65rem; font-weight:bold; margin-left:6px; border:1px solid #BBF7D0;">🟢 Online</span>` 
-                        : `<span style="background:#F1F5F9; color:#64748B; padding:2px 6px; border-radius:12px; font-size:0.65rem; font-weight:bold; margin-left:6px; border:1px solid #E2E8F0;">🔴 Offline${lastSeenText}</span>`;
+                        ? `<span style="background:#DCFCE7; color:#166534; padding:2px 8px; border-radius:12px; font-size:0.65rem; font-weight:bold; margin-left:6px; border:1px solid #BBF7D0; align-self:center;">🟢 Online</span>` 
+                        : `<div style="color:#64748B; font-size:0.75rem; font-weight:600; margin-top:4px;">🔴 Offline${lastSeenText}</div>`;
                     // --------------------------------------------------
 
+                    // એન્ડ્રોઇડ જેવા 'Chips' UI માટેનો કોડ
+                    const chipsHtml = assignedCount > 0 
+                        ? assignedEmps.map(e => `<span style="background:#F1F5F9; color:#1E293B; font-size:0.75rem; padding:6px 12px; border-radius:100px; border:1px solid #CBD5E1; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.02);">👤 ${safeStr(e)}</span>`).join('') 
+                        : '<span style="color:#94A3B8; font-size:0.8rem; padding:4px;">No employees assigned</span>';
+
                     return `
-                <div class="employee-item" style="margin:6px 4px; flex-direction:column; align-items:stretch;">
-                  <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span><strong>${p.name}</strong>${statusBadge}${leaveBadge}<br><small style="color:#74777F;">📱 ${p.mobile} | 🔐 PIN: <strong style="color:#146C43;">${p.pin}</strong></small></span>
-                    <span style="display:flex; align-items:center; gap:4px;">
-                      <button class="editPantryBtn" data-id="${p.id}" style="background:transparent; border:none; cursor:pointer; font-size:1.1rem; padding:6px 8px; color:#0A56D0; border-radius:8px;">✏️</button>
-                      <button onclick="window.pantryDeleteHandler('pantry','${p.id}')" style="background:transparent; border:none; color:#DC3545; cursor:pointer; font-size:1.1rem; padding:6px 8px; border-radius:8px;">🗑</button>
-                      <input type="checkbox" class="pantryCheckbox" data-id="${p.id}" style="width:18px; height:18px; margin:0 0 0 4px; accent-color:#0A56D0;">
-                    </span>
+                <div class="card" style="margin:8px 4px 12px 4px; padding:16px; border-radius:16px; box-shadow:0 4px 12px rgba(0,0,0,0.05); border:1px solid #E2E8F0; background:#fff; position:relative;">
+                  <div style="position:absolute; top:16px; right:16px;">
+                     <input type="checkbox" class="pantryCheckbox" data-id="${p.id}" style="width:20px; height:20px; accent-color:#0A56D0; cursor:pointer;">
                   </div>
-                  <div style="margin-top:8px; padding-top:8px; border-top:1px dashed #CBD5E1; font-size:.8rem; color:#44474E; text-align:left;">
-                    <strong>👥 Assigned (${assigned ? assigned.split(',').length : 0}):</strong> <span style="color:#64748B;">${assigned}</span>
+                  
+                  <div style="display:flex; flex-direction:column; padding-right:30px;">
+                    <div style="display:flex; align-items:center;">
+                        <h3 style="margin:0; font-size:1.1rem; color:#1E293B; font-weight:800;">${safeStr(p.name)}</h3>
+                        ${isOnline ? statusBadge : ''}
+                    </div>
+                    ${!isOnline ? statusBadge : ''}
+                    ${leaveBadge}
+                    
+                    <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:12px; font-size:0.85rem; color:#44474E;">
+                        <span style="display:flex; align-items:center; gap:4px; background:#F8FAFC; padding:4px 8px; border-radius:8px; border:1px solid #E2E8F0;">📱 ${safeStr(p.mobile)}</span>
+                        <span style="display:flex; align-items:center; gap:4px; background:#F8FAFC; padding:4px 8px; border-radius:8px; border:1px solid #E2E8F0;">🔐 PIN: <strong style="color:#146C43;">${safeStr(p.pin)}</strong></span>
+                    </div>
+                  </div>
+                  
+                  <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+                    <button class="editPantryBtn" data-id="${p.id}" style="background:#EFF6FF; border:1px solid #BFDBFE; cursor:pointer; font-size:0.85rem; padding:6px 14px; color:#0A56D0; border-radius:8px; font-weight:700;">✏️ Edit</button>
+                    <button onclick="window.pantryDeleteHandler('pantry','${p.id}')" style="background:#FEF2F2; border:1px solid #FECACA; color:#DC3545; cursor:pointer; font-size:0.85rem; padding:6px 14px; border-radius:8px; font-weight:700;">🗑 Delete</button>
+                  </div>
+
+                  <div style="margin-top:14px; border-top:1px dashed #CBD5E1; padding-top:12px;">
+                    <details style="cursor:pointer; background:#F8FAFC; padding:10px 14px; border-radius:10px; border:1px solid #E2E8F0;">
+                        <summary style="font-weight:800; color:#0A56D0; font-size:0.9rem; outline:none; user-select:none; display:flex; justify-content:space-between; align-items:center;">
+                            <span>👥 Assigned Employees (${assignedCount})</span>
+                            <span style="font-size:0.75rem; background:#E2E8F0; padding:4px 10px; border-radius:100px; color:#1E293B;">View List ▼</span>
+                        </summary>
+                        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; max-height:180px; overflow-y:auto; padding-bottom:4px; padding-right:4px;">
+                            ${chipsHtml}
+                        </div>
+                    </details>
                   </div>
                 </div>
               `;
@@ -7646,15 +7965,18 @@ window.pantryDownloadExcelFile = function(wb, filename) {
             // ============================================================
             // NEW: PANTRY BOY DELIVERY REPORT (REGULAR & MEETINGS)
             // ============================================================
-            window.generatePantryBoyReport = function(type, isExcel) {
-                const month = document.getElementById('reportMonth')?.value;
-                if (!month) return appAlert('Error', 'Select month from top.');
+            window.generatePantryBoyReport = function(type, isExcel, overrideMonth, overrideSupply, overridePantryId) {
+                const month = overrideMonth || document.getElementById('reportMonth')?.value;
+                if (!month) return appAlert('Error', 'Select month.');
                 
-                const supplySource = document.getElementById('reportSupplySource')?.value || 'Contractor';
+                const supplySource = overrideSupply || document.getElementById('reportSupplySource')?.value || 'Contractor';
                 const supplyText = supplySource === 'Contractor' ? 'IA Caterer' : 'DAU Direct';
                 
-                const pantrySelectId = type === 'regular' ? 'pbReportPantryReg' : 'pbReportPantryMeet';
-                const selectedPantryId = document.getElementById(pantrySelectId).value;
+                let selectedPantryId = overridePantryId;
+                if (!selectedPantryId) {
+                    const pantrySelectId = type === 'regular' ? 'pbReportPantryReg' : 'pbReportPantryMeet';
+                    selectedPantryId = document.getElementById(pantrySelectId)?.value;
+                }
                 const pantryName = selectedPantryId === 'All' ? 'All Pantry Boys' : pantryTeam.find(p => p.id === selectedPantryId)?.name || 'Unknown';
                 
                 const dateObj = new Date(month + '-01');
@@ -8071,14 +8393,14 @@ window.pantryDownloadExcelFile = function(wb, filename) {
             // ============================================================
             // 4. ADMIN MONTHLY GRID EXPORT (EXCEL / PDF)
             // ============================================================
-            window.adminExportMonthlyGrid = function(format) {
-                const month = document.getElementById('reportMonth')?.value;
-                const pantryId = document.getElementById('gridExportPantrySelect').value;
-                const categoryVal = document.getElementById('gridExportCategorySelect').value;
-                const supplySource = document.getElementById('reportSupplySource')?.value || 'Contractor';
+            window.adminExportMonthlyGrid = function(format, overrideMonth, overrideSupply, overridePantry, overrideCat) {
+                const month = overrideMonth || document.getElementById('reportMonth')?.value;
+                const pantryId = overridePantry || document.getElementById('gridExportPantrySelect')?.value;
+                const categoryVal = overrideCat || document.getElementById('gridExportCategorySelect')?.value;
+                const supplySource = overrideSupply || document.getElementById('reportSupplySource')?.value || 'Contractor';
                 const supplyText = supplySource === 'Contractor' ? 'IA CATERERS' : 'DAU DIRECT PURCHASE';
                 
-                if (!month) return appAlert('Error', 'Select month from top.');
+                if (!month) return appAlert('Error', 'Select month.');
 
                 const [yy, mm] = month.split('-');
                 const daysInMonth = getDaysInMonth(yy, mm);
@@ -10441,6 +10763,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                             Purpose: rec.Purpose,
                             ReqName: rec.ReqName,
                             ServedBy: rec.ServedBy,
+                            Location: rec.Location || '-',
                             Timestamp: rec.Timestamp,
                             totalAmt: 0,
                             itemCount: 0,
@@ -10535,40 +10858,79 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 modal.id = 'mgSlipPopupOverlay';
                 modal.innerHTML = `
                     <div class="popup-card" style="width:95vw; max-width:400px; padding:12px; border-radius:8px;">
-                        <div style="display:flex; justify-content:flex-end; margin-bottom:4px;">
-                            <button onclick="document.getElementById('mgSlipPopupOverlay').remove()" style="background:transparent; border:none; color:#ef4444; font-size:18px; font-weight:bold;">✕</button>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center;">
+                            <button onclick="window.printMgSlipContent()" style="background:#0A56D0; color:#fff; border:none; padding:4px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">🖨️ Print Slip</button>
+                            <button onclick="document.getElementById('mgSlipPopupOverlay').remove()" style="background:transparent; border:none; color:#ef4444; font-size:18px; font-weight:bold; cursor:pointer;">✕</button>
                         </div>
                         
-                        <div class="slip-card">
-                            <div class="slip-header">Guest Slip</div>
-                            <div class="slip-date">Date: ${slip.DateFormatted}</div>
-                            <div class="slip-to">To,<br>Manager,<br><b style="font-size:14px; text-decoration:underline;">${slip.Vendor}</b></div>
+                        <div class="slip-card" id="mgSlipPrintableArea" style="background:#fff; border:1px dashed #94a3b8; border-radius:2px; padding:12px; margin:auto; max-width:400px; font-family: 'Courier New', monospace; color:#000;">
+                            <div class="slip-header" style="text-align:center; font-weight:bold; font-size:16px; text-decoration:underline; margin-bottom:10px;">GUEST SLIP</div>
+                            <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:10px;">
+                                <div><b>To,<br>Manager,</b><br><b style="font-size:14px; text-decoration:underline;">${slip.Vendor}</b></div>
+                                <div style="text-align:right;">
+                                    <b>Date:</b> ${slip.DateFormatted}<br>
+                                    <b>Location:</b> ${slip.Location || '-'}
+                                </div>
+                            </div>
                             
-                            <table class="slip-table">
+                            <table class="slip-table" style="width:100%; border-collapse:collapse; margin-bottom:10px; font-size:12px; border-top:1px solid #000; border-bottom:1px solid #000;">
                                 <thead>
                                     <tr>
-                                        <th style="width:45%;">Item</th>
-                                        <th style="width:15%; text-align:center;">Qty</th>
-                                        <th style="width:20%; text-align:center;">Rate</th>
-                                        <th style="width:20%; text-align:right;">Total</th>
+                                        <th style="text-align:left; padding:4px 2px; border-bottom:1px solid #000;">Item</th>
+                                        <th style="text-align:center; padding:4px 2px; border-bottom:1px solid #000; width:15%;">Qty</th>
+                                        <th style="text-align:center; padding:4px 2px; border-bottom:1px solid #000; width:20%;">Rate</th>
+                                        <th style="text-align:right; padding:4px 2px; border-bottom:1px solid #000; width:20%;">Total</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     ${itemRows}
                                     <tr style="border-top:1px solid #000; border-bottom:1px solid #000; background:#f8fafc;">
-                                        <td colspan="3" style="text-align:right; padding:6px 4px; font-weight:bold; font-size:12px;">Grand Total:</td>
-                                        <td style="text-align:right; padding:6px 4px; font-weight:bold; font-size:13px; color:#1e293b;">₹${slip.totalAmt.toFixed(2)}</td>
+                                        <td colspan="3" style="text-align:right; padding:6px 4px; font-weight:bold; font-size:13px;">Grand Total:</td>
+                                        <td style="text-align:right; padding:6px 4px; font-weight:bold; font-size:14px; color:#1e293b;">₹${slip.totalAmt.toFixed(2)}</td>
                                     </tr>
                                 </tbody>
                             </table>
 
-                            <div class="slip-footer-text"><b>Requisitioner's Name:</b> ${slip.ReqName}</div>
-                            <div class="slip-footer-text"><b>Purpose:</b> ${slip.Purpose}</div>
-                            <div class="slip-footer-text"><b>Served By:</b> ${slip.ServedBy}</div>
+                            <div style="font-size:11px; line-height:1.5;">
+                                <div><b>Req By:</b> ${slip.ReqName}</div>
+                                <div><b>Purpose:</b> ${slip.Purpose}</div>
+                                <div><b>Served By:</b> ${slip.ServedBy}</div>
+                            </div>
+                            <div style="margin-top:40px; display:flex; justify-content:space-between; font-size:11px; font-weight:bold;">
+                                <span>Pantry Sign</span>
+                                <span>Guest Sign</span>
+                            </div>
                         </div>
                     </div>
                 `;
                 document.body.appendChild(modal);
+            };
+
+            window.printMgSlipContent = function() {
+                const content = document.getElementById('mgSlipPrintableArea').outerHTML;
+                const container = document.getElementById('printAreaContainer');
+                container.style.zIndex = "999999999";
+                container.innerHTML = `
+                    <div class="preview-card" style="max-width:450px; width:95vw; height:auto; padding:20px;">
+                        <div class="preview-header hide-on-print" style="margin-bottom:16px; display:flex; justify-content:space-between;">
+                            <button onclick="window.print()" class="success" style="padding:8px 16px; border-radius:8px;">🖨️ Print Now</button>
+                            <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger" style="padding:8px 16px; border-radius:8px;">✕ Close</button>
+                        </div>
+                        <div class="preview-content" style="padding:0; background:#fff;">
+                            ${content}
+                        </div>
+                    </div>
+                    <style>
+                        @media print {
+                            body * { visibility: hidden !important; background: transparent !important; }
+                            #printAreaContainer, #printAreaContainer * { visibility: visible !important; }
+                            #printAreaContainer { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; background: #fff !important; }
+                            .preview-header { display: none !important; }
+                            .slip-card { border: none !important; width: 100% !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; }
+                        }
+                    </style>
+                `;
+                container.classList.remove('hidden');
             };
 
             // ✏️ Edit Group Function (આખી મીટિંગ એડિટ કરવા માટે)
@@ -10798,6 +11160,12 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 const container = document.getElementById('mgReviewSection');
                 if (!container) return;
                 
+                // જો કરન્ટ રોલ એડમિન ના હોય (એટલે કે પેન્ટ્રી બોય હોય), તો આ સેક્શન હાઈડ જ રાખો
+                if (window.mgCurrentRole !== 'admin') { 
+                    container.style.display = 'none'; 
+                    return; 
+                }
+                
                 const duplicatesToShow = typeof mgRecordsData !== 'undefined' ? mgRecordsData.filter(r => r.Status === 'Review') : [];
                 if(duplicatesToShow.length === 0) { container.style.display = 'none'; return; }
 
@@ -10882,16 +11250,22 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     });
                     
                     await db.ref().update(updates);
-                    document.getElementById('dupReviewModal').remove();
-                    appAlert('Success', `${checked.length} entries successfully ${action === 'approve' ? 'approved' : 'deleted'}.`);
                     
+                    // પહેલા ડીલીટ/અપડેટ કરો અને પછી ટેબલ રીફ્રેશ કરો
                     if (typeof window.renderMgHistoryTable === 'function') window.renderMgHistoryTable();
                     if (typeof window.renderMgReviewSection === 'function') window.renderMgReviewSection();
+                    
+                    // મોડલ બંધ કરો અને એલર્ટ બતાવો, પણ લિંકને મેન્ટેન રાખો
+                    const dupModal = document.getElementById('dupReviewModal');
+                    if(dupModal) dupModal.remove();
+                    
+                    // થોડો સમય આપીને એલર્ટ બતાવો જેથી UI પ્રોપરલી સેટ થઈ જાય
+                    setTimeout(() => {
+                        appAlert('Success', `${checked.length} entries successfully ${action === 'approve' ? 'approved' : 'deleted'}.`);
+                    }, 100);
                 });
             };
-        })();
-      
-		
+        })();	
 			// ===== Date Change & Auto Refresh Helpers =====
 window.refreshAllData = function() {
     if (typeof window.populateServe === 'function') window.populateServe();
