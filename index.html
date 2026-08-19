@@ -10933,15 +10933,9 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 container.classList.remove('hidden');
             };
 
-            // ✏️ Edit Group Function (આખી મીટિંગ એડિટ કરવા માટે)
+           // ✏️ Edit Group Function (આખી મીટિંગ એડિટ કરવા માટે)
             window.editMgGroup = function(encodedData) {
                 const slip = JSON.parse(decodeURIComponent(encodedData));
-                
-                if (slip.idsToDelete.some(it => it.isOld)) {
-                    const oldId = slip.idsToDelete.find(it => it.isOld).originalId;
-                    window.editMeetingEvent(oldId);
-                    return;
-                }
 
                 const modal = document.createElement('div');
                 modal.className = 'popup-overlay';
@@ -11092,8 +11086,17 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
 
                 const idsToDelete = JSON.parse(decodeURIComponent(document.getElementById('egIdsToDelete').value));
                 const updates = {};
+                let oldEventsDeleted = new Set();
+                
                 idsToDelete.forEach(it => {
-                    updates['meetingsGuestsRecords/' + it.id] = null;
+                    if (it.isOld) {
+                        if (!oldEventsDeleted.has(it.originalId)) {
+                            db.ref('eventLogs/' + it.originalId).remove();
+                            oldEventsDeleted.add(it.originalId);
+                        }
+                    } else {
+                        updates['meetingsGuestsRecords/' + it.id] = null;
+                    }
                 });
 
                 rows.forEach(row => {
