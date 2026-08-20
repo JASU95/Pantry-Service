@@ -629,14 +629,33 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
         }
         .preview-header {
-            padding: 14px 20px;
+            padding: 8px 10px !important;
             background: #F1F5F9;
             border-bottom: 1px solid #E2E8F0;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
+            display: flex !important;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px !important;
             flex-shrink: 0;
-            flex-wrap: wrap;
+            flex-wrap: nowrap !important; /* બધા બટનને ફોર્સફુલી એક જ લાઈનમાં રાખવા માટે */
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .preview-header button {
+            flex: 1; /* બટન સ્ક્રીન મુજબ ઓટોમેટિક સાઈઝ સેટ કરી લેશે */
+            padding: 8px 2px !important; /* બટન નાના અને કોમ્પેક્ટ કરવા */
+            font-size: 12px !important; 
+            font-weight: 700 !important;
+            min-height: 36px !important;
+            white-space: nowrap !important;
+            margin: 0 !important;
+            border-radius: 6px !important;
+            text-align: center;
+        }
+        .preview-header > div {
+            flex: 1.5;
+            min-width: 0;
+            overflow: hidden;
         }
         .preview-content {
             padding: 20px 24px;
@@ -1905,20 +1924,46 @@
             //  HELPERS
             // ============================================================
             function safeStr(v) { return v || ''; }
-             // મોબાઈલમાં .bin પ્રોબ્લેમ રોકવા માટેનું ઓફિશિયલ એક્સેલ ડાઉનલોડર
-window.pantryDownloadExcelFile = function(wb, filename) {
+             // મોબાઈલમાં .bin પ્રોબ્લેમ રોકવા માટેનું અને Capacitor Android માટે એડવાન્સ ડાઉનલોડર
+window.pantryDownloadExcelFile = async function(wb, filename) {
     const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename.endsWith('.xlsx') ? filename : filename + '.xlsx';
-    document.body.appendChild(link);
-    link.click();
-    setTimeout(() => {
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-    }, 150);
+    const fileNameWithExt = filename.endsWith('.xlsx') ? filename : filename + '.xlsx';
+
+    // 1. Android Capacitor WebView માટે (Share API) 
+    // આનાથી સીધું ડાઉનલોડ થવાને બદલે મોબાઈલનું Share Menu ખુલશે (જેથી એરર ના આવે)
+    try {
+        const file = new File([blob], fileNameWithExt, { type: blob.type });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+                files: [file],
+                title: fileNameWithExt
+            });
+            return; // જો શેર મેનુ ખુલી જાય તો કામ પૂરું
+        }
+    } catch (err) {
+        console.log("Share API failed or cancelled", err);
+    }
+
+    // 2. Desktop અને નોર્મલ બ્રાઉઝર માટે
+    const reader = new FileReader();
+    reader.onloadend = function() {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        
+        // એન્ડ્રોઇડ વેબવ્યુમાં blob કામ નથી કરતું, એટલે Base64 વાપરીશું
+        const isWebView = navigator.userAgent.toLowerCase().includes('wv') || (window.Capacitor && window.Capacitor.getPlatform() === 'android');
+        link.href = isWebView ? reader.result : url; 
+        
+        link.download = fileNameWithExt;
+        document.body.appendChild(link);
+        link.click();
+        setTimeout(() => {
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        }, 150);
+    };
+    reader.readAsDataURL(blob);
 };
             function getTodayInDMY() {
                 const d = new Date();
@@ -2469,24 +2514,36 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                 const mInput = targetRow.querySelector('input.mornDrink');
                 const aInput = targetRow.querySelector('input.aftDrink');
                 const selectedDateDMY = convertYMDtoDMY(document.getElementById('beverageEntryDate')?.value || new Date().toISOString().split('T')[0]);
+                const supplySource = targetRow.dataset.supply || 'Contractor';
                 
-                const matchedLogs = logsData.filter(l => l.employeeId === empId && l.date === selectedDateDMY);
+                const matchedLogs = logsData.filter(l => l.employeeId === empId && l.date === selectedDateDMY && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
                 const morning = matchedLogs.find(l => l.session === 'Morning');
                 const afternoon = matchedLogs.find(l => l.session === 'Afternoon');
 
                 const mVal = mInput ? mInput.value : '';
                 const aVal = aInput ? aInput.value : '';
 
+                // પર્ફેક્ટ યુનિક આઈડી જનરેટર 
+                const genId = (session) => 'log_' + empId + '_' + selectedDateDMY.replace(/\//g,'') + '_' + session + '_' + supplySource.substring(0,3);
+
                 if (morning) {
                     if (mVal === '') db.ref('logs/' + morning.id).remove();
                     else if (mVal && mVal !== morning.drink) db.ref('logs/' + morning.id).update({ drink: mVal });
-                } 
+                } else if (mVal && mVal !== '') {
+                    // જો સવારની એન્ટ્રી ખાલી હતી અને પેન્સિલથી નવી નાખી તો સેવ કરવા માટે
+                    const newId = genId('Morn');
+                    db.ref('logs/' + newId).set({ id: newId, employeeId: empId, employeeName: targetRow.dataset.name, drink: mVal, session: 'Morning', date: selectedDateDMY, pantryId: currentUser.id, pantryName: currentUser.name, supplySource: supplySource });
+                }
+
                 if (afternoon) {
                     if (aVal === '') db.ref('logs/' + afternoon.id).remove();
                     else if (aVal && aVal !== afternoon.drink) db.ref('logs/' + afternoon.id).update({ drink: aVal });
+                } else if (aVal && aVal !== '') {
+                     // જો બપોરની એન્ટ્રી ખાલી હતી અને પેન્સિલથી નવી નાખી તો સેવ કરવા માટે
+                    const newId = genId('Aft');
+                    db.ref('logs/' + newId).set({ id: newId, employeeId: empId, employeeName: targetRow.dataset.name, drink: aVal, session: 'Afternoon', date: selectedDateDMY, pantryId: currentUser.id, pantryName: currentUser.name, supplySource: supplySource });
                 }
 
-                // ⏳ ની જગ્યાએ 1 સેકન્ડ માટે ✅ બતાવીને પાછી પેન્સિલ ✏️ લાવી દેશે 
                 const editBtn = targetRow.querySelector('button');
                 if(editBtn) {
                     editBtn.innerHTML = '✅';
@@ -2934,7 +2991,7 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                     <button type="button" onclick="window.downloadMeetingSampleTemplate()" class="btn" style="flex:1; background:#0A56D0; font-size:0.8rem; min-height:38px;">📥 Format</button>
                     <label class="btn success" style="flex:1; font-size:0.8rem; min-height:38px; cursor:pointer; text-align:center; display:inline-flex; align-items:center; justify-content:center;">
                         📤 Import
-                        <input type="file" accept=".xlsx, .xls" onchange="window.importMeetingExcelFile(event)" style="display:none;">
+                        <input type="file" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, .xlsx, .xls" onchange="window.importMeetingExcelFile(event)" style="display:none;">
                     </label>
                 </div>
 
@@ -3505,7 +3562,7 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                     <button type="button" onclick="window.downloadCombinedWorkersTeaFormat()" class="btn" style="flex:1; background:#0A56D0; margin:0; padding:10px 4px; min-height:42px; border-radius:8px; font-size:.8rem; font-weight:bold;">📥 Format</button>
                     <label class="btn success" style="flex:1.5; margin:0; padding:10px 4px; min-height:42px; border-radius:8px; cursor:pointer; font-size:.8rem; display:flex; justify-content:center; align-items:center; font-weight:bold;">
                         📂 Upload
-                        <input type="file" accept=".xlsx, .xls" style="display:none;" onchange="window.masterImportWorkersTea(event)">
+                        <input type="file" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, .xlsx, .xls" style="display:none;" onchange="window.masterImportWorkersTea(event)">
                     </label>
                   </div>
                 </div>
@@ -3558,7 +3615,7 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                                 <div style="display:flex; gap:6px;">
                                     <button type="button" onclick="window.downloadWorkersTeaFormat('${dept}', '${month}')" class="btn sm" style="background:#0A56D0; padding:6px 10px; font-weight:bold; border-radius:6px;">📥 Format</button>
                                     <label class="btn sm success" style="margin:0; padding:6px 10px; font-weight:bold; border-radius:6px; cursor:pointer;">
-                                        📤 Import <input type="file" accept=".xlsx, .xls" style="display:none;" onchange="window.uploadWorkersTeaExcel(event, '${dept}', '${month}')">
+                                        📤 Import <input type="file" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, .xlsx, .xls" style="display:none;" onchange="window.uploadWorkersTeaExcel(event, '${dept}', '${month}')">
                                     </label>
                                 </div>
                             </div>
@@ -4481,7 +4538,7 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                             <!-- 2. Row: Supply, Category, Search -->
                             <div class="slim-ctrl-row" style="flex-shrink:0;">
                                 <select id="dailySupplySource" class="slim-inp" style="flex:0.8; font-size:10px!important; text-align-last:center; appearance:none;">
-                                    <option value="Contractor">☕ IA Caterer</option>
+                                    <option value="Contractor">☕ IA Caterers</option>
                                     ${hasDauAccess ? '<option value="DAU Direct Purchase">🛒 DAU Direct</option>' : ''}
                                 </select>
                                 <input id="pantryStaffSearch" class="slim-inp" placeholder="🔍 Search" style="flex:1; font-weight:normal; color:#1E293B;">
@@ -4543,10 +4600,24 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                         else if (dNum === 0) dayType = 'Sunday';
                     }
 
+                    // ફિલ્ટર લોજીક માટે કોમન ફંક્શન જેથી સ્પેસ કે નાના-મોટા અક્ષર નડે નહીં
+                    const checkCatAndSearch = (emp) => {
+                        if (cat !== 'All') {
+                            const empCat = (emp.category || '').trim().toLowerCase();
+                            const filterCat = cat.trim().toLowerCase();
+                            if (filterCat === 'outsourced' || filterCat === 'outsource') {
+                                if (!empCat.includes('outsource')) return false;
+                            } else if (empCat !== filterCat) {
+                                return false;
+                            }
+                        }
+                        if (search && !(emp.name || '').toLowerCase().includes(search)) return false;
+                        return true;
+                    };
+
                     let regularFiltered = employeeList.filter(emp => {
                         if (emp.assignedPantryId !== effectivePantryId) return false;
-                        if (cat !== 'All' && emp.category !== cat) return false;
-                        if (search && !emp.name.toLowerCase().includes(search)) return false;
+                        if (!checkCatAndSearch(emp)) return false;
                         if (supplySource === 'DAU Direct Purchase' && emp.dauTeaEligible !== true) return false;
                         
                         // જો કર્મચારી ડીલીટ (Inactive) હોય, તો જ બતાવો જો આજના દિવસે તેની કોઈ એન્ટ્રી હોય
@@ -4562,8 +4633,7 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                         const dayDuties = weekendDutiesData[dayType] || {};
                         specialFiltered = employeeList.filter(emp => {
                             if (dayDuties[emp.id] !== effectivePantryId) return false;
-                            if (cat !== 'All' && emp.category !== cat) return false;
-                            if (search && !emp.name.toLowerCase().includes(search)) return false;
+                            if (!checkCatAndSearch(emp)) return false;
                             if (supplySource === 'DAU Direct Purchase' && emp.dauTeaEligible !== true) return false;
                             
                             // જો કર્મચારી ડીલીટ (Inactive) હોય, તો જ બતાવો જો આજના દિવસે તેની કોઈ એન્ટ્રી હોય
@@ -4698,10 +4768,18 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                 const [yy, mm] = monthVal.split('-').map(Number);
                 const daysInMonth = getDaysInMonth(yy, mm);
 
+                // --- મહિનો શોર્ટમાં દેખાડવા માટે (e.g. JUL 26) ---
+                const shortMonthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+                const shortMonthLabel = `${shortMonthNames[mm - 1]} ${String(yy).slice(-2)}`;
+
                 const hasDauAccess = window.hasDauPurchasePermission ? window.hasDauPurchasePermission(currentUser.id) : true;
                 const supplySource = document.getElementById('monthlySupplySource')?.value || 'Contractor';
                 
                 const effectivePantryId = getEffectivePantryId(currentUser.id);
+                
+                // --- નવા ફિલ્ટરની વેલ્યુ લેવા ---
+                const searchQ = document.getElementById('monthlyGridSearch')?.value.toLowerCase().trim() || '';
+                const catFilter = document.getElementById('monthlyGridCat')?.value || 'All';
                 
                 const myAssigned = employeeList.filter(emp => {
                     let isMine = false;
@@ -4721,17 +4799,36 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                         const hasLogThisMonth = logsData.some(l => l.employeeId === emp.id && parseDMYToYMD(l.date).startsWith(monthVal));
                         if (!hasLogThisMonth) return false;
                     }
+                    
+                    // --- નવું ફિલ્ટર લોજીક (Category & Search) --- સ્પેસ અને કેપિટલ લેટર પ્રોબ્લેમ ફિક્સ ---
+                    if (catFilter !== 'All') {
+                        const empCat = (emp.category || '').trim().toLowerCase();
+                        const filterCat = catFilter.trim().toLowerCase();
+                        if (filterCat === 'outsourced' || filterCat === 'outsource') {
+                            if (!empCat.includes('outsource')) return false;
+                        } else if (empCat !== filterCat) {
+                            return false;
+                        }
+                    }
+                    if (searchQ && !(emp.name || '').toLowerCase().includes(searchQ)) return false;
+
                     return true;
-                });
+                });                
                 let selectedEmpId = document.getElementById('monthlyGridEmpPicker')?.value;
+                
+                // --- બીજો બગ ફિક્સ: જો બીજો પેન્ટ્રી બોય લોગીન થાય તો જૂના એમ્પ્લોયીનું આઈડી ક્લિયર કરવું ---
+                if (selectedEmpId && !myAssigned.some(e => e.id === selectedEmpId)) {
+                    selectedEmpId = null;
+                }
+                
                 if (!selectedEmpId && myAssigned.length > 0) {
                     selectedEmpId = myAssigned[0].id;
                 }
 
                 const currentIndex = myAssigned.findIndex(e => e.id === selectedEmpId);
                 const prevId = currentIndex > 0 ? myAssigned[currentIndex - 1].id : null;
-                const nextId = currentIndex < myAssigned.length - 1 ? myAssigned[currentIndex + 1].id : null;
-                const selectedEmp = myAssigned[currentIndex];
+                const nextId = currentIndex >= 0 && currentIndex < myAssigned.length - 1 ? myAssigned[currentIndex + 1].id : null;
+                const selectedEmp = currentIndex >= 0 ? myAssigned[currentIndex] : null;
 
                 const styleOverrides = `
                     <style>
@@ -4749,16 +4846,37 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                 const controlHtml = `
                     ${styleOverrides}
                     <div style="display:flex; flex-direction:column; gap:4px; flex-shrink:0; max-width:100%; overflow:hidden;">
-                        <!-- Top 4 Controls -->
-                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:4px; width:100%;">
-                            <input type="month" id="monthlyGridMonthPicker" class="us-top-ctrl" value="${monthVal}" onchange="window.saveAndRefreshGrid()">
+                        
+                        <!-- નવો ઉમેરેલો ફિલ્ટર રો (Category & Search) -->
+                        <div style="display:flex; gap:4px; width:100%;">
+                            <select id="monthlyGridCat" class="us-top-ctrl" style="flex:1;" onchange="window.saveAndRefreshGrid()">
+                                <option value="All" ${catFilter === 'All' ? 'selected' : ''}>All Cat.</option>
+                                <option value="Faculty" ${catFilter === 'Faculty' ? 'selected' : ''}>Faculty</option>
+                                <option value="Staff" ${catFilter === 'Staff' ? 'selected' : ''}>Staff</option>
+                                <option value="Law" ${catFilter === 'Law' ? 'selected' : ''}>Law</option>
+                                <option value="Outsourced" ${catFilter === 'Outsourced' ? 'selected' : ''}>Outsource</option>
+                            </select>
+                            <input type="text" id="monthlyGridSearch" class="us-top-ctrl" placeholder="🔍 Search Name..." value="${searchQ}" style="flex:2; text-align:left !important; padding-left:8px !important;" onchange="window.saveAndRefreshGrid()">
+                        </div>
+
+                        <!-- Top 4 Controls (Month, Supply, Format, Upload) -->
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 0.8fr 0.8fr; gap:4px; width:100%;">
+                            
+                            <!-- Custom Month Picker (ટૂંકું નામ બતાવવા) -->
+                            <div style="position:relative; width:100%; height:28px;">
+                                <div class="us-top-ctrl" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; background:#E0F2FE !important; color:#0284C7 !important;">
+                                    📅 ${shortMonthLabel}
+                                </div>
+                                <input type="month" id="monthlyGridMonthPicker" class="us-top-ctrl" value="${monthVal}" onchange="window.saveAndRefreshGrid()" style="opacity:0; position:absolute; top:0; left:0; width:100%; height:100%; cursor:pointer;">
+                            </div>
+                            
                             <select id="monthlySupplySource" class="us-top-ctrl" onchange="window.saveAndRefreshGrid()">
-                                <option value="Contractor" ${supplySource === 'Contractor' ? 'selected' : ''}>IA Caterer</option>
+                                <option value="Contractor" ${supplySource === 'Contractor' ? 'selected' : ''}>IA Caterers</option>
                                 ${hasDauAccess ? `<option value="DAU Direct Purchase" ${supplySource === 'DAU Direct Purchase' ? 'selected' : ''}>DAU Direct</option>` : ''}
                             </select>
-                            <button type="button" onclick="window.downloadMonthlyGridTemplate()" class="us-top-ctrl" style="cursor:pointer;">📥 Fmt</button>
-                            <label class="us-top-ctrl" style="cursor:pointer;">
-                                📤 Up<input type="file" id="monthlyGridExcelUpload" accept=".xlsx, .xls" style="display:none;" onchange="window.handleMonthlyGridExcelUpload(event)">
+                            <button type="button" onclick="window.downloadMonthlyGridTemplate()" class="us-top-ctrl" style="cursor:pointer; background:#1E293B !important; color:#fff !important; border:none !important;">📥 Fmt</button>
+                            <label class="us-top-ctrl" style="cursor:pointer; background:#10B981 !important; color:#fff !important; border:none !important;">
+                                📤 Up<input type="file" id="monthlyGridExcelUpload" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, .xlsx, .xls" style="display:none;" onchange="window.handleMonthlyGridExcelUpload(event)">
                             </label>
                         </div>
 
@@ -5165,44 +5283,26 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                     const selectedDMY = convertYMDtoDMY(dateVal);
                     const updates = {};
                     let saved = 0;
-                    const base = Date.now();
                     const rows = document.querySelectorAll('.bulk-entry-row');
                     if (!rows.length) return appAlert('Notice', 'No staff to process.');
 
-                    rows.forEach((row, idx) => {
+                    rows.forEach((row) => {
                         const empId = row.dataset.id;
                         const empName = row.dataset.name;
                         const supplySource = row.dataset.supply || row.querySelector('.mornDrink')?.dataset?.supply || 'Contractor';
                         const m = row.querySelector('.mornDrink');
                         const a = row.querySelector('.aftDrink');
+                        
+                        const genId = (session) => 'log_' + empId + '_' + selectedDMY.replace(/\//g,'') + '_' + session + '_' + supplySource.substring(0,3);
+
                         if (m && !m.disabled && m.value && m.value !== "-") {
-                            const id = 'log_' + (base + idx * 3) + '_' + Math.floor(Math.random() * 10000);
-                            updates[id] = {
-                                id,
-                                employeeId: empId,
-                                employeeName: empName,
-                                drink: m.value,
-                                session: 'Morning',
-                                date: selectedDMY,
-                                pantryId: currentUser.id,
-                                pantryName: currentUser.name,
-                                supplySource: supplySource
-                            };
+                            const id = genId('Morn');
+                            updates[id] = { id, employeeId: empId, employeeName: empName, drink: m.value, session: 'Morning', date: selectedDMY, pantryId: currentUser.id, pantryName: currentUser.name, supplySource: supplySource };
                             saved++;
                         }
                         if (a && !a.disabled && a.value && a.value !== "-") {
-                            const id = 'log_' + (base + idx * 3 + 1) + '_' + Math.floor(Math.random() * 10000);
-                            updates[id] = {
-                                id,
-                                employeeId: empId,
-                                employeeName: empName,
-                                drink: a.value,
-                                session: 'Afternoon',
-                                date: selectedDMY,
-                                pantryId: currentUser.id,
-                                pantryName: currentUser.name,
-                                supplySource: supplySource
-                            };
+                            const id = genId('Aft');
+                            updates[id] = { id, employeeId: empId, employeeName: empName, drink: a.value, session: 'Afternoon', date: selectedDMY, pantryId: currentUser.id, pantryName: currentUser.name, supplySource: supplySource };
                             saved++;
                         }
                     });
@@ -5216,7 +5316,6 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                         appAlert('Notice', 'No changes to save.');
                     }
                 };
-
                 renderBeverageModeContent('name');
             }
 
@@ -5297,16 +5396,16 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                 <div style="border-top:1px solid #E2E8F0; padding-top:10px; margin-top:10px;">
                   <h5 style="color:#059669; margin-bottom:6px; font-size:.85rem;">2. Delivery Report (Regular)</h5>
                   <div style="display:flex; gap:6px;">
-                    <button onclick="window.generateMyPantryReport('regular', false)" class="btn" style="background:#059669; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">👁️ Preview</button>
-                    <button onclick="window.generateMyPantryReport('regular', true)" class="success" style="background:#047857; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">📊 Excel</button>
+                    <button onclick="window.generatePantryBoyReport('regular', false, document.getElementById('pbReportMonth').value, document.getElementById('pbReportSupplySource').value, currentUser.id)" class="btn" style="background:#059669; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">👁️ Preview</button>
+                    <button onclick="window.generatePantryBoyReport('regular', true, document.getElementById('pbReportMonth').value, document.getElementById('pbReportSupplySource').value, currentUser.id)" class="success" style="background:#047857; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">📊 Excel</button>
                   </div>
                 </div>
 
                 <div style="border-top:1px solid #E2E8F0; padding-top:10px; margin-top:10px;">
                   <h5 style="color:#D97706; margin-bottom:6px; font-size:.85rem;">3. Delivery Report (Meetings)</h5>
                   <div style="display:flex; gap:6px;">
-                    <button onclick="window.generateMyPantryReport('meeting', false)" class="btn" style="background:#D97706; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">👁️ Preview</button>
-                    <button onclick="window.generateMyPantryReport('meeting', true)" class="success" style="background:#B45309; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">📊 Excel</button>
+                    <button onclick="window.generatePantryBoyReport('meeting', false, document.getElementById('pbReportMonth').value, document.getElementById('pbReportSupplySource').value, currentUser.id)" class="btn" style="background:#D97706; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">👁️ Preview</button>
+                    <button onclick="window.generatePantryBoyReport('meeting', true, document.getElementById('pbReportMonth').value, document.getElementById('pbReportSupplySource').value, currentUser.id)" class="success" style="background:#B45309; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">📊 Excel</button>
                   </div>
                 </div>
             `;
@@ -6364,114 +6463,105 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                     case 'reports':
                         const todayYMD = new Date().toISOString().split('T')[0];
                         cont.innerHTML = `
-                  <div class="card">
-                    <h4 style="margin-bottom:14px; color:#44474E; font-size:1rem;">📥 Download & Print Reports</h4>
+                  <div class="card" style="padding:10px;">
+                    <h4 style="margin:0 0 10px 0; color:#44474E; font-size:0.95rem; text-align:center;">📥 Reports & Downloads</h4>
                     
-                    <!-- NEW: Master Dropdown for Supply Source & Month -->
-                    <div style="display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap; background:#F1F5F9; padding:12px; border-radius:10px; border:1px solid #CBD5E1;">
-                        <div style="flex:1; min-width:150px;">
-                            <label style="font-size:.8rem; color:#44474E; font-weight:700;">Select Month</label>
-                            <input type="month" id="reportMonth" value="${new Date().toISOString().slice(0,7)}" style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; margin-top:4px;">
-                        </div>
-                        <div style="flex:1; min-width:150px;">
-                            <label style="font-size:.8rem; color:#0A56D0; font-weight:700;">Select Supply Source</label>
-                            <select id="reportSupplySource" style="width:100%; padding:10px; border-radius:8px; border:1px solid #0A56D0; color:#0A56D0; font-weight:bold; background:#fff; margin-top:4px;">
-                                <option value="Contractor">☕ IA Caterers (Contractor)</option>
-                                <option value="DAU Direct Purchase">🛒 DAU Direct Purchase</option>
-                            </select>
-                        </div>
+                    <!-- Master Dropdown for Supply Source & Month -->
+                    <div style="display:flex; gap:6px; margin-bottom:10px; background:#F1F5F9; padding:6px; border-radius:8px; border:1px solid #CBD5E1; align-items:center;">
+                        <input type="month" id="reportMonth" value="${new Date().toISOString().slice(0,7)}" style="flex:1; padding:6px; border-radius:6px; border:1px solid #CBD5E1; font-size:12px; margin:0; min-width:100px;">
+                        <select id="reportSupplySource" style="flex:1.2; padding:6px; border-radius:6px; border:1px solid #0A56D0; color:#0A56D0; font-weight:bold; background:#fff; font-size:12px; margin:0; min-width:100px;">
+                            <option value="Contractor">☕ IA Caterers</option>
+                            <option value="DAU Direct Purchase">🛒 DAU Direct</option>
+                        </select>
                     </div>
 
-                    <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:6px;">
-                        <h5 style="color:#44474E; margin-bottom:8px; font-size:.9rem;">1. Regular Daily Tea Report</h5>
-                        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; align-items:center;">
-                            <select id="reportCategory" style="padding:10px 12px; border-radius:10px; border:1px solid #CBD5E1; flex:1; min-width:140px;">
+                    <div style="border-top:1px solid #E2E8F0; padding-top:8px; margin-top:0;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <h5 style="color:#44474E; margin:0; font-size:12px;">1. Regular Daily Tea</h5>
+                            <label style="display:flex; align-items:center; gap:4px; font-weight:600; font-size:10px; color:#0A56D0; cursor:pointer;">
+                                <input type="checkbox" id="includeFeedbackCol" style="width:14px; height:14px; margin:0; accent-color:#0A56D0;"> +Feedback
+                            </label>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <select id="reportCategory" style="padding:6px; border-radius:6px; border:1px solid #CBD5E1; flex:1; font-size:12px; margin:0;">
                                 <option value="All">All Categories</option>
                                 <option>Faculty</option>
                                 <option>Staff</option>
                                 <option>Law</option>
                                 <option>Outsourced</option>
                             </select>
-                            <label style="display:flex; align-items:center; gap:6px; font-weight:600; font-size:12px; color:#0A56D0; background:#EFF6FF; padding:10px 12px; border-radius:10px; border:1px solid #BFDBFE; cursor:pointer;">
-                                <input type="checkbox" id="includeFeedbackCol" style="width:16px; height:16px; accent-color:#0A56D0;"> Add Feedback Column
-                            </label>
+                            <button id="previewRegularBtn" class="success" style="padding:6px 10px; font-size:11px; min-height:28px; border-radius:6px; flex:0.6;">👁️ Print</button>
                         </div>
-                        <button id="previewRegularBtn" class="success report-btn" style="width:100%;">👁️ Preview & Print</button>
                     </div>
-                    <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:8px;"><h5 style="color:#D97706; margin-bottom:8px; font-size:.9rem;">2. Extra Tea Report</h5><button id="previewExtraBtn" class="btn report-btn" style="background:#D97706;">👁️ Preview & Print</button></div>
-                    <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:8px;"><h5 style="color:#0A56D0; margin-bottom:8px; font-size:.9rem;">3. Meeting Refreshment Report</h5><button id="previewMeetingBtn" class="btn report-btn" style="background:#0A56D0;">👁️ Preview & Print</button></div>
-                    <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:8px;"><h5 style="color:#146C43; margin-bottom:8px; font-size:.9rem;">4. Regular Tea All Excel Download</h5><button id="downloadAllExcelBtn2" class="success report-btn" style="background:#146C43;">📊 Download All Categories Excel</button></div>
                     
-                    <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:8px;">
-                      <h5 style="color:#7C3AED; margin-bottom:8px; font-size:.9rem;">5. Monthly Grid Export (Admin)</h5>
-                      <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <select id="gridExportPantrySelect" style="flex:1; min-width:120px; padding:10px; border-radius:8px; border:1px solid #CBD5E1;">
+                    <div style="display:flex; gap:6px; border-top:1px solid #E2E8F0; padding-top:8px; margin-top:8px;">
+                        <button id="previewExtraBtn" class="btn" style="flex:1; background:#D97706; padding:6px; font-size:11px; min-height:28px; border-radius:6px;">☕ Extra Tea</button>
+                        <button id="previewMeetingBtn" class="btn" style="flex:1; background:#0A56D0; padding:6px; font-size:11px; min-height:28px; border-radius:6px;">🤝 Meetings</button>
+                    </div>
+                    
+                    <div style="margin-top:6px;">
+                        <button id="downloadAllExcelBtn2" class="success" style="width:100%; background:#146C43; padding:8px; font-size:12px; min-height:30px; border-radius:6px;">📊 Download All Regular Tea Excel</button>
+                    </div>
+                    
+                    <div style="border-top:1px solid #E2E8F0; padding-top:8px; margin-top:8px;">
+                      <h5 style="color:#7C3AED; margin:0 0 4px 0; font-size:12px;">5. Monthly Grid Export</h5>
+                      <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-bottom:4px;">
+                        <select id="gridExportPantrySelect" style="padding:6px; border-radius:6px; border:1px solid #CBD5E1; font-size:11px; margin:0;">
                           <option value="All">All Pantry</option>
                           ${pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
                         </select>
-                        <select id="gridExportCategorySelect" style="flex:1; min-width:120px; padding:10px; border-radius:8px; border:1px solid #CBD5E1;">
+                        <select id="gridExportCategorySelect" style="padding:6px; border-radius:6px; border:1px solid #CBD5E1; font-size:11px; margin:0;">
                           <option value="All">All Categories</option>
                           <option value="Faculty">Faculty</option>
                           <option value="Staff">Staff</option>
                           <option value="Law">Law</option>
                           <option value="Outsourced">Outsourced</option>
                         </select>
-                        <button id="downloadGridExcelBtn" class="success report-btn" style="background:#7C3AED; flex:1;">📗 Excel Export</button>
-                        <button id="printGridPdfBtn" class="btn report-btn" style="background:#6D28D9; flex:1;">📄 PDF / Print</button>
+                      </div>
+                      <div style="display:flex; gap:4px;">
+                        <button id="downloadGridExcelBtn" class="success" style="background:#7C3AED; flex:1; padding:6px; font-size:11px; min-height:28px; border-radius:6px;">📗 Excel</button>
+                        <button id="printGridPdfBtn" class="btn" style="background:#6D28D9; flex:1; padding:6px; font-size:11px; min-height:28px; border-radius:6px;">📄 PDF/Print</button>
                       </div>
                     </div>
 
-                    <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:8px;">
-                      <h5 style="color:#059669; margin-bottom:8px; font-size:.9rem;">6. Pantry Boy Delivery Report (Regular Entry)</h5>
-                      <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <select id="pbReportPantryReg" style="flex:2; min-width:120px; padding:10px; border-radius:8px; border:1px solid #CBD5E1;">
+                    <div style="border-top:1px solid #E2E8F0; padding-top:8px; margin-top:8px;">
+                      <h5 style="color:#059669; margin:0 0 4px 0; font-size:12px;">6. PB Delivery (Regular)</h5>
+                      <div style="display:flex; gap:4px;">
+                        <select id="pbReportPantryReg" style="flex:1.5; padding:6px; border-radius:6px; border:1px solid #CBD5E1; font-size:11px; margin:0;">
                           <option value="All">All Pantry Boys</option>
                           ${pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
                         </select>
-                        <button onclick="window.generatePantryBoyReport('regular', false)" class="btn report-btn" style="background:#059669; flex:1;">👁️ Preview</button>
-                        <button onclick="window.generatePantryBoyReport('regular', true)" class="success report-btn" style="background:#047857; flex:1;">📊 Excel</button>
+                        <button onclick="window.generatePantryBoyReport('regular', false)" class="btn" style="background:#059669; flex:1; padding:6px; font-size:11px; min-height:28px; border-radius:6px;">👁️ Print</button>
+                        <button onclick="window.generatePantryBoyReport('regular', true)" class="success" style="background:#047857; flex:1; padding:6px; font-size:11px; min-height:28px; border-radius:6px;">📊 Excel</button>
                       </div>
                     </div>
 
-                    <div style="border-top:1px solid #E2E8F0; padding-top:14px; margin-top:8px;">
-                      <h5 style="color:#D97706; margin-bottom:8px; font-size:.9rem;">7. Pantry Boy Delivery Report (Meetings - Beverages Only)</h5>
-                      <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <select id="pbReportPantryMeet" style="flex:2; min-width:120px; padding:10px; border-radius:8px; border:1px solid #CBD5E1;">
+                    <div style="border-top:1px solid #E2E8F0; padding-top:8px; margin-top:8px;">
+                      <h5 style="color:#D97706; margin:0 0 4px 0; font-size:12px;">7. PB Delivery (Meetings)</h5>
+                      <div style="display:flex; gap:4px;">
+                        <select id="pbReportPantryMeet" style="flex:1.5; padding:6px; border-radius:6px; border:1px solid #CBD5E1; font-size:11px; margin:0;">
                           <option value="All">All Pantry Boys</option>
                           ${pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
                         </select>
-                        <button onclick="window.generatePantryBoyReport('meeting', false)" class="btn report-btn" style="background:#D97706; flex:1;">👁️ Preview</button>
-                        <button onclick="window.generatePantryBoyReport('meeting', true)" class="success report-btn" style="background:#B45309; flex:1;">📊 Excel</button>
+                        <button onclick="window.generatePantryBoyReport('meeting', false)" class="btn" style="background:#D97706; flex:1; padding:6px; font-size:11px; min-height:28px; border-radius:6px;">👁️ Print</button>
+                        <button onclick="window.generatePantryBoyReport('meeting', true)" class="success" style="background:#B45309; flex:1; padding:6px; font-size:11px; min-height:28px; border-radius:6px;">📊 Excel</button>
                       </div>
                     </div>
 
-                    <!-- 8. NEW VERIFICATION MODULE (Dynamically adapts to IA or DAU) -->
-                    <div style="border-top:3px double #0A56D0; padding-top:16px; margin-top:16px; background:#F0FDF4; border-radius:12px; padding:14px; border:1px solid #BBF7D0;">
-                      <h5 style="color:#15803D; margin-bottom:4px; font-size:1rem; font-weight:700; display:flex; align-items:center; gap:6px;" id="verificationTitleLabel">🏪 Monthly Bill / Statement Verification</h5>
-                      <p style="font-size:0.78rem; color:#166534; margin-bottom:12px;">Compare and verify bill based on selected Supply Source.</p>
-                      
-                      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-                        <div>
-                            <label style="font-size:0.75rem; font-weight:600; color:#374151;">Select Billing Department</label>
-                            <select id="iaBillDepartment" style="padding:10px; border-radius:8px; border:1px solid #CBD5E1; margin:4px 0 0 0; background:#fff; font-weight:600; width:100%;">
-                                <option value="Faculty">Faculty</option>
-                                <option value="Staff">Staff</option>
-                                <option value="SoL">SoL (School of Law)</option>
-                                <option value="Outsource">Outsource (Outsourced Personnel)</option>
-                            </select>
-                        </div>
-                        <div style="display:flex; gap:6px;">
-                            <div style="flex:1;">
-                                <label style="font-size:0.75rem; font-weight:600; color:#374151;">CGST (%)</label>
-                                <input type="number" id="iaCGSTPercentage" value="0" min="0" step="0.1" style="padding:10px; border-radius:8px; border:1px solid #CBD5E1; margin:4px 0 0 0; text-align:center; width:100%; box-sizing:border-box;">
-                            </div>
-                            <div style="flex:1;">
-                                <label style="font-size:0.75rem; font-weight:600; color:#374151;">SGST (%)</label>
-                                <input type="number" id="iaSGSTPercentage" value="0" min="0" step="0.1" style="padding:10px; border-radius:8px; border:1px solid #CBD5E1; margin:4px 0 0 0; text-align:center; width:100%; box-sizing:border-box;">
-                            </div>
-                        </div>
+                    <!-- 8. VERIFICATION MODULE -->
+                    <div style="border-top:2px dashed #0A56D0; padding-top:8px; margin-top:10px; background:#F0FDF4; border-radius:8px; padding:8px; border:1px solid #BBF7D0;">
+                      <h5 style="color:#15803D; margin:0 0 6px 0; font-size:12px; font-weight:700;">🏪 Bill Verification</h5>
+                      <div style="display:flex; gap:4px; margin-bottom:6px;">
+                        <select id="iaBillDepartment" style="flex:1.5; padding:6px; border-radius:6px; border:1px solid #CBD5E1; background:#fff; font-weight:600; font-size:11px; margin:0;">
+                            <option value="Faculty">Faculty</option>
+                            <option value="Staff">Staff</option>
+                            <option value="SoL">SoL</option>
+                            <option value="Outsource">Outsource</option>
+                        </select>
+                        <input type="number" id="iaCGSTPercentage" placeholder="CGST%" value="0" min="0" step="0.1" style="flex:1; padding:6px; border-radius:6px; border:1px solid #CBD5E1; text-align:center; font-size:11px; margin:0;">
+                        <input type="number" id="iaSGSTPercentage" placeholder="SGST%" value="0" min="0" step="0.1" style="flex:1; padding:6px; border-radius:6px; border:1px solid #CBD5E1; text-align:center; font-size:11px; margin:0;">
                       </div>
-                      <button type="button" id="generateIACaterersBillBtn" class="success" style="width:100%; min-height:44px; font-weight:700; background:#166534; font-size:0.9rem; border-radius:8px; box-shadow:0 4px 10px rgba(22,101,52,0.2);">🧾 Verify & Print Bill</button>
+                      <button type="button" id="generateIACaterersBillBtn" class="success" style="width:100%; padding:8px; font-weight:700; background:#166534; font-size:12px; min-height:30px; border-radius:6px;">🧾 Verify & Print Bill</button>
                     </div>
 
                   </div>
@@ -7971,7 +8061,7 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                 if (!month) return appAlert('Error', 'Select month.');
                 
                 const supplySource = overrideSupply || document.getElementById('reportSupplySource')?.value || 'Contractor';
-                const supplyText = supplySource === 'Contractor' ? 'IA Caterer' : 'DAU Direct';
+                const supplyText = supplySource === 'Contractor' ? 'IA Caterers' : 'DAU Direct';
                 
                 let selectedPantryId = overridePantryId;
                 if (!selectedPantryId) {
@@ -10169,7 +10259,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                             
                             <!-- Action Bar -->
                             <div style="display: flex; gap: 4px; margin-bottom: 8px; flex-shrink: 0;">
-                                <input type="file" id="mgExcelFileInput" accept=".xlsx, .xls" style="display: none;" onchange="window.handleMgExcelUpload(event)">
+                                <input type="file" id="mgExcelFileInput" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, .xlsx, .xls" style="display: none;" onchange="window.handleMgExcelUpload(event)">
                                 <button onclick="window.downloadMgFormat()" style="flex:0.8;" class="mg-btn-sm" style="background:#f8fafc; color:#334155; border:1px solid #cbd5e1;">📥 Fmt</button>
                                 <button onclick="document.getElementById('mgExcelFileInput').click()" style="flex:1; background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd;" class="mg-btn-sm">📂 Import</button>
                                 <button onclick="window.openMgHistory()" style="flex:1.2; background:#fef3c7; color:#d97706; border:1px solid #fde68a;" class="mg-btn-sm">📜 History</button>
