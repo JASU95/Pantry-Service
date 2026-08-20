@@ -2040,6 +2040,7 @@ window.pantryDownloadExcelFile = function(wb, filename) {
             function openAppModal(title, message, isConfirm, onConfirm) {
                 const modal = document.createElement('div');
                 modal.className = 'popup-overlay';
+                modal.style.zIndex = '999999999'; // આ લાઈન નવી ઉમેરી જેથી એલર્ટ/કન્ફર્મેશન હંમેશા સૌથી ઉપર જ દેખાય
                 modal.innerHTML = `
               <div class="popup-card" style="text-align:center;">
                 <h3 style="color:#0A56D0; margin-top:0; margin-bottom:12px; font-size:1.2rem;">${title}</h3>
@@ -6233,7 +6234,7 @@ window.pantryDownloadExcelFile = function(wb, filename) {
                     case 'employees':
                         cont.innerHTML = `
                   <div class="merged-filter-row"><input id="employeeSearch" placeholder="🔍 Search employees..."><select id="categoryFilter"><option value="">All Categories</option><option>Faculty</option><option>Staff</option><option>Law</option><option>Outsourced</option></select><select id="pantryFilter"><option value="">All Pantry</option>${pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}</select></div>
-                  <div style="display:flex; gap:8px; margin-bottom:14px; flex-shrink:0;"><button id="addEmployeeBtn" style="flex:1; font-size:.85rem; min-height:40px;">+ Add</button><button id="importExcelBtn" class="success" style="flex:1; font-size:.85rem; min-height:40px;">📥 Import</button><button id="bulkDeleteBtn" class="danger" style="flex:1; font-size:.85rem; min-height:40px;">🗑 Delete</button></div>
+                  <div style="display:flex; gap:8px; margin-bottom:14px; flex-shrink:0;"><button id="addEmployeeBtn" style="flex:1; font-size:.85rem; min-height:40px;">+ Add</button><button id="importExcelBtn" class="success" style="flex:1; font-size:.85rem; min-height:40px;">?? Import</button><button id="bulkDeleteBtn" class="danger" style="flex:1; font-size:.85rem; min-height:40px;">🗑 Delete</button></div>
                   <div style="display:flex; align-items:center; margin-bottom:4px; padding:0 4px; flex-shrink:0;"><input type="checkbox" id="selectAllEmployees" style="width:18px; height:18px; margin:0 8px 0 0; accent-color:#0A56D0;"><label for="selectAllEmployees" style="font-weight:500; color:#44474E; font-size:.9rem;">Select All</label></div>
                   <div id="employeeListContainer" class="scroll-list-box"></div>
                 `;
@@ -10329,7 +10330,10 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                             
                             const isDuplicate = mgRecordsData.some(existing => {
                                 if (existing.Status === 'Review') return false;
-                                if (existing.RawDate !== rawYMD) return false;                              
+                                if (existing.RawDate !== rawYMD) return false; 
+                                if (existing.Time !== timeVal) return false; // સમય પણ સેમ હોવો જોઈએ
+                                if (existing.Location !== location) return false; // લોકેશન પણ સેમ હોવું જોઈએ
+                                
                                 const exPurp = cleanStr(existing.Purpose);
                                 const newPurp = cleanStr(purpose);
                                 const purpMatch = exPurp && newPurp && (exPurp.includes(newPurp) || newPurp.includes(exPurp));
@@ -10606,7 +10610,10 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     
                     const isDuplicate = mgRecordsData.some(existing => {
                         if (existing.Status === 'Review') return false; 
-                        if (existing.RawDate !== data.RawDate) return false; // તારીખ સેમ હોવી જોઈએ                        
+                        if (existing.RawDate !== data.RawDate) return false; // તારીખ સેમ હોવી જોઈએ
+                        if (existing.Time !== data.Time) return false; // સમય પણ સેમ હોવો જોઈએ
+                        if (existing.Location !== data.Location) return false; // લોકેશન પણ સેમ હોવું જોઈએ
+                        
                         // Purpose માં થોડું પણ મળતું આવતું હોય તો પકડી લેશે
                         const exPurp = cleanStr(existing.Purpose);
                         const newPurp = cleanStr(data.Purpose);
@@ -10933,17 +10940,34 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 container.classList.remove('hidden');
             };
 
-           // ✏️ Edit Group Function (આખી મીટિંગ એડિટ કરવા માટે)
+            // ✏️ Edit Group Function (આખી મીટિંગ એડિટ કરવા માટે)
             window.editMgGroup = function(encodedData) {
                 const slip = JSON.parse(decodeURIComponent(encodedData));
 
                 const modal = document.createElement('div');
                 modal.className = 'popup-overlay';
                 modal.id = 'mgEditGroupPopupOverlay';
-                
+
+                // 100% Robust Date Parser (કોઈપણ જૂની તારીખને બરાબર પકડવા માટે)
+                const forceYMD = (dStr) => {
+                    if (!dStr) return new Date().toISOString().split('T')[0];
+                    let s = dStr.toString().trim();
+                    if (s.match(/^\d{4}-\d{2}-\d{2}$/)) return s; // જો પહેલેથી YYYY-MM-DD હોય 
+                    let p = s.split(/[\/\-]/);
+                    if (p.length === 3) {
+                        if (p[2].length === 4) return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+                        if (p[0].length === 4) return `${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;
+                    }
+                    return new Date().toISOString().split('T')[0];
+                };
+
                 let rawDate = new Date().toISOString().split('T')[0];
-                if (slip.items.length > 0 && slip.items[0].RawDate) {
-                    rawDate = slip.items[0].RawDate;
+                if (slip.items.length > 0) {
+                    if (slip.items[0].RawDate) {
+                        rawDate = forceYMD(slip.items[0].RawDate);
+                    } else if (slip.items[0].DateFormatted) {
+                        rawDate = forceYMD(slip.items[0].DateFormatted);
+                    }
                 }
 
                 const getVendorOpts = (selectedVendor) => {
@@ -10951,12 +10975,14 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     canteenList.map(c => `<option value="${safeStr(c.name)}" ${selectedVendor === c.name ? 'selected':''}>${safeStr(c.name).substring(0,6)}</option>`).join('');
                 };
                 
-                let itemsHtml = slip.items.map((it, idx) => `
+                let itemsHtml = slip.items.map((it, idx) => {
+                    let itemDateYMD = it.RawDate ? forceYMD(it.RawDate) : (it.DateFormatted ? forceYMD(it.DateFormatted) : rawDate);
+                    return `
                     <div class="eg-row" style="display:flex; gap:2px; margin-bottom:4px; background:#f8fafc; padding:2px; border:1px solid #e2e8f0; border-radius:4px; align-items:center; width:100%; box-sizing:border-box;">
-                        <input type="date" class="eg-date mg-cmp-inp ultra-cmp" value="${it.RawDate || rawDate}" style="width:68px; flex-shrink:0; height:24px; min-width:0;">
+                        <input type="date" class="eg-date mg-cmp-inp ultra-cmp" value="${itemDateYMD}" style="width:68px; flex-shrink:0; height:24px; min-width:0;">
                         <div style="display:flex; align-items:center; background:#EFF6FF; border:1px solid #0A56D0; border-radius:4px; padding:0 4px; height:26px; box-sizing:border-box; flex-shrink:0;">
     <span style="font-size:12px; margin-right:2px;">🕒</span>
-    <input type="time" class="eg-time" value="09:00" style="border:none; outline:none; background:transparent; font-size:12px; padding:0; width:55px; font-weight:800; color:#0A56D0; cursor:pointer;">
+    <input type="time" class="eg-time" value="${it.Time || '09:00'}" style="border:none; outline:none; background:transparent; font-size:12px; padding:0; width:85px; font-weight:800; color:#0A56D0; cursor:pointer;">
 </div>
                         <select class="eg-vendor mg-cmp-inp ultra-cmp" style="width:52px; flex-shrink:0; height:24px; text-overflow:ellipsis; min-width:0;"><option value="">Vndr</option>${getVendorOpts(it.Vendor)}</select>
                         <input type="text" class="eg-item mg-cmp-inp ultra-cmp" value="${it.Item}" placeholder="Item" style="flex:1; min-width:0; height:24px;">
@@ -10964,7 +10990,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                         <input type="number" class="eg-rate mg-cmp-inp ultra-cmp" value="${it.Rate}" placeholder="₹" style="width:32px; text-align:center; flex-shrink:0; height:24px; min-width:0;">
                         <button type="button" onclick="this.closest('.eg-row').remove()" style="width:22px; height:24px; flex-shrink:0; background:#fee2e2; color:#dc3545; border:none; border-radius:3px; font-weight:bold; font-size:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;">✕</button>
                     </div>
-                `).join('');
+                `}).join('');
 
                 // અહી "Served By" નું Custom Dropdown ફંક્શન સેમ ટુ સેમ લાગુ કર્યું છે
                 let servedByHtml = '';
@@ -11052,9 +11078,9 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
 
                 row.innerHTML = `
                     <input type="date" class="eg-date mg-cmp-inp ultra-cmp" value="${defaultDate}" style="width:68px; flex-shrink:0; height:24px; min-width:0;">
-                    <div style="position:relative; width:22px; height:24px; flex-shrink:0; border:1px solid #cbd5e1; border-radius:3px; background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden;" title="Select Time">
-                        <span style="font-size:10px; pointer-events:none;">⏰</span>
-                        <input type="time" class="eg-time" value="09:00" style="position:absolute; opacity:0; width:100%; height:100%; cursor:pointer; left:0; top:0;">
+                    <div style="display:flex; align-items:center; background:#EFF6FF; border:1px solid #0A56D0; border-radius:4px; padding:0 4px; height:26px; box-sizing:border-box; flex-shrink:0;">
+                        <span style="font-size:12px; margin-right:2px;">🕒</span>
+                        <input type="time" class="eg-time" value="09:00" style="border:none; outline:none; background:transparent; font-size:12px; padding:0; width:85px; font-weight:800; color:#0A56D0; cursor:pointer;">
                     </div>
                     <select class="eg-vendor mg-cmp-inp ultra-cmp" style="width:52px; flex-shrink:0; height:24px; text-overflow:ellipsis; min-width:0;"><option value="">Vndr</option>${vendorOpts}</select>
                     <input type="text" class="eg-item mg-cmp-inp ultra-cmp" placeholder="Item" style="flex:1; min-width:0; height:24px;">
@@ -11086,17 +11112,8 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
 
                 const idsToDelete = JSON.parse(decodeURIComponent(document.getElementById('egIdsToDelete').value));
                 const updates = {};
-                let oldEventsDeleted = new Set();
-                
                 idsToDelete.forEach(it => {
-                    if (it.isOld) {
-                        if (!oldEventsDeleted.has(it.originalId)) {
-                            db.ref('eventLogs/' + it.originalId).remove();
-                            oldEventsDeleted.add(it.originalId);
-                        }
-                    } else {
-                        updates['meetingsGuestsRecords/' + it.id] = null;
-                    }
+                    updates['meetingsGuestsRecords/' + it.id] = null;
                 });
 
                 rows.forEach(row => {
