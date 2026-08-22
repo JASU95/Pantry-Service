@@ -1943,47 +1943,84 @@
             //  HELPERS
             // ============================================================
             function safeStr(v) { return v || ''; }
-             // મોબાઈલમાં .bin પ્રોબ્લેમ રોકવા માટેનું અને Capacitor Android માટે એડવાન્સ ડાઉનલોડર
-window.pantryDownloadExcelFile = async function(wb, filename) {
-    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const fileNameWithExt = filename.endsWith('.xlsx') ? filename : filename + '.xlsx';
+            // ============================================================
+            // UNIVERSAL APK BULLETPROOF DOWNLOAD ENGINE
+            // ============================================================
+            window.pantryDownloadExcelFile = async function(wb, filename) {
+                const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' }); // સીધું Base64 માં લખશે જેથી APK માં બ્લોક ના થાય
+                const fileNameWithExt = filename.endsWith('.xlsx') ? filename : filename + '.xlsx';
+                const mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+                const dataUri = 'data:' + mimeType + ';base64,' + wbout;
 
-    // 1. Android Capacitor WebView માટે (Share API) 
-    // આનાથી સીધું ડાઉનલોડ થવાને બદલે મોબાઈલનું Share Menu ખુલશે (જેથી એરર ના આવે)
-    try {
-        const file = new File([blob], fileNameWithExt, { type: blob.type });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({
-                files: [file],
-                title: fileNameWithExt
-            });
-            return; // જો શેર મેનુ ખુલી જાય તો કામ પૂરું
-        }
-    } catch (err) {
-        console.log("Share API failed or cancelled", err);
-    }
+                // 1. Android Capacitor Native Filesystem (જો પ્લગઇન હોય તો)
+                try {
+                    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem) {
+                        const { Filesystem, Directory } = window.Capacitor.Plugins;
+                        await Filesystem.writeFile({
+                            path: fileNameWithExt,
+                            data: wbout,
+                            directory: Directory.Documents, 
+                            recursive: true
+                        });
+                        appAlert('Download Success', 'ફાઈલ તમારા Documents ફોલ્ડરમાં સેવ થઈ ગઈ છે.');
+                        return;
+                    }
+                } catch (e) { console.log('Capacitor FS fail', e); }
 
-    // 2. Desktop અને નોર્મલ બ્રાઉઝર માટે
-    const reader = new FileReader();
-    reader.onloadend = function() {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        
-        // એન્ડ્રોઇડ વેબવ્યુમાં blob કામ નથી કરતું, એટલે Base64 વાપરીશું
-        const isWebView = navigator.userAgent.toLowerCase().includes('wv') || (window.Capacitor && window.Capacitor.getPlatform() === 'android');
-        link.href = isWebView ? reader.result : url; 
-        
-        link.download = fileNameWithExt;
-        document.body.appendChild(link);
-        link.click();
-        setTimeout(() => {
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-        }, 150);
-    };
-    reader.readAsDataURL(blob);
-};
+                // 2. Web Share API (APK માટે આ બેસ્ટ છે! ડાયરેક્ટ વોટ્સએપ કે ડ્રાઈવમાં સેવ કરવાનો ઓપ્શન આપશે)
+                try {
+                    const byteCharacters = atob(wbout);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], {type: mimeType});
+                    const file = new File([blob], fileNameWithExt, { type: mimeType });
+
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            files: [file],
+                            title: fileNameWithExt,
+                            text: 'Pantry Excel Report'
+                        });
+                        return; 
+                    }
+                } catch (err) {
+                    console.log("Share API failed", err);
+                }
+
+                // 3. નોર્મલ બ્રાઉઝર ડાઉનલોડ (Chrome / PC માટે)
+                try {
+                    const link = document.createElement('a');
+                    link.href = dataUri;
+                    link.download = fileNameWithExt;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                } catch(e) {
+                    console.log("Standard download failed", e);
+                }
+
+                // 4. EMERGENCY FALLBACK (કોઈ થર્ડ-પાર્ટી APK Builder હોય જે બધું જ બ્લોક કરતું હોય)
+                const isWebView = navigator.userAgent.toLowerCase().includes('wv') || (window.Capacitor && window.Capacitor.getPlatform() === 'android');
+                if (isWebView || true) { // કોઈ પણ સંજોગોમાં સેવ કરવા માટે પોપઅપ
+                    setTimeout(() => {
+                        const modal = document.createElement('div');
+                        modal.className = 'popup-overlay';
+                        modal.style.zIndex = '9999999999';
+                        modal.innerHTML = `
+                          <div class="popup-card" style="text-align:center; padding:20px; max-width:350px;">
+                            <h3 style="color:#146C43; margin-top:0;">📥 File Ready to Save</h3>
+                            <p style="font-size:13px; color:#444; margin-bottom:15px;">You are using the App version. Click the button below to force download or share the Excel file.</p>
+                            <a href="${dataUri}" download="${fileNameWithExt}" style="display:block; background:#0A56D0; color:white; padding:14px; text-decoration:none; border-radius:8px; margin-bottom:10px; font-weight:bold; font-size:14px; cursor:pointer; box-shadow:0 4px 6px rgba(10,86,208,0.3);">💾 Download / Open File</a>
+                            <button onclick="this.closest('.popup-overlay').remove()" class="danger" style="width:100%; padding:12px; border-radius:8px; font-weight:bold;">Close</button>
+                          </div>
+                        `;
+                        document.body.appendChild(modal);
+                    }, 600); // નોર્મલ ડાઉનલોડ ફેલ થાય તો અડધી સેકન્ડ પછી આ પોપઅપ બતાવો
+                }
+            };
             function getTodayInDMY() {
                 const d = new Date();
                 return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
