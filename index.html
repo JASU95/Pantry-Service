@@ -217,23 +217,42 @@
             opacity: 0.5;
             pointer-events: none;
         }
+        /* MOBILE DATE FIX */
+        input[type="date"], input[type="time"], input[type="month"] {
+            background-color: #ffffff !important;
+            color: #1e293b !important;
+            color-scheme: light !important;
+            appearance: none;
+            -webkit-appearance: none;
+            min-height: 38px;
+        }
 
-        /* ===== INPUTS ===== */
+        /* ===== UNIFORM INPUTS (GLOBAL COMPACT) ===== */
         input,
         select,
         textarea {
             width: 100%;
-            padding: 14px 16px;
+            padding: 10px 12px; /* પેડિંગ નાનું કર્યું */
             border: 1px solid #CBD5E1;
-            border-radius: 10px;
-            margin: 6px 0 14px;
-            font-size: 1rem;
+            border-radius: 8px; /* રાઉન્ડ કોર્નર સમાન કર્યા */
+            margin: 4px 0 10px;
+            font-size: 13px; /* ફોન્ટ માપના કર્યા */
             background: #fff;
             outline: none;
             box-sizing: border-box;
             transition: border .2s, box-shadow .2s;
             color: #1E293B;
             font-family: inherit;
+            min-height: 38px; /* ઊંચાઈ આખા એપમાં ફિક્સ કરી */
+            line-height: normal;
+        }
+        /* Mobile Date/Time/Month Picker Uniformity Fix */
+        input[type="date"], input[type="time"], input[type="month"] {
+            appearance: none;
+            -webkit-appearance: none;
+            min-height: 38px;
+            color: #1E293B;
+            background: #fff;
         }
         input:focus,
         select:focus,
@@ -3036,6 +3055,7 @@ window.pantryDownloadExcelFile = async function(wb, filename) {
                 </div>
 
                 <button type="button" id="${prefix}MeetingSubmitBtn" class="btn-submit">💾 SAVE ALL ENTRIES</button>
+<div style="height: 120px; width: 100%;"></div>
               </div>
               
               <div style="display:flex; justify-content:space-between; align-items:center; margin:16px 0 8px 4px;">
@@ -3243,57 +3263,52 @@ window.pantryDownloadExcelFile = async function(wb, filename) {
                             <button type="button" class="btn-remove" onclick="this.closest('.entry-card').remove(); window.calcMeetingTotal('${pref}'); window.updateFormSrNumbers('${pref}');" style="background:#ef4444; color:white; padding:6px 10px; font-size:12px; border:none; border-radius:6px;">✕</button>
                         </div>
                     </div>
-                    <!-- EXACT MOBILE FORM GRID -->
-                    <div class="form-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-                        <div>
-                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Date</label>
-                            <input type="date" class="item-row-date row-date" value="${lastDate}" onchange="window.updateRowVisuals('${rowId}', '${pref}')" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                    <!-- COMPACT MOBILE FORM GRID -->
+                    <div style="display:flex; flex-wrap:wrap; gap:8px; padding:4px 0;">
+                        <div style="flex:1; min-width:45%;">
+                            <label style="font-size:11px; font-weight:700; color:#475569;">Date</label>
+                            <input type="date" class="item-row-date row-date" value="${lastDate}" onchange="window.updateRowVisuals('${rowId}', '${pref}')" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; background:#fff;">
                         </div>
-                        <div>
-                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Day</label>
-                            <input type="text" class="item-row-day row-day day-badge" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; background:#dbeafe; color:#1e40af; font-weight:bold; text-align:center;" value="${dayName}" readonly>
-                        </div>
-                        <div class="full-width" style="grid-column: span 2;">
-                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Item Name</label>
-                            <input type="text" list="list_${rowId}" class="item-name row-item" placeholder="E.g. Samosa, Tea" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                        <div style="flex:1; min-width:45%;">
+                            <label style="font-size:11px; font-weight:700; color:#475569;">Item Name</label>
+                            <input type="text" list="list_${rowId}" class="item-name row-item" placeholder="E.g. Samosa, Tea" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; background:#fff;">
                             <datalist id="list_${rowId}"></datalist>
                         </div>
-                        <div>
-                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Qty</label>
-                            <input type="number" class="item-qty row-qty" placeholder="1" min="1" value="1" oninput="window.updateRowVisuals('${rowId}', '${pref}')" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                        <div style="flex:1; min-width:30%;">
+                            <label style="font-size:11px; font-weight:700; color:#475569;">Qty</label>
+                            <input type="number" class="item-qty row-qty" placeholder="1" min="1" value="1" oninput="window.updateRowVisuals('${rowId}', '${pref}')" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; background:#fff;">
                         </div>
-                        <div>
-                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Rate (₹)</label>
-                            <input type="number" class="item-rate row-rate" placeholder="0.00" min="0" value="" oninput="window.updateRowVisuals('${rowId}', '${pref}')" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                        <div style="flex:1; min-width:30%;">
+                            <label style="font-size:11px; font-weight:700; color:#475569;">Rate (₹)</label>
+                            <input type="number" class="item-rate row-rate" placeholder="0.00" oninput="window.updateRowVisuals('${rowId}', '${pref}')" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; background:#fff;">
                         </div>
-                        <div class="full-width" style="grid-column: span 2;">
-                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Amount (₹)</label>
-                            <input type="number" class="item-amount row-amount" placeholder="0.00" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; background:#f1f5f9; font-weight:bold;" readonly>
+                        <div style="flex:1; min-width:30%;">
+                            <label style="font-size:11px; font-weight:700; color:#475569;">Amount</label>
+                            <input type="text" class="item-amount row-amount" placeholder="0" readonly style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; background:#f1f5f9; font-weight:bold;">
                         </div>
-                        <div>
-                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Location</label>
-                            <input type="text" list="${locListId}" class="item-row-location row-location" placeholder="Campus" value="${lastLoc}" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
-                            <datalist id="${locListId}">${venueList.map(v => `<option value="${safeStr(v.name)}">`).join('')}</datalist>
-                        </div>
-                        <div>
-                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Vendor</label>
-                            <select class="item-vendor row-vendor" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; background:#fff;">
-                                <option value="">-- Vendor --</option>
+                        <div style="flex:1; min-width:45%;">
+                            <label style="font-size:11px; font-weight:700; color:#475569;">Vendor</label>
+                            <select class="item-vendor row-vendor" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; background:#fff;">
+                                <option value="">Vendor</option>
                                 ${vendorOpts}
                             </select>
                         </div>
-                        <div class="full-width" style="grid-column: span 2;">
-                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Served By</label>
-                            <select class="item-served-by row-served" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; background:#fff;">
-                                <option value="">-- Pantry Boy --</option>
-                                <option value="Multiple Pantry Boys" ${lastServed === 'Multiple Pantry Boys' ? 'selected':''}>Multiple Pantry Boys</option>
-                                <option value="Through Vendor" ${lastServed === 'Through Vendor' ? 'selected':''}>Through Vendor</option>
+                        <div style="flex:1; min-width:45%;">
+                            <label style="font-size:11px; font-weight:700; color:#475569;">Served By</label>
+                            <select class="item-served-by row-served" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; background:#fff;">
+                                <option value="">Pantry Boy</option>
+                                <option value="Multiple Pantry Boys" ${lastServed === 'Multiple Pantry Boys' ? 'selected':''}>Multiple</option>
+                                <option value="Through Vendor" ${lastServed === 'Through Vendor' ? 'selected':''}>Vendor</option>
                                 ${pantryOpts}
                             </select>
                         </div>
+                        <div style="flex:1; min-width:100%;">
+                            <label style="font-size:11px; font-weight:700; color:#475569;">Location</label>
+                            <input type="text" list="${locListId}" class="item-row-location row-location" placeholder="Campus" value="${lastLoc}" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; background:#fff;">
+                            <datalist id="${locListId}">${venueList.map(v => `<option value="${safeStr(v.name)}">`).join('')}</datalist>
+                        </div>
                     </div>
-                `;
-                
+                `;              
                 container.appendChild(card);
                 window.updateFormSrNumbers(pref);
                 
@@ -5318,11 +5333,10 @@ window.pantryDownloadExcelFile = async function(wb, filename) {
                 };
                 renderBeverageModeContent('name');
             }
-
             // ============================================================
             //  MY RECORDS (Only Tea/Coffee history)
             // ============================================================
-                        function renderLogsHistory() {
+            function renderLogsHistory() {
                 activePantryTab = 'logs';
                 const todayYMD = new Date().toISOString().split('T')[0];
                 const container = document.getElementById('pantryContent');
@@ -5396,310 +5410,511 @@ window.pantryDownloadExcelFile = async function(wb, filename) {
                 <div style="border-top:1px solid #E2E8F0; padding-top:10px; margin-top:10px;">
                   <h5 style="color:#059669; margin-bottom:6px; font-size:.85rem;">2. Delivery Report (Regular)</h5>
                   <div style="display:flex; gap:6px;">
-                    <button onclick="window.generatePantryBoyReport('regular', false, document.getElementById('pbReportMonth').value, document.getElementById('pbReportSupplySource').value, currentUser.id)" class="btn" style="background:#059669; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">👁️ Preview</button>
-                    <button onclick="window.generatePantryBoyReport('regular', true, document.getElementById('pbReportMonth').value, document.getElementById('pbReportSupplySource').value, currentUser.id)" class="success" style="background:#047857; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">📊 Excel</button>
+                    <button onclick="window.generateFreshPBDeliveryReport('regular', false)" class="btn" style="background:#059669; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">👁️ Preview</button>
+                    <button onclick="window.generateFreshPBDeliveryReport('regular', true)" class="success" style="background:#047857; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">📊 Excel</button>
                   </div>
                 </div>
 
                 <div style="border-top:1px solid #E2E8F0; padding-top:10px; margin-top:10px;">
                   <h5 style="color:#D97706; margin-bottom:6px; font-size:.85rem;">3. Delivery Report (Meetings)</h5>
                   <div style="display:flex; gap:6px;">
-                    <button onclick="window.generatePantryBoyReport('meeting', false, document.getElementById('pbReportMonth').value, document.getElementById('pbReportSupplySource').value, currentUser.id)" class="btn" style="background:#D97706; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">👁️ Preview</button>
-                    <button onclick="window.generatePantryBoyReport('meeting', true, document.getElementById('pbReportMonth').value, document.getElementById('pbReportSupplySource').value, currentUser.id)" class="success" style="background:#B45309; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">📊 Excel</button>
+                    <button onclick="window.generateFreshPBDeliveryReport('meeting', false)" class="btn" style="background:#D97706; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">👁️ Preview</button>
+                    <button onclick="window.generateFreshPBDeliveryReport('meeting', true)" class="success" style="background:#B45309; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">📊 Excel</button>
                   </div>
                 </div>
+              </div>
             `;
 
                 document.getElementById('myRecordsDate').addEventListener('change', window.loadMyRecordsData);
                 
-
                 document.getElementById('pbDownloadGridExcelBtn').onclick = () => {
                     const month = document.getElementById('pbReportMonth').value;
                     const supply = document.getElementById('pbReportSupplySource').value;
                     const cat = document.getElementById('pbGridExportCategory').value;
                     window.previewPantryMonthlyGrid(month, supply, currentUser.id, cat);
                 };
-
-                window.previewPantryMonthlyGrid = function(month, supplySource, pantryId, categoryVal) {
-                    if (!month) return appAlert('Error', 'Select month.');
-                    const [yy, mm] = month.split('-');
-                    const daysInMonth = getDaysInMonth(yy, mm);
-                    
-                    let emps = employeeList.filter(e => {
-                        if (e.assignedPantryId !== pantryId) return false;
-                        if (e.status === 'Inactive') {
-                            const hasLogThisMonth = logsData.some(l => l.employeeId === e.id && parseDMYToYMD(l.date).startsWith(month));
-                            if (!hasLogThisMonth) return false;
-                        }
-                        return true;
-                    });
-                    
-                    if (categoryVal !== 'All') {
-                        const catMatch = categoryVal.trim().toLowerCase();
-                        emps = emps.filter(e => {
-                            const c = (e.category || '').trim().toLowerCase();
-                            if (catMatch === 'outsourced' || catMatch === 'outsource') return c.includes('outsource');
-                            return c === catMatch;
-                        });
-                    }
-                    
-                    if(!emps.length) return appAlert('Notice', 'No employees found for this selection.');
-
-                    let empTotals = {};
-                    emps.forEach(e => {
-                        empTotals[e.id] = { tea:0, coffee:0, green:0, lemon:0, blackTea:0, blackCoffee:0 };
-                    });
-
-                    let html = `<div style="overflow-x:auto; background:#fff; border:1px solid #CBD5E1; border-radius:8px; box-shadow:inset 0 0 4px rgba(0,0,0,0.05); padding-bottom:8px;">
-                        <table style="width:100%; border-collapse:separate; border-spacing:0; font-size:12px; text-align:center; min-width:${emps.length * 75 + 55}px;">
-                            <thead style="background:#F1F5F9; position:sticky; top:0; z-index:3;">
-                                <tr>
-                                    <th rowspan="2" style="border-bottom:2px solid #0A56D0; border-right:1px solid #CBD5E1; padding:6px; min-width:55px; position:sticky; left:0; background:#F1F5F9; z-index:4;">Date</th>`;
-                    emps.forEach(emp => {
-                        let nameParts = emp.name.split(' ');
-                        let shortName = nameParts[0] + (nameParts.length > 1 ? ' ' + nameParts[nameParts.length-1].charAt(0) + '.' : '');
-                        html += `<th colspan="2" style="border-bottom:1px solid #CBD5E1; border-right:1px solid #CBD5E1; padding:6px 4px; font-size:12px; color:#1E293B; line-height:1.2;">${safeStr(shortName)}</th>`;
-                    });
-                    html += `</tr><tr>`;
-                    emps.forEach(() => {
-                        html += `<th style="border-bottom:2px solid #0A56D0; border-right:1px dashed #CBD5E1; padding:4px; font-weight:800; color:#44474E; background:#F8FAFC; width:35px;">M</th>
-                                 <th style="border-bottom:2px solid #0A56D0; border-right:1px solid #CBD5E1; padding:4px; font-weight:800; color:#44474E; background:#F8FAFC; width:35px;">A</th>`;
-                    });
-                    html += `</tr></thead><tbody>`;
-
-                    const formatDrink = (val) => {
-                        if(!val || val === '-') return '-';
-                        let v = val.toLowerCase();
-                        if(v === 'tea') return '<span style="font-size:11px; font-weight:800; color:#1E3A8A;">Tea</span>';
-                        if(v === 'coffee') return '<span style="font-size:11px; font-weight:800; color:#475569;">Coffee</span>';
-                        if(v === 'green tea') return '<span style="font-size:11px; font-weight:800; color:#065F46;">Green Tea</span>';
-                        if(v === 'lemon tea') return '<span style="font-size:11px; font-weight:800; color:#92400E;">Lemon Tea</span>';
-                        if(v === 'black tea') return '<span style="font-size:11px; font-weight:800; color:#5B21B6;">Black Tea</span>';
-                        if(v === 'black coffee') return '<span style="font-size:11px; font-weight:800; color:#991B1B;">Black Coffee</span>';
-                        return `<span style="font-size:11px; font-weight:800;">${val}</span>`;
-                    };
-
-                    for (let d = 1; d <= daysInMonth; d++) {
-                        const dd = String(d).padStart(2,'0');
-                        const dmy = `${dd}/${mm}/${yy}`;
-                        const dObj = new Date(yy, mm - 1, d);
-                        const dayName = dObj.toLocaleDateString('en-US', { weekday: 'short' });
-                        
-                        html += `<tr><td style="border-bottom:1px solid #E2E8F0; border-right:1px solid #CBD5E1; padding:6px 4px; font-weight:bold; position:sticky; left:0; background:#F8FAFC; z-index:1; color:#0A56D0;">${dd}<br><span style="font-size:9px; font-weight:normal; color:#64748B;">${dayName}</span></td>`;
-                        
-                        emps.forEach(emp => {
-                            const mLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Morning' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
-                            const aLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Afternoon' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
-                            
-                            const mVal = mLog ? mLog.drink : '-';
-                            const aVal = aLog ? aLog.drink : '-';
-                            
-                            html += `<td style="border-bottom:1px solid #E2E8F0; border-right:1px dashed #E2E8F0; padding:6px 2px;">${formatDrink(mVal)}</td>`;
-                            html += `<td style="border-bottom:1px solid #E2E8F0; border-right:1px solid #CBD5E1; padding:6px 2px;">${formatDrink(aVal)}</td>`;
-                            
-                            [mVal, aVal].forEach(val => {
-                                let v = (val || '').toLowerCase();
-                                if(v === 'tea') empTotals[emp.id].tea++;
-                                else if(v === 'coffee') empTotals[emp.id].coffee++;
-                                else if(v === 'green tea') empTotals[emp.id].green++;
-                                else if(v === 'lemon tea') empTotals[emp.id].lemon++;
-                                else if(v === 'black tea') empTotals[emp.id].blackTea++;
-                                else if(v === 'black coffee') empTotals[emp.id].blackCoffee++;
-                            });
-                        });
-                        html += `</tr>`;
-                    }
-                    
-                    const drinksArr = [
-                        { key: 'tea', label: 'Tea', color: '#1E3A8A', bg: '#EFF6FF' },
-                        { key: 'coffee', label: 'Coffee', color: '#475569', bg: '#F1F5F9' },
-                        { key: 'green', label: 'Green Tea', color: '#065F46', bg: '#ECFDF5' },
-                        { key: 'lemon', label: 'Lemon Tea', color: '#92400E', bg: '#FFFBEB' },
-                        { key: 'blackTea', label: 'Black Tea', color: '#5B21B6', bg: '#F5F3FF' },
-                        { key: 'blackCoffee', label: 'Black Coffee', color: '#991B1B', bg: '#FEF2F2' }
-                    ];
-                    
-                    drinksArr.forEach(d => {
-                        let anyDrank = false;
-                        emps.forEach(e => { if(empTotals[e.id][d.key] > 0) anyDrank = true; });
-                        
-                        if (anyDrank) {
-                            html += `<tr><td style="border-bottom:1px solid #CBD5E1; border-right:1px solid #CBD5E1; padding:8px 2px; font-weight:bold; position:sticky; left:0; background:${d.bg}; z-index:1; color:${d.color}; font-size:11px;">${d.label}</td>`;
-                            emps.forEach(emp => {
-                                let val = empTotals[emp.id][d.key] || '-';
-                                html += `<td colspan="2" style="border-bottom:1px solid #CBD5E1; border-right:1px solid #CBD5E1; padding:8px; font-weight:800; background:${d.bg}; color:${d.color}; font-size:13px;">${val}</td>`;
-                            });
-                            html += `</tr>`;
-                        }
-                    });
-
-                    html += `</tbody></table></div>`;
-
-                    const container = document.getElementById('printAreaContainer');
-                    container.style.zIndex = "99999999";
-                    
-                    container.innerHTML = `
-                        <div class="preview-card" style="max-width:95vw; width:450px; height:90vh; max-height:90vh; padding:12px; border-radius:12px; display:flex; flex-direction:column; overflow:hidden; background:#F8FAFC;">
-                            <div class="preview-header hide-on-print" style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
-                                <div style="display:flex; align-items:center; gap:8px;">
-                                    <h3 style="margin:0; font-size:14px; color:#0A56D0;">📊 Monthly Preview</h3>
-                                    <input type="month" value="${month}" onchange="window.previewPantryMonthlyGrid(this.value, '${supplySource}', '${pantryId}', '${categoryVal}')" style="padding:4px 6px; border-radius:6px; border:1px solid #0A56D0; font-size:12px; font-weight:bold; color:#0A56D0; background:#fff; outline:none;">
-                                </div>
-                                <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" style="background:#FEE2E2; border:none; color:#DC3545; padding:6px 12px; font-size:12px; border-radius:6px; font-weight:bold; cursor:pointer;">✕ Close</button>
-                            </div>
-                            <div class="preview-content" style="padding:0; overflow-y:auto; overflow-x:hidden; display:flex; flex-direction:column; flex:1; background:transparent;">
-                                ${html}
-                            </div>
-                        </div>
-                    `;
-                    container.classList.remove('hidden');
-                }
-                window.previewPantryMonthlyGrid = function(month, supplySource, pantryId, categoryVal) {
-                    if (!month) return appAlert('Error', 'Select month.');
-                    const [yy, mm] = month.split('-');
-                    const daysInMonth = getDaysInMonth(yy, mm);
-                    
-                    // 1. Filter active employees properly + logic for category 'All'
-                    let emps = employeeList.filter(e => {
-                        if (e.assignedPantryId !== pantryId) return false;
-                        // Remove Inactive if no logs in this month
-                        if (e.status === 'Inactive') {
-                            const hasLogThisMonth = logsData.some(l => l.employeeId === e.id && parseDMYToYMD(l.date).startsWith(month));
-                            if (!hasLogThisMonth) return false;
-                        }
-                        return true;
-                    });
-                    
-                    if (categoryVal !== 'All') {
-                        const catMatch = categoryVal.trim().toLowerCase();
-                        emps = emps.filter(e => {
-                            const c = (e.category || '').trim().toLowerCase();
-                            if (catMatch === 'outsourced' || catMatch === 'outsource') return c.includes('outsource');
-                            return c === catMatch;
-                        });
-                    }
-                    
-                    if(!emps.length) return appAlert('Notice', 'No employees found for this selection.');
-
-                    // Track individual totals
-                    let empTotals = {};
-                    emps.forEach(e => {
-                        empTotals[e.id] = { tea:0, coffee:0, green:0, lemon:0, blackTea:0, blackCoffee:0, total:0 };
-                    });
-
-                    let html = `<div style="overflow-x:auto; background:#fff; border:1px solid #CBD5E1; border-radius:8px; box-shadow:inset 0 0 4px rgba(0,0,0,0.05);">
-                        <table style="width:100%; border-collapse:separate; border-spacing:0; font-size:11px; text-align:center; min-width:${emps.length * 60 + 45}px;">
-                            <thead style="background:#F1F5F9; position:sticky; top:0; z-index:3;">
-                                <tr>
-                                    <th rowspan="2" style="border-bottom:2px solid #0A56D0; border-right:1px solid #CBD5E1; padding:6px; min-width:45px; position:sticky; left:0; background:#F1F5F9; z-index:4;">Date</th>`;
-                    emps.forEach(emp => {
-                        let nameParts = emp.name.split(' ');
-                        let shortName = nameParts[0] + (nameParts.length > 1 ? ' ' + nameParts[nameParts.length-1].charAt(0) + '.' : '');
-                        html += `<th colspan="2" style="border-bottom:1px solid #CBD5E1; border-right:1px solid #CBD5E1; padding:4px; font-size:10px; color:#1E293B; line-height:1.2;">${safeStr(shortName)}</th>`;
-                    });
-                    html += `</tr><tr>`;
-                    emps.forEach(() => {
-                        html += `<th style="border-bottom:2px solid #0A56D0; border-right:1px dashed #CBD5E1; padding:4px; font-weight:800; color:#44474E; background:#F8FAFC;">M</th>
-                                 <th style="border-bottom:2px solid #0A56D0; border-right:1px solid #CBD5E1; padding:4px; font-weight:800; color:#44474E; background:#F8FAFC;">A</th>`;
-                    });
-                    html += `</tr></thead><tbody>`;
-
-                    const formatDrink = (val) => {
-                        if(!val || val === '-') return '-';
-                        let v = val.toLowerCase();
-                        if(v === 'tea') return '<span style="font-size:9px; font-weight:800;">Tea</span>';
-                        if(v === 'coffee') return '<span style="font-size:9px; font-weight:800;">Coffee</span>';
-                        if(v === 'green tea') return '<span style="font-size:9px; font-weight:800; color:#065F46;">Green Tea</span>';
-                        if(v === 'lemon tea') return '<span style="font-size:9px; font-weight:800; color:#92400E;">Lemon Tea</span>';
-                        if(v === 'black tea') return '<span style="font-size:9px; font-weight:800; color:#5B21B6;">Black Tea</span>';
-                        if(v === 'black coffee') return '<span style="font-size:9px; font-weight:800; color:#991B1B;">Black Coffee</span>';
-                        return `<span style="font-size:9px; font-weight:800;">${val}</span>`;
-                    };
-
-                    for (let d = 1; d <= daysInMonth; d++) {
-                        const dd = String(d).padStart(2,'0');
-                        const dmy = `${dd}/${mm}/${yy}`;
-                        const dObj = new Date(yy, mm - 1, d);
-                        const dayName = dObj.toLocaleDateString('en-US', { weekday: 'short' });
-                        
-                        html += `<tr><td style="border-bottom:1px solid #E2E8F0; border-right:1px solid #CBD5E1; padding:4px; font-weight:bold; position:sticky; left:0; background:#F8FAFC; z-index:1; color:#0A56D0;">${dd}<br><span style="font-size:8px; font-weight:normal; color:#64748B;">${dayName}</span></td>`;
-                        
-                        emps.forEach(emp => {
-                            const mLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Morning' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
-                            const aLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Afternoon' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
-                            
-                            const mVal = mLog ? mLog.drink : '-';
-                            const aVal = aLog ? aLog.drink : '-';
-                            
-                            html += `<td style="border-bottom:1px solid #E2E8F0; border-right:1px dashed #E2E8F0; padding:2px;">${formatDrink(mVal)}</td>`;
-                            html += `<td style="border-bottom:1px solid #E2E8F0; border-right:1px solid #CBD5E1; padding:2px;">${formatDrink(aVal)}</td>`;
-                            
-                            [mVal, aVal].forEach(val => {
-                                let v = (val || '').toLowerCase();
-                                if(v === 'tea') empTotals[emp.id].tea++;
-                                else if(v === 'coffee') empTotals[emp.id].coffee++;
-                                else if(v === 'green tea') empTotals[emp.id].green++;
-                                else if(v === 'lemon tea') empTotals[emp.id].lemon++;
-                                else if(v === 'black tea') empTotals[emp.id].blackTea++;
-                                else if(v === 'black coffee') empTotals[emp.id].blackCoffee++;
-                                
-                                if (v && v !== '-') empTotals[emp.id].total++;
-                            });
-                        });
-                        html += `</tr>`;
-                    }
-                    
-                    // Add Individual Employee Totals Rows
-                    const drinksArr = [
-                        { key: 'tea', label: 'Tea', color: '#1E3A8A', bg: '#EFF6FF' },
-                        { key: 'coffee', label: 'Coffee', color: '#475569', bg: '#F1F5F9' },
-                        { key: 'green', label: 'Green Tea', color: '#065F46', bg: '#ECFDF5' },
-                        { key: 'lemon', label: 'Lemon Tea', color: '#92400E', bg: '#FFFBEB' },
-                        { key: 'blackTea', label: 'Black Tea', color: '#5B21B6', bg: '#F5F3FF' },
-                        { key: 'blackCoffee', label: 'Black Coffee', color: '#991B1B', bg: '#FEF2F2' }
-                    ];
-                    
-                    drinksArr.forEach(d => {
-                        let anyDrank = false;
-                        emps.forEach(e => { if(empTotals[e.id][d.key] > 0) anyDrank = true; });
-                        
-                        if (anyDrank) {
-                            html += `<tr><td style="border-bottom:1px solid #CBD5E1; border-right:1px solid #CBD5E1; padding:4px 2px; font-weight:bold; position:sticky; left:0; background:${d.bg}; z-index:1; color:${d.color}; font-size:9px;">${d.label}</td>`;
-                            emps.forEach(emp => {
-                                let val = empTotals[emp.id][d.key] || '-';
-                                html += `<td colspan="2" style="border-bottom:1px solid #CBD5E1; border-right:1px solid #CBD5E1; padding:4px; font-weight:800; background:${d.bg}; color:${d.color}; font-size:12px;">${val}</td>`;
-                            });
-                            html += `</tr>`;
-                        }
-                    });
-
-                    html += `</tbody></table></div>`;
-
-                    const container = document.getElementById('printAreaContainer');
-                    container.style.zIndex = "99999999";
-                    
-                    const dateObjForTitle = new Date(month + '-01');
-                    const monthDisplayStr = dateObjForTitle.toLocaleString('en-US', { month: 'short', year: 'numeric' });
-
-                    container.innerHTML = `
-                        <div class="preview-card" style="max-width:95vw; width:450px; height:90vh; max-height:90vh; padding:12px; border-radius:12px; display:flex; flex-direction:column; overflow:hidden; background:#F8FAFC;">
-                            <div class="preview-header hide-on-print" style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
-                                <div style="display:flex; flex-direction:column; gap:4px;">
-                                    <h3 style="margin:0; font-size:14px; color:#0A56D0;">📊 Preview (${monthDisplayStr})</h3>
-                                    <input type="month" value="${month}" onchange="window.previewPantryMonthlyGrid(this.value, '${supplySource}', '${pantryId}', '${categoryVal}')" style="padding:4px 6px; border-radius:6px; border:1px solid #0A56D0; font-size:12px; font-weight:bold; color:#0A56D0; background:#fff; outline:none; max-width:140px;">
-                                </div>
-                                <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" style="background:#FEE2E2; border:none; color:#DC3545; padding:6px 12px; font-size:12px; border-radius:6px; font-weight:bold; cursor:pointer;">✕ Close</button>
-                            </div>
-                            <div class="preview-content" style="padding:0; overflow-y:auto; overflow-x:hidden; display:flex; flex-direction:column; flex:1; background:transparent;">
-                                ${html}
-                            </div>
-                        </div>
-                    `;
-                    container.classList.remove('hidden');
-                }               
-                setTimeout(window.loadMyRecordsData, 200);
-            }
                 
+                setTimeout(window.loadMyRecordsData, 200);
+            }         
+            // ============================================================
+            // 100% NEW & FRESH: PANTRY BOY DELIVERY REPORT (REGULAR & MEETINGS)
+            // ============================================================
+            window.generateFreshPBDeliveryReport = function(type, isExcel) {
+                try {
+                    const month = document.getElementById('pbReportMonth')?.value;
+                    if (!month) return appAlert('Error', 'Select month.');
+                    
+                    const supplySource = document.getElementById('pbReportSupplySource')?.value || 'Contractor';
+                    const supplyText = supplySource === 'Contractor' ? 'IA Caterers' : 'DAU Direct';
+                    
+                    // પેન્ટ્રી બોયનું પોતાનું આઈડી અને નામ 
+                    const pantryId = currentUser.id;
+                    const pantryName = currentUser.name;
+                    
+                    const dateObj = new Date(month + '-01');
+                    const monthStr = dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
+                    const title = `DELIVERY REPORT (${type.toUpperCase()}) - ${monthStr} [${supplyText}]`;
+
+                    const [yy, mm] = month.split('-');
+                    const daysInMonth = new Date(yy, mm, 0).getDate();
+
+                    const bevCols = ['Tea', 'Coffee', 'Green Tea', 'Lemon Tea', 'Black Tea', 'Black Coffee'];
+                    let reportData = {}; 
+                    
+                    // Crash પ્રૂફ મેપિંગ
+                    const safeMapDrink = (name) => {
+                        if (!name) return 'Tea';
+                        const n = String(name).toLowerCase();
+                        if (n.includes('green')) return 'Green Tea';
+                        if (n.includes('lemon')) return 'Lemon Tea';
+                        if (n.includes('black tea')) return 'Black Tea';
+                        if (n.includes('black coffee')) return 'Black Coffee';
+                        if (n.includes('coffee')) return 'Coffee';
+                        return 'Tea'; 
+                    };
+
+                    const safeIsBeverage = (name) => {
+                        if (!name) return false;
+                        const n = String(name).toLowerCase();
+                        return bevCols.some(b => n.includes(b.toLowerCase())) || n.includes('milk') || n.includes('soup') || n.includes('bournvita');
+                    };
+
+                    // 1. Regular Data લોડિંગ
+                    if (type === 'regular') {
+                        logsData.forEach(log => {
+                            if (log.date && parseDMYToYMD(log.date).startsWith(month) && log.pantryId === pantryId) {
+                                const sSrc = log.supplySource || 'Contractor';
+                                if (sSrc === supplySource) {
+                                    const ymd = parseDMYToYMD(log.date);
+                                    const drink = safeMapDrink(log.drink);
+                                    if (!reportData[ymd]) reportData[ymd] = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0 };
+                                    reportData[ymd][drink] += 1;
+                                }
+                            }
+                        });
+                    } 
+                    // 2. Meeting Data લોડિંગ
+                    else if (type === 'meeting') {
+                        // જુના મોડ્યુલનો ડેટા
+                        eventLogsData.forEach(ev => {
+                            if (!ev.date || !parseDMYToYMD(ev.date).startsWith(month)) return;
+                            if (ev.items && ev.items.length > 0) {
+                                ev.items.forEach(item => {
+                                    const vName = String(item.vendor || ev.canteenSource || '').toLowerCase();
+                                    const isDAU = vName.includes('dau direct') || vName === 'dau direct purchase';
+                                    if ((supplySource === 'DAU Direct Purchase' && isDAU) || (supplySource === 'Contractor' && !isDAU)) {
+                                        if (safeIsBeverage(item.name)) {
+                                            const pName = String(item.servedBy || ev.servedByName || ev.pantryName || '');
+                                            if (pName.toLowerCase().includes(String(pantryName).toLowerCase())) {
+                                                const ymd = parseDMYToYMD(item.itemSpecificDate || ev.date);
+                                                const drink = safeMapDrink(item.name);
+                                                if (!reportData[ymd]) reportData[ymd] = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0 };
+                                                reportData[ymd][drink] += (Number(item.qty) || 0);
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                        });
+
+                        // નવા મોડ્યુલનો ડેટા
+                        if(typeof mgRecordsData !== 'undefined') {
+                            mgRecordsData.forEach(rec => {
+                                if (rec.Status === 'Review') return;
+                                const recYMD = rec.DateFormatted && rec.DateFormatted.includes('/') ? parseDMYToYMD(rec.DateFormatted) : (rec.RawDate || new Date(rec.Timestamp).toISOString().split('T')[0]);
+                                if(!recYMD.startsWith(month)) return;
+                                
+                                const vName = String(rec.Vendor || '').toLowerCase();
+                                const isDAU = vName.includes('dau direct') || vName === 'dau direct purchase';
+                                if ((supplySource === 'DAU Direct Purchase' && isDAU) || (supplySource === 'Contractor' && !isDAU)) {
+                                    if (safeIsBeverage(rec.Item)) {
+                                        const pName = String(rec.ServedBy || '');
+                                        if (pName.toLowerCase().includes(String(pantryName).toLowerCase())) {
+                                            const ymd = recYMD;
+                                            const drink = safeMapDrink(rec.Item);
+                                            if (!reportData[ymd]) reportData[ymd] = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0 };
+                                            reportData[ymd][drink] += (Number(rec.Qty) || 0);
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    }
+
+                    // 3. ટેબલ અને એક્સેલ માટે ડેટા સેટ કરવો
+                    let trs = '';
+                    let totals = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0 };
+                    let excelData = [];
+                    
+                    const bStyle = { style: 'thin', color: { rgb: "000000" } };
+                    const headStyle = { font: { bold: true }, alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle }, fill: { fgColor: { rgb: "F1F5F9" } } };
+                    const cellCenter = { alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle } };
+                    
+                    excelData.push([{ v: title, s: { font: { bold: true, sz: 14 }, alignment: { horizontal: 'center' } } }, '', '', '', '', '', '']);
+                    excelData.push([{v:'Date', s:headStyle}, {v:'Tea', s:headStyle}, {v:'Coffee', s:headStyle}, {v:'Green Tea', s:headStyle}, {v:'Lemon Tea', s:headStyle}, {v:'Black Tea', s:headStyle}, {v:'Black Coffee', s:headStyle}]);
+
+                    let hasAnyData = false;
+
+                    for (let d = 1; d <= daysInMonth; d++) {
+                        const dd = String(d).padStart(2, '0');
+                        const ymd = `${yy}-${mm}-${dd}`;
+                        const dmy = `${dd}/${mm}/${yy}`;
+                        
+                        if (reportData[ymd]) {
+                            hasAnyData = true;
+                            const rowD = reportData[ymd];
+                            
+                            totals['Tea'] += rowD['Tea'];
+                            totals['Coffee'] += rowD['Coffee'];
+                            totals['Green Tea'] += rowD['Green Tea'];
+                            totals['Lemon Tea'] += rowD['Lemon Tea'];
+                            totals['Black Tea'] += rowD['Black Tea'];
+                            totals['Black Coffee'] += rowD['Black Coffee'];
+
+                            trs += `<tr>
+                                <td style="font-weight:bold; border:1px solid #000; padding:6px; text-align:center;">${dmy}</td>
+                                <td style="border:1px solid #000; padding:6px; text-align:center;">${rowD['Tea'] || '-'}</td>
+                                <td style="border:1px solid #000; padding:6px; text-align:center;">${rowD['Coffee'] || '-'}</td>
+                                <td style="border:1px solid #000; padding:6px; text-align:center;">${rowD['Green Tea'] || '-'}</td>
+                                <td style="border:1px solid #000; padding:6px; text-align:center;">${rowD['Lemon Tea'] || '-'}</td>
+                                <td style="border:1px solid #000; padding:6px; text-align:center;">${rowD['Black Tea'] || '-'}</td>
+                                <td style="border:1px solid #000; padding:6px; text-align:center;">${rowD['Black Coffee'] || '-'}</td>
+                            </tr>`;
+
+                            excelData.push([
+                                {v: dmy, s: cellCenter}, 
+                                {v: rowD['Tea'] || 0, s: cellCenter}, {v: rowD['Coffee'] || 0, s: cellCenter},
+                                {v: rowD['Green Tea'] || 0, s: cellCenter}, {v: rowD['Lemon Tea'] || 0, s: cellCenter},
+                                {v: rowD['Black Tea'] || 0, s: cellCenter}, {v: rowD['Black Coffee'] || 0, s: cellCenter}
+                            ]);
+                        }
+                    }
+
+                    if (!hasAnyData) {
+                        trs = `<tr><td colspan="7" style="border:1px solid #000; padding:20px; text-align:center; color:#64748B;">No delivery data found for this month.</td></tr>`;
+                    } else {
+                        trs += `<tr style="background:#F1F5F9; font-weight:bold;">
+                            <td style="border:1px solid #000; padding:6px; text-align:right;">GRAND TOTAL</td>
+                            <td style="border:1px solid #000; padding:6px; text-align:center; color:#0A56D0;">${totals['Tea']}</td>
+                            <td style="border:1px solid #000; padding:6px; text-align:center; color:#0A56D0;">${totals['Coffee']}</td>
+                            <td style="border:1px solid #000; padding:6px; text-align:center; color:#0A56D0;">${totals['Green Tea']}</td>
+                            <td style="border:1px solid #000; padding:6px; text-align:center; color:#0A56D0;">${totals['Lemon Tea']}</td>
+                            <td style="border:1px solid #000; padding:6px; text-align:center; color:#0A56D0;">${totals['Black Tea']}</td>
+                            <td style="border:1px solid #000; padding:6px; text-align:center; color:#0A56D0;">${totals['Black Coffee']}</td>
+                        </tr>`;
+
+                        excelData.push([
+                            {v: 'GRAND TOTAL', s: headStyle}, 
+                            {v: totals['Tea'], s: headStyle}, {v: totals['Coffee'], s: headStyle},
+                            {v: totals['Green Tea'], s: headStyle}, {v: totals['Lemon Tea'], s: headStyle},
+                            {v: totals['Black Tea'], s: headStyle}, {v: totals['Black Coffee'], s: headStyle}
+                        ]);
+                    }
+
+                    // 4. Excel ડાઉનલોડ અથવા પ્રિવ્યુ
+                    if (isExcel) {
+                        if (!hasAnyData) return appAlert('No Data', 'No data to export.');
+                        const wb = XLSX.utils.book_new();
+                        const ws = XLSX.utils.aoa_to_sheet(excelData);
+                        ws['!merges'] = [{ s: {r:0, c:0}, e: {r:0, c:6} }];
+                        ws['!cols'] = [{wch: 15}, {wch: 12}, {wch: 12}, {wch: 12}, {wch: 12}, {wch: 12}, {wch: 14}];
+                        XLSX.utils.book_append_sheet(wb, ws, "Delivery Report");
+                        window.pantryDownloadExcelFile(wb, `My_Delivery_Report_${type}_${month}.xlsx`);
+                        appAlert('Downloaded', 'Excel downloaded successfully!');
+                    } else {
+                        const htmlContent = `
+                            <div style="text-align:center; margin-bottom:16px;">
+                                <h2 style="color:#0A56D0; font-size:16px; margin:0;">${title}</h2>
+                                <p style="margin:4px 0 0 0; font-size:13px; color:#1E293B;">Pantry Boy: <b style="text-decoration:underline;">${pantryName}</b></p>
+                            </div>
+                            <table class="print-table" style="width:100%; border-collapse:collapse; font-size:12px;">
+                                <thead>
+                                    <tr style="background:#F1F5F9;">
+                                        <th style="border:1px solid #000; padding:8px;">Date</th>
+                                        <th style="border:1px solid #000; padding:8px;">Tea</th>
+                                        <th style="border:1px solid #000; padding:8px;">Coffee</th>
+                                        <th style="border:1px solid #000; padding:8px;">Green Tea</th>
+                                        <th style="border:1px solid #000; padding:8px;">Lemon Tea</th>
+                                        <th style="border:1px solid #000; padding:8px;">Black Tea</th>
+                                        <th style="border:1px solid #000; padding:8px;">Black Coffee</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${trs}</tbody>
+                            </table>
+                        `;
+                        const container = document.getElementById('printAreaContainer');
+                        container.style.zIndex = "999999999";
+                        container.innerHTML = `
+                            <div class="preview-card" style="max-width:100%; width:100%;">
+                                <div class="preview-header hide-on-print">
+                                    <button onclick="window.print()" class="success" style="font-size:.9rem; padding:10px 18px; border-radius:10px; min-height:40px;">🖨️ Print</button>
+                                    <button onclick="window.generateFreshPBDeliveryReport('${type}', true)" class="btn" style="font-size:.9rem; padding:10px 18px; border-radius:10px; min-height:40px; background:#0A56D0; color:white;">📊 Excel</button>
+                                    <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger" style="font-size:.9rem; padding:10px 18px; border-radius:10px; min-height:40px;">✕ Close</button>
+                                </div>
+                                <div class="preview-content" style="padding: 15px; overflow-x: auto; box-sizing: border-box;">
+                                    ${htmlContent}
+                                </div>
+                            </div>
+                            <style>
+                                @media print {
+                                    @page { size: A4 portrait; margin: 10mm; }
+                                    body { background: #fff !important; margin: 0; padding: 0; }
+                                    #printAreaContainer { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; padding: 0 !important; margin: 0 !important; background: #fff !important; display: block !important; overflow: visible !important; }
+                                    .preview-card { box-shadow: none !important; border: none !important; width: 100% !important; max-width: 100% !important; padding: 0 !important; margin: 0 !important; border-radius: 0 !important; }
+                                    .preview-content { padding: 0 !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; overflow: visible !important; }
+                                    .preview-header { display: none !important; }
+                                    table.print-table { width: 100% !important; max-width: 100% !important; table-layout: auto !important; }
+                                    table.print-table th, table.print-table td { padding: 6px 4px !important; font-size: 12px !important; text-align:center; border:1px solid #000; }
+                                }
+                            </style>
+                        `;
+                        container.style.display = 'flex';
+                        container.classList.remove('hidden');
+                    }
+                } catch(error) {
+                    appAlert('System Error', 'Cannot generate report: ' + error.message);
+                }
+            };
+            // ============================================================
+            // 100% NEW & FRESH: PANTRY BOY DELIVERY REPORT (REGULAR & MEETINGS)
+            // ============================================================
+            window.generateFreshPBDeliveryReport = function(type, isExcel) {
+                try {
+                    const month = document.getElementById('pbReportMonth')?.value;
+                    if (!month) return appAlert('Error', 'Select month.');
+                    
+                    const supplySource = document.getElementById('pbReportSupplySource')?.value || 'Contractor';
+                    const supplyText = supplySource === 'Contractor' ? 'IA Caterers' : 'DAU Direct';
+                    
+                    // પેન્ટ્રી બોયનું પોતાનું આઈડી અને નામ 
+                    const pantryId = currentUser.id;
+                    const pantryName = currentUser.name;
+                    
+                    const dateObj = new Date(month + '-01');
+                    const monthStr = dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
+                    const title = `DELIVERY REPORT (${type.toUpperCase()}) - ${monthStr} [${supplyText}]`;
+
+                    const [yy, mm] = month.split('-');
+                    const daysInMonth = new Date(yy, mm, 0).getDate();
+
+                    const bevCols = ['Tea', 'Coffee', 'Green Tea', 'Lemon Tea', 'Black Tea', 'Black Coffee'];
+                    let reportData = {}; 
+                    
+                    // Crash પ્રૂફ મેપિંગ
+                    const safeMapDrink = (name) => {
+                        if (!name) return 'Tea';
+                        const n = String(name).toLowerCase();
+                        if (n.includes('green')) return 'Green Tea';
+                        if (n.includes('lemon')) return 'Lemon Tea';
+                        if (n.includes('black tea')) return 'Black Tea';
+                        if (n.includes('black coffee')) return 'Black Coffee';
+                        if (n.includes('coffee')) return 'Coffee';
+                        return 'Tea'; 
+                    };
+
+                    const safeIsBeverage = (name) => {
+                        if (!name) return false;
+                        const n = String(name).toLowerCase();
+                        return bevCols.some(b => n.includes(b.toLowerCase())) || n.includes('milk') || n.includes('soup') || n.includes('bournvita');
+                    };
+
+                    // 1. Regular Data લોડિંગ
+                    if (type === 'regular') {
+                        logsData.forEach(log => {
+                            if (log.date && parseDMYToYMD(log.date).startsWith(month) && log.pantryId === pantryId) {
+                                const sSrc = log.supplySource || 'Contractor';
+                                if (sSrc === supplySource) {
+                                    const ymd = parseDMYToYMD(log.date);
+                                    const drink = safeMapDrink(log.drink);
+                                    if (!reportData[ymd]) reportData[ymd] = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0 };
+                                    reportData[ymd][drink] += 1;
+                                }
+                            }
+                        });
+                    } 
+                    // 2. Meeting Data લોડિંગ
+                    else if (type === 'meeting') {
+                        // જુના મોડ્યુલનો ડેટા
+                        eventLogsData.forEach(ev => {
+                            if (!ev.date || !parseDMYToYMD(ev.date).startsWith(month)) return;
+                            if (ev.items && ev.items.length > 0) {
+                                ev.items.forEach(item => {
+                                    const vName = String(item.vendor || ev.canteenSource || '').toLowerCase();
+                                    const isDAU = vName.includes('dau direct') || vName === 'dau direct purchase';
+                                    if ((supplySource === 'DAU Direct Purchase' && isDAU) || (supplySource === 'Contractor' && !isDAU)) {
+                                        if (safeIsBeverage(item.name)) {
+                                            const pName = String(item.servedBy || ev.servedByName || ev.pantryName || '');
+                                            if (pName.toLowerCase().includes(String(pantryName).toLowerCase())) {
+                                                const ymd = parseDMYToYMD(item.itemSpecificDate || ev.date);
+                                                const drink = safeMapDrink(item.name);
+                                                if (!reportData[ymd]) reportData[ymd] = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0 };
+                                                reportData[ymd][drink] += (Number(item.qty) || 0);
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                        });
+
+                        // નવા મોડ્યુલનો ડેટા
+                        if(typeof mgRecordsData !== 'undefined') {
+                            mgRecordsData.forEach(rec => {
+                                if (rec.Status === 'Review') return;
+                                const recYMD = rec.DateFormatted && rec.DateFormatted.includes('/') ? parseDMYToYMD(rec.DateFormatted) : (rec.RawDate || new Date(rec.Timestamp).toISOString().split('T')[0]);
+                                if(!recYMD.startsWith(month)) return;
+                                
+                                const vName = String(rec.Vendor || '').toLowerCase();
+                                const isDAU = vName.includes('dau direct') || vName === 'dau direct purchase';
+                                if ((supplySource === 'DAU Direct Purchase' && isDAU) || (supplySource === 'Contractor' && !isDAU)) {
+                                    if (safeIsBeverage(rec.Item)) {
+                                        const pName = String(rec.ServedBy || '');
+                                        if (pName.toLowerCase().includes(String(pantryName).toLowerCase())) {
+                                            const ymd = recYMD;
+                                            const drink = safeMapDrink(rec.Item);
+                                            if (!reportData[ymd]) reportData[ymd] = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0 };
+                                            reportData[ymd][drink] += (Number(rec.Qty) || 0);
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    }
+
+                    // 3. ટેબલ અને એક્સેલ માટે ડેટા સેટ કરવો
+                    let trs = '';
+                    let totals = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0 };
+                    let excelData = [];
+                    
+                    const bStyle = { style: 'thin', color: { rgb: "000000" } };
+                    const headStyle = { font: { bold: true }, alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle }, fill: { fgColor: { rgb: "F1F5F9" } } };
+                    const cellCenter = { alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle } };
+                    
+                    excelData.push([{ v: title, s: { font: { bold: true, sz: 14 }, alignment: { horizontal: 'center' } } }, '', '', '', '', '', '']);
+                    excelData.push([{v:'Date', s:headStyle}, {v:'Tea', s:headStyle}, {v:'Coffee', s:headStyle}, {v:'Green Tea', s:headStyle}, {v:'Lemon Tea', s:headStyle}, {v:'Black Tea', s:headStyle}, {v:'Black Coffee', s:headStyle}]);
+
+                    let hasAnyData = false;
+
+                    for (let d = 1; d <= daysInMonth; d++) {
+                        const dd = String(d).padStart(2, '0');
+                        const ymd = `${yy}-${mm}-${dd}`;
+                        const dmy = `${dd}/${mm}/${yy}`;
+                        
+                        if (reportData[ymd]) {
+                            hasAnyData = true;
+                            const rowD = reportData[ymd];
+                            
+                            totals['Tea'] += rowD['Tea'];
+                            totals['Coffee'] += rowD['Coffee'];
+                            totals['Green Tea'] += rowD['Green Tea'];
+                            totals['Lemon Tea'] += rowD['Lemon Tea'];
+                            totals['Black Tea'] += rowD['Black Tea'];
+                            totals['Black Coffee'] += rowD['Black Coffee'];
+
+                            trs += `<tr>
+                                <td style="font-weight:bold; border:1px solid #000; padding:6px; text-align:center;">${dmy}</td>
+                                <td style="border:1px solid #000; padding:6px; text-align:center;">${rowD['Tea'] || '-'}</td>
+                                <td style="border:1px solid #000; padding:6px; text-align:center;">${rowD['Coffee'] || '-'}</td>
+                                <td style="border:1px solid #000; padding:6px; text-align:center;">${rowD['Green Tea'] || '-'}</td>
+                                <td style="border:1px solid #000; padding:6px; text-align:center;">${rowD['Lemon Tea'] || '-'}</td>
+                                <td style="border:1px solid #000; padding:6px; text-align:center;">${rowD['Black Tea'] || '-'}</td>
+                                <td style="border:1px solid #000; padding:6px; text-align:center;">${rowD['Black Coffee'] || '-'}</td>
+                            </tr>`;
+
+                            excelData.push([
+                                {v: dmy, s: cellCenter}, 
+                                {v: rowD['Tea'] || 0, s: cellCenter}, {v: rowD['Coffee'] || 0, s: cellCenter},
+                                {v: rowD['Green Tea'] || 0, s: cellCenter}, {v: rowD['Lemon Tea'] || 0, s: cellCenter},
+                                {v: rowD['Black Tea'] || 0, s: cellCenter}, {v: rowD['Black Coffee'] || 0, s: cellCenter}
+                            ]);
+                        }
+                    }
+
+                    if (!hasAnyData) {
+                        trs = `<tr><td colspan="7" style="border:1px solid #000; padding:20px; text-align:center; color:#64748B;">No delivery data found for this month.</td></tr>`;
+                    } else {
+                        trs += `<tr style="background:#F1F5F9; font-weight:bold;">
+                            <td style="border:1px solid #000; padding:6px; text-align:right;">GRAND TOTAL</td>
+                            <td style="border:1px solid #000; padding:6px; text-align:center; color:#0A56D0;">${totals['Tea']}</td>
+                            <td style="border:1px solid #000; padding:6px; text-align:center; color:#0A56D0;">${totals['Coffee']}</td>
+                            <td style="border:1px solid #000; padding:6px; text-align:center; color:#0A56D0;">${totals['Green Tea']}</td>
+                            <td style="border:1px solid #000; padding:6px; text-align:center; color:#0A56D0;">${totals['Lemon Tea']}</td>
+                            <td style="border:1px solid #000; padding:6px; text-align:center; color:#0A56D0;">${totals['Black Tea']}</td>
+                            <td style="border:1px solid #000; padding:6px; text-align:center; color:#0A56D0;">${totals['Black Coffee']}</td>
+                        </tr>`;
+
+                        excelData.push([
+                            {v: 'GRAND TOTAL', s: headStyle}, 
+                            {v: totals['Tea'], s: headStyle}, {v: totals['Coffee'], s: headStyle},
+                            {v: totals['Green Tea'], s: headStyle}, {v: totals['Lemon Tea'], s: headStyle},
+                            {v: totals['Black Tea'], s: headStyle}, {v: totals['Black Coffee'], s: headStyle}
+                        ]);
+                    }
+
+                    // 4. Excel ડાઉનલોડ અથવા પ્રિવ્યુ
+                    if (isExcel) {
+                        if (!hasAnyData) return appAlert('No Data', 'No data to export.');
+                        const wb = XLSX.utils.book_new();
+                        const ws = XLSX.utils.aoa_to_sheet(excelData);
+                        ws['!merges'] = [{ s: {r:0, c:0}, e: {r:0, c:6} }];
+                        ws['!cols'] = [{wch: 15}, {wch: 12}, {wch: 12}, {wch: 12}, {wch: 12}, {wch: 12}, {wch: 14}];
+                        XLSX.utils.book_append_sheet(wb, ws, "Delivery Report");
+                        window.pantryDownloadExcelFile(wb, `My_Delivery_Report_${type}_${month}.xlsx`);
+                        appAlert('Downloaded', 'Excel downloaded successfully!');
+                    } else {
+                        const htmlContent = `
+                            <div style="text-align:center; margin-bottom:16px;">
+                                <h2 style="color:#0A56D0; font-size:16px; margin:0;">${title}</h2>
+                                <p style="margin:4px 0 0 0; font-size:13px; color:#1E293B;">Pantry Boy: <b style="text-decoration:underline;">${pantryName}</b></p>
+                            </div>
+                            <table class="print-table" style="width:100%; border-collapse:collapse; font-size:12px;">
+                                <thead>
+                                    <tr style="background:#F1F5F9;">
+                                        <th style="border:1px solid #000; padding:8px;">Date</th>
+                                        <th style="border:1px solid #000; padding:8px;">Tea</th>
+                                        <th style="border:1px solid #000; padding:8px;">Coffee</th>
+                                        <th style="border:1px solid #000; padding:8px;">Green Tea</th>
+                                        <th style="border:1px solid #000; padding:8px;">Lemon Tea</th>
+                                        <th style="border:1px solid #000; padding:8px;">Black Tea</th>
+                                        <th style="border:1px solid #000; padding:8px;">Black Coffee</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${trs}</tbody>
+                            </table>
+                        `;
+                        const container = document.getElementById('printAreaContainer');
+                        container.style.zIndex = "999999999";
+                        container.innerHTML = `
+                            <div class="preview-card" style="max-width:100%; width:100%;">
+                                <div class="preview-header hide-on-print">
+                                    <button onclick="window.print()" class="success" style="font-size:.9rem; padding:10px 18px; border-radius:10px; min-height:40px;">🖨️ Print</button>
+                                    <button onclick="window.generateFreshPBDeliveryReport('${type}', true)" class="btn" style="font-size:.9rem; padding:10px 18px; border-radius:10px; min-height:40px; background:#0A56D0; color:white;">📊 Excel</button>
+                                    <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger" style="font-size:.9rem; padding:10px 18px; border-radius:10px; min-height:40px;">✕ Close</button>
+                                </div>
+                                <div class="preview-content" style="padding: 15px; overflow-x: auto; box-sizing: border-box;">
+                                    ${htmlContent}
+                                </div>
+                            </div>
+                            <style>
+                                @media print {
+                                    @page { size: A4 portrait; margin: 10mm; }
+                                    body { background: #fff !important; margin: 0; padding: 0; }
+                                    #printAreaContainer { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; padding: 0 !important; margin: 0 !important; background: #fff !important; display: block !important; overflow: visible !important; }
+                                    .preview-card { box-shadow: none !important; border: none !important; width: 100% !important; max-width: 100% !important; padding: 0 !important; margin: 0 !important; border-radius: 0 !important; }
+                                    .preview-content { padding: 0 !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; overflow: visible !important; }
+                                    .preview-header { display: none !important; }
+                                    table.print-table { width: 100% !important; max-width: 100% !important; table-layout: auto !important; }
+                                    table.print-table th, table.print-table td { padding: 6px 4px !important; font-size: 12px !important; text-align:center; border:1px solid #000; }
+                                }
+                            </style>
+                        `;
+                        container.style.display = 'flex';
+                        container.classList.remove('hidden');
+                    }
+                } catch(error) {
+                    appAlert('System Error', 'Cannot generate report: ' + error.message);
+                }
+            };
+    
             window.loadMyRecordsData = function() {
                 const dateVal = document.getElementById('myRecordsDate').value;
                 if (!dateVal) return;
@@ -6746,12 +6961,11 @@ window.pantryDownloadExcelFile = async function(wb, filename) {
                     case 'bin':
                         cont.innerHTML = `
                   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;"><h4 style="margin:0; text-align:left; flex:1; color:#DC3545; font-size:1rem;">🗑 Recycle Bin Storage</h4><button id="emptyBinBtn" class="danger" style="min-height:40px;">Empty Bin</button></div>
-                  <div class="scroll-list-box" style="max-height:480px; background:#FEF2F2;">
-                    <div class="bin-item-title">Staff Members</div><div id="binEmployeesBox"></div>
-                    <div class="bin-item-title">Pantry Personnel</div><div id="binPantryBox"></div>
-                    <div class="bin-item-title">Extra Drink Logs</div><div id="binExtraBox"></div>
-                    <div class="bin-item-title">Event Refreshments</div><div id="binEventsBox"></div>
-                    <div class="bin-item-title">Regular Drink Logs</div><div id="binLogsBox"></div>
+                  <div class="scroll-list-box" style="max-height:480px; background:#FEF2F2; padding:10px;">
+                    <div class="bin-item-title" style="font-weight:bold; color:#DC3545; border-bottom:1px solid #FECACA; margin-bottom:4px;">New Meeting Entries</div><div id="binMgRecordsBox" style="margin-bottom:12px;"></div>
+                    <div class="bin-item-title" style="font-weight:bold; color:#DC3545; border-bottom:1px solid #FECACA; margin-bottom:4px;">Old Event Refreshments</div><div id="binEventsBox" style="margin-bottom:12px;"></div>
+                    <div class="bin-item-title" style="font-weight:bold; color:#DC3545; border-bottom:1px solid #FECACA; margin-bottom:4px;">Staff Members</div><div id="binEmployeesBox" style="margin-bottom:12px;"></div>
+                    <div class="bin-item-title" style="font-weight:bold; color:#DC3545; border-bottom:1px solid #FECACA; margin-bottom:4px;">Extra Drink Logs</div><div id="binExtraBox" style="margin-bottom:12px;"></div>
                   </div>
                 `;
                         renderRecycleBinLists();
@@ -7445,22 +7659,27 @@ window.pantryDownloadExcelFile = async function(wb, filename) {
             `
                 ).join('');
             }
-
             function renderRecycleBinLists() {
-                const boxes = { binEmployeesBox: 'employees', binPantryBox: 'pantryTeam', binExtraBox: 'extraLogs',
-                    binEventsBox: 'eventLogs', binLogsBox: 'logs' };
+                const boxes = { binEmployeesBox: 'employees', binExtraBox: 'extraLogs',
+                    binEventsBox: 'eventLogs', binMgRecordsBox: 'meetingsGuestsRecords' };
+                
                 Object.entries(boxes).forEach(([elId, section]) => {
                     const el = document.getElementById(elId);
                     if (!el) return;
                     const items = Object.values(binData[section] || {});
-                    if (!items.length) { el.innerHTML =
-                        `<p style="padding:4px; color:#A8A29E; font-size:.8rem;">Empty</p>`; return; }
+                    if (!items.length) { 
+                        el.innerHTML = `<p style="padding:4px; color:#94A3B8; font-size:.8rem;">Empty</p>`; 
+                        return; 
+                    }
                     el.innerHTML = items.map(item => {
-                        const label = item.name || item.employeeName || item.eventName || 'Unknown';
+                        let label = item.name || item.employeeName || item.eventName || 'Unknown';
+                        if (section === 'meetingsGuestsRecords') {
+                            label = `${item.DateFormatted} | ${item.Purpose} <br><small style="color:#64748B;">${item.Item} (x${item.Qty}) - ₹${item.Amount}</small>`;
+                        }
                         return `
-                  <div class="employee-item" style="margin:4px 0; background:#FFF5F5;">
-                    <span><strong>${label}</strong></span>
-                    <button onclick="window.pantryRestoreHandler('${section}','${item.id}')" style="background:#146C43; padding:6px 14px; border-radius:8px; font-size:.78rem; min-height:34px; color:#fff; border:none;">🔄 Restore</button>
+                  <div class="employee-item" style="margin:4px 0; background:#FFF; border:1px solid #FECACA; padding:8px; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; line-height:1.4;">${label}</span>
+                    <button onclick="window.pantryRestoreHandler('${section}','${item.id}')" style="background:#10B981; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:bold; color:#fff; border:none; cursor:pointer;">🔄 Restore</button>
                   </div>
                 `;
                     }).join('');
@@ -8054,7 +8273,7 @@ window.pantryDownloadExcelFile = async function(wb, filename) {
                 appAlert('Downloaded', 'Excel report downloaded perfectly!');
             };
             // ============================================================
-            // NEW: PANTRY BOY DELIVERY REPORT (REGULAR & MEETINGS)
+            // NEW: PANTRY BOY DELIVERY REPORT (REGULAR & MEETINGS) FOR ADMIN
             // ============================================================
             window.generatePantryBoyReport = function(type, isExcel, overrideMonth, overrideSupply, overridePantryId) {
                 const month = overrideMonth || document.getElementById('reportMonth')?.value;
@@ -8072,7 +8291,7 @@ window.pantryDownloadExcelFile = async function(wb, filename) {
                 
                 const dateObj = new Date(month + '-01');
                 const monthStr = dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
-                const title = `PANTRY BOY DELIVERY REPORT (${type.toUpperCase()}) - ${monthStr} [${supplyText}]`;
+                const title = `DELIVERY REPORT (${type.toUpperCase()}) - ${monthStr} [${supplyText}]`;
 
                 const [yy, mm] = month.split('-');
                 const daysInMonth = new Date(yy, mm, 0).getDate();
@@ -8080,19 +8299,21 @@ window.pantryDownloadExcelFile = async function(wb, filename) {
                 const bevCols = ['Tea', 'Coffee', 'Green Tea', 'Lemon Tea', 'Black Tea', 'Black Coffee'];
                 let reportData = {}; 
                 
-                const isBeverage = (name) => {
-                    const n = name.toLowerCase();
-                    return bevCols.some(b => n.includes(b.toLowerCase())) || n.includes('milk') || n.includes('soup') || n.includes('bournvita');
-                };
-
                 const mapBeverageType = (name) => {
-                    const n = name.toLowerCase();
+                    if (!name) return 'Tea';
+                    const n = String(name).toLowerCase();
                     if (n.includes('green')) return 'Green Tea';
                     if (n.includes('lemon')) return 'Lemon Tea';
                     if (n.includes('black tea')) return 'Black Tea';
                     if (n.includes('black coffee')) return 'Black Coffee';
                     if (n.includes('coffee')) return 'Coffee';
                     return 'Tea'; 
+                };
+
+                const isBeverage = (name) => {
+                    if (!name) return false;
+                    const n = String(name).toLowerCase();
+                    return bevCols.some(b => n.includes(b.toLowerCase())) || n.includes('milk') || n.includes('soup') || n.includes('bournvita');
                 };
 
                 if (type === 'regular') {
@@ -8102,13 +8323,10 @@ window.pantryDownloadExcelFile = async function(wb, filename) {
                         if (selectedPantryId !== 'All' && log.pantryId !== selectedPantryId) return;
                         
                         const ymd = parseDMYToYMD(log.date);
-                        const pName = log.pantryName || 'Unknown';
                         const drink = mapBeverageType(log.drink);
                         
-                        if (!reportData[ymd]) reportData[ymd] = {};
-                        if (!reportData[ymd][pName]) reportData[ymd][pName] = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0 };
-                        
-                        reportData[ymd][pName][drink] += 1;
+                        if (!reportData[ymd]) reportData[ymd] = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0 };
+                        reportData[ymd][drink] += 1;
                     });
                 } else if (type === 'meeting') {
                     const flatMeetingItems = [];
@@ -8117,8 +8335,8 @@ window.pantryDownloadExcelFile = async function(wb, filename) {
                         if (!ev.date || !parseDMYToYMD(ev.date).startsWith(month)) return;
                         if (ev.items && ev.items.length > 0) {
                             ev.items.forEach(item => {
-                                const vName = (item.vendor || ev.canteenSource || '').toLowerCase();
-                                const isDAU = vName.includes('dau direct');
+                                const vName = String(item.vendor || ev.canteenSource || '').toLowerCase();
+                                const isDAU = vName.includes('dau direct') || vName === 'dau direct purchase';
                                 if ((supplySource === 'DAU Direct Purchase' && isDAU) || (supplySource === 'Contractor' && !isDAU)) {
                                     if (isBeverage(item.name)) {
                                         flatMeetingItems.push({
@@ -8138,8 +8356,8 @@ window.pantryDownloadExcelFile = async function(wb, filename) {
                         const recYMD = rec.DateFormatted && rec.DateFormatted.includes('/') ? parseDMYToYMD(rec.DateFormatted) : (rec.RawDate || new Date(rec.Timestamp).toISOString().split('T')[0]);
                         if(!recYMD.startsWith(month)) return;
                         
-                        const vName = (rec.Vendor || '').toLowerCase();
-                        const isDAU = vName.includes('dau direct');
+                        const vName = String(rec.Vendor || '').toLowerCase();
+                        const isDAU = vName.includes('dau direct') || vName === 'dau direct purchase';
                         if ((supplySource === 'DAU Direct Purchase' && isDAU) || (supplySource === 'Contractor' && !isDAU)) {
                             if (isBeverage(rec.Item)) {
                                 flatMeetingItems.push({
@@ -8155,17 +8373,14 @@ window.pantryDownloadExcelFile = async function(wb, filename) {
                     flatMeetingItems.forEach(item => {
                         if (selectedPantryId !== 'All') {
                             const pObj = pantryTeam.find(p => p.id === selectedPantryId);
-                            if (pObj && !item.pantryName.toLowerCase().includes(pObj.name.toLowerCase())) return;
+                            if (pObj && !String(item.pantryName).toLowerCase().includes(String(pObj.name).toLowerCase())) return;
                         }
                         
                         const ymd = parseDMYToYMD(item.date);
-                        const pName = item.pantryName;
                         const drink = mapBeverageType(item.drink);
                         
-                        if (!reportData[ymd]) reportData[ymd] = {};
-                        if (!reportData[ymd][pName]) reportData[ymd][pName] = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0 };
-                        
-                        reportData[ymd][pName][drink] += item.qty;
+                        if (!reportData[ymd]) reportData[ymd] = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0 };
+                        reportData[ymd][drink] += item.qty;
                     });
                 }
 
@@ -8176,11 +8391,11 @@ window.pantryDownloadExcelFile = async function(wb, filename) {
                 const headStyle = { font: { bold: true }, alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle }, fill: { fgColor: { rgb: "F1F5F9" } } };
                 const cellCenter = { alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle } };
                 
-                excelData.push([{ v: title, s: { font: { bold: true, sz: 14 }, alignment: { horizontal: 'center' } } }, '', '', '', '', '', '', '', '']);
+                excelData.push([{ v: title, s: { font: { bold: true, sz: 14 }, alignment: { horizontal: 'center' } } }, '', '', '', '', '', '']);
                 excelData.push([
-                    {v:'Date', s:headStyle}, {v:'Pantry Boy', s:headStyle}, 
+                    {v:'Date', s:headStyle}, 
                     {v:'Tea', s:headStyle}, {v:'Coffee', s:headStyle}, {v:'Green Tea', s:headStyle}, 
-                    {v:'Lemon Tea', s:headStyle}, {v:'Black Tea', s:headStyle}, {v:'Black Coffee', s:headStyle}, {v:'Total', s:headStyle}
+                    {v:'Lemon Tea', s:headStyle}, {v:'Black Tea', s:headStyle}, {v:'Black Coffee', s:headStyle}
                 ]);
 
                 for (let d = 1; d <= daysInMonth; d++) {
@@ -8189,62 +8404,54 @@ window.pantryDownloadExcelFile = async function(wb, filename) {
                     const dmy = `${dd}/${mm}/${yy}`;
                     
                     if (reportData[ymd]) {
-                        for (const pName in reportData[ymd]) {
-                            const rowD = reportData[ymd][pName];
-                            const rowTot = rowD['Tea'] + rowD['Coffee'] + rowD['Green Tea'] + rowD['Lemon Tea'] + rowD['Black Tea'] + rowD['Black Coffee'];
-                            
-                            grandTotals['Tea'] += rowD['Tea'];
-                            grandTotals['Coffee'] += rowD['Coffee'];
-                            grandTotals['Green Tea'] += rowD['Green Tea'];
-                            grandTotals['Lemon Tea'] += rowD['Lemon Tea'];
-                            grandTotals['Black Tea'] += rowD['Black Tea'];
-                            grandTotals['Black Coffee'] += rowD['Black Coffee'];
+                        const rowD = reportData[ymd];
+                        
+                        grandTotals['Tea'] += rowD['Tea'];
+                        grandTotals['Coffee'] += rowD['Coffee'];
+                        grandTotals['Green Tea'] += rowD['Green Tea'];
+                        grandTotals['Lemon Tea'] += rowD['Lemon Tea'];
+                        grandTotals['Black Tea'] += rowD['Black Tea'];
+                        grandTotals['Black Coffee'] += rowD['Black Coffee'];
 
-                            trs += `<tr>
-                                <td>${dmy}</td>
-                                <td style="text-align:left; padding-left:8px; font-weight:bold;">${pName}</td>
-                                <td>${rowD['Tea'] || '-'}</td>
-                                <td>${rowD['Coffee'] || '-'}</td>
-                                <td>${rowD['Green Tea'] || '-'}</td>
-                                <td>${rowD['Lemon Tea'] || '-'}</td>
-                                <td>${rowD['Black Tea'] || '-'}</td>
-                                <td>${rowD['Black Coffee'] || '-'}</td>
-                                <td style="font-weight:bold; color:#0A56D0;">${rowTot}</td>
-                            </tr>`;
+                        trs += `<tr>
+                            <td style="font-weight:bold;">${dmy}</td>
+                            <td>${rowD['Tea'] || '-'}</td>
+                            <td>${rowD['Coffee'] || '-'}</td>
+                            <td>${rowD['Green Tea'] || '-'}</td>
+                            <td>${rowD['Lemon Tea'] || '-'}</td>
+                            <td>${rowD['Black Tea'] || '-'}</td>
+                            <td>${rowD['Black Coffee'] || '-'}</td>
+                        </tr>`;
 
-                            excelData.push([
-                                {v: dmy, s: cellCenter}, {v: pName, s: { ...cellCenter, alignment:{horizontal:'left'} }},
-                                {v: rowD['Tea'] || 0, s: cellCenter}, {v: rowD['Coffee'] || 0, s: cellCenter},
-                                {v: rowD['Green Tea'] || 0, s: cellCenter}, {v: rowD['Lemon Tea'] || 0, s: cellCenter},
-                                {v: rowD['Black Tea'] || 0, s: cellCenter}, {v: rowD['Black Coffee'] || 0, s: cellCenter},
-                                {v: rowTot, s: { ...cellCenter, font:{bold:true} }}
-                            ]);
-                        }
+                        excelData.push([
+                            {v: dmy, s: cellCenter}, 
+                            {v: rowD['Tea'] || 0, s: cellCenter}, {v: rowD['Coffee'] || 0, s: cellCenter},
+                            {v: rowD['Green Tea'] || 0, s: cellCenter}, {v: rowD['Lemon Tea'] || 0, s: cellCenter},
+                            {v: rowD['Black Tea'] || 0, s: cellCenter}, {v: rowD['Black Coffee'] || 0, s: cellCenter}
+                        ]);
                     }
                 }
 
                 const grandAll = Object.values(grandTotals).reduce((a,b)=>a+b, 0);
 
                 if (trs === '') {
-                    trs = `<tr><td colspan="9" style="padding:20px; text-align:center; color:#64748B;">No delivery data found for this selection.</td></tr>`;
+                    trs = `<tr><td colspan="7" style="padding:20px; text-align:center; color:#64748B;">No delivery data found for this selection.</td></tr>`;
                 } else {
                     trs += `<tr style="background:#F1F5F9; font-weight:bold;">
-                        <td colspan="2" style="text-align:right; padding-right:12px;">GRAND TOTAL</td>
-                        <td>${grandTotals['Tea']}</td>
-                        <td>${grandTotals['Coffee']}</td>
-                        <td>${grandTotals['Green Tea']}</td>
-                        <td>${grandTotals['Lemon Tea']}</td>
-                        <td>${grandTotals['Black Tea']}</td>
-                        <td>${grandTotals['Black Coffee']}</td>
-                        <td style="color:#0A56D0;">${grandAll}</td>
+                        <td style="text-align:right; padding-right:12px;">GRAND TOTAL</td>
+                        <td style="color:#0A56D0;">${grandTotals['Tea']}</td>
+                        <td style="color:#0A56D0;">${grandTotals['Coffee']}</td>
+                        <td style="color:#0A56D0;">${grandTotals['Green Tea']}</td>
+                        <td style="color:#0A56D0;">${grandTotals['Lemon Tea']}</td>
+                        <td style="color:#0A56D0;">${grandTotals['Black Tea']}</td>
+                        <td style="color:#0A56D0;">${grandTotals['Black Coffee']}</td>
                     </tr>`;
 
                     excelData.push([
-                        {v: '', s: headStyle}, {v: 'GRAND TOTAL', s: headStyle},
+                        {v: 'GRAND TOTAL', s: headStyle}, 
                         {v: grandTotals['Tea'], s: headStyle}, {v: grandTotals['Coffee'], s: headStyle},
                         {v: grandTotals['Green Tea'], s: headStyle}, {v: grandTotals['Lemon Tea'], s: headStyle},
-                        {v: grandTotals['Black Tea'], s: headStyle}, {v: grandTotals['Black Coffee'], s: headStyle},
-                        {v: grandAll, s: headStyle}
+                        {v: grandTotals['Black Tea'], s: headStyle}, {v: grandTotals['Black Coffee'], s: headStyle}
                     ]);
                 }
 
@@ -8252,40 +8459,39 @@ window.pantryDownloadExcelFile = async function(wb, filename) {
                     if (grandAll === 0) return appAlert('No Data', 'No data to export.');
                     const wb = XLSX.utils.book_new();
                     const ws = XLSX.utils.aoa_to_sheet(excelData);
-                    ws['!merges'] = [{ s: {r:0, c:0}, e: {r:0, c:8} }];
-                    ws['!cols'] = [{wch: 12}, {wch: 25}, {wch: 10}, {wch: 10}, {wch: 12}, {wch: 12}, {wch: 12}, {wch: 14}, {wch: 10}];
+                    ws['!merges'] = [{ s: {r:0, c:0}, e: {r:0, c:6} }];
+                    ws['!cols'] = [{wch: 15}, {wch: 12}, {wch: 12}, {wch: 12}, {wch: 12}, {wch: 12}, {wch: 14}];
                     XLSX.utils.book_append_sheet(wb, ws, "Delivery Report");
                     window.pantryDownloadExcelFile(wb, `PantryBoy_${type}_Report_${month}.xlsx`);
                     appAlert('Downloaded', 'Excel downloaded successfully!');
                 } else {
                     const htmlContent = `
                         <div style="text-align:center; margin-bottom:16px;">
-                            <h2 style="color:#0A56D0; font-size:18px; margin:0;">${title}</h2>
+                            <h2 style="color:#0A56D0; font-size:16px; margin:0;">${title}</h2>
                             <p style="margin:4px 0 0 0; font-size:12px; color:#444;">Pantry Boy: <b>${pantryName}</b></p>
                         </div>
                         <table class="print-table" style="width:100%; border-collapse:collapse; font-size:11.5px;">
                             <thead>
                                 <tr style="background:#F1F5F9;">
                                     <th style="border:1px solid #000; padding:6px;">Date</th>
-                                    <th style="border:1px solid #000; padding:6px;">Pantry Boy</th>
                                     <th style="border:1px solid #000; padding:6px;">Tea</th>
                                     <th style="border:1px solid #000; padding:6px;">Coffee</th>
                                     <th style="border:1px solid #000; padding:6px;">Green Tea</th>
                                     <th style="border:1px solid #000; padding:6px;">Lemon Tea</th>
                                     <th style="border:1px solid #000; padding:6px;">Black Tea</th>
                                     <th style="border:1px solid #000; padding:6px;">Black Coffee</th>
-                                    <th style="border:1px solid #000; padding:6px;">Total</th>
                                 </tr>
                             </thead>
                             <tbody>${trs}</tbody>
                         </table>
                     `;
                     const container = document.getElementById('printAreaContainer');
+                    container.style.zIndex = "999999999";
                     container.innerHTML = `
                         <div class="preview-card" style="max-width:100%; width:100%;">
                             <div class="preview-header hide-on-print">
                                 <button onclick="window.print()" class="success" style="font-size:.9rem; padding:10px 18px; border-radius:10px; min-height:40px;">🖨️ Print</button>
-                                <button onclick="window.generatePantryBoyReport('${type}', true)" class="btn" style="font-size:.9rem; padding:10px 18px; border-radius:10px; min-height:40px; background:#0A56D0;">📊 Excel</button>
+                                <button onclick="window.generatePantryBoyReport('${type}', true, '${month}', '${supplySource}', '${selectedPantryId}')" class="btn" style="font-size:.9rem; padding:10px 18px; border-radius:10px; min-height:40px; background:#0A56D0;">📊 Excel</button>
                                 <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger" style="font-size:.9rem; padding:10px 18px; border-radius:10px; min-height:40px;">✕ Close</button>
                             </div>
                             <div class="preview-content" style="padding: 15px; overflow-x: auto; box-sizing: border-box;">
@@ -8305,6 +8511,7 @@ window.pantryDownloadExcelFile = async function(wb, filename) {
                             }
                         </style>
                     `;
+                    container.style.display = 'flex';
                     container.classList.remove('hidden');
                 }
             };
@@ -8979,32 +9186,28 @@ window.pantryDownloadExcelFile = async function(wb, filename) {
         const pantryOpts = activePantryStaff.map(p => `<option value="${safeStr(p.name)}" ${servedBy === p.name ? 'selected' : ''}>${safeStr(p.name)}</option>`).join('');
         const locListId = 'editloc_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
 
-        row.innerHTML = `
-            <!-- રો ૧: તારીખ અને વેન્યુ સાઇડ-બાય-સાઇડ -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
-                <input type="date" class="e-item-date" value="${rowYMD}" style="padding:5px; font-size:11px; border-radius:4px; border:1px solid #CBD5E1; width:100%; box-sizing:border-box;">
-                <input type="text" list="${locListId}" class="e-item-location" value="${safeStr(rowLocation)}" placeholder="Venue Location" style="padding:5px; font-size:11px; border:1px solid #CBD5E1; border-radius:4px; width:100%; box-sizing:border-box;">
+                row.innerHTML = `
+            <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
+                <input type="date" class="e-item-date" value="${rowYMD}" style="flex:1; min-width:40%; padding:6px; font-size:11px; border-radius:4px; border:1px solid #CBD5E1; background:#fff;">
+                <input type="text" list="${locListId}" class="e-item-location" value="${safeStr(rowLocation)}" placeholder="Venue" style="flex:1; min-width:40%; padding:6px; font-size:11px; border:1px solid #CBD5E1; border-radius:4px;">
                 <datalist id="${locListId}">${venueList.map(v => `<option value="${safeStr(v.name)}">`).join('')}</datalist>
-            </div>
-            <!-- રો ૨: વેન્ડર અને પેન્ટ્રી બોય સાઇડ-બાય-સાઇડ -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
-                <select class="e-item-vendor" style="padding:5px; font-size:11px; border-radius:4px; border:1px solid #CBD5E1; width:100%; box-sizing:border-box;">
-                    <option value="">-- Vendor --</option>
+                
+                <select class="e-item-vendor" style="flex:1; min-width:40%; padding:6px; font-size:11px; border-radius:4px; border:1px solid #CBD5E1; background:#fff;">
+                    <option value="">Vendor</option>
                     ${vendorOpts}
                 </select>
-                <select class="e-item-served-by" style="padding:5px; font-size:11px; border-radius:4px; border:1px solid #CBD5E1; width:100%; box-sizing:border-box;">
-                    <option value="">-- Served By --</option>
-                    <option value="Multiple Pantry Boys" ${servedBy === 'Multiple Pantry Boys' ? 'selected' : ''}>Multiple Pantry Boys</option>
-                    <option value="Through Vendor" ${servedBy === 'Through Vendor' ? 'selected' : ''}>Through Vendor</option>
+                <select class="e-item-served-by" style="flex:1; min-width:40%; padding:6px; font-size:11px; border-radius:4px; border:1px solid #CBD5E1; background:#fff;">
+                    <option value="">Served By</option>
+                    <option value="Multiple Pantry Boys" ${servedBy === 'Multiple Pantry Boys' ? 'selected' : ''}>Multiple</option>
+                    <option value="Through Vendor" ${servedBy === 'Through Vendor' ? 'selected' : ''}>Vendor</option>
                     ${pantryOpts}
                 </select>
-            </div>
-            <!-- રો ૩: આઇટમ નામ, Qty, કિંમત અને રીમુવ બટન એક જ લાઈનમાં ફિટ -->
-            <div style="display: grid; grid-template-columns: 2fr 0.8fr 1fr auto; gap: 4px; align-items: center;">
-                <input type="text" class="e-item-name" placeholder="Item Name" value="${safeStr(name)}" style="padding:5px; font-size:11px; border:1px solid #CBD5E1; border-radius:4px; width:100%; box-sizing:border-box;">
-                <input type="number" class="e-item-qty" placeholder="Qty" min="1" value="${qty}" style="padding:5px; font-size:11px; border:1px solid #CBD5E1; border-radius:4px; width:100%; box-sizing:border-box;">
-                <input type="number" class="e-item-rate" placeholder="₹ Rate" min="0" step="0.01" value="${rate}" style="padding:5px; font-size:11px; border:1px solid #CBD5E1; border-radius:4px; width:100%; box-sizing:border-box;">
-                <button type="button" class="e-remove-btn" style="background:#DC3545; color:#fff; border:none; padding:4px 6px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:bold; height:24px;">✕</button>
+
+                <input type="text" class="e-item-name" placeholder="Item Name" value="${safeStr(name)}" style="flex:1.5; min-width:40%; padding:6px; font-size:11px; border:1px solid #CBD5E1; border-radius:4px;">
+                <input type="number" class="e-item-qty" placeholder="Qty" min="1" value="${qty}" style="flex:0.5; min-width:15%; padding:6px; font-size:11px; border:1px solid #CBD5E1; border-radius:4px; text-align:center;">
+                <input type="number" class="e-item-rate" placeholder="₹ Rate" min="0" step="0.01" value="${rate}" style="flex:0.5; min-width:20%; padding:6px; font-size:11px; border:1px solid #CBD5E1; border-radius:4px; text-align:center;">
+                
+                <button type="button" class="e-remove-btn" style="flex:0.3; background:#fee2e2; color:#dc3545; border:1px solid #fecaca; padding:6px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold;">✕</button>
             </div>
         `;
         itemsContainer.appendChild(row);
@@ -10236,8 +10439,9 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
 
                     container.innerHTML = `
                         <style>
-                        /* અલ્ટ્રા કોમ્પેક્ટ ૨-લાઈન બોક્સ માટેની CSS */
-                        .mg-cmp-inp { padding:4px; font-size:11px; border:1px solid #cbd5e1; border-radius:4px; width:100%; box-sizing:border-box; height:26px; margin:0; outline:none; background:#fff; color:#1e293b; font-weight:600; min-width:40px; }
+                        /* અલ્ટ્રા કોમ્પેક્ટ ૨-લાઈન બોક્સ માટેની CSS (Uniform Fix) */
+                        .mg-cmp-inp { padding:8px 10px; font-size:12px; border:1px solid #cbd5e1; border-radius:6px; width:100%; box-sizing:border-box; height:36px; margin:0; outline:none; background:#fff; color:#1e293b; font-weight:600; line-height:normal; }
+                        input[type="date"].mg-cmp-inp, input[type="time"].mg-cmp-inp, input[type="month"].mg-cmp-inp { appearance:none; -webkit-appearance:none; }
                         .mg-cmp-inp:focus { border-color:#0A56D0; background:#eff6ff; }
                         .mg-entry-card { background:#fff; border:1px solid #93c5fd; border-radius:6px; padding:6px; margin-bottom:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:4px; }
                         .mg-btn-sm { height:26px; border:none; border-radius:4px; font-weight:bold; font-size:11px; cursor:pointer; padding:0 8px; display:flex; align-items:center; justify-content:center; }
@@ -10257,14 +10461,14 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
 
                         <div style="display: flex; flex-direction: column; height: 100%; overflow:hidden;">
                             
-                            <!-- Action Bar -->
-                            <div style="display: flex; gap: 4px; margin-bottom: 8px; flex-shrink: 0;">
+                            <!-- Action Bar with Scanner -->
+                            <div style="display: flex; gap: 4px; margin-bottom: 8px; flex-shrink: 0; flex-wrap: wrap;">
                                 <input type="file" id="mgExcelFileInput" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, .xlsx, .xls" style="display: none;" onchange="window.handleMgExcelUpload(event)">
                                 <button onclick="window.downloadMgFormat()" style="flex:0.8;" class="mg-btn-sm" style="background:#f8fafc; color:#334155; border:1px solid #cbd5e1;">📥 Fmt</button>
                                 <button onclick="document.getElementById('mgExcelFileInput').click()" style="flex:1; background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd;" class="mg-btn-sm">📂 Import</button>
                                 <button onclick="window.openMgHistory()" style="flex:1.2; background:#fef3c7; color:#d97706; border:1px solid #fde68a;" class="mg-btn-sm">📜 History</button>
+                                <button onclick="window.openDuplicateScannerModal()" style="flex:100%; background:#fee2e2; color:#ef4444; border:1px solid #fecaca; margin-top:4px;" class="mg-btn-sm">🔍 Scan & Clean Duplicates</button>
                             </div>
-
                             <div style="flex-grow: 1; overflow-y: auto; background: #f1f5f9; border-radius: 6px; border: 1px solid #cbd5e1; display:flex; flex-direction:column; padding:6px;">
                                 
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-shrink:0;">
@@ -10418,23 +10622,19 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
 
                             const cleanStr = (str) => (str || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
                             
+                            // STRICT DUPLICATE CHECKER FOR EXCEL UPLOAD
                             const isDuplicate = mgRecordsData.some(existing => {
                                 if (existing.Status === 'Review') return false;
-                                if (existing.RawDate !== rawYMD) return false; 
-                                if (existing.Time !== timeVal) return false; // સમય પણ સેમ હોવો જોઈએ
-                                if (existing.Location !== location) return false; // લોકેશન પણ સેમ હોવું જોઈએ
+                                if (existing.RawDate !== rawYMD) return false; // Date must match
                                 
-                                const exPurp = cleanStr(existing.Purpose);
-                                const newPurp = cleanStr(purpose);
-                                const purpMatch = exPurp && newPurp && (exPurp.includes(newPurp) || newPurp.includes(exPurp));
-                                
-                                const exItem = cleanStr(existing.Item);
-                                const newItem = cleanStr(itemName);
-                                const itemMatch = (exItem === newItem);
-                                
-                                return purpMatch && itemMatch;
-                            });
+                                if (cleanStr(existing.ReqName) !== cleanStr(reqName)) return false;
+                                if (existing.Vendor !== vendor) return false;
 
+                                if (cleanStr(existing.Item) !== cleanStr(itemName)) return false;
+                                if (existing.Qty !== qty) return false;
+                                
+                                return true;
+                            });
                             const finalStatus = isDuplicate ? 'Review' : 'Approved';
                             const id = 'mgrec_' + Date.now() + '_' + idx + '_' + Math.random().toString(36).substring(2, 6);
                             
@@ -10475,11 +10675,73 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 };
                 
                 reader.onerror = function() {
-                    appAlert('ફાઈલ પરમિશન એરર', 'મોબાઈલ આ ફાઈલ વાંચી શકતો નથી. કૃપા કરીને ફાઈલને ડાયરેક્ટ WhatsApp કે Drive માંથી સિલેક્ટ કરવાને બદલે, પહેલા ફોનના "Downloads" અથવા "Documents" ફોલ્ડરમાં સેવ કરો અને પછી ત્યાંથી સિલેક્ટ કરો.');
+                    appAlert('File Permission Error', 'Cannot read this file directly. Please save the Excel file to your phone\'s "Downloads" or "Documents" folder first, and then upload it from there.');
                     if (event.target) event.target.value = '';
-                };
-                
+                };                
                 reader.readAsArrayBuffer(file);
+            };
+            // ============================================================
+            // AUTO CLEAN EXACT DUPLICATE ITEMS
+            // ============================================================
+            window.cleanDuplicateMeetingItems = function() {
+                let totalRemoved = 0;
+                let updates = {};
+
+                // 1. જુના મોડ્યુલના ડુપ્લીકેટ્સ સાફ કરવા (જે સ્લીપમાં ડબલ દેખાય છે)
+                eventLogsData.forEach(ev => {
+                    if (ev.items && Array.isArray(ev.items) && ev.items.length > 0) {
+                        const uniqueItems = [];
+                        const seen = new Set();
+                        let hasDups = false;
+
+                        ev.items.forEach(item => {
+                            // નામ, ક્વોન્ટિટી, રેટ અને તારીખ એકદમ સેમ હોય તો જ પકડશે
+                            const key = `${item.name.toLowerCase().trim()}_${item.qty}_${item.rate}_${item.itemSpecificDate}`;
+                            if (seen.has(key)) {
+                                hasDups = true;
+                                totalRemoved++;
+                            } else {
+                                seen.add(key);
+                                uniqueItems.push(item);
+                            }
+                        });
+
+                        if (hasDups) {
+                            const totalAmt = uniqueItems.reduce((sum, i) => sum + (Number(i.amount) || (i.qty * i.rate)), 0);
+                            const summary = uniqueItems.map(i => `${i.qty} ${i.name} (${i.locationNode})`).join(', ');
+                            updates['eventLogs/' + ev.id + '/items'] = uniqueItems;
+                            updates['eventLogs/' + ev.id + '/amount'] = totalAmt;
+                            updates['eventLogs/' + ev.id + '/refreshmentSummary'] = summary;
+                        }
+                    }
+                });
+
+                // 2. નવા મોડ્યુલના ડુપ્લીકેટ્સ સાફ કરવા
+                const seenMg = new Set();
+                mgRecordsData.forEach(rec => {
+                    if (rec.Status === 'Review') return;
+                    const key = `${rec.RawDate}_${rec.Time}_${rec.Item.toLowerCase().trim()}_${rec.Qty}_${rec.Rate}_${rec.Purpose.toLowerCase().trim()}`;
+                    if (seenMg.has(key)) {
+                        updates['meetingsGuestsRecords/' + rec.id] = null;
+                        totalRemoved++;
+                    } else {
+                        seenMg.add(key);
+                    }
+                });
+
+                if (totalRemoved > 0 || Object.keys(updates).length > 0) {
+                    appConfirm('Clean Duplicates', `અમને ડેટાબેઝમાં ${totalRemoved} જેટલી ડબલ એન્ટ્રીઓ (બિલકુલ સરખી આઇટમ્સ) મળી છે. શું તમે તેને ડીલીટ કરીને ટોટલ રકમ સરખી કરવા માંગો છો?`, () => {
+                        db.ref().update(updates).then(() => {
+                            appAlert('Success', `${totalRemoved} ડુપ્લીકેટ આઇટમ્સ સફળતાપૂર્વક ડીલીટ થઈ ગઈ!`);
+                            if (window.renderMgHistoryTable) window.renderMgHistoryTable();
+                            if (window.openEventHistoryModal && !document.getElementById('eventHistoryModal').classList.contains('hidden')) {
+                                window.openEventHistoryModal();
+                            }
+                        });
+                    });
+                } else {
+                    appAlert('No Duplicates', 'No duplicate entries found. Your data is completely clean!');
+                }
             };
         // નવો અલ્ટ્રા કોમ્પેક્ટ એન્ટ્રી રો (કાર્ડ) - Custom Dropdown સાથે
             window.addMgRow = function(data = {}) {
@@ -10531,20 +10793,14 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 card.className = 'mg-entry-card';
                 card.id = rowId;
                 card.innerHTML = `
-                    <!-- 1st Line: Date | Time | Org | Purpose | Loc -->
-                    <div style="display:flex; gap:4px; align-items:center;">
-                        <input type="date" class="row-date mg-cmp-inp" value="${dateVal}" style="flex:1.8; padding:0 2px; font-size:10px;">
-                        
-                        <div style="display:flex; align-items:center; flex:1.2; background:#fff; border:1px solid #cbd5e1; https://www.flaticon.com/free-icon/maps-and-flags_447031-radius:4px; padding:0 2px; height:26px; box-sizing:border-box;">
-                            <span style="font-size:11px;">⏰</span>
-                            <input type="time" class="row-time" value="${data.Time || ''}" style="border:none; outline:none; background:transparent; font-size:11px; padding:0 2px; width:100%; font-weight:600; color:#1e293b;">
-                        </div>
-                        
-                        <input type="text" list="mgEmpListGlobal" class="row-req mg-cmp-inp" placeholder="Req. By" value="${safeStr(data.ReqBy)}" style="flex:1.3; border-color:#0A56D0;">
-                        <input type="text" class="row-purpose mg-cmp-inp" placeholder="Purpose" value="${safeStr(data.Purpose)}" style="flex:1.5;">
-                        <input type="text" list="mgLocListGlobal" class="row-loc mg-cmp-inp" placeholder="📍" value="${safeStr(data.Location)}" style="flex:0.8;">
-                    </div>
-                    
+                                        <!-- 1st Line: Compact Wrap Format -->
+                    <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:6px;">
+                        <input type="date" class="row-date mg-cmp-inp" value="${dateVal}" style="flex:1; min-width:105px; max-width:125px;">
+                        <input type="time" class="row-time mg-cmp-inp" value="${data.Time || ''}" title="Optional Time" style="flex:1; min-width:85px; max-width:105px;">
+                        <input type="text" list="mgEmpListGlobal" class="row-req mg-cmp-inp" placeholder="Req. By" value="${safeStr(data.ReqBy)}" style="flex:2; min-width:100px; border-color:#0A56D0;">
+                        <input type="text" class="row-purpose mg-cmp-inp" placeholder="Purpose" value="${safeStr(data.Purpose)}" style="flex:2; min-width:110px;">
+                        <input type="text" list="mgLocListGlobal" class="row-loc mg-cmp-inp" placeholder="📍 Loc" value="${safeStr(data.Location)}" style="flex:1; min-width:80px;">
+                    </div>                
                     <!-- 2nd Line: Vendor | ServedBy | Item | Qty | Rate | Amt | Action -->
                     <div style="display:flex; gap:4px; align-items:center;">
                         <select class="row-vendor mg-cmp-inp" onchange="window.updateMgItemDatalist('${rowId}')" style="flex:1.5; padding:0 2px;">
@@ -10695,28 +10951,26 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
 
                     const id = 'mgrec_' + Date.now() + Math.random().toString(36).substring(2, 7);
                     
-                   // સ્માર્ટ ડુપ્લીકેટ ચેકર: કૌંસ, ડેશ, સ્પેસ કાઢીને શબ્દો મેચ કરશે
-                    const cleanStr = (str) => (str || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+                                       const cleanStr = (str) => (str || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
                     
+                    // STRICT DUPLICATE CHECKER (Ignores Purpose, Time, and Location)
                     const isDuplicate = mgRecordsData.some(existing => {
                         if (existing.Status === 'Review') return false; 
-                        if (existing.RawDate !== data.RawDate) return false; // તારીખ સેમ હોવી જોઈએ
-                        if (existing.Time !== data.Time) return false; // સમય પણ સેમ હોવો જોઈએ
-                        if (existing.Location !== data.Location) return false; // લોકેશન પણ સેમ હોવું જોઈએ
+                        if (existing.RawDate !== data.RawDate) return false; // Date must match
                         
-                        // Purpose માં થોડું પણ મળતું આવતું હોય તો પકડી લેશે
-                        const exPurp = cleanStr(existing.Purpose);
-                        const newPurp = cleanStr(data.Purpose);
-                        const purpMatch = exPurp && newPurp && (exPurp.includes(newPurp) || newPurp.includes(exPurp));
+                        // 1. Req By (Person Name) must match
+                        if (cleanStr(existing.ReqName) !== cleanStr(data.ReqName)) return false;
                         
-                        // Item સેમ હોવી જોઈએ
-                        const exItem = cleanStr(existing.Item);
-                        const newItem = cleanStr(data.Item);
-                        const itemMatch = (exItem === newItem);
-                        
-                        return purpMatch && itemMatch;
-                    });
+                        // 2. Vendor must match
+                        if (existing.Vendor !== data.Vendor) return false;
 
+                        // 3. Item Name and Quantity must match exactly
+                        if (cleanStr(existing.Item) !== cleanStr(data.Item)) return false;
+                        if (existing.Qty !== data.Qty) return false;
+                        
+                        // If Date, Vendor, ReqName, Item, and Qty match, it goes to Review!
+                        return true;
+                    });
                     let finalStatus = isDuplicate ? 'Review' : 'Approved';
                     if(isDuplicate) duplicateCount++;
 
@@ -10765,7 +11019,130 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     window.renderMgReviewSection();
                 }).catch(err => appAlert('Error', err.message));
             };
+            // ============================================================
+            //  SMART DUPLICATE SCANNER ENGINE
+            // ============================================================
+            window.openDuplicateScannerModal = function() {
+                appAlert('Scanning', 'Scanning database for duplicate meeting slips...');
+                
+                // 1. Gather all records
+                let combinedRecords = mgRecordsData.filter(rec => rec.Status !== 'Review');
 
+                if (typeof eventLogsData !== 'undefined' && eventLogsData.length > 0) {
+                    eventLogsData.forEach(ev => {
+                        if (ev.items && Array.isArray(ev.items) && ev.items.length > 0) {
+                            ev.items.forEach((item, idx) => {
+                                combinedRecords.push({
+                                    id: ev.id + '_' + idx, DateFormatted: item.itemSpecificDate || ev.date, 
+                                    Item: item.name, Qty: item.qty, Rate: item.rate || 0, Amount: item.amount || (item.qty * (item.rate || 0)),
+                                    ReqName: ev.orderedBy || '-', Purpose: ev.eventName || '-', Vendor: item.vendor || ev.canteenSource || '-',
+                                    isOldEvent: true, originalId: ev.id, Timestamp: ev.timestamp || 0
+                                });
+                            });
+                        } else {
+                            combinedRecords.push({
+                                id: ev.id, DateFormatted: ev.date, Item: ev.refreshmentSummary || 'Meeting Details', Qty: '-', Rate: '-', Amount: ev.amount || 0, 
+                                ReqName: ev.orderedBy || '-', Purpose: ev.eventName || '-', Vendor: ev.canteenSource || '-',
+                                isOldEvent: true, originalId: ev.id, Timestamp: ev.timestamp || 0
+                            });
+                        }
+                    });
+                }
+
+                // 2. Form Slips (Group by Date + Purpose + Vendor to match History View)
+                const slips = {};
+                combinedRecords.forEach(rec => {
+                    const key = `${rec.DateFormatted}_${rec.Purpose}_${rec.Vendor}`;
+                    if(!slips[key]) {
+                        slips[key] = {
+                            key: key, DateFormatted: rec.DateFormatted, Vendor: rec.Vendor, Purpose: rec.Purpose, ReqName: rec.ReqName,
+                            totalAmt: 0, items: [], idsToDelete: []
+                        };
+                    }
+                    slips[key].items.push(rec);
+                    slips[key].totalAmt += Number(rec.Amount) || 0;
+                    slips[key].idsToDelete.push({ id: rec.id, isOld: !!rec.isOldEvent, originalId: rec.originalId });
+                });
+
+                // 3. Find Duplicate Slips (Group strictly by Date + Vendor + ReqName + Amount) IGNORING slight Purpose variations
+                const slipGroups = {};
+                Object.values(slips).forEach(slip => {
+                    const reqClean = (slip.ReqName || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+                    const hash = `${slip.DateFormatted}_${slip.Vendor.toLowerCase()}_${reqClean}_${slip.totalAmt.toFixed(2)}`;
+                    if(!slipGroups[hash]) slipGroups[hash] = [];
+                    slipGroups[hash].push(slip);
+                });
+
+                const duplicateGroups = Object.values(slipGroups).filter(g => g.length > 1);
+
+                // 4. Render UI
+                const existing = document.getElementById('duplicateScannerModal');
+                if (existing) existing.remove();
+
+                let html = '';
+                if (duplicateGroups.length === 0) {
+                    html = `<div style="padding:40px 20px; text-align:center; color:#059669; font-weight:bold; font-size:16px;">✅ No Duplicates Found!<br><span style="font-size:12px; color:#475569; font-weight:normal; display:block; margin-top:8px;">Your database is perfectly clean.</span></div>`;
+                } else {
+                    html = `<div style="padding:12px; background:#FEF2F2; border-bottom:1px solid #FECACA; color:#DC3545; font-size:12px; font-weight:bold;">⚠️ Found ${duplicateGroups.length} groups of duplicate slips!<br><span style="color:#7F1D1D; font-size:10px; font-weight:normal;">(Matched by Date, Vendor, Requester, and Total Amount)</span></div>`;
+                    html += `<div style="padding:12px; overflow-y:auto; flex:1; background:#F8FAFC;">`;
+                    
+                    duplicateGroups.forEach((group, gIdx) => {
+                        html += `<div style="margin-bottom:16px; border:2px solid #CBD5E1; border-radius:8px; background:#fff; overflow:hidden;">`;
+                        html += `<div style="background:#F1F5F9; padding:8px 12px; border-bottom:1px solid #CBD5E1; font-weight:bold; color:#1E293B; font-size:12px; display:flex; justify-content:space-between;">
+                                    <span>${group[0].DateFormatted} | ${group[0].Vendor} | Req: ${group[0].ReqName}</span>
+                                    <span style="color:#0A56D0;">Amount: ₹${group[0].totalAmt.toFixed(2)}</span>
+                                 </div>`;
+                        
+                        group.forEach((slip, sIdx) => {
+                            const isFirst = sIdx === 0; // Keep the first one as Original
+                            const delData = encodeURIComponent(JSON.stringify(slip.idsToDelete)).replace(/'/g, "%27");
+                            const slipDataStr = encodeURIComponent(JSON.stringify(slip)).replace(/'/g, "%27");
+                            
+                            html += `
+                                <label style="display:flex; align-items:center; gap:12px; padding:12px; border-bottom:1px solid #E2E8F0; cursor:pointer; background:${isFirst ? '#ECFDF5' : '#FEF2F2'};">
+                                    <input type="checkbox" class="dup-scanner-chk" value="${delData}" ${isFirst ? '' : 'checked'} style="width:20px; height:20px; accent-color:#DC3545; flex-shrink:0;">
+                                    <div style="flex:1; font-size:12px; line-height:1.5;">
+                                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                                            ${isFirst ? '<span style="background:#10B981; color:#fff; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">Original (Keep)</span>' : '<span style="background:#EF4444; color:#fff; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">Duplicate (Delete)</span>'}
+                                            <button type="button" onclick="window.viewMgSlip('${slipDataStr}')" style="background:#FEF3C7; color:#D97706; border:1px solid #FDE68A; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:10px; cursor:pointer;">📜 View Slip</button>
+                                        </div>
+                                        <b>Purpose:</b> <span style="color:#D97706;">${slip.Purpose}</span><br>
+                                        <span style="color:#64748B;">Items: ${slip.items.map(i => i.Item + ' (x' + i.Qty + ')').join(', ')}</span>
+                                    </div>
+                                </label>
+                            `;
+                        });
+                        html += `</div>`;
+                    });
+                    html += `</div>`;
+                    
+                    html += `
+                        <div style="padding:12px; background:#fff; border-top:1px solid #CBD5E1; display:flex; gap:10px;">
+                            <button onclick="window.executeDuplicateCleanup()" class="danger" style="flex:1; padding:12px; font-weight:bold; font-size:14px; border-radius:8px; box-shadow:0 2px 4px rgba(220,53,69,0.3);">🗑️ Delete Selected Duplicates</button>
+                        </div>
+                    `;
+                }
+
+                const modal = document.createElement('div');
+                modal.className = 'popup-overlay';
+                modal.id = 'duplicateScannerModal';
+                modal.style.zIndex = '9999999';
+                modal.innerHTML = `
+                    <div class="popup-card" style="width:95vw; max-width:600px; height:85vh; padding:0; display:flex; flex-direction:column; overflow:hidden; border-radius:12px;">
+                        <div style="background:#1E293B; color:#fff; padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
+                            <h3 style="margin:0; font-size:16px;">🔍 Smart Duplicate Scanner</h3>
+                            <button onclick="document.getElementById('duplicateScannerModal').remove()" style="background:transparent; border:none; color:#fff; font-size:20px; cursor:pointer;">✕</button>
+                        </div>
+                        ${html}
+                    </div>
+                `;
+                
+                // થોડું ડીલે જેથી Scanning એલર્ટ ગાયબ થઈ જાય
+                setTimeout(() => {
+                    document.querySelector('.popup-overlay:not(#duplicateScannerModal)')?.remove();
+                    document.body.appendChild(modal);
+                }, 500);
+            };
             // ============================================================
             // હિસ્ટ્રી ટેબલ અને સ્લિપ પોપઅપ
             // ============================================================
@@ -10871,7 +11248,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     slips[key].items.push(rec);
                     slips[key].itemCount += 1;
                     slips[key].totalAmt += Number(rec.Amount) || 0;
-                    slips[key].idsToDelete.push({ id: rec.id, isOld: !!rec.isOldEvent, originalId: rec.originalId });
+                    slips[key].idsToDelete.push(rec);
                 });
 
                 // તારીખ પ્રમાણે સોર્ટિંગ (1 થી 31 - Ascending Order)
@@ -11062,26 +11439,22 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
 
                 const getVendorOpts = (selectedVendor) => {
                     return `<option value="DAU Direct Purchase" ${selectedVendor === 'DAU Direct Purchase' ? 'selected' : ''} style="color:#059669; font-weight:bold;">🛒 DAU</option>` + 
-                    canteenList.map(c => `<option value="${safeStr(c.name)}" ${selectedVendor === c.name ? 'selected':''}>${safeStr(c.name).substring(0,6)}</option>`).join('');
+                    canteenList.map(c => `<option value="${safeStr(c.name)}" ${selectedVendor === c.name ? 'selected':''}>${safeStr(c.name)}</option>`).join('');
                 };
                 
                 let itemsHtml = slip.items.map((it, idx) => {
                     let itemDateYMD = it.RawDate ? forceYMD(it.RawDate) : (it.DateFormatted ? forceYMD(it.DateFormatted) : rawDate);
                     return `
-                    <div class="eg-row" style="display:flex; gap:2px; margin-bottom:4px; background:#f8fafc; padding:2px; border:1px solid #e2e8f0; border-radius:4px; align-items:center; width:100%; box-sizing:border-box;">
-                        <input type="date" class="eg-date mg-cmp-inp ultra-cmp" value="${itemDateYMD}" style="width:68px; flex-shrink:0; height:24px; min-width:0;">
-                        <div style="display:flex; align-items:center; background:#EFF6FF; border:1px solid #0A56D0; border-radius:4px; padding:0 4px; height:26px; box-sizing:border-box; flex-shrink:0;">
-    <span style="font-size:12px; margin-right:2px;">🕒</span>
-    <input type="time" class="eg-time" value="${it.Time || '09:00'}" style="border:none; outline:none; background:transparent; font-size:12px; padding:0; width:85px; font-weight:800; color:#0A56D0; cursor:pointer;">
-</div>
-                        <select class="eg-vendor mg-cmp-inp ultra-cmp" style="width:52px; flex-shrink:0; height:24px; text-overflow:ellipsis; min-width:0;"><option value="">Vndr</option>${getVendorOpts(it.Vendor)}</select>
-                        <input type="text" class="eg-item mg-cmp-inp ultra-cmp" value="${it.Item}" placeholder="Item" style="flex:1; min-width:0; height:24px;">
-                        <input type="number" class="eg-qty mg-cmp-inp ultra-cmp" value="${it.Qty}" placeholder="Qty" style="width:28px; text-align:center; flex-shrink:0; height:24px; min-width:0;">
-                        <input type="number" class="eg-rate mg-cmp-inp ultra-cmp" value="${it.Rate}" placeholder="₹" style="width:32px; text-align:center; flex-shrink:0; height:24px; min-width:0;">
-                        <button type="button" onclick="this.closest('.eg-row').remove()" style="width:22px; height:24px; flex-shrink:0; background:#fee2e2; color:#dc3545; border:none; border-radius:3px; font-weight:bold; font-size:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;">✕</button>
+                    <div class="eg-row" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; background:#f8fafc; padding:8px; border:1px solid #cbd5e1; border-radius:6px; align-items:center; width:100%; box-sizing:border-box;">
+                        <input type="date" class="eg-date mg-cmp-inp" value="${itemDateYMD}" style="flex:1; min-width:105px; max-width:125px; background:#fff;">
+                        <input type="time" class="eg-time mg-cmp-inp" value="${it.Time || ''}" title="Optional Time" style="flex:1; min-width:85px; max-width:105px; background:#fff;">
+                        <select class="eg-vendor mg-cmp-inp" style="flex:2; min-width:110px; background:#fff;"><option value="">Vendor</option>${getVendorOpts(it.Vendor)}</select>
+                        <input type="text" class="eg-item mg-cmp-inp" value="${safeStr(it.Item)}" placeholder="Item Name" style="flex:2; min-width:110px; background:#fff;">
+                        <input type="number" class="eg-qty mg-cmp-inp" value="${it.Qty}" placeholder="Qty" style="flex:0.5; min-width:60px; max-width:80px; text-align:center; background:#fff;">
+                        <input type="number" class="eg-rate mg-cmp-inp" value="${it.Rate}" placeholder="Rate ₹" style="flex:0.5; min-width:60px; max-width:80px; text-align:center; background:#fff;">
+                        <button type="button" onclick="this.closest('.eg-row').remove()" style="flex:0.5; min-width:60px; max-width:80px; background:#fee2e2; color:#dc3545; border:1px solid #fecaca; border-radius:6px; font-weight:bold; cursor:pointer;">✕ Del</button>
                     </div>
                 `}).join('');
-
                 // અહી "Served By" નું Custom Dropdown ફંક્શન સેમ ટુ સેમ લાગુ કર્યું છે
                 let servedByHtml = '';
                 if(window.mgCurrentRole === 'admin') {
@@ -11119,12 +11492,6 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 }
 
                 modal.innerHTML = `
-                    <style>
-                        .ultra-cmp { padding: 0 1px !important; font-size: 9px !important; border-radius: 3px !important; margin: 0 !important; }
-                        /* કેલેન્ડર અને નંબરના એરા સંપૂર્ણ કાઢી નાખવા */
-                        .ultra-cmp::-webkit-calendar-picker-indicator { display: none; -webkit-appearance: none; margin: 0; padding: 0; }
-                        .ultra-cmp::-webkit-inner-spin-button, .ultra-cmp::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-                    </style>
                     <div class="popup-card full" style="width:98vw; max-width:900px; height:92vh; display:flex; flex-direction:column; padding:10px; border-radius:12px;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-shrink:0;">
                             <h3 style="color:#0A56D0; margin:0; font-size:16px;">✏️ Edit Meeting</h3>
@@ -11137,12 +11504,12 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                             ${servedByHtml}
                         </div>
 
-                        <div style="font-size:11px; font-weight:bold; color:#0A56D0; margin-bottom:4px; flex-shrink:0;">📋 Edit Items:</div>
+                                                <div style="font-size:11px; font-weight:bold; color:#0A56D0; margin-bottom:4px; flex-shrink:0;">📋 Edit Items:</div>
                         
-                        <div id="egItemsContainer" style="flex-grow:1; overflow-y:auto; overflow-x:hidden; border:1px solid #e2e8f0; padding:4px; border-radius:6px; background:#fff;">
+                        <!-- અહી overflow-x:hidden કરી દીધું છે જેથી સ્ક્રોલિંગ બંધ થઈ જાય -->
+                        <div id="egItemsContainer" style="flex-grow:1; overflow-y:auto; overflow-x:hidden; border:1px solid #e2e8f0; padding:6px; border-radius:6px; background:#fff; padding-bottom:12px;">
                             ${itemsHtml}
-                        </div>
-                        
+                        </div>                        
                         <button type="button" onclick="window.addEgRow()" style="width:100%; margin-top:6px; background:#10b981; color:#fff; border:none; border-radius:6px; font-size:12px; padding:8px; font-weight:bold; cursor:pointer; flex-shrink:0;">➕ Add New Item</button>
                         
                         <input type="hidden" id="egIdsToDelete" value="${encodeURIComponent(JSON.stringify(slip.idsToDelete))}">
@@ -11159,31 +11526,27 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
             window.addEgRow = function() {
                 const row = document.createElement('div');
                 row.className = 'eg-row';
-                row.style.cssText = "display:flex; gap:2px; margin-bottom:4px; background:#f8fafc; padding:2px; border:1px solid #e2e8f0; border-radius:4px; align-items:center; width:100%; box-sizing:border-box;";
-                const vendorOpts = `<option value="DAU Direct Purchase" style="color:#059669; font-weight:bold;">🛒 DAU</option>` + canteenList.map(c => `<option value="${safeStr(c.name)}">${safeStr(c.name).substring(0,6)}</option>`).join('');
+                row.style.cssText = "display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; background:#f8fafc; padding:8px; border:1px solid #cbd5e1; border-radius:6px; align-items:center; width:100%; box-sizing:border-box;";
+                const vendorOpts = `<option value="DAU Direct Purchase" style="color:#059669; font-weight:bold;">🛒 DAU</option>` + canteenList.map(c => `<option value="${safeStr(c.name)}">${safeStr(c.name)}</option>`).join('');
                 
                 let defaultDate = new Date().toISOString().split('T')[0];
                 const prevRows = document.querySelectorAll('.eg-date');
                 if(prevRows.length > 0) defaultDate = prevRows[prevRows.length-1].value;
 
                 row.innerHTML = `
-                    <input type="date" class="eg-date mg-cmp-inp ultra-cmp" value="${defaultDate}" style="width:68px; flex-shrink:0; height:24px; min-width:0;">
-                    <div style="display:flex; align-items:center; background:#EFF6FF; border:1px solid #0A56D0; border-radius:4px; padding:0 4px; height:26px; box-sizing:border-box; flex-shrink:0;">
-                        <span style="font-size:12px; margin-right:2px;">🕒</span>
-                        <input type="time" class="eg-time" value="09:00" style="border:none; outline:none; background:transparent; font-size:12px; padding:0; width:85px; font-weight:800; color:#0A56D0; cursor:pointer;">
-                    </div>
-                    <select class="eg-vendor mg-cmp-inp ultra-cmp" style="width:52px; flex-shrink:0; height:24px; text-overflow:ellipsis; min-width:0;"><option value="">Vndr</option>${vendorOpts}</select>
-                    <input type="text" class="eg-item mg-cmp-inp ultra-cmp" placeholder="Item" style="flex:1; min-width:0; height:24px;">
-                    <input type="number" class="eg-qty mg-cmp-inp ultra-cmp" placeholder="Qty" style="width:28px; text-align:center; flex-shrink:0; height:24px; min-width:0;">
-                    <input type="number" class="eg-rate mg-cmp-inp ultra-cmp" placeholder="₹" style="width:32px; text-align:center; flex-shrink:0; height:24px; min-width:0;">
-                    <button type="button" onclick="this.closest('.eg-row').remove()" style="width:22px; height:24px; flex-shrink:0; background:#fee2e2; color:#dc3545; border:none; border-radius:3px; font-weight:bold; font-size:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;">✕</button>
+                    <input type="date" class="eg-date mg-cmp-inp" value="${defaultDate}" style="flex:1; min-width:45%; height:28px; padding:0 4px; font-size:11px; background:#fff;">
+                    <input type="time" class="eg-time mg-cmp-inp" value="" title="Optional Time" style="flex:1; min-width:30%; height:28px; padding:0 4px; font-size:11px; background:#fff;">
+                    <select class="eg-vendor mg-cmp-inp" style="flex:1; min-width:45%; height:28px; font-size:11px; background:#fff;"><option value="">Vendor</option>${vendorOpts}</select>
+                    <input type="text" class="eg-item mg-cmp-inp" placeholder="Item Name" style="flex:1; min-width:45%; height:28px; font-size:11px; background:#fff;">
+                    <input type="number" class="eg-qty mg-cmp-inp" placeholder="Qty" style="flex:0.5; min-width:20%; text-align:center; height:28px; font-size:11px; background:#fff;">
+                    <input type="number" class="eg-rate mg-cmp-inp" placeholder="Rate ₹" style="flex:0.5; min-width:25%; text-align:center; height:28px; font-size:11px; background:#fff;">
+                    <button type="button" onclick="this.closest('.eg-row').remove()" style="flex:0.5; min-width:20%; height:28px; background:#fee2e2; color:#dc3545; border:1px solid #fecaca; border-radius:4px; font-weight:bold; font-size:12px; cursor:pointer;">✕ Del</button>
                 `;
                 document.getElementById('egItemsContainer').appendChild(row);
                 
                 const scrollWrapper = document.getElementById('egItemsContainer');
                 scrollWrapper.scrollTop = scrollWrapper.scrollHeight;
             };
-
             window.saveEgGroup = function() {
                 const purpose = document.getElementById('egPurpose').value.trim();
                 const reqName = document.getElementById('egReqName').value.trim();
@@ -11236,36 +11599,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     appAlert('Success', 'Meeting Updated successfully!');
                     window.renderMgHistoryTable();
                 }).catch(err => appAlert('Error', err.message));
-            };
-            window.deleteFullMgSlip = function(encodedData) {
-                appConfirm('Delete Slip', 'Are you sure you want to delete ALL items in this slip?', () => {
-                    const items = JSON.parse(decodeURIComponent(encodedData));
-                    const updates = {};
-                    let oldEventsDeleted = new Set();
-
-                    items.forEach(item => {
-                        if (item.isOld) {
-                            if(!oldEventsDeleted.has(item.originalId)) {
-                                db.ref('eventLogs/' + item.originalId).remove();
-                                oldEventsDeleted.add(item.originalId);
-                            }
-                        } else {
-                            updates['meetingsGuestsRecords/' + item.id] = null;
-                        }
-                    });
-
-                    if (Object.keys(updates).length > 0) {
-                        db.ref().update(updates).then(() => {
-                            appAlert('Deleted', 'Entire slip removed successfully.');
-                            window.renderMgHistoryTable();
-                        });
-                    } else {
-                        appAlert('Deleted', 'Old events slip removed successfully.');
-                        window.renderMgHistoryTable();
-                    }
-                });
-            };
-            
+            };            
            window.renderMgReviewSection = function() {
                 const container = document.getElementById('mgReviewSection');
                 if (!container) return;
@@ -11275,7 +11609,83 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     container.style.display = 'none'; 
                     return; 
                 }
-                
+             window.deleteFullMgSlip = function(encodedData) {
+                appConfirm('Delete Slip', 'Are you sure you want to delete ALL items in this slip? (Can be restored from Recycle Bin)', () => {
+                    const items = JSON.parse(decodeURIComponent(encodedData));
+                    const updates = {};
+                    let oldEventsDeleted = new Set();
+
+                    items.forEach(item => {
+                        if (item.isOldEvent || item.isOld) {
+                            const oId = item.originalId;
+                            if(!oldEventsDeleted.has(oId)) {
+                                const orig = eventLogsData.find(e => e.id === oId);
+                                if (orig) db.ref('recycleBin/eventLogs/' + oId).set(orig);
+                                db.ref('eventLogs/' + oId).remove();
+                                oldEventsDeleted.add(oId);
+                            }
+                        } else {
+                            db.ref('recycleBin/meetingsGuestsRecords/' + item.id).set(item);
+                            updates['meetingsGuestsRecords/' + item.id] = null;
+                        }
+                    });
+
+                    if (Object.keys(updates).length > 0) {
+                        db.ref().update(updates).then(() => {
+                            appAlert('Deleted', 'Entire slip moved to Recycle Bin.');
+                            window.renderMgHistoryTable();
+                        });
+                    } else {
+                        appAlert('Deleted', 'Events moved to Recycle Bin.');
+                        window.renderMgHistoryTable();
+                    }
+                });
+            };
+
+            window.executeDuplicateCleanup = function() {
+                const checked = document.querySelectorAll('.dup-scanner-chk:checked');
+                if (checked.length === 0) return appAlert('Select Items', 'Please select at least one duplicate to delete.');
+
+                appConfirm('Confirm Deletion', `Are you sure you want to delete ${checked.length} duplicate slips? (Can be restored from Recycle Bin)`, () => {
+                    const updates = {};
+                    let oldEventsDeleted = new Set();
+                    let countDeleted = 0;
+
+                    checked.forEach(cb => {
+                        const items = JSON.parse(decodeURIComponent(cb.value));
+                        items.forEach(item => {
+                            if (item.isOldEvent || item.isOld) {
+                                const oId = item.originalId;
+                                if(!oldEventsDeleted.has(oId)) {
+                                    const orig = eventLogsData.find(e => e.id === oId);
+                                    if (orig) db.ref('recycleBin/eventLogs/' + oId).set(orig);
+                                    db.ref('eventLogs/' + oId).remove();
+                                    oldEventsDeleted.add(oId);
+                                    countDeleted++;
+                                }
+                            } else {
+                                db.ref('recycleBin/meetingsGuestsRecords/' + item.id).set(item);
+                                updates['meetingsGuestsRecords/' + item.id] = null;
+                                countDeleted++;
+                            }
+                        });
+                    });
+
+                    if (Object.keys(updates).length > 0) {
+                        db.ref().update(updates).then(() => finishCleanup(countDeleted));
+                    } else {
+                        finishCleanup(countDeleted);
+                    }
+                });
+
+                function finishCleanup(count) {
+                    const modal = document.getElementById('duplicateScannerModal');
+                    if(modal) modal.remove();
+                    appAlert('Success', `Moved ${count} duplicate items to Recycle Bin!`);
+                    if (window.renderMgHistoryTable) window.renderMgHistoryTable();
+                }
+            };
+             
                 const duplicatesToShow = typeof mgRecordsData !== 'undefined' ? mgRecordsData.filter(r => r.Status === 'Review') : [];
                 if(duplicatesToShow.length === 0) { container.style.display = 'none'; return; }
 
@@ -11302,17 +11712,24 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     return dateA.localeCompare(dateB);
                 });
 
-                let rowsHtml = duplicatesToShow.map(rec => `
+                let rowsHtml = duplicatesToShow.map(rec => {
+                    const dObj = new Date(rec.RawDate || rec.Timestamp);
+                    const monthName = dObj.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+                    const timeDisplay = rec.Time ? `<span style="color:#64748B;">(${rec.Time})</span>` : '';
+                    
+                    return `
                     <label class="dup-row" style="display:flex; align-items:center; gap:12px; padding:12px; border-bottom:1px solid #e2e8f0; background:#fff; cursor:pointer;">
                         <input type="checkbox" class="dup-chk" value="${rec.id}" style="width:20px; height:20px; cursor:pointer; flex-shrink:0;">
                         <div style="flex:1; font-size:12px; line-height:1.5;">
-                            <b>Date:</b> ${rec.DateFormatted} <span style="color:#64748B;">(${rec.Time || '09:00'})</span> | <b>Req:</b> ${rec.ReqName}<br>
-                            <b>Item:</b> <span style="color:#0A56D0; font-weight:bold;">${rec.Item} x ${rec.Qty}</span> | <b>Amt:</b> ₹${rec.Amount}<br>
-                            <span style="color:#64748b; font-size:10px;">Purpose: ${rec.Purpose}</span>
+                            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                                <span><b>Date:</b> ${rec.DateFormatted} ${timeDisplay}</span>
+                                <span style="background:#FEF3C7; color:#D97706; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:10px;">🗓️ ${monthName}</span>
+                            </div>
+                            <b>Req:</b> ${rec.ReqName} | <b>Item:</b> <span style="color:#0A56D0; font-weight:bold;">${rec.Item} x ${rec.Qty}</span> | <b>Amt:</b> ₹${rec.Amount}<br>
+                            <span style="color:#64748b; font-size:11px;"><b>Purpose:</b> ${rec.Purpose}</span>
                         </div>
                     </label>
-                `).join('');
-
+                `}).join('');
                 const modalHtml = `
                     <div id="dupReviewModal" class="popup-overlay" style="display:flex; align-items:center; justify-content:center; z-index:999999; background:rgba(0,0,0,0.6);">
                         <div class="popup-card" style="width:95%; max-width:500px; height:85vh; display:flex; flex-direction:column; padding:0; overflow:hidden; border-radius:12px;">
@@ -11354,7 +11771,9 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     checked.forEach(cb => {
                         if(action === 'approve') {
                             updates['meetingsGuestsRecords/' + cb.value + '/Status'] = 'Approved';
-                        } else {
+                       } else {
+                            const rec = mgRecordsData.find(r => r.id === cb.value);
+                            if (rec) db.ref('recycleBin/meetingsGuestsRecords/' + cb.value).set(rec);
                             updates['meetingsGuestsRecords/' + cb.value] = null;
                         }
                     });
@@ -11375,8 +11794,8 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     }, 100);
                 });
             };
-        })();	
-			// ===== Date Change & Auto Refresh Helpers =====
+        })();
+// ===== Date Change & Auto Refresh Helpers =====            
 window.refreshAllData = function() {
     if (typeof window.populateServe === 'function') window.populateServe();
     var mPopup = document.getElementById('monthlyGridPopup');
@@ -11433,7 +11852,7 @@ setTimeout(function() {
             window.refreshAllData();
         }
     }
-}, 800); // પેજ લોડ થયાના થોડા સમય પછી ચાલુ થાય જેથી કોઈ એરર ના આવે
+}, 800);       
 </script>    
 </body>
 </html>
