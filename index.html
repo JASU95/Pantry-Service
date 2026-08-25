@@ -1946,47 +1946,92 @@
             // ============================================================
             // APK & BROWSER BULLETPROOF EXCEL DOWNLOADER (Share API)
             // ============================================================
-            window.pantryDownloadExcelFile = async function(wb, filename) {
-                try {
-                    const fileNameWithExt = filename.endsWith('.xlsx') ? filename : filename + '.xlsx';
-                    
-                    // એક્સેલ ફાઈલનો ડેટા બનાવો
-                    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-                    const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+           window.pantryDownloadExcelFile = async function(wb, filename) {
 
-                    // 1. સૌથી પહેલો અને બેસ્ટ રસ્તો: APK માટે Share Menu ખોલવું
-                    // આનાથી ફાઈલ સીધી WhatsApp, Telegram કે Google Drive માં મોકલી શકાશે
-                    if (navigator.canShare) {
-                        try {
-                            const file = new File([blob], fileNameWithExt, { type: blob.type });
-                            if (navigator.canShare({ files: [file] })) {
-                                await navigator.share({
-                                    files: [file],
-                                    title: fileNameWithExt,
-                                    text: 'Here is your Excel Report.'
-                                });
-                                return; // જો શેર મેનુ ખુલી જાય તો કામ પૂરું!
-                            }
-                        } catch(shareErr) {
-                            console.log('Share API Error:', shareErr);
-                        }
-                    }
+    try {
 
-                    // 2. બીજો રસ્તો: જો Chrome બ્રાઉઝર હોય તો નોર્મલ ડાઉનલોડ
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    document.body.appendChild(a);
-                    a.style.display = "none";
-                    a.href = url;
-                    a.download = fileNameWithExt;
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    document.body.removeChild(a);
+        const fileNameWithExt =
+            filename.endsWith('.xlsx')
+                ? filename
+                : filename + '.xlsx';
 
-                } catch (err) {
-                    appAlert("Download Failed", "તમારી APK ફાઈલ ડાઉનલોડ પરમિશન બ્લોક કરી રહી છે. કૃપા કરીને આ સિસ્ટમ Chrome બ્રાઉઝરમાં ખોલો.");
-                }
-            };
+        const wbout = XLSX.write(wb, {
+            bookType: 'xlsx',
+            type: 'array'
+        });
+
+        const bytes = new Uint8Array(wbout);
+
+        let binary = '';
+
+        const chunkSize = 0x8000;
+
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+            binary += String.fromCharCode(
+                ...bytes.subarray(i, i + chunkSize)
+            );
+        }
+
+        const base64 = btoa(binary);
+
+        const mime =
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+        // ANDROID APK
+        if (
+            window.AndroidDownload &&
+            typeof window.AndroidDownload.download === 'function'
+        ) {
+
+            window.AndroidDownload.download(
+                base64,
+                fileNameWithExt,
+                mime
+            );
+
+            appAlert(
+                'Downloaded',
+                fileNameWithExt + ' saved to Downloads.'
+            );
+
+            return;
+        }
+
+        // NORMAL BROWSER
+        const blob = new Blob(
+            [wbout],
+            { type: mime }
+        );
+
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+
+        a.href = url;
+        a.download = fileNameWithExt;
+
+        document.body.appendChild(a);
+
+        a.click();
+
+        setTimeout(() => {
+
+            URL.revokeObjectURL(url);
+
+            a.remove();
+
+        }, 1000);
+
+    } catch (err) {
+
+        console.error(err);
+
+        appAlert(
+            'Download Failed',
+            err.message || 'Unable to download file.'
+        );
+    }
+};
             function getTodayInDMY() {
                 const d = new Date();
                 return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
@@ -5434,7 +5479,7 @@
                     const month = document.getElementById('pbReportMonth').value;
                     const supply = document.getElementById('pbReportSupplySource').value;
                     const cat = document.getElementById('pbGridExportCategory').value;
-                    window.previewPantryMonthlyGrid(month, supply, currentUser.id, cat);
+                    window.adminExportMonthlyGrid('print', month, supply, currentUser.id, cat);
                 };
                 
                 setTimeout(window.loadMyRecordsData, 200);
@@ -7230,11 +7275,56 @@
                 Promise.all(promises).then(results => {
                     const backup = { timestamp: new Date().toISOString(), data: {} };
                     results.forEach(r => Object.assign(backup.data, r));
-                    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = `DAU_Pantry_Backup_${backup.timestamp.slice(0,10)}.json`;
-                    link.click();
+const jsonText = JSON.stringify(backup, null, 2);
+
+const base64 = btoa(
+    unescape(
+        encodeURIComponent(jsonText)
+    )
+);
+
+const fileName =
+    `DAU_Pantry_Backup_${backup.timestamp.slice(0,10)}.json`;
+
+if (
+    window.AndroidDownload &&
+    typeof window.AndroidDownload.download === 'function'
+) {
+
+    window.AndroidDownload.download(
+        base64,
+        fileName,
+        'application/json'
+    );
+
+    appAlert(
+        'Backup Complete',
+        fileName + ' saved to Downloads.'
+    );
+
+} else {
+
+    const blob = new Blob(
+        [jsonText],
+        { type: 'application/json' }
+    );
+
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+
+    link.href = url;
+    link.download = fileName;
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    setTimeout(() => {
+        URL.revokeObjectURL(url);
+        link.remove();
+    }, 1000);
+}
                     appAlert('Backup Complete', `Backup saved with ${Object.keys(backup.data).length} nodes.`);
                 }).catch(err => appAlert('Backup Failed', err.message));
             }
@@ -8271,8 +8361,7 @@
                 
                 if (type === 'extra') { filename = `Extra_Tea_${supplyText}_${month}.xlsx`; }
                 else if (type === 'meeting') { filename = `Meeting_Refreshment_${supplyText}_${month}.xlsx`; }
-
-                XLSX.writeFile(wb, filename);
+                window.pantryDownloadExcelFile(wb, filename);
                 appAlert('Downloaded', 'Excel report downloaded perfectly!');
             };
             // ============================================================
@@ -8766,7 +8855,10 @@
                     ws['!cols'] = colWidths;
                     
                     XLSX.utils.book_append_sheet(wb, ws, 'Monthly Grid');
-                    XLSX.writeFile(wb, `Monthly_Grid_${categoryVal}_${supplySource.replace(/\s+/g,'_')}_${month}.xlsx`);
+                    window.pantryDownloadExcelFile(
+    wb,
+    `Monthly_Grid_${categoryVal}_${supplySource.replace(/\s+/g,'_')}_${month}.xlsx`
+);
                     appAlert('Downloaded', 'Monthly Grid Excel downloaded successfully!');
 
                 } else {
