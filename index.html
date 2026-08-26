@@ -5479,11 +5479,156 @@
                     const month = document.getElementById('pbReportMonth').value;
                     const supply = document.getElementById('pbReportSupplySource').value;
                     const cat = document.getElementById('pbGridExportCategory').value;
-                    window.adminExportMonthlyGrid('print', month, supply, currentUser.id, cat);
+                    window.previewPantryMonthlyGrid(month, supply, currentUser.id, cat);
                 };
                 
                 setTimeout(window.loadMyRecordsData, 200);
             }         
+
+            window.previewPantryMonthlyGrid = function(month, supplySource, pantryId, categoryVal) {
+                if (!month) return appAlert('Error', 'Select month.');
+                const [yy, mm] = month.split('-');
+                const daysInMonth = getDaysInMonth(yy, mm);
+                
+                // 1. Filter active employees properly + logic for category 'All'
+                let emps = employeeList.filter(e => {
+                    if (e.assignedPantryId !== pantryId) return false;
+                    // Remove Inactive if no logs in this month
+                    if (e.status === 'Inactive') {
+                        const hasLogThisMonth = logsData.some(l => l.employeeId === e.id && parseDMYToYMD(l.date).startsWith(month));
+                        if (!hasLogThisMonth) return false;
+                    }
+                    return true;
+                });
+                
+                if (categoryVal !== 'All') {
+                    const catMatch = categoryVal.trim().toLowerCase();
+                    emps = emps.filter(e => {
+                        const c = (e.category || '').trim().toLowerCase();
+                        if (catMatch === 'outsourced' || catMatch === 'outsource') return c.includes('outsource');
+                        return c === catMatch;
+                    });
+                }
+                
+                if(!emps.length) return appAlert('Notice', 'No employees found for this selection.');
+
+                // Track individual totals
+                let empTotals = {};
+                emps.forEach(e => {
+                    empTotals[e.id] = { tea:0, coffee:0, green:0, lemon:0, blackTea:0, blackCoffee:0, total:0 };
+                });
+
+                let html = `<div style="overflow-x:auto; background:#fff; border:1px solid #CBD5E1; border-radius:8px; box-shadow:inset 0 0 4px rgba(0,0,0,0.05);">
+                    <table style="width:100%; border-collapse:separate; border-spacing:0; font-size:11px; text-align:center; min-width:${emps.length * 60 + 45}px;">
+                        <thead style="background:#F1F5F9; position:sticky; top:0; z-index:3;">
+                            <tr>
+                                <th rowspan="2" style="border-bottom:2px solid #0A56D0; border-right:1px solid #CBD5E1; padding:6px; min-width:45px; position:sticky; left:0; background:#F1F5F9; z-index:4;">Date</th>`;
+                emps.forEach(emp => {
+                    let nameParts = emp.name.split(' ');
+                    let shortName = nameParts[0] + (nameParts.length > 1 ? ' ' + nameParts[nameParts.length-1].charAt(0) + '.' : '');
+                    html += `<th colspan="2" style="border-bottom:1px solid #CBD5E1; border-right:1px solid #CBD5E1; padding:4px; font-size:10px; color:#1E293B; line-height:1.2;">${safeStr(shortName)}</th>`;
+                });
+                html += `</tr><tr>`;
+                emps.forEach(() => {
+                    html += `<th style="border-bottom:2px solid #0A56D0; border-right:1px dashed #CBD5E1; padding:4px; font-weight:800; color:#44474E; background:#F8FAFC;">M</th>
+                             <th style="border-bottom:2px solid #0A56D0; border-right:1px solid #CBD5E1; padding:4px; font-weight:800; color:#44474E; background:#F8FAFC;">A</th>`;
+                });
+                html += `</tr></thead><tbody>`;
+
+                const formatDrink = (val) => {
+                    if(!val || val === '-') return '-';
+                    let v = val.toLowerCase();
+                    if(v === 'tea') return '<span style="font-size:9px; font-weight:800;">Tea</span>';
+                    if(v === 'coffee') return '<span style="font-size:9px; font-weight:800;">Coffee</span>';
+                    if(v === 'green tea') return '<span style="font-size:9px; font-weight:800; color:#065F46;">Green Tea</span>';
+                    if(v === 'lemon tea') return '<span style="font-size:9px; font-weight:800; color:#92400E;">Lemon Tea</span>';
+                    if(v === 'black tea') return '<span style="font-size:9px; font-weight:800; color:#5B21B6;">Black Tea</span>';
+                    if(v === 'black coffee') return '<span style="font-size:9px; font-weight:800; color:#991B1B;">Black Coffee</span>';
+                    return `<span style="font-size:9px; font-weight:800;">${val}</span>`;
+                };
+
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dd = String(d).padStart(2,'0');
+                    const dmy = `${dd}/${mm}/${yy}`;
+                    const dObj = new Date(yy, mm - 1, d);
+                    const dayName = dObj.toLocaleDateString('en-US', { weekday: 'short' });
+                    
+                    html += `<tr><td style="border-bottom:1px solid #E2E8F0; border-right:1px solid #CBD5E1; padding:4px; font-weight:bold; position:sticky; left:0; background:#F8FAFC; z-index:1; color:#0A56D0;">${dd}<br><span style="font-size:8px; font-weight:normal; color:#64748B;">${dayName}</span></td>`;
+                    
+                    emps.forEach(emp => {
+                        const mLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Morning' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                        const aLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Afternoon' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                        
+                        const mVal = mLog ? mLog.drink : '-';
+                        const aVal = aLog ? aLog.drink : '-';
+                        
+                        html += `<td style="border-bottom:1px solid #E2E8F0; border-right:1px dashed #E2E8F0; padding:2px;">${formatDrink(mVal)}</td>`;
+                        html += `<td style="border-bottom:1px solid #E2E8F0; border-right:1px solid #CBD5E1; padding:2px;">${formatDrink(aVal)}</td>`;
+                        
+                        [mVal, aVal].forEach(val => {
+                            let v = (val || '').toLowerCase();
+                            if(v === 'tea') empTotals[emp.id].tea++;
+                            else if(v === 'coffee') empTotals[emp.id].coffee++;
+                            else if(v === 'green tea') empTotals[emp.id].green++;
+                            else if(v === 'lemon tea') empTotals[emp.id].lemon++;
+                            else if(v === 'black tea') empTotals[emp.id].blackTea++;
+                            else if(v === 'black coffee') empTotals[emp.id].blackCoffee++;
+                            
+                            if (v && v !== '-') empTotals[emp.id].total++;
+                        });
+                    });
+                    html += `</tr>`;
+                }
+                
+                // Add Individual Employee Totals Rows
+                const drinksArr = [
+                    { key: 'tea', label: 'Tea', color: '#1E3A8A', bg: '#EFF6FF' },
+                    { key: 'coffee', label: 'Coffee', color: '#475569', bg: '#F1F5F9' },
+                    { key: 'green', label: 'Green Tea', color: '#065F46', bg: '#ECFDF5' },
+                    { key: 'lemon', label: 'Lemon Tea', color: '#92400E', bg: '#FFFBEB' },
+                    { key: 'blackTea', label: 'Black Tea', color: '#5B21B6', bg: '#F5F3FF' },
+                    { key: 'blackCoffee', label: 'Black Coffee', color: '#991B1B', bg: '#FEF2F2' }
+                ];
+                
+                drinksArr.forEach(d => {
+                    let anyDrank = false;
+                    emps.forEach(e => { if(empTotals[e.id][d.key] > 0) anyDrank = true; });
+                    
+                    if (anyDrank) {
+                        html += `<tr><td style="border-bottom:1px solid #CBD5E1; border-right:1px solid #CBD5E1; padding:4px 2px; font-weight:bold; position:sticky; left:0; background:${d.bg}; z-index:1; color:${d.color}; font-size:9px;">${d.label}</td>`;
+                        emps.forEach(emp => {
+                            let val = empTotals[emp.id][d.key] || '-';
+                            html += `<td colspan="2" style="border-bottom:1px solid #CBD5E1; border-right:1px solid #CBD5E1; padding:4px; font-weight:800; background:${d.bg}; color:${d.color}; font-size:12px;">${val}</td>`;
+                        });
+                        html += `</tr>`;
+                    }
+                });
+
+                html += `</tbody></table></div>`;
+
+                const container = document.getElementById('printAreaContainer');
+                container.style.zIndex = "99999999";
+                
+                const dateObjForTitle = new Date(month + '-01');
+                const monthDisplayStr = dateObjForTitle.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+
+                container.innerHTML = `
+                    <div class="preview-card" style="max-width:95vw; width:450px; height:90vh; max-height:90vh; padding:12px; border-radius:12px; display:flex; flex-direction:column; overflow:hidden; background:#F8FAFC;">
+                        <div class="preview-header hide-on-print" style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+                            <div style="display:flex; flex-direction:column; gap:4px;">
+                                <h3 style="margin:0; font-size:14px; color:#0A56D0;">📊 Preview (${monthDisplayStr})</h3>
+                                <input type="month" value="${month}" onchange="window.previewPantryMonthlyGrid(this.value, '${supplySource}', '${pantryId}', '${categoryVal}')" style="padding:4px 6px; border-radius:6px; border:1px solid #0A56D0; font-size:12px; font-weight:bold; color:#0A56D0; background:#fff; outline:none; max-width:140px;">
+                            </div>
+                            <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" style="background:#FEE2E2; border:none; color:#DC3545; padding:6px 12px; font-size:12px; border-radius:6px; font-weight:bold; cursor:pointer;">✕ Close</button>
+                        </div>
+                        <div class="preview-content" style="padding:0; overflow-y:auto; overflow-x:hidden; display:flex; flex-direction:column; flex:1; background:transparent;">
+                            ${html}
+                        </div>
+                    </div>
+                `;
+                container.classList.remove('hidden');
+            }
+
             // ============================================================
             // 100% NEW & FRESH: PANTRY BOY DELIVERY REPORT (REGULAR & MEETINGS)
             // ============================================================
@@ -6592,13 +6737,42 @@
                 if (!cont) return;
                 cont.innerHTML = '';
 
+                // એડમિન માટે નવી મોબાઈલ-ફ્રેન્ડલી CSS
+                const adminMobileCSS = `
+                    <style>
+                        .a-card { background:#fff; border-radius:12px; border:1px solid #E2E8F0; padding:10px; margin-bottom:10px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+                        .a-title { font-size:12px; font-weight:800; color:#0A56D0; margin:0 0 8px 0; display:flex; align-items:center; gap:6px; text-transform:uppercase; letter-spacing:0.3px; }
+                        .a-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:6px; }
+                        .a-grid-4 { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:4px; margin-bottom:6px; }
+                        .a-input { width:100%; padding:6px 8px; font-size:11px; border-radius:6px; border:1px solid #CBD5E1; background:#F8FAFC; outline:none; margin:0; box-sizing:border-box; min-height:32px; color:#1E293B; font-weight:600; }
+                        .a-input:focus { border-color:#0A56D0; background:#fff; box-shadow:0 0 0 2px rgba(10,86,208,0.1); }
+                        .a-btn { padding:6px 4px; font-size:10px; font-weight:800; border-radius:6px; min-height:32px; cursor:pointer; display:flex; align-items:center; justify-content:center; text-align:center; border:none; margin:0; width:100%; box-shadow:0 1px 2px rgba(0,0,0,0.05); color:#fff; }
+                        .a-btn:active { transform:scale(0.96); box-shadow:none; }
+                        .a-btn.primary { background:#0A56D0; } .a-btn.success { background:#10B981; } .a-btn.danger { background:#EF4444; } .a-btn.warning { background:#F59E0B; } .a-btn.dark { background:#1E293B; }
+                        .a-chk-row { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; color:#334155; padding:4px 10px; cursor:pointer; background:#F1F5F9; border-radius:6px; border:1px solid #E2E8F0; width:max-content; }
+                        .a-chk-row input[type="checkbox"] { width:14px; height:14px; accent-color:#0A56D0; margin:0; cursor:pointer; }
+                    </style>
+                `;
+
                 switch (tab) {
                     case 'employees':
-                        cont.innerHTML = `
-                  <div class="merged-filter-row"><input id="employeeSearch" placeholder="🔍 Search employees..."><select id="categoryFilter"><option value="">All Categories</option><option>Faculty</option><option>Staff</option><option>Law</option><option>Outsourced</option></select><select id="pantryFilter"><option value="">All Pantry</option>${pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}</select></div>
-                  <div style="display:flex; gap:8px; margin-bottom:14px; flex-shrink:0;"><button id="addEmployeeBtn" style="flex:1; font-size:.85rem; min-height:40px;">+ Add</button><button id="importExcelBtn" class="success" style="flex:1; font-size:.85rem; min-height:40px;">?? Import</button><button id="bulkDeleteBtn" class="danger" style="flex:1; font-size:.85rem; min-height:40px;">🗑 Delete</button></div>
-                  <div style="display:flex; align-items:center; margin-bottom:4px; padding:0 4px; flex-shrink:0;"><input type="checkbox" id="selectAllEmployees" style="width:18px; height:18px; margin:0 8px 0 0; accent-color:#0A56D0;"><label for="selectAllEmployees" style="font-weight:500; color:#44474E; font-size:.9rem;">Select All</label></div>
-                  <div id="employeeListContainer" class="scroll-list-box"></div>
+                        cont.innerHTML = adminMobileCSS + `
+                  <div class="a-card">
+                      <h4 class="a-title">👥 Manage Employees</h4>
+                      <div class="a-grid-3">
+                          <input id="employeeSearch" class="a-input" placeholder="🔍 Search...">
+                          <select id="categoryFilter" class="a-input"><option value="">All Cat.</option><option>Faculty</option><option>Staff</option><option>Law</option><option>Outsourced</option></select>
+                          <select id="pantryFilter" class="a-input"><option value="">All Pantry</option>${pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}</select>
+                      </div>
+                      <div class="a-grid-4">
+                          <button id="addEmployeeBtn" class="a-btn primary">➕ Add</button>
+                          <button id="importExcelBtn" class="a-btn success">📥 Import</button>
+                          <button id="bulkAssignLocBtn" class="a-btn warning">📍 Loc/Dept</button>
+                          <button id="bulkDeleteBtn" class="a-btn danger">🗑 Delete</button>
+                      </div>
+                      <label class="a-chk-row"><input type="checkbox" id="selectAllEmployees"> Select All</label>
+                  </div>
+                  <div id="employeeListContainer" class="scroll-list-box" style="margin-top:0;"></div>
                 `;
                         document.getElementById('employeeSearch').addEventListener('input', renderEmployeeList);
                         document.getElementById('categoryFilter').addEventListener('change', renderEmployeeList);
@@ -6606,24 +6780,30 @@
                         document.getElementById('addEmployeeBtn').onclick = () => openEmployeeForm();
                         document.getElementById('importExcelBtn').onclick = importExcel;
                         document.getElementById('bulkDeleteBtn').onclick = bulkDeleteEmployees;
-                        document.getElementById('selectAllEmployees').onchange = (e) => { document.querySelectorAll(
-                                '.employeeCheckbox').forEach(cb => cb.checked = e.target.checked); };
+                        document.getElementById('bulkAssignLocBtn').onclick = window.openBulkAssignLocPopup;
+                        document.getElementById('selectAllEmployees').onchange = (e) => { document.querySelectorAll('.employeeCheckbox').forEach(cb => cb.checked = e.target.checked); };
                         renderEmployeeList();
                         break;
 
                     case 'pantry':
-                        cont.innerHTML = `
-                  <div style="display:flex; gap:8px; margin-bottom:14px; flex-shrink:0;"><button id="addPantryBtn" style="flex:1; font-size:.85rem; min-height:40px;">+ Add New</button><button id="bulkDeletePantryBtn" class="danger" style="flex:1; font-size:.85rem; min-height:40px;">🗑 Delete</button></div>
-                  <div style="display:flex; align-items:center; margin-bottom:4px; padding:0 4px; flex-shrink:0;"><input type="checkbox" id="selectAllPantry" style="width:18px; height:18px; margin:0 8px 0 0; accent-color:#0A56D0;"><label for="selectAllPantry" style="font-weight:500; color:#44474E; font-size:.9rem;">Select All</label></div>
-                  <div id="pantryListContainer" class="scroll-list-box"></div>
+                        cont.innerHTML = adminMobileCSS + `
+                  <div class="a-card">
+                      <h4 class="a-title">🧑‍🍳 Pantry Team Setup</h4>
+                      <div class="a-grid-3">
+                          <button id="addPantryBtn" class="a-btn primary">➕ Add New</button>
+                          <button id="previewPantryAllocBtn" class="a-btn success">👁️ Report</button>
+                          <button id="bulkDeletePantryBtn" class="a-btn danger">🗑 Delete</button>
+                      </div>
+                      <label class="a-chk-row"><input type="checkbox" id="selectAllPantry"> Select All</label>
+                  </div>
+                  <div id="pantryListContainer" class="scroll-list-box" style="margin-top:0;"></div>
                 `;
                         document.getElementById('addPantryBtn').onclick = () => openPantryForm();
                         document.getElementById('bulkDeletePantryBtn').onclick = bulkDeletePantry;
-                        document.getElementById('selectAllPantry').onchange = (e) => { document.querySelectorAll(
-                                '.pantryCheckbox').forEach(cb => cb.checked = e.target.checked); };
+                        document.getElementById('previewPantryAllocBtn').onclick = window.previewPantryAllocationReport;
+                        document.getElementById('selectAllPantry').onchange = (e) => { document.querySelectorAll('.pantryCheckbox').forEach(cb => cb.checked = e.target.checked); };
                         renderPantryList();
                         break;
-
                     case 'leaves':
                         cont.innerHTML = `
                   <div class="card" style="border:2px solid #D97706; background:#FFFBEB;">
@@ -6640,17 +6820,42 @@
                         break;
 
                     case 'canteens':
-                        cont.innerHTML = `
-                                    <div class="card"><h4 style="margin-bottom:12px; color:#0A56D0; font-size:1rem;">Add Authorized Vendor</h4><input id="cantNameInput" placeholder="Enter Vendor Name" style="text-align:left; padding:14px; border-radius:10px; border:1px solid #CBD5E1;"><button id="saveCanteenBtn" class="success" style="width:100%; min-height:44px;">Add Vendor</button></div>
-                  <div style="display:flex; justify-content:space-between; align-items:center; margin:12px 4px 8px 4px;">
-                      <h4 style="color:#44474E; font-size:.95rem; margin:0;">Available Vendors</h4>
-                      <button onclick="window.openVendorSheet('all_vendors', 'All Vendors')" class="btn" style="background:#1E293B; font-size:.8rem; padding:6px 12px; min-height:32px; border-radius:8px; cursor:pointer;">📋 Consolidated Statement</button>
+                        cont.innerHTML = adminMobileCSS + `
+                  <div class="a-card">
+                      <h4 class="a-title">🏢 Add Authorized Vendor</h4>
+                      <div style="display:flex; gap:6px;">
+                          <input id="cantNameInput" class="a-input" placeholder="Vendor Name" style="flex:2;">
+                          <button id="saveCanteenBtn" class="a-btn success" style="flex:1;">➕ Add</button>
+                      </div>
                   </div>
-                  <div id="canteenListContainer" class="scroll-list-box"></div>
-                  <div class="card" style="margin-top:16px; border-top:3px solid #0A56D0;"><h4 style="color:#0A56D0; margin-bottom:12px; font-size:1rem;">🛒 Vendor Items & Rates</h4>
-<div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;"><select id="vendorItemSelect" style="flex:2; margin:0; padding:10px; border-radius:8px; border:1px solid #CBD5E1;"><option value="">-- Select Vendor --</option>${canteenList.map(c => `<option value="${safeStr(c.name)}">${safeStr(c.name)}</option>`).join('')}</select><input type="text" id="vendorItemName" placeholder="Item Name" style="flex:2; margin:0; padding:10px; border-radius:8px; border:1px solid #CBD5E1;"><input type="number" id="vendorItemRate" placeholder="Rate (₹)" style="flex:1; margin:0; padding:10px; border-radius:8px; border:1px solid #CBD5E1;"><button id="addVendorItemBtn" class="success" style="flex:1; padding:8px; font-size:.8rem; min-height:38px; margin:0;">➕ Add</button></div><div id="vendorItemsList" style="max-height:200px; overflow-y:auto; border:1px solid #E2E8F0; border-radius:8px; padding:6px;"></div></div>
-                  <div class="card" style="margin-top:16px;"><h4 style="color:#0A56D0; margin-bottom:12px; font-size:1rem;">🔗 Vendor Link Generator</h4><p style="font-size:.8rem; color:#44474E; margin-bottom:8px;">Generate a shareable link for vendors to view their statement.</p><div style="display:flex; gap:8px; flex-wrap:wrap;"><select id="vendorLinkSelect" style="flex:2; margin:0; padding:10px; border-radius:8px; border:1px solid #CBD5E1;"><option value="">-- Select Vendor --</option>${canteenList.map(c => `<option value="${safeStr(c.name)}">${safeStr(c.name)}</option>`).join('')}</select><button id="genVendorLinkBtn" class="btn" style="flex:1; min-height:40px;">🔗 Generate Link</button></div><div id="vendorLinkDisplay" style="margin-top:8px; padding:10px; background:#F1F5F9; border-radius:8px; font-size:.8rem; word-break:break-all; display:none;"></div></div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin:8px 2px 4px;">
+                      <h4 style="font-size:12px; font-weight:700; color:#334155; margin:0;">Available Vendors</h4>
+                      <button onclick="window.openVendorSheet('all_vendors', 'All Vendors')" class="a-btn dark" style="width:auto; padding:4px 10px; min-height:26px; border-radius:4px; font-size:9px;">📋 All Statement</button>
+                  </div>
+                  <div id="canteenListContainer" class="scroll-list-box" style="margin-top:0;"></div>
+                  
+                  <div class="a-card" style="margin-top:12px; border-top:2px solid #0A56D0;">
+                      <h4 class="a-title">🛒 Vendor Items & Rates</h4>
+                      <div class="a-grid-3" style="grid-template-columns:1.5fr 1.5fr 1fr;">
+                          <select id="vendorItemSelect" class="a-input"><option value="">-- Vendor --</option>${canteenList.map(c => `<option value="${safeStr(c.name)}">${safeStr(c.name)}</option>`).join('')}</select>
+                          <input type="text" id="vendorItemName" class="a-input" placeholder="Item Name">
+                          <input type="number" id="vendorItemRate" class="a-input" placeholder="Rate (₹)">
+                      </div>
+                      <button id="addVendorItemBtn" class="a-btn success">➕ Add Item</button>
+                      <div id="vendorItemsList" style="max-height:150px; overflow-y:auto; border:1px solid #E2E8F0; border-radius:6px; padding:4px; margin-top:6px; background:#fff;"></div>
+                  </div>
+                  
+                  <div class="a-card">
+                      <h4 class="a-title">🔗 Vendor Link Generator</h4>
+                      <div style="display:flex; gap:6px;">
+                          <select id="vendorLinkSelect" class="a-input" style="flex:2;"><option value="">-- Select Vendor --</option>${canteenList.map(c => `<option value="${safeStr(c.name)}">${safeStr(c.name)}</option>`).join('')}</select>
+                          <button id="genVendorLinkBtn" class="a-btn primary" style="flex:1;">🔗 Generate</button>
+                      </div>
+                      <div id="vendorLinkDisplay" style="margin-top:6px; padding:8px; background:#F1F5F9; border-radius:6px; font-size:10px; word-break:break-all; display:none;"></div>
+                  </div>
                 `;
+// ... (આગળનો કોડ એજ રહેશે) ...
+// (યાદ રાખો, જાવાસ્ક્રિપ્ટ ફંક્શન્સ બદલવાના નથી, માત્ર HTML લેઆઉટ જ)
                         renderAdminCanteens();
                         renderVendorItemsList();
                         document.getElementById('saveCanteenBtn').onclick = () => {
@@ -6678,7 +6883,6 @@
                             document.getElementById('vendorItemRate').value = '';
                             appAlert('Added', 'Item added to vendor!');
                         };
-                        // Updated vendor link generation with direct clickable links
                         document.getElementById('genVendorLinkBtn').onclick = function() {
                             const vendor = document.getElementById('vendorLinkSelect').value;
                             if (!vendor) return appAlert('Error', 'Select a vendor.');
@@ -6695,17 +6899,15 @@
 
                             const display = document.getElementById('vendorLinkDisplay');
                             display.innerHTML = `
-                                <div style="background:#F0F9FF; padding:16px; border-radius:8px; border:1px solid #0A56D0;">
-                                    <span style="font-weight:600; display:block; margin-bottom:8px;">🔗 Direct Access Link for ${vendor}</span>
-                                    <div style="word-break:break-all; background:#fff; padding:12px; border-radius:6px; margin-bottom:12px;">
-                                        <a href="${link}" target="_blank" style="color:#0A56D0; text-decoration:underline; font-size:.85rem;">${link}</a>
+                                <div style="background:#F0F9FF; padding:12px; border-radius:6px; border:1px solid #0A56D0;">
+                                    <span style="font-weight:700; display:block; margin-bottom:6px; font-size:11px;">🔗 Access Link for ${vendor}</span>
+                                    <div style="word-break:break-all; background:#fff; padding:8px; border-radius:4px; margin-bottom:8px; font-size:10px;">
+                                        <a href="${link}" target="_blank" style="color:#0A56D0; text-decoration:underline;">${link}</a>
                                     </div>
-                                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                                        <button onclick="navigator.clipboard.writeText('${link}'); appAlert('Copied!','Link copied to clipboard.');" style="padding:8px 16px; border-radius:8px; background:#E2E8F0; color:#1E293B; border:none; cursor:pointer; font-size:.8rem; flex:1;">📋 Copy Link</button>
-                                        <button onclick="window.shareVendorLink('${link}','${vendor}')" style="padding:8px 16px; border-radius:8px; background:#25D366; color:#fff; border:none; cursor:pointer; font-size:.8rem; flex:1;">📤 Share</button>
-                                        <button onclick="window.open('${link}','_blank')" style="padding:8px 16px; border-radius:8px; background:#0A56D0; color:#fff; border:none; cursor:pointer; font-size:.8rem; flex:1;">🔗 Open</button>
+                                    <div style="display:flex; gap:6px;">
+                                        <button onclick="navigator.clipboard.writeText('${link}'); appAlert('Copied!','Link copied to clipboard.');" class="a-btn dark">📋 Copy</button>
+                                        <button onclick="window.shareVendorLink('${link}','${vendor}')" class="a-btn success">📤 Share</button>
                                     </div>
-                                    <p style="font-size:.7rem; color:#64748B; margin-top:8px;">✅ This link works on all devices and networks. Click "Open" to test.</p>
                                 </div>
                             `;
                             display.style.display = 'block';
@@ -6725,55 +6927,53 @@
 
                     case 'reports':
                         const todayYMD = new Date().toISOString().split('T')[0];
-                        cont.innerHTML = `
-                  <div class="card" style="padding:10px;">
-                    <h4 style="margin:0 0 10px 0; color:#44474E; font-size:0.95rem; text-align:center;">📥 Reports & Downloads</h4>
+                        cont.innerHTML = adminMobileCSS + `
+                  <div class="a-card">
+                    <h4 class="a-title" style="text-align:center; justify-content:center; font-size:14px; margin-bottom:12px;">📥 Reports & Downloads</h4>
                     
                     <!-- Master Dropdown for Supply Source & Month -->
-                    <div style="display:flex; gap:6px; margin-bottom:10px; background:#F1F5F9; padding:6px; border-radius:8px; border:1px solid #CBD5E1; align-items:center;">
-                        <input type="month" id="reportMonth" value="${new Date().toISOString().slice(0,7)}" style="flex:1; padding:6px; border-radius:6px; border:1px solid #CBD5E1; font-size:12px; margin:0; min-width:100px;">
-                        <select id="reportSupplySource" style="flex:1.2; padding:6px; border-radius:6px; border:1px solid #0A56D0; color:#0A56D0; font-weight:bold; background:#fff; font-size:12px; margin:0; min-width:100px;">
+                    <div style="display:flex; gap:6px; margin-bottom:12px; background:#F1F5F9; padding:8px; border-radius:8px; border:1px solid #CBD5E1; align-items:center;">
+                        <input type="month" id="reportMonth" value="${new Date().toISOString().slice(0,7)}" class="a-input" style="flex:1;">
+                        <select id="reportSupplySource" class="a-input" style="flex:1.2; border-color:#0A56D0; color:#0A56D0;">
                             <option value="Contractor">☕ IA Caterers</option>
                             <option value="DAU Direct Purchase">🛒 DAU Direct</option>
                         </select>
                     </div>
 
-                    <div style="border-top:1px solid #E2E8F0; padding-top:8px; margin-top:0;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                            <h5 style="color:#44474E; margin:0; font-size:12px;">1. Regular Daily Tea</h5>
-                            <label style="display:flex; align-items:center; gap:4px; font-weight:600; font-size:10px; color:#0A56D0; cursor:pointer;">
-                                <input type="checkbox" id="includeFeedbackCol" style="width:14px; height:14px; margin:0; accent-color:#0A56D0;"> +Feedback
-                            </label>
+                    <div style="border-top:1px solid #E2E8F0; padding-top:10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <h5 style="color:#44474E; margin:0; font-size:12px; font-weight:bold;">1. Regular Daily Tea</h5>
+                            <label class="a-chk-row" style="padding:2px 6px; font-size:10px; margin:0;"><input type="checkbox" id="includeFeedbackCol"> +Feedback</label>
                         </div>
                         <div style="display:flex; gap:6px;">
-                            <select id="reportCategory" style="padding:6px; border-radius:6px; border:1px solid #CBD5E1; flex:1; font-size:12px; margin:0;">
+                            <select id="reportCategory" class="a-input" style="flex:1;">
                                 <option value="All">All Categories</option>
                                 <option>Faculty</option>
                                 <option>Staff</option>
                                 <option>Law</option>
                                 <option>Outsourced</option>
                             </select>
-                            <button id="previewRegularBtn" class="success" style="padding:6px 10px; font-size:11px; min-height:28px; border-radius:6px; flex:0.6;">👁️ Print</button>
+                            <button id="previewRegularBtn" class="a-btn success" style="flex:0.6;">👁️ Print</button>
                         </div>
                     </div>
                     
-                    <div style="display:flex; gap:6px; border-top:1px solid #E2E8F0; padding-top:8px; margin-top:8px;">
-                        <button id="previewExtraBtn" class="btn" style="flex:1; background:#D97706; padding:6px; font-size:11px; min-height:28px; border-radius:6px;">☕ Extra Tea</button>
-                        <button id="previewMeetingBtn" class="btn" style="flex:1; background:#0A56D0; padding:6px; font-size:11px; min-height:28px; border-radius:6px;">🤝 Meetings</button>
+                    <div style="display:flex; gap:6px; border-top:1px dashed #E2E8F0; padding-top:10px; margin-top:10px;">
+                        <button id="previewExtraBtn" class="a-btn warning" style="flex:1;">☕ Extra Tea</button>
+                        <button id="previewMeetingBtn" class="a-btn primary" style="flex:1;">🤝 Meetings</button>
                     </div>
                     
-                    <div style="margin-top:6px;">
-                        <button id="downloadAllExcelBtn2" class="success" style="width:100%; background:#146C43; padding:8px; font-size:12px; min-height:30px; border-radius:6px;">📊 Download All Regular Tea Excel</button>
+                    <div style="margin-top:10px;">
+                        <button id="downloadAllExcelBtn2" class="a-btn success" style="background:#146C43; font-size:11px;">📊 Download All Regular Tea Excel</button>
                     </div>
                     
-                    <div style="border-top:1px solid #E2E8F0; padding-top:8px; margin-top:8px;">
-                      <h5 style="color:#7C3AED; margin:0 0 4px 0; font-size:12px;">5. Monthly Grid Export</h5>
-                      <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-bottom:4px;">
-                        <select id="gridExportPantrySelect" style="padding:6px; border-radius:6px; border:1px solid #CBD5E1; font-size:11px; margin:0;">
+                    <div style="border-top:1px solid #E2E8F0; padding-top:10px; margin-top:10px;">
+                      <h5 style="color:#7C3AED; margin:0 0 6px 0; font-size:12px; font-weight:bold;">2. Monthly Grid Export</h5>
+                      <div class="a-grid-2" style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
+                        <select id="gridExportPantrySelect" class="a-input">
                           <option value="All">All Pantry</option>
                           ${pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
                         </select>
-                        <select id="gridExportCategorySelect" style="padding:6px; border-radius:6px; border:1px solid #CBD5E1; font-size:11px; margin:0;">
+                        <select id="gridExportCategorySelect" class="a-input">
                           <option value="All">All Categories</option>
                           <option value="Faculty">Faculty</option>
                           <option value="Staff">Staff</option>
@@ -6781,50 +6981,50 @@
                           <option value="Outsourced">Outsourced</option>
                         </select>
                       </div>
-                      <div style="display:flex; gap:4px;">
-                        <button id="downloadGridExcelBtn" class="success" style="background:#7C3AED; flex:1; padding:6px; font-size:11px; min-height:28px; border-radius:6px;">📗 Excel</button>
-                        <button id="printGridPdfBtn" class="btn" style="background:#6D28D9; flex:1; padding:6px; font-size:11px; min-height:28px; border-radius:6px;">📄 PDF/Print</button>
+                      <div style="display:flex; gap:6px;">
+                        <button id="downloadGridExcelBtn" class="a-btn" style="background:#7C3AED; flex:1;">📗 Excel</button>
+                        <button id="printGridPdfBtn" class="a-btn" style="background:#6D28D9; flex:1;">📄 PDF/Print</button>
                       </div>
                     </div>
 
-                    <div style="border-top:1px solid #E2E8F0; padding-top:8px; margin-top:8px;">
-                      <h5 style="color:#059669; margin:0 0 4px 0; font-size:12px;">6. PB Delivery (Regular)</h5>
-                      <div style="display:flex; gap:4px;">
-                        <select id="pbReportPantryReg" style="flex:1.5; padding:6px; border-radius:6px; border:1px solid #CBD5E1; font-size:11px; margin:0;">
+                    <div style="border-top:1px solid #E2E8F0; padding-top:10px; margin-top:10px;">
+                      <h5 style="color:#059669; margin:0 0 6px 0; font-size:12px; font-weight:bold;">3. PB Delivery (Regular)</h5>
+                      <div style="display:flex; gap:6px;">
+                        <select id="pbReportPantryReg" class="a-input" style="flex:1.5;">
                           <option value="All">All Pantry Boys</option>
                           ${pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
                         </select>
-                        <button onclick="window.generatePantryBoyReport('regular', false)" class="btn" style="background:#059669; flex:1; padding:6px; font-size:11px; min-height:28px; border-radius:6px;">👁️ Print</button>
-                        <button onclick="window.generatePantryBoyReport('regular', true)" class="success" style="background:#047857; flex:1; padding:6px; font-size:11px; min-height:28px; border-radius:6px;">📊 Excel</button>
+                        <button onclick="window.generatePantryBoyReport('regular', false)" class="a-btn success" style="flex:1;">👁️ Print</button>
+                        <button onclick="window.generatePantryBoyReport('regular', true)" class="a-btn" style="background:#047857; flex:1;">📊 Excel</button>
                       </div>
                     </div>
 
-                    <div style="border-top:1px solid #E2E8F0; padding-top:8px; margin-top:8px;">
-                      <h5 style="color:#D97706; margin:0 0 4px 0; font-size:12px;">7. PB Delivery (Meetings)</h5>
-                      <div style="display:flex; gap:4px;">
-                        <select id="pbReportPantryMeet" style="flex:1.5; padding:6px; border-radius:6px; border:1px solid #CBD5E1; font-size:11px; margin:0;">
+                    <div style="border-top:1px solid #E2E8F0; padding-top:10px; margin-top:10px;">
+                      <h5 style="color:#D97706; margin:0 0 6px 0; font-size:12px; font-weight:bold;">4. PB Delivery (Meetings)</h5>
+                      <div style="display:flex; gap:6px;">
+                        <select id="pbReportPantryMeet" class="a-input" style="flex:1.5;">
                           <option value="All">All Pantry Boys</option>
                           ${pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
                         </select>
-                        <button onclick="window.generatePantryBoyReport('meeting', false)" class="btn" style="background:#D97706; flex:1; padding:6px; font-size:11px; min-height:28px; border-radius:6px;">👁️ Print</button>
-                        <button onclick="window.generatePantryBoyReport('meeting', true)" class="success" style="background:#B45309; flex:1; padding:6px; font-size:11px; min-height:28px; border-radius:6px;">📊 Excel</button>
+                        <button onclick="window.generatePantryBoyReport('meeting', false)" class="a-btn warning" style="flex:1;">👁️ Print</button>
+                        <button onclick="window.generatePantryBoyReport('meeting', true)" class="a-btn" style="background:#B45309; flex:1;">📊 Excel</button>
                       </div>
                     </div>
 
-                    <!-- 8. VERIFICATION MODULE -->
-                    <div style="border-top:2px dashed #0A56D0; padding-top:8px; margin-top:10px; background:#F0FDF4; border-radius:8px; padding:8px; border:1px solid #BBF7D0;">
-                      <h5 style="color:#15803D; margin:0 0 6px 0; font-size:12px; font-weight:700;">🏪 Bill Verification</h5>
-                      <div style="display:flex; gap:4px; margin-bottom:6px;">
-                        <select id="iaBillDepartment" style="flex:1.5; padding:6px; border-radius:6px; border:1px solid #CBD5E1; background:#fff; font-weight:600; font-size:11px; margin:0;">
+                    <!-- 5. VERIFICATION MODULE -->
+                    <div style="margin-top:12px; background:#F0FDF4; border-radius:8px; padding:12px; border:1px solid #BBF7D0;">
+                      <h5 style="color:#15803D; margin:0 0 8px 0; font-size:12px; font-weight:700;">🏪 Bill Verification</h5>
+                      <div style="display:flex; gap:6px; margin-bottom:10px;">
+                        <select id="iaBillDepartment" class="a-input" style="flex:1.5;">
                             <option value="Faculty">Faculty</option>
                             <option value="Staff">Staff</option>
                             <option value="SoL">SoL</option>
                             <option value="Outsource">Outsource</option>
                         </select>
-                        <input type="number" id="iaCGSTPercentage" placeholder="CGST%" value="0" min="0" step="0.1" style="flex:1; padding:6px; border-radius:6px; border:1px solid #CBD5E1; text-align:center; font-size:11px; margin:0;">
-                        <input type="number" id="iaSGSTPercentage" placeholder="SGST%" value="0" min="0" step="0.1" style="flex:1; padding:6px; border-radius:6px; border:1px solid #CBD5E1; text-align:center; font-size:11px; margin:0;">
+                        <input type="number" id="iaCGSTPercentage" placeholder="CGST%" value="0" min="0" step="0.1" class="a-input" style="flex:1; text-align:center;">
+                        <input type="number" id="iaSGSTPercentage" placeholder="SGST%" value="0" min="0" step="0.1" class="a-input" style="flex:1; text-align:center;">
                       </div>
-                      <button type="button" id="generateIACaterersBillBtn" class="success" style="width:100%; padding:8px; font-weight:700; background:#166534; font-size:12px; min-height:30px; border-radius:6px;">🧾 Verify & Print Bill</button>
+                      <button type="button" id="generateIACaterersBillBtn" class="a-btn" style="background:#166534; font-size:11px;">🧾 Verify & Print Bill</button>
                     </div>
 
                   </div>
@@ -6979,15 +7179,23 @@
                         ['liveReportDate', 'liveReportType', 'liveReportPantry', 'liveReportSupply'].forEach(id => { 
                             if(document.getElementById(id)) document.getElementById(id).addEventListener('change', window.renderAdminLiveRecords); 
                         });
-                        window.renderAdminLiveRecords();
+                        if (typeof window.renderAdminLiveRecords === 'function') window.renderAdminLiveRecords();
                         break;
 
                     case 'locations':
-                        cont.innerHTML = `
-                  <div class="card"><h4 style="margin-bottom:12px; color:#0A56D0; font-size:1rem;">📍 Add Meeting Venue / Campus Location</h4><input id="venueNameInput" placeholder="Enter Location Name" style="text-align:left; padding:14px; border-radius:10px; border:1px solid #CBD5E1;"><button id="saveVenueBtn" class="success" style="width:100%; min-height:44px;">Add Location Node</button></div>
-                  <h4 style="color:#44474E; margin:8px 4px; font-size:.95rem;">Configured Workspace Locations</h4><div id="venueListContainer" class="scroll-list-box"></div>
+                        cont.innerHTML = adminMobileCSS + `
+                  <div class="a-card">
+                      <h4 class="a-title">📍 Add Meeting Venue / Location</h4>
+                      <div style="display:flex; gap:6px;">
+                          <input id="venueNameInput" class="a-input" placeholder="Location Name" style="flex:2;">
+                          <button id="saveVenueBtn" class="a-btn success" style="flex:1;">➕ Add</button>
+                      </div>
+                  </div>
+                  <h4 style="font-size:12px; font-weight:700; color:#334155; margin:8px 2px 4px;">Configured Locations</h4>
+                  <div id="venueListContainer" class="scroll-list-box" style="margin-top:0;"></div>
                 `;
                         renderAdminVenues();
+
                         document.getElementById('saveVenueBtn').onclick = () => {
                             const name = document.getElementById('venueNameInput').value.trim();
                             if (name) {
@@ -7371,9 +7579,8 @@ if (
                 const cat = document.getElementById('categoryFilter')?.value || '';
                 const pFilter = document.getElementById('pantryFilter')?.value || '';
                 
-                // નવો ફેરફાર: Inactive એમ્પ્લોયીને એડમિન લિસ્ટમાંથી હાઈડ કરો
-                const filtered = employeeList.filter(e => e.status !== 'Inactive' && (e.name || '').toLowerCase().includes(search) && (!cat || e.category === cat) && (!pFilter || e.assignedPantryId === pFilter));
-                
+                // નવો ફેરફાર: સ્પેસ કાઢીને ફિલ્ટર કરો અને Inactive એમ્પ્લોયીને હાઈડ કરો
+                const filtered = employeeList.filter(e => e.status !== 'Inactive' && (e.name || '').toLowerCase().includes(search) && (!cat || (e.category || '').trim().toLowerCase() === cat.toLowerCase()) && (!pFilter || e.assignedPantryId === pFilter));                
                 const container = document.getElementById('employeeListContainer');
                 if (!container) return;
                 if (!filtered.length) { container.innerHTML =
@@ -7383,13 +7590,25 @@ if (
                     const loc = emp.locationNode || 'Unassigned Node';
                     const dept = emp.department || 'Unassigned';
                     return `
-                <div class="employee-item" style="margin:6px 4px;">
-                  <span><strong>${safeStr(emp.name)}</strong><br><small style="color:#74777F;">${safeStr(emp.category)} | 🧑‍🍳 ${pantryName} | 📍 ${loc} | 🏢 ${dept}</small></span>
-                  <span style="display:flex; align-items:center; gap:4px;">
-                    <button class="editEmployeeBtn" data-id="${emp.id}" style="background:transparent; border:none; cursor:pointer; font-size:1.1rem; padding:6px 8px; color:#0A56D0; border-radius:8px;">✏️</button>
-                    <button onclick="window.pantryDeleteHandler('employee','${emp.id}')" style="background:transparent; border:none; color:#DC3545; cursor:pointer; font-size:1.1rem; padding:6px 8px; border-radius:8px;">🗑</button>
-                    <input type="checkbox" class="employeeCheckbox" data-id="${emp.id}" style="width:18px; height:18px; margin:0 0 0 4px; accent-color:#0A56D0;">
-                  </span>
+                <div class="employee-item" style="margin:6px 2px; padding:10px; display:flex; justify-content:space-between; align-items:flex-start; border-radius:10px; background:#fff; border:1px solid #E2E8F0; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+                  <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:13px; font-weight:700; color:#1E293B;">${safeStr(emp.name)}</span>
+                    </div>
+                    <div style="display:flex; flex-wrap:wrap; gap:4px; font-size:10px;">
+                        <span style="background:#F1F5F9; color:#475569; padding:2px 6px; border-radius:4px; border:1px solid #E2E8F0;">${safeStr(emp.category)}</span>
+                        <span style="background:#ECFDF5; color:#059669; padding:2px 6px; border-radius:4px; border:1px solid #D1FAE5;">🧑‍🍳 ${pantryName.split(' ')[0]}</span>
+                        <span style="background:#EFF6FF; color:#0A56D0; padding:2px 6px; border-radius:4px; border:1px solid #BFDBFE;">📍 ${loc}</span>
+                        <span style="background:#FEF2F2; color:#DC3545; padding:2px 6px; border-radius:4px; border:1px solid #FECACA;">🏢 ${dept}</span>
+                    </div>
+                  </div>
+                  <div style="display:flex; flex-direction:column; align-items:flex-end; justify-content:space-between; gap:8px;">
+                    <input type="checkbox" class="employeeCheckbox" data-id="${emp.id}" style="width:16px; height:16px; margin:0; accent-color:#0A56D0;">
+                    <div style="display:flex; gap:4px;">
+                        <button class="editEmployeeBtn" data-id="${emp.id}" style="background:#EFF6FF; border:1px solid #BFDBFE; cursor:pointer; font-size:10px; padding:4px 8px; color:#0A56D0; border-radius:6px; font-weight:bold;">✏️</button>
+                        <button onclick="window.pantryDeleteHandler('employee','${emp.id}')" style="background:#FEF2F2; border:1px solid #FECACA; color:#DC3545; cursor:pointer; font-size:10px; padding:4px 8px; border-radius:6px; font-weight:bold;">🗑</button>
+                    </div>
+                  </div>
                 </div>
               `;
                 }).join('');
@@ -7461,6 +7680,91 @@ if (
                 });
             }
 
+            window.openBulkAssignLocPopup = function() {
+                const checks = document.querySelectorAll('.employeeCheckbox:checked');
+                if (!checks.length) return appAlert('Select Employees', 'Please select at least one employee from the list first.');
+
+                const modal = document.createElement('div');
+                modal.className = 'popup-overlay';
+                modal.id = 'bulkAssignLocModal';
+
+                const locOptions = venueList.map(v => `<option value="${v.id}">${v.name}</option>`).join('');
+
+                modal.innerHTML = `
+                <div class="popup-card" style="text-align:center; max-width:400px;">
+                    <h3 style="color:#0A56D0; margin-top:0; margin-bottom:8px;">📍 Bulk Assign Location</h3>
+                    <p style="font-size:.85rem; color:#44474E; margin-bottom:16px;">Assigning to <b>${checks.length}</b> selected employees.</p>
+                    
+                    <div style="text-align:left; margin-bottom:12px;">
+                        <label style="font-size:.8rem; font-weight:700; color:#44474E;">Select Location (Building)</label>
+                        <select id="bulkLocSelect" style="width:100%; padding:12px; border-radius:8px; border:1px solid #CBD5E1; margin-top:4px;">
+                            <option value="">-- Choose Location --</option>
+                            ${locOptions}
+                        </select>
+                    </div>
+                    
+                    <div style="text-align:left; margin-bottom:20px;">
+                        <label style="font-size:.8rem; font-weight:700; color:#44474E;">Select Department</label>
+                        <select id="bulkDeptSelect" style="width:100%; padding:12px; border-radius:8px; border:1px solid #CBD5E1; margin-top:4px; background:#F8FAFC;" disabled>
+                            <option value="">-- Choose Dept --</option>
+                        </select>
+                    </div>
+
+                    <div style="display:flex; gap:12px;">
+                        <button onclick="document.getElementById('bulkAssignLocModal').remove()" class="danger" style="flex:1; min-height:44px; border-radius:8px;">Cancel</button>
+                        <button id="saveBulkLocBtn" class="success" style="flex:2; min-height:44px; border-radius:8px;">Save Allotment</button>
+                    </div>
+                </div>
+                `;
+                document.body.appendChild(modal);
+
+                document.getElementById('bulkLocSelect').onchange = function() {
+                    const vId = this.value;
+                    const deptSelect = document.getElementById('bulkDeptSelect');
+                    if(!vId) {
+                        deptSelect.innerHTML = '<option value="">-- Choose Dept --</option>';
+                        deptSelect.disabled = true;
+                        deptSelect.style.background = '#F8FAFC';
+                        return;
+                    }
+                    const venue = venueList.find(v => v.id === vId);
+                    const depts = venue.departments ? (Array.isArray(venue.departments) ? venue.departments : Object.values(venue.departments)) : [];
+                    
+                    if(depts.length > 0) {
+                        deptSelect.innerHTML = '<option value="">-- Choose Dept --</option>' + depts.map(d => `<option value="${safeStr(d)}">${safeStr(d)}</option>`).join('');
+                        deptSelect.disabled = false;
+                        deptSelect.style.background = '#FFFFFF';
+                    } else {
+                        deptSelect.innerHTML = '<option value="">No departments available</option>';
+                        deptSelect.disabled = true;
+                        deptSelect.style.background = '#F8FAFC';
+                    }
+                };
+
+                document.getElementById('saveBulkLocBtn').onclick = function() {
+                    const locId = document.getElementById('bulkLocSelect').value;
+                    const deptName = document.getElementById('bulkDeptSelect').value;
+                    
+                    if(!locId) return appAlert('Error', 'Please select a Location.');
+                    const locName = venueList.find(v => v.id === locId).name;
+
+                    const updates = {};
+                    checks.forEach(cb => {
+                        const empId = cb.dataset.id;
+                        updates[empId + '/locationNode'] = locName;
+                        if(deptName) {
+                            updates[empId + '/department'] = deptName;
+                        }
+                    });
+
+                    db.ref('employees').update(updates).then(() => {
+                        appAlert('Success', 'Location updated for ' + checks.length + ' employees!');
+                        document.getElementById('bulkAssignLocModal').remove();
+                        if(typeof renderEmployeeList === 'function') renderEmployeeList();
+                    });
+                };
+            };
+
             async function importExcel() {
                 const input = document.createElement('input');
                 input.type = 'file';
@@ -7486,8 +7790,8 @@ if (
                                     pantryName).toLowerCase().trim());
                                 if (found) assignedId = found.id;
                             }
-                            db.ref('employees/' + id).set({ id, name: String(name), category: String(
-                                    cat), assignedPantryId: assignedId, locationNode: String(
+                            db.ref('employees/' + id).set({ id, name: String(name).trim(), category: String(
+                                    cat).trim(), assignedPantryId: assignedId, locationNode: String(
                                     locNode).trim(), department: String(dept).trim() });
                             count++;
                         }
@@ -7528,51 +7832,51 @@ if (
                         : `<div style="color:#64748B; font-size:0.75rem; font-weight:600; margin-top:4px;">🔴 Offline${lastSeenText}</div>`;
                     // --------------------------------------------------
 
-                    // એન્ડ્રોઇડ જેવા 'Chips' UI માટેનો કોડ
-                    const chipsHtml = assignedCount > 0 
-                        ? assignedEmps.map(e => `<span style="background:#F1F5F9; color:#1E293B; font-size:0.75rem; padding:6px 12px; border-radius:100px; border:1px solid #CBD5E1; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.02);">👤 ${safeStr(e)}</span>`).join('') 
-                        : '<span style="color:#94A3B8; font-size:0.8rem; padding:4px;">No employees assigned</span>';
+            // એન્ડ્રોઇડ જેવા 'Chips' UI માટેનો કોડ
+            const chipsHtml = assignedCount > 0 
+                ? assignedEmps.map(e => `<span style="background:#F1F5F9; color:#1E293B; font-size:10px; padding:4px 8px; border-radius:6px; border:1px solid #CBD5E1; white-space:nowrap;">👤 ${safeStr(e)}</span>`).join('') 
+                : '<span style="color:#94A3B8; font-size:10px; padding:2px;">No employees assigned</span>';
 
-                    return `
-                <div class="card" style="margin:8px 4px 12px 4px; padding:16px; border-radius:16px; box-shadow:0 4px 12px rgba(0,0,0,0.05); border:1px solid #E2E8F0; background:#fff; position:relative;">
-                  <div style="position:absolute; top:16px; right:16px;">
-                     <input type="checkbox" class="pantryCheckbox" data-id="${p.id}" style="width:20px; height:20px; accent-color:#0A56D0; cursor:pointer;">
-                  </div>
-                  
-                  <div style="display:flex; flex-direction:column; padding-right:30px;">
-                    <div style="display:flex; align-items:center;">
-                        <h3 style="margin:0; font-size:1.1rem; color:#1E293B; font-weight:800;">${safeStr(p.name)}</h3>
-                        ${isOnline ? statusBadge : ''}
-                    </div>
-                    ${!isOnline ? statusBadge : ''}
-                    ${leaveBadge}
-                    
-                    <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:12px; font-size:0.85rem; color:#44474E;">
-                        <span style="display:flex; align-items:center; gap:4px; background:#F8FAFC; padding:4px 8px; border-radius:8px; border:1px solid #E2E8F0;">📱 ${safeStr(p.mobile)}</span>
-                        <span style="display:flex; align-items:center; gap:4px; background:#F8FAFC; padding:4px 8px; border-radius:8px; border:1px solid #E2E8F0;">🔐 PIN: <strong style="color:#146C43;">${safeStr(p.pin)}</strong></span>
-                    </div>
-                  </div>
-                  
-                  <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
-                    <button class="editPantryBtn" data-id="${p.id}" style="background:#EFF6FF; border:1px solid #BFDBFE; cursor:pointer; font-size:0.85rem; padding:6px 14px; color:#0A56D0; border-radius:8px; font-weight:700;">✏️ Edit</button>
-                    <button onclick="window.pantryDeleteHandler('pantry','${p.id}')" style="background:#FEF2F2; border:1px solid #FECACA; color:#DC3545; cursor:pointer; font-size:0.85rem; padding:6px 14px; border-radius:8px; font-weight:700;">🗑 Delete</button>
-                  </div>
+            return `
+        <div class="card" style="margin:6px 2px; padding:12px; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,0.04); border:1px solid #E2E8F0; background:#fff; position:relative;">
+          <div style="position:absolute; top:12px; right:12px;">
+             <input type="checkbox" class="pantryCheckbox" data-id="${p.id}" style="width:16px; height:16px; margin:0; accent-color:#0A56D0; cursor:pointer;">
+          </div>
+          
+          <div style="display:flex; flex-direction:column; padding-right:24px;">
+            <div style="display:flex; align-items:center; flex-wrap:wrap; gap:4px;">
+                <h3 style="margin:0; font-size:14px; color:#1E293B; font-weight:800;">${safeStr(p.name)}</h3>
+                ${isOnline ? statusBadge : ''}
+            </div>
+            ${!isOnline ? statusBadge : ''}
+            ${leaveBadge}
+            
+            <div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:6px; font-size:10px; color:#44474E;">
+                <span style="display:flex; align-items:center; gap:2px; background:#F8FAFC; padding:4px 6px; border-radius:6px; border:1px solid #E2E8F0;">📱 ${safeStr(p.mobile)}</span>
+                <span style="display:flex; align-items:center; gap:2px; background:#F8FAFC; padding:4px 6px; border-radius:6px; border:1px solid #E2E8F0;">🔐 PIN: <strong style="color:#146C43;">${safeStr(p.pin)}</strong></span>
+            </div>
+          </div>
+          
+          <div style="display:flex; justify-content:flex-start; gap:6px; margin-top:10px;">
+            <button class="editPantryBtn" data-id="${p.id}" style="background:#EFF6FF; border:1px solid #BFDBFE; cursor:pointer; font-size:10px; padding:4px 10px; color:#0A56D0; border-radius:6px; font-weight:700;">✏️ Edit</button>
+            <button onclick="window.pantryDeleteHandler('pantry','${p.id}')" style="background:#FEF2F2; border:1px solid #FECACA; color:#DC3545; cursor:pointer; font-size:10px; padding:4px 10px; border-radius:6px; font-weight:700;">🗑 Delete</button>
+          </div>
 
-                  <div style="margin-top:14px; border-top:1px dashed #CBD5E1; padding-top:12px;">
-                    <details style="cursor:pointer; background:#F8FAFC; padding:10px 14px; border-radius:10px; border:1px solid #E2E8F0;">
-                        <summary style="font-weight:800; color:#0A56D0; font-size:0.9rem; outline:none; user-select:none; display:flex; justify-content:space-between; align-items:center;">
-                            <span>👥 Assigned Employees (${assignedCount})</span>
-                            <span style="font-size:0.75rem; background:#E2E8F0; padding:4px 10px; border-radius:100px; color:#1E293B;">View List ▼</span>
-                        </summary>
-                        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; max-height:180px; overflow-y:auto; padding-bottom:4px; padding-right:4px;">
-                            ${chipsHtml}
-                        </div>
-                    </details>
-                  </div>
+          <div style="margin-top:10px; border-top:1px dashed #CBD5E1; padding-top:8px;">
+            <details style="cursor:pointer; background:#F8FAFC; padding:6px 10px; border-radius:8px; border:1px solid #E2E8F0;">
+                <summary style="font-weight:700; color:#0A56D0; font-size:11px; outline:none; user-select:none; display:flex; justify-content:space-between; align-items:center;">
+                    <span>👥 Assigned (${assignedCount})</span>
+                    <span style="font-size:9px; background:#E2E8F0; padding:2px 8px; border-radius:100px; color:#1E293B;">List ▼</span>
+                </summary>
+                <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; max-height:150px; overflow-y:auto;">
+                    ${chipsHtml}
                 </div>
-              `;
-                }).join('');
-                document.querySelectorAll('.editPantryBtn').forEach(b => b.onclick = (e) => {
+            </details>
+          </div>
+        </div>
+      `;
+        }).join('');
+        document.querySelectorAll('.editPantryBtn').forEach(b => b.onclick = (e) => {
                     const p = pantryTeam.find(pt => pt.id === e.currentTarget.dataset.id);
                     if (p) openPantryForm(p);
                 });
@@ -7595,6 +7899,198 @@ if (
                 });
             }
 
+            window.previewPantryAllocationReport = function() {
+                if (!pantryTeam.length) return appAlert('No Data', 'No pantry boys found.');
+                
+                let tbodyHtml = '';
+                
+                // For Excel Export
+                const excelData = [
+                    ['DAU PANTRY BOY DEPLOYMENT & ALLOCATION LIST', '', '', '', ''],
+                    ['Pantry Boy Name', 'Category Summary', 'Location (Building)', 'Loc. Count', 'Employee Name']
+                ];
+                const merges = [
+                    { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }
+                ];
+                let currentRow = 2; // Starts from 2
+
+                pantryTeam.forEach(pb => {
+                    if (pb.status === 'Inactive') return;
+                    const myEmps = employeeList.filter(e => e.status !== 'Inactive' && e.assignedPantryId === pb.id);
+                    
+                    if(myEmps.length === 0) {
+                        tbodyHtml += `<tr>
+                            <td style="border:1px solid #000;"><b>${safeStr(pb.name)}</b></td>
+                            <td style="border:1px solid #000;">-</td>
+                            <td style="border:1px solid #000;"></td>
+                            <td style="border:1px solid #000;">0</td>
+                            <td style="border:1px solid #000;">-</td>
+                        </tr>`;
+                        excelData.push([pb.name, '-', '', 0, '-']);
+                        currentRow++;
+                        return;
+                    }
+                    
+                    const catCount = {};
+                    myEmps.forEach(e => {
+                        let c = (e.category || 'Other').trim(); // સ્પેસ કાઢવા માટે
+                        c = c.charAt(0).toUpperCase() + c.slice(1); // પહેલો અક્ષર કેપિટલ કરવા માટે
+                        catCount[c] = (catCount[c] || 0) + 1;
+                    });
+                    const catStr = Object.entries(catCount).map(([k,v]) => `${k}: ${v}`).join('\n');
+                    const catHtml = Object.entries(catCount).map(([k,v]) => `${k}: ${v}`).join('<br>');
+                    
+                    const grouped = {};
+                    myEmps.forEach(emp => {
+                        // Unassigned Location હોય તો એમ્પ્ટી રાખવા માટે
+                        const loc = (emp.locationNode && emp.locationNode !== 'Unassigned Location') ? emp.locationNode : '';
+                        if(!grouped[loc]) grouped[loc] = [];
+                        grouped[loc].push(emp.name);
+                    });
+                    
+                    const pbStartRow = currentRow;
+                    let pbRowCount = 0;
+                    let pbHtml = '';
+
+                    for (const loc in grouped) {
+                        const empNamesArr = grouped[loc];
+                        const locStartRow = currentRow;
+                        
+                        empNamesArr.forEach((empName, index) => {
+                            if (index === 0 && currentRow === pbStartRow) {
+                                excelData.push([pb.name, catStr, loc, empNamesArr.length, empName]);
+                            } else if (index === 0) {
+                                excelData.push(['', '', loc, empNamesArr.length, empName]);
+                            } else {
+                                excelData.push(['', '', '', '', empName]);
+                            }
+                            
+                            // HTML building
+                            pbHtml += `<tr>`;
+                            if (currentRow === pbStartRow) {
+                                pbHtml += `<td rowspan="PB_ROWSPAN" style="vertical-align:middle; border:1px solid #000;"><b>${safeStr(pb.name)}</b></td>`;
+                                pbHtml += `<td rowspan="PB_ROWSPAN" style="vertical-align:middle; text-align:left; border:1px solid #000;">${catHtml}</td>`;
+                            }
+                            if (index === 0) {
+                                pbHtml += `<td rowspan="${empNamesArr.length}" style="vertical-align:middle; border:1px solid #000;">${safeStr(loc)}</td>`;
+                                pbHtml += `<td rowspan="${empNamesArr.length}" style="vertical-align:middle; border:1px solid #000;">${empNamesArr.length}</td>`;
+                            }
+                            pbHtml += `<td style="text-align:left; padding-left:10px; border:1px solid #000;">${safeStr(empName)}</td>`;
+                            pbHtml += `</tr>`;
+                            
+                            currentRow++;
+                            pbRowCount++;
+                        });
+                        
+                        const locEndRow = currentRow - 1;
+                        if (locEndRow > locStartRow) {
+                            merges.push({ s: { r: locStartRow, c: 2 }, e: { r: locEndRow, c: 2 } });
+                            merges.push({ s: { r: locStartRow, c: 3 }, e: { r: locEndRow, c: 3 } });
+                        }
+                    }
+                    
+                    const pbEndRow = currentRow - 1;
+                    if (pbEndRow > pbStartRow) {
+                        merges.push({ s: { r: pbStartRow, c: 0 }, e: { r: pbEndRow, c: 0 } });
+                        merges.push({ s: { r: pbStartRow, c: 1 }, e: { r: pbEndRow, c: 1 } });
+                    }
+                    
+                    // Replace PB_ROWSPAN placeholder in HTML
+                    pbHtml = pbHtml.replace(/PB_ROWSPAN/g, pbRowCount);
+                    tbodyHtml += pbHtml;
+                    
+                    // Total Row at the end of this Pantry Boy
+                    tbodyHtml += `<tr style="background:#E0F2FE; font-weight:bold;">
+                        <td colspan="2" style="text-align:right; padding-right:10px; border:1px solid #000;">TOTAL:</td>
+                        <td style="border:1px solid #000;"></td>
+                        <td style="color:#0A56D0; font-size:14px; border:1px solid #000;">${myEmps.length}</td>
+                        <td style="border:1px solid #000;"></td>
+                    </tr>`;
+                    
+                    excelData.push(['', 'TOTAL:', '', myEmps.length, '']);
+                    merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 1 } }); // Merge TOTAL label
+                    currentRow++;
+                });
+
+                // Set export function globally so the button can call it
+                window._currentAllocExcelData = { data: excelData, merges: merges };
+
+                const fullHtml = `
+                    <div style="text-align:center; margin-bottom:15px;">
+                        <h2 style="color:#0A56D0; font-size:16px;">DAU PANTRY BOY DEPLOYMENT & ALLOCATION LIST</h2>
+                    </div>
+                    <table class="print-table" style="width:100%; border-collapse:collapse; font-size:12px; text-align:center;">
+                        <thead>
+                            <tr style="background:#F1F5F9;">
+                                <th style="border:1px solid #000; padding:8px;">Pantry Boy Name</th>
+                                <th style="border:1px solid #000; padding:8px;">Category Summary</th>
+                                <th style="border:1px solid #000; padding:8px;">Location (Building)</th>
+                                <th style="border:1px solid #000; padding:8px;">Loc. Count</th>
+                                <th style="border:1px solid #000; padding:8px;">Employee Name</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tbodyHtml}</tbody>
+                    </table>
+                `;
+
+                const container = document.getElementById('printAreaContainer');
+                container.style.zIndex = "999999999";
+                container.innerHTML = `
+                    <div class="preview-card" style="max-width:1000px; width:95vw; height:90vh;">
+                        <div class="preview-header hide-on-print">
+                            <button onclick="window.print()" class="success" style="font-size:.9rem; padding:10px 18px; border-radius:10px; min-height:40px;">🖨️ Print</button>
+                            <button onclick="window.exportPantryAllocationExcel()" class="btn" style="font-size:.9rem; padding:10px 18px; border-radius:10px; min-height:40px; background:#0A56D0; color:white;">📊 Download Excel</button>
+                            <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger" style="font-size:.9rem; padding:10px 18px; border-radius:10px; min-height:40px;">✕ Close</button>
+                        </div>
+                        <div class="preview-content" style="padding: 15px; overflow-x: auto; background:#fff;">
+                            ${fullHtml}
+                        </div>
+                    </div>
+                `;
+                container.style.display = 'flex';
+                container.classList.remove('hidden');
+            };
+
+            window.exportPantryAllocationExcel = function() {
+                if (!window._currentAllocExcelData) return;
+                const { data, merges } = window._currentAllocExcelData;
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(data);
+                ws['!merges'] = merges;
+                
+                const bStyle = { style: 'thin', color: { rgb: "000000" } };
+                const titleStyle = { font: { bold: true, sz: 14, color: { rgb: "0A56D0" } }, alignment: { horizontal: "center", vertical: "center" }, fill: { fgColor: { rgb: "E0F2FE" } }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle } };
+                const headStyle = { font: { bold: true }, alignment: { horizontal: "center", vertical: "center", wrapText: true }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle }, fill: { fgColor: { rgb: "F1F5F9" } } };
+                const cellCenter = { alignment: { horizontal: "center", vertical: "center", wrapText: true }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle } };
+                const cellLeft = { alignment: { horizontal: "left", vertical: "center", wrapText: true }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle } };
+                const totalStyle = { font: { bold: true }, alignment: { horizontal: "right", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle }, fill: { fgColor: { rgb: "E0F2FE" } } };
+                const totalNumStyle = { font: { bold: true, color: { rgb: "0A56D0" } }, alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle }, fill: { fgColor: { rgb: "E0F2FE" } } };
+
+                for (let R = 0; R < data.length; ++R) {
+                    for (let C = 0; C < 5; ++C) {
+                        let cellRef = XLSX.utils.encode_cell({c:C, r:R});
+                        if(!ws[cellRef]) ws[cellRef] = { t: 's', v: '' }; 
+                        
+                        if (R === 0) {
+                            ws[cellRef].s = titleStyle;
+                        } else if (R === 1) {
+                            ws[cellRef].s = headStyle;
+                        } else {
+                            if (String(data[R][1]) === 'TOTAL:') {
+                                if (C === 0 || C === 1) ws[cellRef].s = totalStyle;
+                                else if (C === 3) ws[cellRef].s = totalNumStyle;
+                                else ws[cellRef].s = Object.assign({}, cellCenter, { fill: { fgColor: { rgb: "E0F2FE" } }});
+                            } else {
+                                ws[cellRef].s = (C === 4 || C === 1) ? cellLeft : cellCenter;
+                            }
+                        }
+                    }
+                }
+                
+                ws['!cols'] = [{wch: 22}, {wch: 18}, {wch: 25}, {wch: 12}, {wch: 35}];
+                XLSX.utils.book_append_sheet(wb, ws, "Deployment List");
+                window.pantryDownloadExcelFile(wb, `Pantry_Deployment_List_${getTodayInDMY().replace(/\//g,'-')}.xlsx`);
+            };
             function openPantryForm(existing = null) {
                 document.getElementById('dynamicPantryForm')?.remove();
                 const form = document.createElement('div');
@@ -7740,18 +8236,44 @@ if (
                 if (!c) return;
                 if (!venueList.length) { c.innerHTML =
                     `<p style="padding:12px; color:#74777F; font-size:.9rem; text-align:center;">No venues.</p>`; return; }
-                c.innerHTML = venueList.map(v =>
-                    `
-              <div class="employee-item" style="margin:6px 4px; display:flex; justify-content:space-between; align-items:center;">
-                <span style="cursor:pointer; color:#0A56D0;" onclick="openLocationEmployeePopup('${safeStr(v.name).replace(/'/g, "\\'")}')">📍 <strong style="text-decoration:underline;">${safeStr(v.name)}</strong></span>
-                <span style="display:flex; gap:4px; align-items:center;">
-                  <button onclick="openLocationEmployeePopup('${safeStr(v.name).replace(/'/g, "\\'")}')" style="background:#E2E8F0; color:#0A56D0; border:none; cursor:pointer; font-size:.7rem; padding:6px 8px; border-radius:8px; font-weight:bold;">👥 Manage</button>
-                  <button onclick="window.pantryDeleteHandler('venue','${v.id}')" style="background:transparent; border:none; color:#DC3545; cursor:pointer; font-size:1.1rem; padding:6px 8px; border-radius:8px;">🗑</button>
-                </span>
+                c.innerHTML = venueList.map(v => {
+                    const depts = v.departments ? (Array.isArray(v.departments) ? v.departments : Object.values(v.departments)) : [];
+                    const deptTags = depts.length ? depts.map(d => `<span style="background:#E0F2FE; color:#0284C7; font-size:10px; padding:2px 6px; border-radius:4px; border:1px solid #BAE6FD; margin-right:4px; display:inline-block;">${safeStr(d)}</span>`).join('') : '<span style="color:#94A3B8; font-size:10px;">No departments</span>';
+                    return `
+              <div class="employee-item" style="margin:6px 4px; display:flex; flex-direction:column; align-items:stretch;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="cursor:pointer; color:#0A56D0;" onclick="openLocationEmployeePopup('${safeStr(v.name).replace(/'/g, "\\'")}')">📍 <strong style="text-decoration:underline;">${safeStr(v.name)}</strong></span>
+                    <span style="display:flex; gap:4px; align-items:center;">
+                        <button onclick="window.addDeptToVenue('${v.id}')" style="background:#ECFDF5; color:#059669; border:1px solid #A7F3D0; cursor:pointer; font-size:.7rem; padding:4px 8px; border-radius:6px; font-weight:bold;">+ Dept</button>
+                        <button onclick="openLocationEmployeePopup('${safeStr(v.name).replace(/'/g, "\\'")}')" style="background:#E2E8F0; color:#0A56D0; border:none; cursor:pointer; font-size:.7rem; padding:4px 8px; border-radius:6px; font-weight:bold;">👥 Manage</button>
+                        <button onclick="window.pantryDeleteHandler('venue','${v.id}')" style="background:transparent; border:none; color:#DC3545; cursor:pointer; font-size:1.1rem; padding:4px; border-radius:8px;">🗑</button>
+                    </span>
+                </div>
+                <div style="margin-top:6px; padding-top:6px; border-top:1px dashed #E2E8F0;">
+                    ${deptTags}
+                </div>
               </div>
-            `
-                ).join('');
+            `;
+                }).join('');
             }
+            
+            window.addDeptToVenue = function(vId) {
+                const venue = venueList.find(v => v.id === vId);
+                if(!venue) return;
+                const newDept = prompt(`Enter new department name for location "${venue.name}":`);
+                if(newDept && newDept.trim()) {
+                    let depts = venue.departments || [];
+                    if(!Array.isArray(depts)) depts = Object.values(depts);
+                    if(depts.map(d=>d.toLowerCase()).includes(newDept.trim().toLowerCase())) {
+                        return appAlert('Duplicate', 'Department already exists in this location.');
+                    }
+                    depts.push(newDept.trim());
+                    db.ref('venues/' + vId + '/departments').set(depts).then(() => {
+                        appAlert('Success', 'Department added to location!');
+                    });
+                }
+            };
+
             function renderRecycleBinLists() {
                 const boxes = { binEmployeesBox: 'employees', binExtraBox: 'extraLogs',
                     binEventsBox: 'eventLogs', binMgRecordsBox: 'meetingsGuestsRecords' };
@@ -10557,12 +11079,12 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                         <div style="display: flex; flex-direction: column; height: 100%; overflow:hidden;">
                             
                             <!-- Action Bar with Scanner -->
-                            <div style="display: flex; gap: 4px; margin-bottom: 8px; flex-shrink: 0; flex-wrap: wrap;">
+                            <div style="display: flex; gap: 4px; margin-bottom: 8px; flex-shrink: 0; flex-wrap: nowrap; overflow-x: auto;">
                                 <input type="file" id="mgExcelFileInput" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, .xlsx, .xls" style="display: none;" onchange="window.handleMgExcelUpload(event)">
-                                <button onclick="window.downloadMgFormat()" style="flex:0.8;" class="mg-btn-sm" style="background:#f8fafc; color:#334155; border:1px solid #cbd5e1;">📥 Fmt</button>
-                                <button onclick="document.getElementById('mgExcelFileInput').click()" style="flex:1; background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd;" class="mg-btn-sm">📂 Import</button>
-                                <button onclick="window.openMgHistory()" style="flex:1.2; background:#fef3c7; color:#d97706; border:1px solid #fde68a;" class="mg-btn-sm">📜 History</button>
-                                <button onclick="window.openDuplicateScannerModal()" style="flex:100%; background:#fee2e2; color:#ef4444; border:1px solid #fecaca; margin-top:4px;" class="mg-btn-sm">🔍 Scan & Clean Duplicates</button>
+                                <button onclick="window.downloadMgFormat()" class="mg-btn-sm" style="flex:1; min-width:40px; background:#f8fafc; color:#334155; border:1px solid #cbd5e1; padding:0 4px;">📥 Fmt</button>
+                                <button onclick="document.getElementById('mgExcelFileInput').click()" class="mg-btn-sm" style="flex:1; min-width:55px; background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd; padding:0 4px;">📂 Import</button>
+                                <button onclick="window.openMgHistory()" class="mg-btn-sm" style="flex:1; min-width:55px; background:#fef3c7; color:#d97706; border:1px solid #fde68a; padding:0 4px;">📜 History</button>
+                                <button onclick="window.openDuplicateScannerModal()" class="mg-btn-sm" style="flex:1.5; min-width:70px; background:#fee2e2; color:#ef4444; border:1px solid #fecaca; padding:0 4px;">🔍 Clean</button>
                             </div>
                             <div style="flex-grow: 1; overflow-y: auto; background: #f1f5f9; border-radius: 6px; border: 1px solid #cbd5e1; display:flex; flex-direction:column; padding:6px;">
                                 
@@ -10865,14 +11387,14 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                             return `<div style="padding:10px 12px; border-bottom:1px solid #e2e8f0; cursor:pointer; font-size:12px; white-space:nowrap;" onclick="this.parentElement.previousElementSibling.style.display='none'; this.parentElement.style.display='none'; this.parentElement.parentElement.querySelector('span').innerText='${shortName}'; this.parentElement.parentElement.querySelector('input').value='${safeName}';">${safeName}</div>`;
                         }).join('');
 
-                    servedByHtml = `
-                        <div style="position:relative; flex:1.2;">
+                                        servedByHtml = `
+                        <div style="position:relative; width:100%; height:30px;">
                             <input type="hidden" class="row-served" value="${safeStr(data.ServedBy || '')}">
-                            <div class="mg-cmp-inp" onclick="this.nextElementSibling.style.display='block'; this.nextElementSibling.nextElementSibling.style.display='block';" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding:0 4px;">
-                                <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:10px;">${initDisp}</span>
+                            <div class="mg-cmp-inp" onclick="this.nextElementSibling.style.display='block'; this.nextElementSibling.nextElementSibling.style.display='block';" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding:0 4px; height:100%; font-size:10px;">
+                                <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${initDisp}</span>
                                 <span style="font-size:8px; margin-left:2px;">▼</span>
                             </div>
-                            <!-- ઓવરલે: બહાર ક્લિક કરવાથી મેનુ બંધ થઈ જાય -->
+                            <!-- ઓવરલે -->
                             <div style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:9998;" onclick="this.style.display='none'; this.nextElementSibling.style.display='none';"></div>
                             <!-- ડ્રોપડાઉન લિસ્ટ -->
                             <div class="mg-custom-dd-list" style="display:none; position:absolute; top:100%; left:0; min-width:max-content; background:#fff; border:1px solid #0A56D0; border-radius:6px; max-height:250px; overflow-y:auto; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.2); font-weight:600; color:#1e293b; text-align:left;">
@@ -10881,42 +11403,44 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                         </div>
                     `;
                 } else {
-                    servedByHtml = `<input type="hidden" class="row-served" value="${window.mgCurrentPantryName}">`;
+                    servedByHtml = `<input type="text" class="row-served mg-cmp-inp" value="${window.mgCurrentPantryName}" readonly style="background:#e2e8f0; color:#64748b; height:30px; padding:0 4px; font-size:10px;">`;
                 }
 
                 const card = document.createElement('div');
                 card.className = 'mg-entry-card';
                 card.id = rowId;
                 card.innerHTML = `
-                                        <!-- 1st Line: Compact Wrap Format -->
-                    <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:6px;">
-                        <input type="date" class="row-date mg-cmp-inp" value="${dateVal}" style="flex:1; min-width:105px; max-width:125px;">
-                        <input type="time" class="row-time mg-cmp-inp" value="${data.Time || ''}" title="Optional Time" style="flex:1; min-width:85px; max-width:105px;">
-                        <input type="text" list="mgEmpListGlobal" class="row-req mg-cmp-inp" placeholder="Req. By" value="${safeStr(data.ReqBy)}" style="flex:2; min-width:100px; border-color:#0A56D0;">
-                        <input type="text" class="row-purpose mg-cmp-inp" placeholder="Purpose" value="${safeStr(data.Purpose)}" style="flex:2; min-width:110px;">
-                        <input type="text" list="mgLocListGlobal" class="row-loc mg-cmp-inp" placeholder="📍 Loc" value="${safeStr(data.Location)}" style="flex:1; min-width:80px;">
-                    </div>                
-                    <!-- 2nd Line: Vendor | ServedBy | Item | Qty | Rate | Amt | Action -->
-                    <div style="display:flex; gap:4px; align-items:center;">
-                        <select class="row-vendor mg-cmp-inp" onchange="window.updateMgItemDatalist('${rowId}')" style="flex:1.5; padding:0 2px;">
-                            <option value="">Vendor</option>
-                            ${window.mgVendorOpts}
-                        </select>
-                        ${servedByHtml}
-                        <input type="text" class="row-item mg-cmp-inp" placeholder="Item Name" oninput="window.fetchMgRate('${rowId}'); window.calcMgRowAmt('${rowId}')" list="dl_${rowId}" value="${safeStr(data.Item)}" style="flex:1.8; border-color:#38bdf8;">
-                        <datalist id="dl_${rowId}"></datalist>
-                        <input type="number" class="row-qty mg-cmp-inp" placeholder="Qty" oninput="window.calcMgRowAmt('${rowId}')" value="${data.Qty || ''}" style="flex:0.7; text-align:center; border-color:#38bdf8;">
-                        <input type="number" class="row-rate mg-cmp-inp" placeholder="Rate" oninput="window.calcMgRowAmt('${rowId}')" value="${data.Rate || ''}" style="flex:0.8; text-align:center; border-color:#38bdf8;">
-                        
-                        <div style="flex:1; text-align:right; font-weight:800; color:#10b981; font-size:12px; white-space:nowrap;">
-                            ₹<span id="amt_disp_${rowId}">${data.Amount || '0'}</span>
-                            <input type="hidden" class="row-amt" value="${data.Amount || 0}">
+                    <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:6px; padding:6px; margin-bottom:6px;">
+                        <!-- Line 1: Fixed Details (આ કોપી થશે) -->
+                        <div style="display:flex; gap:4px; margin-bottom:4px;">
+                            <input type="date" class="row-date mg-cmp-inp" value="${dateVal}" style="flex:1; height:28px; padding:0 4px; font-size:11px; font-weight:700;">
+                            <input type="time" class="row-time mg-cmp-inp" title="Opt Time" value="${data.Time || ''}" style="flex:0.8; height:28px; padding:0 4px; font-size:11px;">
+                            <input type="text" list="mgEmpListGlobal" class="row-req mg-cmp-inp" placeholder="👤 Req By" value="${safeStr(data.ReqBy)}" style="flex:1.2; height:28px; padding:0 4px; font-size:11px;">
+                            <input type="text" class="row-purpose mg-cmp-inp" placeholder="📝 Purpose" value="${safeStr(data.Purpose)}" style="flex:1.5; height:28px; padding:0 4px; font-size:11px;">
                         </div>
-
-                        <!-- Copy and Delete Action Buttons -->
-                        <div style="display:flex; gap:2px; flex:1; justify-content:flex-end;">
-                            <button type="button" onclick="window.duplicateMgRow('${rowId}')" class="mg-btn-sm" style="background:#e0f2fe; color:#0284c7; flex:1;" title="Copy">📋</button>
-                            <button type="button" onclick="document.getElementById('${rowId}').remove(); window.calcMgGrandTotal();" class="mg-btn-sm" style="background:#fee2e2; color:#dc3545; flex:1;" title="Delete">✕</button>
+                        <!-- Line 2: Big Item Name, Vendor & Served By -->
+                        <div style="display:flex; gap:4px; margin-bottom:4px;">
+                            <input type="text" class="row-item mg-cmp-inp" placeholder="📋 Item Name" list="dl_${rowId}" value="${safeStr(data.Item)}" oninput="window.fetchMgRate('${rowId}'); window.calcMgRowAmt('${rowId}')" style="flex:2; height:30px; font-size:13px; font-weight:800; color:#047857; background:#ECFDF5; border-color:#10b981; padding:0 6px;">
+                            <datalist id="dl_${rowId}"></datalist>
+                            <select class="row-vendor mg-cmp-inp" onchange="window.updateMgItemDatalist('${rowId}')" style="flex:1.2; height:30px; padding:0 2px; font-size:10px;">
+                                <option value="">Vendor</option>
+                                ${window.mgVendorOpts}
+                            </select>
+                            <div style="flex:1; height:30px;">
+                                ${servedByHtml}
+                            </div>
+                        </div>
+                        <!-- Line 3: Location, Qty, Rate, Amount, Actions -->
+                        <div style="display:flex; gap:4px; align-items:center;">
+                            <input type="text" list="mgLocListGlobal" class="row-loc mg-cmp-inp" placeholder="📍 Loc" value="${safeStr(data.Location)}" style="flex:1; height:28px; padding:0 4px; font-size:10px;">
+                            <input type="number" class="row-qty mg-cmp-inp" placeholder="Qty" value="${data.Qty || ''}" oninput="window.calcMgRowAmt('${rowId}')" style="flex:0.6; height:28px; padding:0 4px; text-align:center; font-size:11px;">
+                            <input type="number" class="row-rate mg-cmp-inp" placeholder="Rate ₹" value="${data.Rate || ''}" oninput="window.calcMgRowAmt('${rowId}')" style="flex:0.7; height:28px; padding:0 4px; text-align:center; font-size:11px;">
+                            <div style="flex:0.8; text-align:right; font-weight:900; color:#10b981; font-size:13px; white-space:nowrap;">
+                                ₹<span id="amt_disp_${rowId}">${data.Amount || '0'}</span>
+                                <input type="hidden" class="row-amt" value="${data.Amount || 0}">
+                            </div>
+                            <button type="button" onclick="window.duplicateMgRow('${rowId}')" style="flex:0.5; height:28px; background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd; border-radius:4px; font-weight:bold; font-size:10px; padding:0;">➕ Copy</button>
+                            <button type="button" onclick="document.getElementById('${rowId}').remove(); window.calcMgGrandTotal();" style="flex:0.5; height:28px; background:#fee2e2; color:#dc3545; border:1px solid #fecaca; border-radius:4px; font-weight:bold; font-size:10px; padding:0;">✕ Del</button>
                         </div>
                     </div>
                 `;
@@ -10930,30 +11454,29 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 
                 container.scrollTop = container.scrollHeight;
             };
+
             // ડુપ્લીકેટ (કોપી) ફંક્શન
             window.duplicateMgRow = function(sourceId) {
                 const src = document.getElementById(sourceId);
                 if(!src) return;
                 
-                const sInp = src.querySelector('.row-served');
-                
+                // ડેટ, ટાઈમ, રિક્વેસ્ટર અને પર્પસ જ જૂનામાંથી લેશે, બાકી બધું ખાલી રાખશે
                 const data = {
                     Date: src.querySelector('.row-date').value,
                     Time: src.querySelector('.row-time').value,
                     ReqBy: src.querySelector('.row-req').value,
                     Purpose: src.querySelector('.row-purpose').value,
-                    Location: src.querySelector('.row-loc').value,
-                    Vendor: src.querySelector('.row-vendor').value,
-                    ServedBy: sInp ? sInp.value : '',
-                    Item: src.querySelector('.row-item').value,
-                    Qty: src.querySelector('.row-qty').value,
-                    Rate: src.querySelector('.row-rate').value,
-                    Amount: src.querySelector('.row-amt').value
+                    Location: '', // લોકેશન પણ જાતે ભરશે 
+                    Vendor: '',
+                    ServedBy: '',
+                    Item: '',
+                    Qty: '',
+                    Rate: '',
+                    Amount: ''
                 };
                 window.addMgRow(data);
                 window.calcMgGrandTotal();
             };
-
             // વેન્ડર બદલાય એટલે ડેટાલીસ્ટ અપડેટ થાય
             window.updateMgItemDatalist = function(rowId) {
                 const row = document.getElementById(rowId);
@@ -11540,14 +12063,18 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 let itemsHtml = slip.items.map((it, idx) => {
                     let itemDateYMD = it.RawDate ? forceYMD(it.RawDate) : (it.DateFormatted ? forceYMD(it.DateFormatted) : rawDate);
                     return `
-                    <div class="eg-row" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; background:#f8fafc; padding:8px; border:1px solid #cbd5e1; border-radius:6px; align-items:center; width:100%; box-sizing:border-box;">
-                        <input type="date" class="eg-date mg-cmp-inp" value="${itemDateYMD}" style="flex:1; min-width:105px; max-width:125px; background:#fff;">
-                        <input type="time" class="eg-time mg-cmp-inp" value="${it.Time || ''}" title="Optional Time" style="flex:1; min-width:85px; max-width:105px; background:#fff;">
-                        <select class="eg-vendor mg-cmp-inp" style="flex:2; min-width:110px; background:#fff;"><option value="">Vendor</option>${getVendorOpts(it.Vendor)}</select>
-                        <input type="text" class="eg-item mg-cmp-inp" value="${safeStr(it.Item)}" placeholder="Item Name" style="flex:2; min-width:110px; background:#fff;">
-                        <input type="number" class="eg-qty mg-cmp-inp" value="${it.Qty}" placeholder="Qty" style="flex:0.5; min-width:60px; max-width:80px; text-align:center; background:#fff;">
-                        <input type="number" class="eg-rate mg-cmp-inp" value="${it.Rate}" placeholder="Rate ₹" style="flex:0.5; min-width:60px; max-width:80px; text-align:center; background:#fff;">
-                        <button type="button" onclick="this.closest('.eg-row').remove()" style="flex:0.5; min-width:60px; max-width:80px; background:#fee2e2; color:#dc3545; border:1px solid #fecaca; border-radius:6px; font-weight:bold; cursor:pointer;">✕ Del</button>
+                    <div class="eg-row" style="display:flex; flex-direction:column; gap:4px; margin-bottom:6px; background:#f8fafc; padding:6px; border:1px solid #cbd5e1; border-radius:6px; width:100%; box-sizing:border-box;">
+                        <div style="display:flex; gap:4px;">
+                            <input type="date" class="eg-date mg-cmp-inp" value="${itemDateYMD}" style="flex:1; height:28px; padding:0 4px; font-size:11px; background:#fff; font-weight:bold;">
+                            <input type="time" class="eg-time mg-cmp-inp" title="Opt Time" value="${it.Time || ''}" style="flex:0.8; height:28px; padding:0 4px; font-size:11px; background:#fff;">
+                            <select class="eg-vendor mg-cmp-inp" style="flex:1.2; height:28px; font-size:10px; padding:0 2px; background:#fff;"><option value="">Vendor</option>${getVendorOpts(it.Vendor)}</select>
+                        </div>
+                        <div style="display:flex; gap:4px;">
+                            <input type="text" class="eg-item mg-cmp-inp" value="${safeStr(it.Item)}" placeholder="📋 Item Name" style="flex:2; height:30px; font-size:13px; font-weight:800; color:#047857; background:#ECFDF5; border-color:#10b981; padding:0 6px;">
+                            <input type="number" class="eg-qty mg-cmp-inp" value="${it.Qty}" placeholder="Qty" style="flex:0.6; text-align:center; height:30px; font-size:11px; background:#fff;">
+                            <input type="number" class="eg-rate mg-cmp-inp" value="${it.Rate}" placeholder="Rate ₹" style="flex:0.8; text-align:center; height:30px; font-size:11px; background:#fff;">
+                            <button type="button" onclick="this.closest('.eg-row').remove()" style="flex:0.5; height:30px; background:#fee2e2; color:#dc3545; border:1px solid #fecaca; border-radius:4px; font-weight:bold; font-size:10px; padding:0; cursor:pointer;">✕ Del</button>
+                        </div>
                     </div>
                 `}).join('');
                 // અહી "Served By" નું Custom Dropdown ફંક્શન સેમ ટુ સેમ લાગુ કર્યું છે
@@ -11621,7 +12148,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
             window.addEgRow = function() {
                 const row = document.createElement('div');
                 row.className = 'eg-row';
-                row.style.cssText = "display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; background:#f8fafc; padding:8px; border:1px solid #cbd5e1; border-radius:6px; align-items:center; width:100%; box-sizing:border-box;";
+                row.style.cssText = "display:flex; flex-direction:column; gap:4px; margin-bottom:6px; background:#f8fafc; padding:6px; border:1px solid #cbd5e1; border-radius:6px; width:100%; box-sizing:border-box;";
                 const vendorOpts = `<option value="DAU Direct Purchase" style="color:#059669; font-weight:bold;">🛒 DAU</option>` + canteenList.map(c => `<option value="${safeStr(c.name)}">${safeStr(c.name)}</option>`).join('');
                 
                 let defaultDate = new Date().toISOString().split('T')[0];
@@ -11629,16 +12156,19 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 if(prevRows.length > 0) defaultDate = prevRows[prevRows.length-1].value;
 
                 row.innerHTML = `
-                    <input type="date" class="eg-date mg-cmp-inp" value="${defaultDate}" style="flex:1; min-width:45%; height:28px; padding:0 4px; font-size:11px; background:#fff;">
-                    <input type="time" class="eg-time mg-cmp-inp" value="" title="Optional Time" style="flex:1; min-width:30%; height:28px; padding:0 4px; font-size:11px; background:#fff;">
-                    <select class="eg-vendor mg-cmp-inp" style="flex:1; min-width:45%; height:28px; font-size:11px; background:#fff;"><option value="">Vendor</option>${vendorOpts}</select>
-                    <input type="text" class="eg-item mg-cmp-inp" placeholder="Item Name" style="flex:1; min-width:45%; height:28px; font-size:11px; background:#fff;">
-                    <input type="number" class="eg-qty mg-cmp-inp" placeholder="Qty" style="flex:0.5; min-width:20%; text-align:center; height:28px; font-size:11px; background:#fff;">
-                    <input type="number" class="eg-rate mg-cmp-inp" placeholder="Rate ₹" style="flex:0.5; min-width:25%; text-align:center; height:28px; font-size:11px; background:#fff;">
-                    <button type="button" onclick="this.closest('.eg-row').remove()" style="flex:0.5; min-width:20%; height:28px; background:#fee2e2; color:#dc3545; border:1px solid #fecaca; border-radius:4px; font-weight:bold; font-size:12px; cursor:pointer;">✕ Del</button>
+                    <div style="display:flex; gap:4px;">
+                        <input type="date" class="eg-date mg-cmp-inp" value="${defaultDate}" style="flex:1; height:28px; padding:0 4px; font-size:11px; background:#fff; font-weight:bold;">
+                        <input type="time" class="eg-time mg-cmp-inp" title="Opt Time" value="" style="flex:0.8; height:28px; padding:0 4px; font-size:11px; background:#fff;">
+                        <select class="eg-vendor mg-cmp-inp" style="flex:1.2; height:28px; font-size:10px; padding:0 2px; background:#fff;"><option value="">Vendor</option>${vendorOpts}</select>
+                    </div>
+                    <div style="display:flex; gap:4px;">
+                        <input type="text" class="eg-item mg-cmp-inp" placeholder="📋 Item Name" style="flex:2; height:30px; font-size:13px; font-weight:800; color:#047857; background:#ECFDF5; border-color:#10b981; padding:0 6px;">
+                        <input type="number" class="eg-qty mg-cmp-inp" placeholder="Qty" style="flex:0.6; text-align:center; height:30px; font-size:11px; background:#fff;">
+                        <input type="number" class="eg-rate mg-cmp-inp" placeholder="Rate ₹" style="flex:0.8; text-align:center; height:30px; font-size:11px; background:#fff;">
+                        <button type="button" onclick="this.closest('.eg-row').remove()" style="flex:0.5; height:30px; background:#fee2e2; color:#dc3545; border:1px solid #fecaca; border-radius:4px; font-weight:bold; font-size:10px; padding:0; cursor:pointer;">✕ Del</button>
+                    </div>
                 `;
                 document.getElementById('egItemsContainer').appendChild(row);
-                
                 const scrollWrapper = document.getElementById('egItemsContainer');
                 scrollWrapper.scrollTop = scrollWrapper.scrollHeight;
             };
