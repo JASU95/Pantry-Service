@@ -5547,6 +5547,14 @@
                     return `<span style="font-size:9px; font-weight:800;">${val}</span>`;
                 };
 
+                // ઓપ્ટિમાઇઝેશન: સ્પીડ વધારવા માટે Hash Map (Index) બનાવ્યું
+                const fastLogMap = {};
+                logsData.forEach(l => {
+                    if (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')) {
+                        fastLogMap[l.employeeId + '_' + l.date + '_' + l.session] = l;
+                    }
+                });
+
                 for (let d = 1; d <= daysInMonth; d++) {
                     const dd = String(d).padStart(2,'0');
                     const dmy = `${dd}/${mm}/${yy}`;
@@ -5556,8 +5564,9 @@
                     html += `<tr><td style="border-bottom:1px solid #E2E8F0; border-right:1px solid #CBD5E1; padding:4px; font-weight:bold; position:sticky; left:0; background:#F8FAFC; z-index:1; color:#0A56D0;">${dd}<br><span style="font-size:8px; font-weight:normal; color:#64748B;">${dayName}</span></td>`;
                     
                     emps.forEach(emp => {
-                        const mLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Morning' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
-                        const aLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Afternoon' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                        // સીધો જ ડેટા મેપમાંથી ઉપાડી લેશે (લૂપ નહિ ફરે)
+                        const mLog = fastLogMap[emp.id + '_' + dmy + '_Morning'];
+                        const aLog = fastLogMap[emp.id + '_' + dmy + '_Afternoon'];
                         
                         const mVal = mLog ? mLog.drink : '-';
                         const aVal = aLog ? aLog.drink : '-';
@@ -6982,6 +6991,7 @@
                         </select>
                       </div>
                       <div style="display:flex; gap:6px;">
+                        <button id="liveEditGridBtn" class="a-btn" style="background:#8B5CF6; flex:1;">✏️ Live Edit Grid</button>
                         <button id="downloadGridExcelBtn" class="a-btn" style="background:#7C3AED; flex:1;">📗 Excel</button>
                         <button id="printGridPdfBtn" class="a-btn" style="background:#6D28D9; flex:1;">📄 PDF/Print</button>
                       </div>
@@ -7033,6 +7043,13 @@
                         document.getElementById('previewExtraBtn').onclick = () => window.previewIndividualReport('extra');
                         document.getElementById('previewMeetingBtn').onclick = () => window.previewIndividualReport('meeting');
                         document.getElementById('downloadAllExcelBtn2').onclick = () => window.downloadAllCategoriesExcel();
+                        document.getElementById('liveEditGridBtn').onclick = () => {
+                            const month = document.getElementById('reportMonth').value;
+                            const supply = document.getElementById('reportSupplySource').value;
+                            const pantryId = document.getElementById('gridExportPantrySelect').value;
+                            const cat = document.getElementById('gridExportCategorySelect').value;
+                            window.openAdminLiveGrid(month, supply, pantryId, cat);
+                        };
                         document.getElementById('downloadGridExcelBtn').onclick = () => window.adminExportMonthlyGrid('excel');
                         document.getElementById('printGridPdfBtn').onclick = () => window.adminExportMonthlyGrid('print');
 
@@ -8356,6 +8373,304 @@ if (
                     ).join('');
                 }
             };
+            // ============================================================
+            //  ADMIN LIVE EDIT MONTHLY GRID (EXTREME OPTIMIZED FOR ZERO LAG)
+            // ============================================================
+            window.reloadAdminLiveGrid = function() {
+                const m = document.getElementById('liveGridMonth').value;
+                const s = document.getElementById('liveGridSupply').value;
+                const p = document.getElementById('liveGridPantry').value;
+                const c = document.getElementById('liveGridCat').value;
+                
+                const wrapper = document.getElementById('adminLiveGridContentWrapper');
+                if (wrapper) {
+                    wrapper.innerHTML = `<div style="padding:40px; text-align:center; color:#0A56D0; font-size:14px; font-weight:bold; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%;">
+                        <div style="width:24px; height:24px; border:3px solid #E0F2FE; border-top:3px solid #0A56D0; border-radius:50%; animation:spin 1s linear infinite; margin-bottom:12px;"></div>
+                        <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+                        Applying Filters... Please wait.
+                    </div>`;
+                }
+                
+                setTimeout(() => {
+                    window.openAdminLiveGrid(m, s, p, c, true);
+                }, 10);
+            };
+
+            window.openAdminLiveGrid = function(month, supplySource, pantryId, categoryVal, isReload = false) {
+                if (!month) return appAlert('Error', 'Select month.');
+                const [yy, mm] = month.split('-');
+                const daysInMonth = getDaysInMonth(yy, mm);
+                
+                let emps = employeeList.filter(e => e.status !== 'Inactive');
+                if (pantryId !== 'All') emps = emps.filter(e => e.assignedPantryId === pantryId);
+                
+                if (categoryVal !== 'All') {
+                    const catMatch = categoryVal.trim().toLowerCase();
+                    emps = emps.filter(e => {
+                        const c = (e.category || '').trim().toLowerCase();
+                        if (catMatch === 'outsourced' || catMatch === 'outsource') return c.includes('outsource');
+                        return c === catMatch;
+                    });
+                }
+
+                if (!isReload) {
+                    const pantryOptsHtml = pantryTeam.map(p => `<option value="${p.id}" ${p.id === pantryId ? 'selected' : ''}>${safeStr(p.name)}</option>`).join('');
+                    
+                    const filterHtml = `
+                        <div style="display:flex; gap:4px; flex-wrap:nowrap; margin-bottom:6px; align-items:center; background:#F1F5F9; padding:4px; border-radius:6px; border:1px solid #CBD5E1;">
+                            <input type="month" id="liveGridMonth" value="${month}" style="flex:1; min-width:0; height:24px; padding:0 4px; font-size:10px; border-radius:4px; border:1px solid #94A3B8; outline:none; box-sizing:border-box;" onchange="window.reloadAdminLiveGrid()">
+                            
+                            <select id="liveGridSupply" style="flex:1; min-width:0; height:24px; padding:0 4px; font-size:10px; border-radius:4px; border:1px solid #94A3B8; outline:none; box-sizing:border-box;" onchange="window.reloadAdminLiveGrid()">
+                                <option value="Contractor" ${supplySource === 'Contractor' ? 'selected' : ''}>☕ IA Caterers</option>
+                                <option value="DAU Direct Purchase" ${supplySource === 'DAU Direct Purchase' ? 'selected' : ''}>🛒 DAU Direct</option>
+                            </select>
+                            
+                            <select id="liveGridPantry" style="flex:1; min-width:0; height:24px; padding:0 4px; font-size:10px; border-radius:4px; border:1px solid #94A3B8; outline:none; box-sizing:border-box;" onchange="window.reloadAdminLiveGrid()">
+                                <option value="All" ${pantryId === 'All' ? 'selected' : ''}>All Pantry Boys</option>
+                                ${pantryOptsHtml}
+                            </select>
+                            
+                            <select id="liveGridCat" style="flex:1; min-width:0; height:24px; padding:0 4px; font-size:10px; border-radius:4px; border:1px solid #94A3B8; outline:none; box-sizing:border-box;" onchange="window.reloadAdminLiveGrid()">
+                                <option value="All" ${categoryVal === 'All' ? 'selected' : ''}>All Categories</option>
+                                <option value="Faculty" ${categoryVal === 'Faculty' ? 'selected' : ''}>Faculty</option>
+                                <option value="Staff" ${categoryVal === 'Staff' ? 'selected' : ''}>Staff</option>
+                                <option value="Law" ${categoryVal === 'Law' ? 'selected' : ''}>Law</option>
+                                <option value="Outsourced" ${categoryVal === 'Outsourced' ? 'selected' : ''}>Outsourced</option>
+                            </select>
+                        </div>
+                    `;
+
+                    const container = document.getElementById('adminPopupContainer');
+                    container.style.zIndex = "999999";
+                    container.innerHTML = `
+                        <div class="popup-card full" style="max-width:98vw; width:98vw; height:95vh; max-height:95vh; padding:10px; border-radius:12px; display:flex; flex-direction:column; overflow:hidden; background:#F8FAFC;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-shrink:0;">
+                                <h3 style="margin:0; font-size:15px; color:#0A56D0;">✏️ Live Edit Grid</h3>
+                                <button onclick="document.getElementById('adminPopupContainer').classList.add('hidden')" class="danger" style="padding:4px 12px; font-size:11px; border-radius:6px; font-weight:bold; cursor:pointer;">✕ Close</button>
+                            </div>
+                            
+                            ${filterHtml}
+
+                            <div id="adminLiveGridContentWrapper" style="padding:0; overflow:hidden; display:flex; flex-direction:column; flex:1; background:transparent;">
+                                <div style="padding:40px; text-align:center; color:#0A56D0; font-size:14px; font-weight:bold; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%;">
+                                    <div style="width:24px; height:24px; border:3px solid #E0F2FE; border-top:3px solid #0A56D0; border-radius:50%; animation:spin 1s linear infinite; margin-bottom:12px;"></div>
+                                    <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+                                    Loading Initial Data...
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.classList.remove('hidden');
+
+                    setTimeout(() => {
+                        window.openAdminLiveGrid(month, supplySource, pantryId, categoryVal, true);
+                    }, 50);
+                    return;
+                }
+
+                const wrapper = document.getElementById('adminLiveGridContentWrapper');
+                if (!wrapper) return;
+
+                if(!emps.length) {
+                    wrapper.innerHTML = `<div style="flex:1; display:flex; justify-content:center; align-items:center; color:#64748B; font-weight:bold;">No employees found for this filter combination.</div>`;
+                    return;
+                }
+
+                const contractorArr = typeof CONTRACTOR_BEVERAGES !== 'undefined' ? CONTRACTOR_BEVERAGES : ['Tea','Coffee'];
+                const dauArr = typeof DAU_PURCHASE_BEVERAGES !== 'undefined' ? DAU_PURCHASE_BEVERAGES : [];
+                const drinkArr = supplySource === 'DAU Direct Purchase' ? dauArr : contractorArr;
+                
+                const optCache = {};
+                const getOptHtml = (val) => {
+                    if (optCache[val]) return optCache[val];
+                    let o = `<option value="">-</option>`;
+                    drinkArr.forEach(d => {
+                        o += `<option value="${d}" ${d === val ? 'selected' : ''}>${d}</option>`;
+                    });
+                    optCache[val] = o;
+                    return o;
+                };
+                
+                const buildSelect = (empId, dateDMY, session, currentDrink, logId) => {
+                    return `<select class="l-sel" data-emp="${empId}" data-date="${dateDMY}" data-session="${session}" data-logid="${logId || ''}" data-supply="${supplySource}" onchange="window.saveAdminLiveGridChange(this)">${getOptHtml(currentDrink)}</select>`;
+                };
+
+                const styleBlock = `
+                <style>
+                    .l-wrap { overflow-x: auto; background: #fff; border: 1px solid #CBD5E1; border-radius: 8px; flex: 1; min-height: 0; }
+                    .l-tbl { width: 100%; border-collapse: collapse; font-size: 11px; text-align: center; }
+                    .l-thead th { background: #F1F5F9; position: sticky; top: 0; z-index: 3; border-bottom: 2px solid #0A56D0; border-right: 1px solid #CBD5E1; padding: 2px; }
+                    .l-th-date { min-width: 45px; position: sticky; left: 0; z-index: 4; background: #F1F5F9; }
+                    .l-th-emp { font-size: 11px; color: #1E293B; line-height: 1.1; white-space: normal; word-wrap: break-word; }
+                    .l-th-sess { font-weight: 800; color: #44474E; background: #F8FAFC; width: 50px; min-width: 50px; border-right: 1px dashed #CBD5E1; }
+                    .l-th-sess.aft { border-right: 1px solid #CBD5E1; }
+                    .l-td-date { border-bottom: 1px solid #E2E8F0; border-right: 1px solid #CBD5E1; padding: 0 2px; height: 18px; font-weight: bold; position: sticky; left: 0; background: #F8FAFC; z-index: 1; color: #0A56D0; line-height: 1; font-size: 10px; }
+                    .l-td-morn { border-bottom: 1px solid #E2E8F0; border-right: 1px dashed #E2E8F0; padding: 0; height: 18px; }
+                    .l-td-aft { border-bottom: 1px solid #E2E8F0; border-right: 1px solid #CBD5E1; padding: 0; height: 18px; }
+                    .l-sel { width: 100%; height: 18px; padding: 0; margin: 0; font-size: 10px; font-weight: 700; color: #0A56D0; border: none; background: transparent; outline: none; text-align-last: center; cursor: pointer; box-sizing: border-box; line-height: 1; appearance: none; -webkit-appearance: none; }
+                    .l-tot-lbl { border-bottom: 1px solid #CBD5E1; border-right: 1px solid #CBD5E1; padding: 0 2px; height: 18px; font-weight: 800; position: sticky; left: 0; z-index: 1; font-size: 10px; line-height: 1; }
+                    .l-tot-val { border-bottom: 1px solid #CBD5E1; border-right: 1px solid #CBD5E1; padding: 0; height: 18px; font-weight: 900; font-size: 11px; line-height: 1; }
+                </style>`;
+
+                let htmlArr = [styleBlock];
+
+                htmlArr.push(`<div class="l-wrap"><table class="l-tbl" style="min-width:${emps.length * 100 + 45}px;" id="adminLiveGridTable">`);
+                htmlArr.push(`<thead class="l-thead"><tr><th rowspan="2" class="l-th-date">Date</th>`);
+                emps.forEach(emp => {
+                    htmlArr.push(`<th colspan="2" class="l-th-emp">${safeStr(emp.name)}</th>`);
+                });
+                htmlArr.push(`</tr><tr>`);
+                emps.forEach(() => {
+                    htmlArr.push(`<th class="l-th-sess">Morn</th><th class="l-th-sess aft">Aft</th>`);
+                });
+                htmlArr.push(`</tr></thead><tbody>`);
+
+                const fastLogMap = {};
+                logsData.forEach(l => {
+                    if (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')) {
+                        fastLogMap[l.employeeId + '_' + l.date + '_' + l.session] = l;
+                    }
+                });
+
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dd = String(d).padStart(2,'0');
+                    const dmy = `${dd}/${mm}/${yy}`;
+                    const dObj = new Date(yy, mm - 1, d);
+                    const dayName = dObj.toLocaleDateString('en-US', { weekday: 'short' });
+                    
+                    htmlArr.push(`<tr><td class="l-td-date">${dd} <span style="font-size:8px; font-weight:normal; color:#64748B;">${dayName}</span></td>`);
+                    
+                    emps.forEach(emp => {
+                        const mLog = fastLogMap[emp.id + '_' + dmy + '_Morning'];
+                        const aLog = fastLogMap[emp.id + '_' + dmy + '_Afternoon'];
+                        
+                        htmlArr.push(`<td class="l-td-morn">${buildSelect(emp.id, dmy, 'Morning', mLog ? mLog.drink : '', mLog?.id)}</td>`);
+                        htmlArr.push(`<td class="l-td-aft">${buildSelect(emp.id, dmy, 'Afternoon', aLog ? aLog.drink : '', aLog?.id)}</td>`);
+                    });
+                    htmlArr.push(`</tr>`);
+                }
+                htmlArr.push(`</tbody><tbody id="adminLiveGridTotals"></tbody></table></div>`);
+
+                wrapper.innerHTML = htmlArr.join('');
+
+                setTimeout(() => {
+                    window.recalcAdminLiveGridTotals();
+                }, 10);
+            };
+
+            window.saveAdminLiveGridChange = function(selectEl) {
+                const empId = selectEl.dataset.emp;
+                const dateDMY = selectEl.dataset.date;
+                const session = selectEl.dataset.session;
+                const supplySource = selectEl.dataset.supply;
+                const existingLogId = selectEl.dataset.logid;
+                const val = selectEl.value;
+
+                selectEl.style.backgroundColor = '#FEF3C7';
+
+                if (existingLogId) {
+                    if (val) {
+                        db.ref('logs/' + existingLogId).update({ drink: val }).then(() => {
+                            selectEl.style.backgroundColor = '#DCFCE7';
+                            setTimeout(() => selectEl.style.backgroundColor = 'transparent', 1000);
+                            window.recalcAdminLiveGridTotals();
+                        });
+                    } else {
+                        db.ref('logs/' + existingLogId).remove().then(() => {
+                            selectEl.dataset.logid = '';
+                            selectEl.style.backgroundColor = 'transparent';
+                            window.recalcAdminLiveGridTotals();
+                        });
+                    }
+                } else {
+                    if (val) {
+                        const empObj = employeeList.find(e => e.id === empId);
+                        const empName = empObj ? empObj.name : 'Unknown';
+                        
+                        let pId = empObj ? empObj.assignedPantryId : 'admin';
+                        let pName = 'Admin';
+                        if (pId && pId !== 'admin') {
+                            const pb = pantryTeam.find(p => p.id === pId);
+                            if (pb) pName = pb.name;
+                        }
+                        
+                        const newId = 'log_live_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+                        const logData = {
+                            id: newId, employeeId: empId, employeeName: empName,
+                            drink: val, session: session, date: dateDMY,
+                            pantryId: pId || 'admin', pantryName: pName,
+                            supplySource: supplySource
+                        };
+
+                        db.ref('logs/' + newId).set(logData).then(() => {
+                            selectEl.dataset.logid = newId;
+                            selectEl.style.backgroundColor = '#DCFCE7';
+                            setTimeout(() => selectEl.style.backgroundColor = 'transparent', 1000);
+                            window.recalcAdminLiveGridTotals();
+                        });
+                    } else {
+                        selectEl.style.backgroundColor = 'transparent';
+                    }
+                }
+            };
+
+            window.recalcAdminLiveGridTotals = function() {
+                const table = document.getElementById('adminLiveGridTable');
+                if(!table) return;
+                const tbodyTotals = document.getElementById('adminLiveGridTotals');
+                if(!tbodyTotals) return;
+
+                const allSelects = table.querySelectorAll('.l-sel');
+                const empTotals = {};
+                
+                allSelects.forEach(sel => {
+                    const emp = sel.dataset.emp;
+                    if(!empTotals[emp]) {
+                        empTotals[emp] = { tea:0, coffee:0, green:0, lemon:0, blackTea:0, blackCoffee:0, total:0 };
+                    }
+                    const val = sel.value.toLowerCase();
+                    if(val === 'tea') empTotals[emp].tea++;
+                    else if(val === 'coffee') empTotals[emp].coffee++;
+                    else if(val === 'green tea') empTotals[emp].green++;
+                    else if(val === 'lemon tea') empTotals[emp].lemon++;
+                    else if(val === 'black tea') empTotals[emp].blackTea++;
+                    else if(val === 'black coffee') empTotals[emp].blackCoffee++;
+                    
+                    if(val) empTotals[emp].total++;
+                });
+
+                const firstRowSelects = table.querySelector('tbody').querySelectorAll('.l-sel');
+                const empsInOrder = [];
+                for(let i=0; i<firstRowSelects.length; i+=2) {
+                    empsInOrder.push(firstRowSelects[i].dataset.emp);
+                }
+
+                const drinksArr = [
+                    { key: 'tea', label: 'Tea', color: '#1E3A8A', bg: '#EFF6FF' },
+                    { key: 'coffee', label: 'Coffee', color: '#475569', bg: '#F1F5F9' },
+                    { key: 'green', label: 'Green Tea', color: '#065F46', bg: '#ECFDF5' },
+                    { key: 'lemon', label: 'Lemon Tea', color: '#92400E', bg: '#FFFBEB' },
+                    { key: 'blackTea', label: 'Black Tea', color: '#5B21B6', bg: '#F5F3FF' },
+                    { key: 'blackCoffee', label: 'Black Coffee', color: '#991B1B', bg: '#FEF2F2' }
+                ];
+
+                let totalsHtmlArr = [];
+                drinksArr.forEach(d => {
+                    let anyDrank = false;
+                    empsInOrder.forEach(empId => { if(empTotals[empId] && empTotals[empId][d.key] > 0) anyDrank = true; });
+                    
+                    if (anyDrank) {
+                        totalsHtmlArr.push(`<tr><td class="l-tot-lbl" style="background:${d.bg}; color:${d.color};">${d.label}</td>`);
+                        empsInOrder.forEach(empId => {
+                            let val = (empTotals[empId] && empTotals[empId][d.key]) ? empTotals[empId][d.key] : '-';
+                            totalsHtmlArr.push(`<td colspan="2" class="l-tot-val" style="background:${d.bg}; color:${d.color};">${val}</td>`);
+                        });
+                        totalsHtmlArr.push(`</tr>`);
+                    }
+                });
+
+                tbodyTotals.innerHTML = totalsHtmlArr.join('');
+            };
 
             // ============================================================
             // 1. PREVIEW / PRINT REPORT (Perfect Size & Full Width Fix)
@@ -9346,13 +9661,20 @@ if (
 
                     let data = [headers1, headers2];
 
+                    const fastLogMap = {};
+                    logsData.forEach(l => {
+                        if (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')) {
+                            fastLogMap[l.employeeId + '_' + l.date + '_' + l.session] = l;
+                        }
+                    });
+
                     for (let d = 1; d <= daysInMonth; d++) {
                         const dmy = `${String(d).padStart(2,'0')}/${mm}/${yy}`;
                         let row = [{ v: dmy, s: { font: { bold: true }, alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle } } }];
                         
                         emps.forEach(emp => {
-                            const mLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Morning' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
-                            const aLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Afternoon' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                            const mLog = fastLogMap[emp.id + '_' + dmy + '_Morning'];
+                            const aLog = fastLogMap[emp.id + '_' + dmy + '_Afternoon'];
                             row.push({ v: mLog ? mLog.drink : '-', s: cellStyle });
                             row.push({ v: aLog ? aLog.drink : '-', s: cellStyle });
                         });
@@ -9399,6 +9721,14 @@ if (
                         });
                         html += `</tr></thead><tbody>`;
                         
+                        // ઓપ્ટિમાઇઝેશન: સ્પીડ વધારવા માટે Hash Map પ્રિન્ટ પેજ માટે પણ
+                        const fastLogMap = {};
+                        logsData.forEach(l => {
+                            if (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')) {
+                                fastLogMap[l.employeeId + '_' + l.date + '_' + l.session] = l;
+                            }
+                        });
+
                         for (let d = 1; d <= daysInMonth; d++) {
                             const dmy = `${String(d).padStart(2,'0')}/${mm}/${yy}`;
                             const currentDayDate = new Date(yy, mm - 1, d);
@@ -9408,8 +9738,8 @@ if (
                             html += `<td style="border:1px solid #000; padding:6px 4px; font-weight:bold; line-height:1.3; background:#F8FAFC;">${dmy}<br><span style="font-size:9px; font-weight:normal; color:#44474E;">${dayName}</span></td>`;
                             
                             chunkEmps.forEach(emp => {
-                                const mLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Morning' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
-                                const aLog = logsData.find(l => l.employeeId === emp.id && l.date === dmy && l.session === 'Afternoon' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                                const mLog = fastLogMap[emp.id + '_' + dmy + '_Morning'];
+                                const aLog = fastLogMap[emp.id + '_' + dmy + '_Afternoon'];
                                 
                                 html += `<td style="border:1px solid #000; padding:4px; width:49px; min-width:49px; max-width:49px;">${mLog ? mLog.drink : '-'}</td>`;
                                 html += `<td style="border:1px solid #000; padding:4px; width:49px; min-width:49px; max-width:49px;">${aLog ? aLog.drink : '-'}</td>`;
