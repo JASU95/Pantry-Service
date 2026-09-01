@@ -5922,16 +5922,22 @@
 
                     // 1. Regular Data લોડિંગ
                     if (type === 'regular') {
+                        const uniqueLogs = {};
                         logsData.forEach(log => {
                             if (log.date && parseDMYToYMD(log.date).startsWith(month) && log.pantryId === pantryId) {
                                 const sSrc = log.supplySource || 'Contractor';
                                 if (sSrc === supplySource) {
-                                    const ymd = parseDMYToYMD(log.date);
-                                    const drink = safeMapDrink(log.drink);
-                                    if (!reportData[ymd]) reportData[ymd] = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0 };
-                                    reportData[ymd][drink] += 1;
+                                    // ડબલ એન્ટ્રી રોકવા માટે Employee + Date + Session થી યુનિક લોગ બનાવ્યો
+                                    uniqueLogs[log.employeeId + '_' + log.date + '_' + log.session] = log;
                                 }
                             }
+                        });
+                        
+                        Object.values(uniqueLogs).forEach(log => {
+                            const ymd = parseDMYToYMD(log.date);
+                            const drink = safeMapDrink(log.drink);
+                            if (!reportData[ymd]) reportData[ymd] = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0 };
+                            reportData[ymd][drink] += 1;
                         });
                     } 
                     // 2. Meeting Data લોડિંગ
@@ -9233,12 +9239,17 @@ if (
                     return bevCols.some(b => n.includes(b.toLowerCase())) || n.includes('milk') || n.includes('soup') || n.includes('bournvita');
                 };
 
-                if (type === 'regular') {
+               if (type === 'regular') {
                     const filtered = logsData.filter(l => l.date && parseDMYToYMD(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
                     
+                    const uniqueLogs = {};
                     filtered.forEach(log => {
                         if (selectedPantryId !== 'All' && log.pantryId !== selectedPantryId) return;
-                        
+                        // ડબલ એન્ટ્રી રોકવા માટે Employee + Date + Session થી ફિલ્ટર
+                        uniqueLogs[log.employeeId + '_' + log.date + '_' + log.session] = log;
+                    });
+                    
+                    Object.values(uniqueLogs).forEach(log => {
                         const ymd = parseDMYToYMD(log.date);
                         const drink = mapBeverageType(log.drink);
                         
