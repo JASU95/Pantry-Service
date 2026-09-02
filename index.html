@@ -3499,8 +3499,8 @@
             //  DUTY TRANSFER SECTION (DIRECT LOCATION TRANSFER & HISTORY)
             // ============================================================
             function renderDutyTransferSection() {
-                const cont = document.getElementById('adminContent');
-                if (!cont) return;
+    const cont = document.getElementById('subAdminContent');
+    if (!cont) return;
 
                 cont.innerHTML = `
                     <!-- 1. DIRECT LOCATION TRANSFER (PERMANENT) -->
@@ -6981,9 +6981,7 @@
               <div id="adminMenuArea" style="flex:1; overflow-y:auto; padding-bottom:8px;">
                 <div class="admin-dash-grid">
                   <button class="dash-btn" data-tab="employees"><span class="icon">👥</span><span class="label">Employees</span></button>
-                  <button class="dash-btn" data-tab="pantry"><span class="icon">👨‍🍳</span><span class="label">Pantry Team</span></button>
-                  <button class="dash-btn" data-tab="leaves" style="color:#D97706; border-color:#FDE68A; background:#FFFBEB;"><span class="icon">🌴</span><span class="label">Leave Mgmt</span></button>
-                  <button class="dash-btn" data-tab="duty_transfer" style="color:#7C3AED; border-color:#C4B5FD; background:#F5F3FF;"><span class="icon">🔄</span><span class="label">Duty Transfer</span></button>
+                  <button class="dash-btn" data-tab="pantry_ops" style="color:#0A56D0; border-color:#CBD5E1; background:#F0F7FF;"><span class="icon">🧑‍🍳</span><span class="label">Pantry Ops</span></button>
                   <button class="dash-btn" data-tab="canteens"><span class="icon">🏢</span><span class="label">Vendors</span></button>
                   <button class="dash-btn" data-tab="meeting_guests" style="color:#0284c7; border-color:#bae6fd; background:#f0f9ff;"><span class="icon">🤝</span><span class="label">Meetings & Guests</span></button>
                   <button class="dash-btn" data-tab="plain_events" style="color:#10B981; border-color:#6EE7B7; background:#ECFDF5;"><span class="icon">📢</span><span class="label">Event Broadcast</span></button>
@@ -6991,7 +6989,6 @@
                   <button class="dash-btn" data-tab="locations" style="color:#0A56D0; border-color:#CBD5E1; background:#F0F7FF;"><span class="icon">📍</span><span class="label">Locations</span></button>
                   <button class="dash-btn" data-tab="workers" style="color:#8B5CF6; border-color:#C4B5FD; background:#F5F3FF;"><span class="icon">👷</span><span class="label">Workers Tea</span></button>
                   <button class="dash-btn" data-tab="bin" style="color:#DC3545; border-color:#FECACA; background:#FEF2F2;"><span class="icon">🗑️</span><span class="label">Recycle Bin</span></button>
-                  <button class="dash-btn" data-tab="weekend_duty" style="color:#1E3A8A; border-color:#BFDBFE; background:#EFF6FF;"><span class="icon">📅</span><span class="label">Weekend/Holiday Duty</span></button>
                   <button class="dash-btn" data-tab="dau_purchase" style="color:#059669; border-color:#A7F3D0; background:#ECFDF5;"><span class="icon">🛒</span><span class="label">DAU Purchase Allotment</span></button>
                   <button class="dash-btn" data-tab="web_sync" style="color:#0284C7; border-color:#BAE6FD; background:#F0F9FF;"><span class="icon">🌐</span><span class="label">Web Sync Review</span></button>
                   <button class="dash-btn" data-tab="settings" style="color:#44474E; border-color:#E2E8F0; background:#F8FAFC;"><span class="icon">⚙️</span><span class="label">Settings</span></button>
@@ -7083,7 +7080,55 @@
                 `;
 
                 switch (tab) {
+                                                        case 'pantry_ops':
+                        cont.innerHTML = `
+                            <div style="background:#F8FAFC; padding:8px; border-radius:10px; margin-bottom:12px; border:1px solid #CBD5E1; display:flex; gap:8px; overflow-x:auto;">
+                                <button onclick="window.runSubTab('team', this)" class="btn sub-tab-btn" style="flex:1; background:#0A56D0; color:white; border-radius:8px; font-weight:bold; padding:8px; min-width:max-content;">🧑‍🍳 Pantry Team</button>
+                                <button onclick="window.runSubTab('leave', this)" class="btn sub-tab-btn" style="flex:1; background:#fff; color:#475569; border:1px solid #CBD5E1; border-radius:8px; font-weight:bold; padding:8px; min-width:max-content;">🏖️ Leave Mgmt</button>
+                                <button onclick="window.runSubTab('transfer', this)" class="btn sub-tab-btn" style="flex:1; background:#fff; color:#475569; border:1px solid #CBD5E1; border-radius:8px; font-weight:bold; padding:8px; min-width:max-content;">🔄 Duty Transfer</button>
+                                <button onclick="window.runSubTab('weekend', this)" class="btn sub-tab-btn" style="flex:1; background:#fff; color:#475569; border:1px solid #CBD5E1; border-radius:8px; font-weight:bold; padding:8px; min-width:max-content;">📅 Weekend Duty</button>
+                            </div>
+                            <div id="subAdminContent" style="padding-bottom:20px;"></div>
+                        `;
+                        
+                        window.runSubTab = function(tabName, btnElement) {
+                            document.querySelectorAll('.sub-tab-btn').forEach(b => {
+                                b.style.background = '#fff';
+                                b.style.color = '#475569';
+                            });
+                            btnElement.style.background = '#0A56D0';
+                            btnElement.style.color = 'white';
+
+                            if (tabName === 'team') renderPantryListAdmin();
+                            else if (tabName === 'leave') renderLeaveControlRoomAdmin();
+                            else if (tabName === 'transfer') renderDutyTransferSection();
+                            else if (tabName === 'weekend') {
+                                document.getElementById('subAdminContent').innerHTML = `
+                                  <div class="card" style="border:2px solid #1E3A8A; background:#F0F7FF;">
+                                    <h4 style="color:#1E3A8A; margin:0 0 10px 0; font-size:1rem;">📅 Weekend & Holiday Duty Allocation</h4>
+                                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:10px;">
+                                        <div><label style="font-size:11px; font-weight:700;">1. Pantry Boy</label><select id="wDutyPantrySelect" style="padding:10px; font-size:13px; border-radius:8px; width:100%; border:1px solid #CBD5E1;"><option value="">-- Staff --</option>${pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}</select></div>
+                                        <div><label style="font-size:11px; font-weight:700;">2. Duty Day</label><select id="wDutyDayType" style="padding:10px; font-size:13px; border-radius:8px; width:100%; border:1px solid #CBD5E1;"><option value="Saturday">Saturday</option><option value="Sunday">Sunday</option><option value="Holiday">Holiday</option></select></div>
+                                    </div>
+                                    <input type="text" id="wDutyEmpSearch" placeholder="🔍 Search Employees..." style="padding:10px; width:100%; font-size:13px; border-radius:8px; border:1px solid #CBD5E1; margin-bottom:8px; box-sizing:border-box;">
+                                    <div style="display:flex; align-items:center; margin-bottom:6px;"><input type="checkbox" id="wDutySelectAll" style="width:16px; height:16px; margin-right:6px;"><label for="wDutySelectAll" style="font-size:12px; font-weight:bold;">Select All Visible</label></div>
+                                    <div id="wDutyEmployeeList" class="scroll-list-box" style="max-height:200px; background:#fff;"></div>
+                                    <button id="saveWeekendDutyBtn" class="success" style="width:100%; min-height:44px; margin-top:10px; font-size:14px; font-weight:700; border-radius:8px;">💾 Allot Duties</button>
+                                  </div>
+                                  <div class="card" style="margin-top:14px; border:2px solid #0A56D0; background:#FFF;"><h4 style="color:#0A56D0; font-size:0.95rem; margin:0 0 10px 0;">📋 Current Roster Summary</h4><div id="wDutyLiveSummaryContainer" style="max-height:300px; overflow-y:auto;"></div></div>
+                                `;
+                                window.renderWeekendDutyInterface();
+                            }
+                        };
+                        
+                        setTimeout(() => {
+                            const firstBtn = document.querySelector('.sub-tab-btn');
+                            if(firstBtn) window.runSubTab('team', firstBtn);
+                        }, 50);
+                        break;
+
                     case 'employees':
+
                         cont.innerHTML = adminMobileCSS + `
                   <div class="a-card">
                       <h4 class="a-title">👥 Manage Employees</h4>
@@ -7112,9 +7157,11 @@
                         document.getElementById('selectAllEmployees').onchange = (e) => { document.querySelectorAll('.employeeCheckbox').forEach(cb => cb.checked = e.target.checked); };
                         renderEmployeeList();
                         break;
-
-                    case 'pantry':
-                        cont.innerHTML = adminMobileCSS + `
+            // નવું ફંક્શન જે subAdminContent પર કામ કરશે
+            function renderPantryListAdmin() {
+                const cont = document.getElementById('subAdminContent');
+                if (!cont) return;
+                cont.innerHTML = `
                   <div class="a-card">
                       <h4 class="a-title">🧑‍🍳 Pantry Team Setup</h4>
                       <div class="a-grid-3">
@@ -7126,26 +7173,26 @@
                   </div>
                   <div id="pantryListContainer" class="scroll-list-box" style="margin-top:0;"></div>
                 `;
-                        document.getElementById('addPantryBtn').onclick = () => openPantryForm();
-                        document.getElementById('bulkDeletePantryBtn').onclick = bulkDeletePantry;
-                        document.getElementById('previewPantryAllocBtn').onclick = window.previewPantryAllocationReport;
-                        document.getElementById('selectAllPantry').onchange = (e) => { document.querySelectorAll('.pantryCheckbox').forEach(cb => cb.checked = e.target.checked); };
-                        renderPantryList();
-                        break;
-                    case 'leaves':
-                        cont.innerHTML = `
+                document.getElementById('addPantryBtn').onclick = () => openPantryForm();
+                document.getElementById('bulkDeletePantryBtn').onclick = bulkDeletePantry;
+                document.getElementById('previewPantryAllocBtn').onclick = window.previewPantryAllocationReport;
+                document.getElementById('selectAllPantry').onchange = (e) => { document.querySelectorAll('.pantryCheckbox').forEach(cb => cb.checked = e.target.checked); };
+                renderPantryList();
+            }
+
+            // નવું ફંક્શન જે subAdminContent પર કામ કરશે
+            function renderLeaveControlRoomAdmin() {
+                const cont = document.getElementById('subAdminContent');
+                if (!cont) return;
+                cont.innerHTML = `
                   <div class="card" style="border:2px solid #D97706; background:#FFFBEB;">
                     <h4 style="color:#B45309; margin:0 0 12px 0; font-size:1rem;">🌴 Pantry Leave Control Room</h4>
                     <p style="font-size:.8rem; color:#92400E; margin-bottom:10px;">Toggle leave status for pantry staff. Assign duties when on leave.</p>
                     <div id="leaveControlRoomContainer" class="scroll-list-box" style="max-height:450px;"></div>
                   </div>
                 `;
-                        renderLeaveControlRoom();
-                        break;
-
-                    case 'duty_transfer':
-                        renderDutyTransferSection();
-                        break;
+                renderLeaveControlRoom();
+            }
 
                     case 'canteens':
                         cont.innerHTML = adminMobileCSS + `
