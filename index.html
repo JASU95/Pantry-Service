@@ -3495,72 +3495,284 @@
                 modal.innerHTML += `</tbody></table></div></div>`;
                 document.body.appendChild(modal);
             }
-
             // ============================================================
-            //  DUTY TRANSFER SECTION
+            //  DUTY TRANSFER SECTION (DIRECT LOCATION TRANSFER & HISTORY)
             // ============================================================
             function renderDutyTransferSection() {
                 const cont = document.getElementById('adminContent');
                 if (!cont) return;
 
                 cont.innerHTML = `
-                    <div class="card" style="border:2px solid #7C3AED; background:#F5F3FF;">
-                        <h4 style="color:#7C3AED; margin:0 0 12px 0; font-size:1rem;">🔄 Transfer Employee Duty</h4>
-                        <p style="font-size:.85rem; color:#44474E; margin-bottom:12px;">Transfer selected employees from one Pantry Boy to another.</p>
+                    <!-- 1. DIRECT LOCATION TRANSFER (PERMANENT) -->
+                    <div class="card" style="border:2px solid #0A56D0; background:#EFF6FF; margin-bottom:16px;">
+                        <h4 style="color:#0A56D0; margin:0 0 12px 0; font-size:1rem;">📍 1. Direct Location Transfer (Permanent)</h4>
+                        <p style="font-size:.85rem; color:#44474E; margin-bottom:12px;">Transfer an entire location and all its employees directly to a new Pantry Boy in one click. No need to select names manually.</p>
 
                         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
                             <div style="flex:1; min-width:150px;">
-                                <label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">From Pantry Boy</label>
-                                <select id="transferFromPantry" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; width:100%;">
-                                    <option value="">-- Select --</option>
+                                <label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">1. Select Location</label>
+                                <select id="bulkLocSelect" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; width:100%;">
+                                    <option value="">-- Choose Location --</option>
+                                    ${venueList.map(v => `<option value="${safeStr(v.name)}">${safeStr(v.name)}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div style="flex:1; min-width:150px;">
+                                <label style="font-size:.75rem; color:#0A56D0; font-weight:800; display:block;">2. Transfer TO Pantry Boy</label>
+                                <select id="bulkLocToPantry" style="margin:0; padding:10px 12px; border-radius:8px; border:2px solid #0A56D0; width:100%; background:#fff; color:#0A56D0; font-weight:bold;">
+                                    <option value="">-- Select Destination --</option>
+                                    ${pantryTeam.filter(p => !p.onLeave).map(p => `<option value="${p.id}">${safeStr(p.name)}</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+                        <button id="btnBulkLocTransfer" class="success" style="width:100%; padding:14px; font-size:1rem; border-radius:12px; min-height:48px; background:#0A56D0; font-weight:bold; box-shadow:0 2px 4px rgba(10,86,208,0.3);">🔄 Transfer Entire Location</button>
+                    </div>
+
+                    <!-- 2. PAST DUTY HISTORY -->
+                    <div class="card" style="border:2px solid #D97706; background:#FFFBEB; margin-bottom:16px;">
+                        <h4 style="color:#D97706; margin:0 0 8px 0; font-size:1rem;">🕰️ Past Month Duty History</h4>
+                        <p style="font-size:.85rem; color:#92400E; margin-bottom:12px;">Check which Pantry Boy was assigned to which locations/employees in any past month.</p>
+                        <div style="display:flex; gap:8px; margin-bottom:12px;">
+                            <input type="month" id="pastDutyMonth" value="${new Date().toISOString().slice(0,7)}" style="flex:1; padding:10px 12px; border-radius:8px; border:1px solid #FDE68A; outline:none; background:#fff;">
+                            <button id="btnFetchPastDuty" class="warning" style="flex:1; background:#D97706; color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">🔍 View History</button>
+                        </div>
+                        <div id="pastDutyResultContainer" class="scroll-list-box" style="max-height:300px; background:#fff; display:none; padding:8px; border:1px solid #FCD34D;"></div>
+                    </div>
+
+                    <!-- 3. TEMPORARY ROAMING ACCESS -->
+                    <div class="card" style="border:2px solid #10B981; background:#ECFDF5; margin-bottom:16px;">
+                        <h4 style="color:#047857; margin:0 0 12px 0; font-size:1rem;">🌟 Temporary / Roaming Guest Access</h4>
+                        <p style="font-size:.85rem; color:#44474E; margin-bottom:12px;">Grant a Pantry Boy temporary access to roaming employees (e.g. IT support) or for filling missing past entries. Revoke when done.</p>
+
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+                            <div style="flex:1; min-width:150px;">
+                                <label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">1. Select Pantry Boy</label>
+                                <select id="tempAccessPantry" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #A7F3D0; width:100%;">
+                                    <option value="">-- Select Pantry Boy --</option>
                                     ${pantryTeam.filter(p => !p.onLeave).map(p => `<option value="${p.id}">${safeStr(p.name)}</option>`).join('')}
                                 </select>
                             </div>
                             <div style="flex:1; min-width:150px;">
-                                <label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">To Pantry Boy</label>
-                                <select id="transferToPantry" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; width:100%;">
-                                    <option value="">-- Select --</option>
-                                    ${pantryTeam.filter(p => !p.onLeave).map(p => `<option value="${p.id}">${safeStr(p.name)}</option>`).join('')}
-                                </select>
+                                <label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">2. Search Employee</label>
+                                <input type="text" id="tempAccessSearch" placeholder="🔍 Search name..." style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #A7F3D0; width:100%;">
                             </div>
                         </div>
 
-                        <div style="margin-bottom:12px;">
-                            <label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">Search Employees</label>
-                            <input type="text" id="transferSearch" placeholder="🔍 Search by name..." style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; width:100%;">
-                        </div>
+                        <div id="tempAccessEmployeeList" class="scroll-list-box" style="max-height:180px; background:#fff; margin-bottom:12px; border:1px solid #D1FAE5;"></div>
 
-                        <div style="display:flex; align-items:center; margin-bottom:8px; padding:0 4px;">
-                            <input type="checkbox" id="selectAllTransfer" style="width:18px; height:18px; margin:0 8px 0 0; accent-color:#7C3AED;">
-                            <label for="selectAllTransfer" style="font-weight:500; color:#44474E; font-size:.9rem;">Select All</label>
-                        </div>
+                        <button id="grantTempAccessBtn" class="success" style="width:100%; padding:14px; font-size:1rem; border-radius:12px; min-height:48px; background:#10B981;">✅ Grant Temporary Access</button>
 
-                        <div id="transferEmployeeList" class="scroll-list-box" style="max-height:400px;"></div>
-
-                        <button id="transferEmployeesBtn" class="success" style="width:100%; margin-top:12px; padding:14px; font-size:1rem; border-radius:12px; min-height:48px;">🔄 Transfer Selected Employees</button>
+                        <h4 style="font-size:.9rem; color:#047857; margin:16px 0 8px 0;">📋 Active Temporary Accesses</h4>
+                        <div id="activeTempAccessList" class="scroll-list-box" style="max-height:200px; background:#fff; border:1px solid #D1FAE5;"></div>
                     </div>
+
+                    <!-- 4. INDIVIDUAL TRANSFER (COLLAPSED BY DEFAULT) -->
+                    <details class="card" style="border:1px solid #CBD5E1; background:#F8FAFC;">
+                        <summary style="color:#475569; font-size:0.9rem; font-weight:bold; cursor:pointer; outline:none; padding:4px 0;">👥 Advanced: Transfer Specific Employees Individually</summary>
+                        <div style="margin-top:12px; padding-top:12px; border-top:1px dashed #CBD5E1;">
+                            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+                                <div style="flex:1; min-width:150px;">
+                                    <label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">Filter by Pantry Boy</label>
+                                    <select id="transferFromPantry" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; width:100%;">
+                                        <option value="">-- All Pantry Boys --</option>
+                                        ${pantryTeam.filter(p => !p.onLeave).map(p => `<option value="${p.id}">${safeStr(p.name)}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div style="flex:1; min-width:150px;">
+                                    <label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">Transfer TO</label>
+                                    <select id="transferToPantry" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; width:100%;">
+                                        <option value="">-- Select Destination --</option>
+                                        ${pantryTeam.filter(p => !p.onLeave).map(p => `<option value="${p.id}">${safeStr(p.name)}</option>`).join('')}
+                                    </select>
+                                </div>
+                            </div>
+                            <input type="text" id="transferSearch" placeholder="🔍 Search by name..." style="margin-bottom:12px; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; width:100%; box-sizing:border-box;">
+                            <div style="display:flex; align-items:center; margin-bottom:8px; padding:0 4px;">
+                                <input type="checkbox" id="selectAllTransfer" style="width:18px; height:18px; margin:0 8px 0 0; accent-color:#7C3AED; cursor:pointer;">
+                                <label for="selectAllTransfer" style="font-weight:500; color:#44474E; font-size:.9rem; cursor:pointer;">Select All Visible</label>
+                            </div>
+                            <div id="transferEmployeeList" class="scroll-list-box" style="max-height:250px; background:#fff; border:1px solid #E2E8F0;"></div>
+                            <button id="transferEmployeesBtn" class="success" style="width:100%; margin-top:12px; padding:14px; border-radius:12px;">🔄 Transfer Selected</button>
+                        </div>
+                    </details>
                 `;
 
+                // 1. Direct Location Transfer Logic
+                document.getElementById('btnBulkLocTransfer').onclick = function() {
+                    const locName = document.getElementById('bulkLocSelect').value;
+                    const pbId = document.getElementById('bulkLocToPantry').value;
+                    
+                    if (!locName || !pbId) return appAlert('Error', 'Please select both Location and Destination Pantry Boy.');
+
+                    const empsInLoc = employeeList.filter(e => e.locationNode === locName && e.status !== 'Inactive');
+                    if (empsInLoc.length === 0) return appAlert('Notice', `No active employees found in location: ${locName}`);
+
+                    const pbName = pantryTeam.find(p => p.id === pbId)?.name || 'Unknown';
+
+                    appConfirm('Confirm Bulk Transfer', `Are you sure you want to transfer ALL ${empsInLoc.length} employees of "${locName}" to 🧑‍🍳 ${pbName}?`, () => {
+                        const updates = {};
+                        empsInLoc.forEach(e => {
+                            updates[e.id + '/assignedPantryId'] = pbId;
+                        });
+                        db.ref('employees').update(updates).then(() => {
+                            appAlert('Success', `Location "${locName}" transferred to ${pbName} successfully!`);
+                            document.getElementById('bulkLocSelect').value = '';
+                            document.getElementById('bulkLocToPantry').value = '';
+                            renderTransferList(); // જો નીચેવાળું લિસ્ટ ખુલ્લું હોય તો રિફ્રેશ થઈ જાય
+                        }).catch(err => appAlert('Error', err.message));
+                    });
+                };
+
+                // 2. Past Duty History Logic
+                document.getElementById('btnFetchPastDuty').onclick = function() {
+                    const monthVal = document.getElementById('pastDutyMonth').value;
+                    if(!monthVal) return appAlert('Error', 'Please select a month.');
+                    
+                    const container = document.getElementById('pastDutyResultContainer');
+                    container.style.display = 'block';
+                    container.innerHTML = '<div style="text-align:center; padding:20px; color:#D97706; font-weight:bold;">⏳ Fetching records...</div>';
+
+                    setTimeout(() => {
+                        // તે મહિનાના બધા લોગ્સ શોધવા
+                        const logsOfMonth = logsData.filter(l => l.date && parseDMYToYMD(l.date).startsWith(monthVal));
+                        if(logsOfMonth.length === 0) {
+                            container.innerHTML = '<p style="text-align:center; padding:12px; color:#64748B;">No duty records found for this month.</p>';
+                            return;
+                        }
+
+                        // પેન્ટ્રી બોય વાઇઝ ડેટા ભેગો કરવો
+                        const pantryDuties = {};
+                        logsOfMonth.forEach(log => {
+                            const pbId = log.pantryId || 'unknown';
+                            if(!pantryDuties[pbId]) {
+                                pantryDuties[pbId] = {
+                                    name: log.pantryName || 'Unknown PB',
+                                    employees: new Set(),
+                                    locations: new Set()
+                                };
+                            }
+                            pantryDuties[pbId].employees.add(log.employeeName);
+                            
+                            // લોકેશન શોધવા માટે
+                            const empObj = employeeList.find(e => e.id === log.employeeId);
+                            if(empObj && empObj.locationNode) {
+                                pantryDuties[pbId].locations.add(empObj.locationNode);
+                            } else if (log.locationNode) {
+                                pantryDuties[pbId].locations.add(log.locationNode);
+                            }
+                        });
+
+                        // UI બનાવવું
+                        let html = '';
+                        for(let pId in pantryDuties) {
+                            const data = pantryDuties[pId];
+                            const locs = Array.from(data.locations).filter(Boolean).join(', ') || 'Various / Unknown';
+                            const emps = Array.from(data.employees).sort().join(', ');
+
+                            html += `
+                            <div style="border:1px solid #FDE68A; background:#FFFDE7; border-radius:8px; padding:10px; margin-bottom:10px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed #FCD34D; padding-bottom:6px; margin-bottom:6px;">
+                                    <h5 style="margin:0; color:#B45309; font-size:14px;">🧑‍🍳 ${safeStr(data.name)}</h5>
+                                    <span style="background:#FEF3C7; color:#D97706; padding:2px 8px; border-radius:12px; font-size:10px; font-weight:bold;">${data.employees.size} Employees</span>
+                                </div>
+                                <div style="font-size:11px; color:#92400E; margin-bottom:4px; line-height:1.4;"><b>📍 Locations Covered:</b> ${safeStr(locs)}</div>
+                                <div style="font-size:10px; color:#78350F; line-height:1.4;"><b>👥 Employees Served:</b> ${safeStr(emps)}</div>
+                            </div>`;
+                        }
+                        container.innerHTML = html;
+                    }, 50);
+                };
+
+                // 3. Temporary Access Logic
+                document.getElementById('tempAccessPantry').addEventListener('change', renderTempAccessSearch);
+                document.getElementById('tempAccessSearch').addEventListener('input', renderTempAccessSearch);
+
+                function renderTempAccessSearch() {
+                    const q = document.getElementById('tempAccessSearch').value.toLowerCase().trim();
+                    const pId = document.getElementById('tempAccessPantry').value;
+                    const container = document.getElementById('tempAccessEmployeeList');
+
+                    if (!pId) {
+                        container.innerHTML = '<p style="padding:12px; text-align:center; color:#64748B;">Select a Pantry Boy first.</p>';
+                        return;
+                    }
+
+                    const filtered = employeeList.filter(e => e.status !== 'Inactive' && e.assignedPantryId !== pId && (!q || e.name.toLowerCase().includes(q)));
+                    
+                    container.innerHTML = filtered.map(emp => `
+                        <div class="employee-item" style="padding:8px 12px; margin:4px 0; background:#F8FAFC; border-radius:8px; border:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:12px;"><strong>${safeStr(emp.name)}</strong> <span style="color:#64748B;">[${safeStr(emp.locationNode || 'No Loc')}]</span></span>
+                            <input type="checkbox" class="temp-access-checkbox" data-id="${emp.id}" style="width:16px; height:16px; accent-color:#10B981; cursor:pointer;">
+                        </div>
+                    `).join('');
+                }
+
+                document.getElementById('grantTempAccessBtn').onclick = function() {
+                    const pId = document.getElementById('tempAccessPantry').value;
+                    if (!pId) return appAlert('Error', 'Select a Pantry Boy.');
+                    const checks = document.querySelectorAll('.temp-access-checkbox:checked');
+                    if (!checks.length) return appAlert('Error', 'Select at least one employee.');
+                    
+                    const updates = {};
+                    checks.forEach(cb => {
+                        updates['employees/' + cb.dataset.id + '/tempPantryIds/' + pId] = true;
+                    });
+                    
+                    db.ref().update(updates).then(() => {
+                        appAlert('Success', 'Temporary access granted!');
+                        renderTempAccessSearch();
+                        renderActiveTempAccess();
+                    });
+                };
+
+                function renderActiveTempAccess() {
+                    const container = document.getElementById('activeTempAccessList');
+                    let html = '';
+                    employeeList.forEach(emp => {
+                        if(emp.tempPantryIds) {
+                            Object.keys(emp.tempPantryIds).forEach(pbId => {
+                                if(emp.tempPantryIds[pbId] === true) {
+                                    const pb = pantryTeam.find(p => p.id === pbId);
+                                    const pbName = pb ? pb.name : 'Unknown PB';
+                                    html += `
+                                        <div style="padding:8px 12px; margin:4px 0; background:#FFF; border-radius:8px; border:1px solid #A7F3D0; display:flex; justify-content:space-between; align-items:center;">
+                                            <span style="font-size:12px;"><strong>${safeStr(emp.name)}</strong> <span style="color:#059669; font-weight:bold;">→ ${pbName}</span></span>
+                                            <button onclick="window.revokeTempAccess('${emp.id}', '${pbId}')" style="background:#FEE2E2; color:#DC3545; border:1px solid #FECACA; border-radius:6px; padding:4px 8px; font-size:10px; font-weight:bold; cursor:pointer;">✕ Revoke</button>
+                                        </div>
+                                    `;
+                                }
+                            });
+                        }
+                    });
+                    container.innerHTML = html || '<p style="padding:12px; text-align:center; color:#64748B;">No active temporary accesses.</p>';
+                }
+
+                window.revokeTempAccess = function(empId, pbId) {
+                    db.ref('employees/' + empId + '/tempPantryIds/' + pbId).remove().then(() => {
+                        appAlert('Revoked', 'Temporary access removed.');
+                        renderActiveTempAccess();
+                    });
+                };
+
+                renderActiveTempAccess();
+
+                // 4. Individual Transfer Logic
                 document.getElementById('transferFromPantry').addEventListener('change', renderTransferList);
                 document.getElementById('transferSearch').addEventListener('input', renderTransferList);
+                
                 document.getElementById('selectAllTransfer').addEventListener('change', function() {
                     document.querySelectorAll('.transfer-checkbox').forEach(cb => cb.checked = this.checked);
                 });
 
                 document.getElementById('transferEmployeesBtn').onclick = function() {
-                    const fromId = document.getElementById('transferFromPantry').value;
                     const toId = document.getElementById('transferToPantry').value;
-
-                    if (!fromId || !toId) return appAlert('Error', 'Select both Pantry Boys.');
-                    if (fromId === toId) return appAlert('Error', 'Cannot transfer to the same Pantry Boy.');
+                    if (!toId) return appAlert('Error', 'Please select destination (To Pantry Boy).');
 
                     const selected = document.querySelectorAll('.transfer-checkbox:checked');
                     if (!selected.length) return appAlert('Error', 'Select employees to transfer.');
 
-                    const fromName = pantryTeam.find(p => p.id === fromId)?.name || 'Unknown';
                     const toName = pantryTeam.find(p => p.id === toId)?.name || 'Unknown';
 
-                    appConfirm('Confirm Transfer', `Transfer ${selected.length} employees from ${fromName} to ${toName}?`, () => {
+                    appConfirm('Confirm Transfer', `Transfer ${selected.length} employees to ${toName}?`, () => {
                         const updates = {};
                         selected.forEach(cb => {
                             updates[cb.dataset.id + '/assignedPantryId'] = toId;
@@ -3577,33 +3789,34 @@
                     const search = document.getElementById('transferSearch')?.value.toLowerCase().trim() || '';
 
                     if (!fromId) {
-                        document.getElementById('transferEmployeeList').innerHTML = '<p style="padding:12px; text-align:center; color:#64748B;">Select a Pantry Boy to see assigned employees.</p>';
+                        document.getElementById('transferEmployeeList').innerHTML = '<p style="padding:12px; text-align:center; color:#64748B;">Select a Pantry Boy to fetch employees.</p>';
                         return;
                     }
 
-                    const filtered = employeeList.filter(emp =>
-                        emp.assignedPantryId === fromId &&
-                        (!search || (emp.name || '').toLowerCase().includes(search))
-                    );
+                    const filtered = employeeList.filter(emp => {
+                        if (emp.assignedPantryId !== fromId) return false;
+                        if (search && !(emp.name || '').toLowerCase().includes(search)) return false;
+                        if (emp.status === 'Inactive') return false;
+                        return true;
+                    });
 
                     if (!filtered.length) {
-                        document.getElementById('transferEmployeeList').innerHTML = `<p style="padding:12px; text-align:center; color:#64748B;">No employees assigned to this Pantry Boy.</p>`;
+                        document.getElementById('transferEmployeeList').innerHTML = `<p style="padding:12px; text-align:center; color:#64748B;">No employees found.</p>`;
                         return;
                     }
 
                     const container = document.getElementById('transferEmployeeList');
                     container.innerHTML = filtered.map(emp => `
-                        <div class="employee-item" style="padding:10px 14px; margin:4px 0; background:#fff; border-radius:8px; border:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center;">
-                            <span><strong>${safeStr(emp.name)}</strong> <span style="color:#64748B; font-size:.8rem;">[${safeStr(emp.category)}]</span></span>
-                            <input type="checkbox" class="transfer-checkbox" data-id="${emp.id}" style="width:18px; height:18px; accent-color:#7C3AED;">
+                        <div class="employee-item" style="padding:10px 14px; margin:4px 0; background:#F8FAFC; border-radius:8px; border:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center;">
+                            <span><strong>${safeStr(emp.name)}</strong> <span style="color:#64748B; font-size:.8rem;">[${safeStr(emp.locationNode || 'No Loc')}]</span></span>
+                            <input type="checkbox" class="transfer-checkbox" data-id="${emp.id}" style="width:18px; height:18px; accent-color:#7C3AED; cursor:pointer;">
                         </div>
-                    `).join();
+                    `).join('');
 
-                    document.getElementById('selectAllTransfer').onchange = function() {
-                        document.querySelectorAll('.transfer-checkbox').forEach(cb => cb.checked = this.checked);
-                    };
+                    document.getElementById('selectAllTransfer').checked = false;
                 }
             }
+
             // ============================================================
             //  WORKERS TEA ADMIN RENDER
             // ============================================================
@@ -4679,11 +4892,15 @@
                     };
 
                     let regularFiltered = employeeList.filter(emp => {
-                        if (emp.assignedPantryId !== effectivePantryId) return false;
+                        // નવું લોજીક: કાયમી ડ્યુટી અથવા ટેમ્પરરી પરમિશન હોય તો જ બતાવો
+                        const isPermanentlyAssigned = emp.assignedPantryId === effectivePantryId;
+                        const hasTempAccess = emp.tempPantryIds && emp.tempPantryIds[effectivePantryId] === true;
+                        
+                        if (!isPermanentlyAssigned && !hasTempAccess) return false;
+                        
                         if (!checkCatAndSearch(emp)) return false;
                         if (supplySource === 'DAU Direct Purchase' && emp.dauTeaEligible !== true) return false;
                         
-                        // જો કર્મચારી ડીલીટ (Inactive) હોય, તો જ બતાવો જો આજના દિવસે તેની કોઈ એન્ટ્રી હોય
                         if (emp.status === 'Inactive') {
                             const hasLogToday = logsData.some(l => l.employeeId === emp.id && l.date === selectedDMY);
                             if (!hasLogToday) return false;
@@ -4741,10 +4958,14 @@
                             const editBtn = (morn || aft) ? `<button onclick="window.handleDirectRowEditTrigger('${emp.id}')" style="background:transparent; border:none; cursor:pointer; font-size:12px; padding:0 2px; color:#0A56D0;">✏️</button>` : '';
                             
                             // સ્લિમ રો ડિઝાઇન (કોઈ વધારાનું પેડિંગ નહિ)
+                            // ટેમ્પરરી એક્સેસ માટેનું બેજ
+                            const isTemp = emp.tempPantryIds && emp.tempPantryIds[effectivePantryId] === true;
+                            const tempBadge = isTemp ? `<span style="background:#FEF3C7; color:#D97706; padding:1px 4px; border-radius:4px; font-size:7px; border:1px solid #FDE68A; margin-left:4px;">Guest</span>` : '';
+
                             return `
                             <div class="bulk-entry-row" data-id="${emp.id}" data-name="${safeStr(emp.name)}" data-supply="${supplySrc}" style="display:flex; align-items:center; border-bottom:1px solid #E2E8F0; padding:4px 2px; min-height:28px; box-sizing:border-box;">
                                 <div style="flex:2; font-size:10px; font-weight:700; color:#1E293B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:2px; padding-right:4px;">
-                                    <div style="flex:1; overflow:hidden; text-overflow:ellipsis;">${safeStr(emp.name)} <span style="color:#64748B; font-weight:normal; font-size:8px;">[${emp.category.substring(0,3)}]</span></div>
+                                    <div style="flex:1; overflow:hidden; text-overflow:ellipsis;">${safeStr(emp.name)} ${tempBadge} <span style="color:#64748B; font-weight:normal; font-size:8px;">[${emp.category.substring(0,3)}]</span></div>
                                     ${editBtn}
                                 </div>
                                 <div class="slim-daily-drop" style="flex:1; padding:0 2px;">${mEl}</div>
@@ -5191,10 +5412,12 @@
                 const file = event.target.files[0];
                 if (!file) return;
 
-                appAlert('Reading File', 'Please wait, checking data...');
-
                 try {
+                    // પરમિશન એરર રોકવા માટે ફાઈલને તરત જ મેમરીમાં વાંચી લો
                     const data = await file.arrayBuffer();
+                    
+                    appAlert('Reading File', 'Please wait, checking data...');
+
                     const wb = XLSX.read(data, { cellDates: true });
                     const sheet = wb.Sheets[wb.SheetNames[0]];
                     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
@@ -5206,12 +5429,11 @@
                     const errors = [];
                     const empColMap = {};
 
-                    // અહીંયા પણ હવે નવો ઉમેરેલો મહિનો વાંચશે
-                    const monthVal = document.getElementById('monthlyGridMonthPicker')?.value;
+                    const monthVal = document.getElementById('monthlyGridMonthPicker')?.value || document.getElementById('liveGridMonth')?.value;
                     if (!monthVal) throw new Error("Please select a month first.");
                     const [targetYY, targetMM] = monthVal.split('-');
 
-                    const supplySource = document.getElementById('monthlySupplySource')?.value || 'Contractor';
+                    const supplySource = document.getElementById('monthlySupplySource')?.value || document.getElementById('liveGridSupply')?.value || 'Contractor';
                     const contractorArr = typeof CONTRACTOR_BEVERAGES !== 'undefined' ? CONTRACTOR_BEVERAGES : ['Tea','Coffee'];
                     const dauArr = typeof DAU_PURCHASE_BEVERAGES !== 'undefined' ? DAU_PURCHASE_BEVERAGES : [];
                     const currentDrinkArr = supplySource === 'DAU Direct Purchase' ? dauArr : contractorArr;
@@ -5222,15 +5444,13 @@
                         if (colName && !colName.toLowerCase().startsWith('unnamed')) {
                             const empName = colName;
                             
-                            const domEmpNode = Array.from(document.querySelectorAll('th.merged-header .emp-name')).find(el => el.innerText.trim().toLowerCase() === empName.toLowerCase());
-                            
-                            if (!domEmpNode) {
-                                errors.push(`Row 1: Employee "${empName}" is not allotted to this Pantry Boy or Supply Source.`);
+                            const foundEmp = employeeList.find(e => e.name.toLowerCase() === empName.toLowerCase());
+                            if (!foundEmp) {
+                                errors.push(`Row 1: Employee "${empName}" is not recognized in system.`);
                                 continue;
                             }
                             
-                            const empId = domEmpNode.dataset.id;
-                            
+                            const empId = foundEmp.id;
                             const mornSess = String(sessionRow[i]).trim().toLowerCase();
                             const aftSess = String(sessionRow[i+1]).trim().toLowerCase();
                             
@@ -5267,8 +5487,16 @@
                             continue;
                         }
                         
-                        const parts = formattedDMY.split('/');
+                        let parts = formattedDMY.split('/');
                         if (parts.length === 3) {
+                            // Smart Swap for American Dates from Excel
+                            if (parts[1] !== targetMM && parts[0] === targetMM) {
+                                const temp = parts[0];
+                                parts[0] = parts[1];
+                                parts[1] = temp;
+                                formattedDMY = `${parts[0]}/${parts[1]}/${parts[2]}`;
+                            }
+
                             if (parts[1] !== targetMM || parts[2] !== targetYY) {
                                 errors.push(`Row ${r+1}: Date ${formattedDMY} does not match selected month ${targetMM}/${targetYY}`);
                                 continue;
@@ -5293,7 +5521,8 @@
                             }
                             
                             if (errors.length === 0) {
-                                const selector = `select.grid-${mapping.session}[data-emp="${mapping.empId}"][data-date="${formattedDMY}"]`;
+                                const sessionClass = mapping.session === 'morn' ? 'Morning' : 'Afternoon';
+                                const selector = `select.grid-${mapping.session}[data-emp="${mapping.empId}"][data-date="${formattedDMY}"], select.l-sel[data-emp="${mapping.empId}"][data-date="${formattedDMY}"][data-session="${sessionClass}"]`;
                                 updatesDOM.push({ selector, value: drinkVal });
                             }
                         }
@@ -5324,13 +5553,16 @@
                             const sel = document.querySelector(upd.selector);
                             if (sel && !sel.disabled) {
                                 sel.value = upd.value;
-                                // લીલા કલરથી હાઈલાઈટ કરવું 
                                 sel.style.backgroundColor = '#DCFCE7';
-                                setTimeout(() => { sel.style.backgroundColor = ''; }, 2500);
+                                setTimeout(() => { sel.style.backgroundColor = 'transparent'; }, 2500);
                                 appliedCount++;
                             }
                         });
                         appAlert('Import Success', `✅ Validated and applied ${appliedCount} entries. Click 'Save Monthly Entries' at the bottom to confirm.`);
+                        
+                        if (typeof window.recalcAdminLiveGridTotals === 'function') {
+                            window.recalcAdminLiveGridTotals();
+                        }
                     }
 
                 } catch (err) {
@@ -5339,6 +5571,7 @@
                     if (event.target) event.target.value = '';
                 }
             };
+
                 document.getElementById('saveBulkEntries').onclick = function() {
                     if (currentMode === 'date') return;
                     const dateVal = document.getElementById('beverageEntryDate').value;
@@ -5641,7 +5874,7 @@
             // ============================================================
             // 100% NEW & FRESH: PANTRY BOY DELIVERY REPORT (REGULAR & MEETINGS)
             // ============================================================
-            window.generateFreshPBDeliveryReport = function(type, isExcel) {
+                        window.generateFreshPBDeliveryReport = function(type, isExcel) {
                 try {
                     const month = document.getElementById('pbReportMonth')?.value;
                     if (!month) return appAlert('Error', 'Select month.');
@@ -5649,7 +5882,6 @@
                     const supplySource = document.getElementById('pbReportSupplySource')?.value || 'Contractor';
                     const supplyText = supplySource === 'Contractor' ? 'IA Caterers' : 'DAU Direct';
                     
-                    // પેન્ટ્રી બોયનું પોતાનું આઈડી અને નામ 
                     const pantryId = currentUser.id;
                     const pantryName = currentUser.name;
                     
@@ -5663,7 +5895,6 @@
                     const bevCols = ['Tea', 'Coffee', 'Green Tea', 'Lemon Tea', 'Black Tea', 'Black Coffee'];
                     let reportData = {}; 
                     
-                    // Crash પ્રૂફ મેપિંગ
                     const safeMapDrink = (name) => {
                         if (!name) return 'Tea';
                         const n = String(name).toLowerCase();
@@ -5681,23 +5912,42 @@
                         return bevCols.some(b => n.includes(b.toLowerCase())) || n.includes('milk') || n.includes('soup') || n.includes('bournvita');
                     };
 
-                    // 1. Regular Data લોડિંગ
                     if (type === 'regular') {
+                        const uniqueLogs = {};
                         logsData.forEach(log => {
                             if (log.date && parseDMYToYMD(log.date).startsWith(month) && log.pantryId === pantryId) {
                                 const sSrc = log.supplySource || 'Contractor';
                                 if (sSrc === supplySource) {
-                                    const ymd = parseDMYToYMD(log.date);
-                                    const drink = safeMapDrink(log.drink);
-                                    if (!reportData[ymd]) reportData[ymd] = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0 };
-                                    reportData[ymd][drink] += 1;
+                                    // મેન્ટેનન્સ અને ડ્રાઈવરને પેન્ટ્રી બોયના રેગ્યુલર રિપોર્ટમાંથી બાકાત કરવા
+                                    const emp = employeeList.find(e => e.id === log.employeeId);
+                                    if (emp) {
+                                        const cat = (emp.category || '').toLowerCase();
+                                        const dept = (emp.department || '').toLowerCase();
+                                        if (cat.includes('maintenance') || dept.includes('maintenance') || cat.includes('driver') || dept.includes('driver')) {
+                                            return; // આ એન્ટ્રી રિપોર્ટમાં ગણાશે નહીં
+                                        }
+                                    }
+                                    
+                                    uniqueLogs[log.employeeId + '_' + log.date + '_' + log.session] = log;
                                 }
                             }
                         });
+                        
+                        Object.values(uniqueLogs).forEach(log => {
+                            const ymd = parseDMYToYMD(log.date);
+                            const drink = safeMapDrink(log.drink);
+                            if (!reportData[ymd]) reportData[ymd] = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0, locs: new Set() };
+                            reportData[ymd][drink] += 1;
+
+                            let empLoc = log.locationNode;
+                            if(!empLoc) {
+                                const emp = employeeList.find(e => e.id === log.employeeId);
+                                if(emp && emp.locationNode) empLoc = emp.locationNode;
+                            }
+                            if(empLoc) reportData[ymd].locs.add(empLoc);
+                        });
                     } 
-                    // 2. Meeting Data લોડિંગ
                     else if (type === 'meeting') {
-                        // જુના મોડ્યુલનો ડેટા
                         eventLogsData.forEach(ev => {
                             if (!ev.date || !parseDMYToYMD(ev.date).startsWith(month)) return;
                             if (ev.items && ev.items.length > 0) {
@@ -5710,8 +5960,9 @@
                                             if (pName.toLowerCase().includes(String(pantryName).toLowerCase())) {
                                                 const ymd = parseDMYToYMD(item.itemSpecificDate || ev.date);
                                                 const drink = safeMapDrink(item.name);
-                                                if (!reportData[ymd]) reportData[ymd] = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0 };
+                                                if (!reportData[ymd]) reportData[ymd] = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0, locs: new Set() };
                                                 reportData[ymd][drink] += (Number(item.qty) || 0);
+                                                if(item.locationNode || ev.locationNode) reportData[ymd].locs.add(item.locationNode || ev.locationNode);
                                             }
                                         }
                                     }
@@ -5719,7 +5970,6 @@
                             }
                         });
 
-                        // નવા મોડ્યુલનો ડેટા
                         if(typeof mgRecordsData !== 'undefined') {
                             mgRecordsData.forEach(rec => {
                                 if (rec.Status === 'Review') return;
@@ -5734,8 +5984,9 @@
                                         if (pName.toLowerCase().includes(String(pantryName).toLowerCase())) {
                                             const ymd = recYMD;
                                             const drink = safeMapDrink(rec.Item);
-                                            if (!reportData[ymd]) reportData[ymd] = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0 };
+                                            if (!reportData[ymd]) reportData[ymd] = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0, locs: new Set() };
                                             reportData[ymd][drink] += (Number(rec.Qty) || 0);
+                                            if(rec.Location) reportData[ymd].locs.add(rec.Location);
                                         }
                                     }
                                 }
@@ -5743,7 +5994,6 @@
                         }
                     }
 
-                    // 3. ટેબલ અને એક્સેલ માટે ડેટા સેટ કરવો
                     let trs = '';
                     let totals = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0 };
                     let excelData = [];
@@ -5752,8 +6002,12 @@
                     const headStyle = { font: { bold: true }, alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle }, fill: { fgColor: { rgb: "F1F5F9" } } };
                     const cellCenter = { alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle } };
                     
-                    excelData.push([{ v: title, s: { font: { bold: true, sz: 14 }, alignment: { horizontal: 'center' } } }, '', '', '', '', '', '']);
-                    excelData.push([{v:'Date', s:headStyle}, {v:'Tea', s:headStyle}, {v:'Coffee', s:headStyle}, {v:'Green Tea', s:headStyle}, {v:'Lemon Tea', s:headStyle}, {v:'Black Tea', s:headStyle}, {v:'Black Coffee', s:headStyle}]);
+                    excelData.push([{ v: title, s: { font: { bold: true, sz: 14 }, alignment: { horizontal: 'center' } } }, '', '', '', '', '', '', '']);
+                    excelData.push([
+                        {v:'Date', s:headStyle}, {v:'Locations Covered', s:headStyle}, 
+                        {v:'Tea', s:headStyle}, {v:'Coffee', s:headStyle}, {v:'Green Tea', s:headStyle}, 
+                        {v:'Lemon Tea', s:headStyle}, {v:'Black Tea', s:headStyle}, {v:'Black Coffee', s:headStyle}
+                    ]);
 
                     let hasAnyData = false;
 
@@ -5765,6 +6019,7 @@
                         if (reportData[ymd]) {
                             hasAnyData = true;
                             const rowD = reportData[ymd];
+                            const locsStr = Array.from(rowD.locs).filter(Boolean).join(', ') || '-';
                             
                             totals['Tea'] += rowD['Tea'];
                             totals['Coffee'] += rowD['Coffee'];
@@ -5775,6 +6030,7 @@
 
                             trs += `<tr>
                                 <td style="font-weight:bold; border:1px solid #000; padding:6px; text-align:center;">${dmy}</td>
+                                <td style="border:1px solid #000; padding:6px; text-align:center; color:#475569; font-size:10px;">${locsStr}</td>
                                 <td style="border:1px solid #000; padding:6px; text-align:center;">${rowD['Tea'] || '-'}</td>
                                 <td style="border:1px solid #000; padding:6px; text-align:center;">${rowD['Coffee'] || '-'}</td>
                                 <td style="border:1px solid #000; padding:6px; text-align:center;">${rowD['Green Tea'] || '-'}</td>
@@ -5784,7 +6040,7 @@
                             </tr>`;
 
                             excelData.push([
-                                {v: dmy, s: cellCenter}, 
+                                {v: dmy, s: cellCenter}, {v: locsStr, s: cellCenter}, 
                                 {v: rowD['Tea'] || 0, s: cellCenter}, {v: rowD['Coffee'] || 0, s: cellCenter},
                                 {v: rowD['Green Tea'] || 0, s: cellCenter}, {v: rowD['Lemon Tea'] || 0, s: cellCenter},
                                 {v: rowD['Black Tea'] || 0, s: cellCenter}, {v: rowD['Black Coffee'] || 0, s: cellCenter}
@@ -5793,10 +6049,10 @@
                     }
 
                     if (!hasAnyData) {
-                        trs = `<tr><td colspan="7" style="border:1px solid #000; padding:20px; text-align:center; color:#64748B;">No delivery data found for this month.</td></tr>`;
+                        trs = `<tr><td colspan="8" style="border:1px solid #000; padding:20px; text-align:center; color:#64748B;">No delivery data found for this month.</td></tr>`;
                     } else {
                         trs += `<tr style="background:#F1F5F9; font-weight:bold;">
-                            <td style="border:1px solid #000; padding:6px; text-align:right;">GRAND TOTAL</td>
+                            <td colspan="2" style="border:1px solid #000; padding:6px; text-align:right;">GRAND TOTAL</td>
                             <td style="border:1px solid #000; padding:6px; text-align:center; color:#0A56D0;">${totals['Tea']}</td>
                             <td style="border:1px solid #000; padding:6px; text-align:center; color:#0A56D0;">${totals['Coffee']}</td>
                             <td style="border:1px solid #000; padding:6px; text-align:center; color:#0A56D0;">${totals['Green Tea']}</td>
@@ -5806,20 +6062,19 @@
                         </tr>`;
 
                         excelData.push([
-                            {v: 'GRAND TOTAL', s: headStyle}, 
+                            {v: 'GRAND TOTAL', s: headStyle}, {v: '', s: headStyle}, 
                             {v: totals['Tea'], s: headStyle}, {v: totals['Coffee'], s: headStyle},
                             {v: totals['Green Tea'], s: headStyle}, {v: totals['Lemon Tea'], s: headStyle},
                             {v: totals['Black Tea'], s: headStyle}, {v: totals['Black Coffee'], s: headStyle}
                         ]);
                     }
 
-                    // 4. Excel ડાઉનલોડ અથવા પ્રિવ્યુ
                     if (isExcel) {
                         if (!hasAnyData) return appAlert('No Data', 'No data to export.');
                         const wb = XLSX.utils.book_new();
                         const ws = XLSX.utils.aoa_to_sheet(excelData);
-                        ws['!merges'] = [{ s: {r:0, c:0}, e: {r:0, c:6} }];
-                        ws['!cols'] = [{wch: 15}, {wch: 12}, {wch: 12}, {wch: 12}, {wch: 12}, {wch: 12}, {wch: 14}];
+                        ws['!merges'] = [{ s: {r:0, c:0}, e: {r:0, c:7} }, { s: {r:excelData.length-1, c:0}, e: {r:excelData.length-1, c:1} }];
+                        ws['!cols'] = [{wch: 15}, {wch: 25}, {wch: 10}, {wch: 10}, {wch: 10}, {wch: 10}, {wch: 10}, {wch: 12}];
                         XLSX.utils.book_append_sheet(wb, ws, "Delivery Report");
                         window.pantryDownloadExcelFile(wb, `My_Delivery_Report_${type}_${month}.xlsx`);
                         appAlert('Downloaded', 'Excel downloaded successfully!');
@@ -5833,6 +6088,7 @@
                                 <thead>
                                     <tr style="background:#F1F5F9;">
                                         <th style="border:1px solid #000; padding:8px;">Date</th>
+                                        <th style="border:1px solid #000; padding:8px;">Locations Covered</th>
                                         <th style="border:1px solid #000; padding:8px;">Tea</th>
                                         <th style="border:1px solid #000; padding:8px;">Coffee</th>
                                         <th style="border:1px solid #000; padding:8px;">Green Tea</th>
@@ -5866,7 +6122,7 @@
                                     .preview-content { padding: 0 !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; overflow: visible !important; }
                                     .preview-header { display: none !important; }
                                     table.print-table { width: 100% !important; max-width: 100% !important; table-layout: auto !important; }
-                                    table.print-table th, table.print-table td { padding: 6px 4px !important; font-size: 12px !important; text-align:center; border:1px solid #000; }
+                                    table.print-table th, table.print-table td { padding: 6px 4px !important; font-size: 11px !important; text-align:center; border:1px solid #000; }
                                 }
                             </style>
                         `;
@@ -5877,6 +6133,7 @@
                     appAlert('System Error', 'Cannot generate report: ' + error.message);
                 }
             };
+
             // ============================================================
             // 100% NEW & FRESH: PANTRY BOY DELIVERY REPORT (REGULAR & MEETINGS)
             // ============================================================
@@ -6452,68 +6709,123 @@
             // ============================================================
             //  LOCATION MANAGEMENT WITH DEPARTMENTS
             // ============================================================
-            function openLocationEmployeePopup(locationName) {
+            window.openLocationEmployeePopup = function(locationName) {
                 const modal = document.getElementById('locationEmployeeModal');
-                const title = document.getElementById('locModalTitle');
-                const list = document.getElementById('locEmployeeList');
-                title.textContent = locationName;
+                
+                modal.innerHTML = `
+                <div class="popup-card wide" style="max-width:600px; padding:20px; display:flex; flex-direction:column; height:90vh;">
+                    <h3 style="color:#0A56D0; margin-top:0; margin-bottom:12px; flex-shrink:0;">📍 Transfer Employees to <span style="text-decoration:underline;">${locationName}</span></h3>
+                    
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; flex-shrink:0;">
+                        <input type="text" id="locSearchInput" placeholder="🔍 Search Employee Name..." style="flex:2; margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;">
+                        <select id="locDeptFilter" style="flex:1; margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;">
+                            <option value="">All Departments</option>
+                            <option value="Administration">Administration</option>
+                            <option value="Admissions">Admissions</option>
+                            <option value="Finance">Finance</option>
+                            <option value="HR">HR</option>
+                            <option value="IT">IT</option>
+                            <option value="Library">Library</option>
+                            <option value="Law">Law</option>
+                            <option value="SoL">SoL</option>
+                            <option value="Placement">Placement</option>
+                            <option value="Faculty">Faculty</option>
+                            <option value="Staff">Staff</option>
+                            <option value="Outsource">Outsource</option>
+                        </select>
+                    </div>
 
-                function renderLocationList(deptFilter) {
+                    <div style="display:flex; align-items:center; margin-bottom:8px; padding:0 4px; flex-shrink:0;">
+                        <input type="checkbox" id="selectAllLocTransfer" style="width:18px; height:18px; margin:0 8px 0 0; accent-color:#0A56D0; cursor:pointer;">
+                        <label for="selectAllLocTransfer" style="font-weight:500; color:#44474E; font-size:.9rem; cursor:pointer;">Select All Visible</label>
+                    </div>
+
+                    <div id="locEmployeeList" class="scroll-list-box" style="flex:1; overflow-y:auto; border:1px solid #E2E8F0; border-radius:8px; padding:4px; background:#fff; margin-bottom:12px;"></div>
+                    
+                    <div style="display:flex; gap:8px; margin-top:auto; justify-content:flex-end; flex-wrap:wrap; flex-shrink:0;">
+                        <button onclick="document.getElementById('locationEmployeeModal').classList.add('hidden')" class="danger" style="flex:1; min-height:44px; border-radius:8px; font-weight:bold;">Cancel</button>
+                        <button id="locSaveEmployees" class="success" style="flex:2; min-height:44px; border-radius:8px; font-weight:bold;">💾 Move Selected to ${locationName}</button>
+                    </div>
+                </div>
+                `;
+
+                const list = document.getElementById('locEmployeeList');
+
+                function renderLocationList() {
+                    const deptFilter = document.getElementById('locDeptFilter').value;
+                    const search = document.getElementById('locSearchInput').value.toLowerCase().trim();
+
                     let html = '';
-                    const filtered = employeeList.filter(emp => {
+                    const activeEmps = employeeList.filter(e => e.status !== 'Inactive');
+                    
+                    // સોર્ટિંગ: જે પહેલેથી લોકેશનમાં છે એ સૌથી ઉપર દેખાશે
+                    const sortedEmps = activeEmps.sort((a, b) => {
+                        if (a.locationNode === locationName && b.locationNode !== locationName) return -1;
+                        if (a.locationNode !== locationName && b.locationNode === locationName) return 1;
+                        return (a.name || '').localeCompare(b.name || '');
+                    });
+
+                    const filtered = sortedEmps.filter(emp => {
                         if (deptFilter && emp.department !== deptFilter) return false;
+                        if (search && !(emp.name || '').toLowerCase().includes(search)) return false;
                         return true;
                     });
+
                     filtered.forEach(emp => {
-                        const checked = (emp.locationNode === locationName) ? 'checked' : '';
-                        const dept = emp.department || 'Unassigned';
-                        html += `
-                    <div class="location-employee-item">
-                      <input type="checkbox" class="loc-employee-check" data-id="${emp.id}" ${checked}>
-                      <label>${safeStr(emp.name)} [${safeStr(emp.category)}] <span style="color:#64748B; font-size:.75rem;">(${dept})</span></label>
-                    </div>
-                  `;
+                        const isAlreadyHere = emp.locationNode === locationName;
+                        const currentLoc = emp.locationNode || 'No Location Assigned';
+                        const dept = emp.department || 'No Dept';
+                        
+                        if (isAlreadyHere) {
+                            html += `
+                            <div style="padding:10px 14px; margin:4px 0; background:#F1F5F9; border-radius:8px; border:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center; opacity:0.5; pointer-events:none;">
+                              <div>
+                                <strong style="color:#1E293B; font-size:13px;">${safeStr(emp.name)}</strong> <span style="color:#64748B; font-size:11px;">[${safeStr(emp.category)}] - ${dept}</span><br>
+                                <small style="color:#0A56D0; font-weight:bold; font-size:11px;">📍 Already in ${locationName}</small>
+                              </div>
+                              <span style="font-size:16px;">✅</span>
+                            </div>`;
+                        } else {
+                            html += `
+                            <label style="padding:10px 14px; margin:4px 0; background:#FFF; border-radius:8px; border:1px solid #CBD5E1; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+                              <div>
+                                <strong style="color:#1E293B; font-size:13px;">${safeStr(emp.name)}</strong> <span style="color:#64748B; font-size:11px;">[${safeStr(emp.category)}] - ${dept}</span><br>
+                                <small style="color:#D97706; font-weight:bold; font-size:11px;">Currently at: 📍 ${currentLoc}</small>
+                              </div>
+                              <input type="checkbox" class="loc-employee-check" data-id="${emp.id}" style="width:20px; height:20px; accent-color:#0A56D0; cursor:pointer; flex-shrink:0;">
+                            </label>`;
+                        }
                     });
-                    list.innerHTML = html || '<p style="padding:12px; color:#74777F;">No employees.</p>';
+                    list.innerHTML = html || '<p style="padding:12px; color:#74777F; text-align:center;">No employees found.</p>';
                 }
 
-                const deptFilter = document.getElementById('locDeptFilter');
-                deptFilter.onchange = () => renderLocationList(deptFilter.value);
-
-                document.getElementById('locAddDeptBtn').onclick = function() {
-                    const dept = prompt('Enter department name (Administration, Admissions, Finance, HR, IT, Library, Law, SoL, Placement, Faculty, Staff, Outsource):');
-                    if (dept && dept.trim()) {
-                        const checks = list.querySelectorAll('.loc-employee-check:checked');
-                        if (!checks.length) return appAlert('Error', 'Select employees first.');
-                        const updates = {};
-                        checks.forEach(cb => {
-                            updates[cb.dataset.id + '/department'] = dept.trim();
-                        });
-                        db.ref('employees').update(updates).then(() => {
-                            appAlert('Success', `Department "${dept.trim()}" assigned to ${checks.length} employees.`);
-                            renderLocationList(deptFilter.value);
-                        }).catch(err => appAlert('Error', err.message));
-                    }
+                document.getElementById('locDeptFilter').onchange = renderLocationList;
+                document.getElementById('locSearchInput').oninput = renderLocationList;
+                
+                document.getElementById('selectAllLocTransfer').onchange = function() {
+                    document.querySelectorAll('.loc-employee-check').forEach(cb => cb.checked = this.checked);
                 };
 
                 modal.classList.remove('hidden');
-                renderLocationList('');
+                renderLocationList();
 
                 document.getElementById('locSaveEmployees').onclick = function() {
-                    const checks = list.querySelectorAll('.loc-employee-check');
-                    const updates = {};
-                    checks.forEach(cb => {
-                        const empId = cb.dataset.id;
-                        const loc = cb.checked ? locationName : '';
-                        updates[empId + '/locationNode'] = loc;
+                    const checks = list.querySelectorAll('.loc-employee-check:checked');
+                    if(checks.length === 0) return appAlert('Notice', 'Please select at least one employee to transfer.');
+                    
+                    appConfirm('Confirm Transfer', `Move ${checks.length} selected employees to ${locationName}?`, () => {
+                        const updates = {};
+                        checks.forEach(cb => {
+                            updates[cb.dataset.id + '/locationNode'] = locationName;
+                        });
+                        db.ref('employees').update(updates).then(() => {
+                            appAlert('Success', `${checks.length} employees successfully transferred to ${locationName}!`);
+                            modal.classList.add('hidden');
+                            if(typeof renderAdminVenues === 'function') renderAdminVenues();
+                        }).catch(err => { appAlert('Error', 'Update failed: ' + err.message); });
                     });
-                    db.ref('employees').update(updates).then(() => {
-                        appAlert('Success', 'Employee locations updated!');
-                        modal.classList.add('hidden');
-                        renderAdminVenues();
-                    }).catch(err => { appAlert('Error', 'Update failed: ' + err.message); });
                 };
-            }
+            };
 
             // ============================================================
             //  ADMIN / PANTRY RENDER HELPERS
@@ -6681,6 +6993,7 @@
                   <button class="dash-btn" data-tab="bin" style="color:#DC3545; border-color:#FECACA; background:#FEF2F2;"><span class="icon">🗑️</span><span class="label">Recycle Bin</span></button>
                   <button class="dash-btn" data-tab="weekend_duty" style="color:#1E3A8A; border-color:#BFDBFE; background:#EFF6FF;"><span class="icon">📅</span><span class="label">Weekend/Holiday Duty</span></button>
                   <button class="dash-btn" data-tab="dau_purchase" style="color:#059669; border-color:#A7F3D0; background:#ECFDF5;"><span class="icon">🛒</span><span class="label">DAU Purchase Allotment</span></button>
+                  <button class="dash-btn" data-tab="web_sync" style="color:#0284C7; border-color:#BAE6FD; background:#F0F9FF;"><span class="icon">🌐</span><span class="label">Web Sync Review</span></button>
                   <button class="dash-btn" data-tab="settings" style="color:#44474E; border-color:#E2E8F0; background:#F8FAFC;"><span class="icon">⚙️</span><span class="label">Settings</span></button>
                 </div>
               </div>
@@ -7330,7 +7643,286 @@
                             window.renderDauPurchaseAccessAdmin?.();
                         }, 50);
                         break;
-					                    case 'settings':
+
+                                                           case 'web_sync':
+                        cont.innerHTML = `
+                            <div class="card" style="border:2px solid #0284C7; background:#F0F9FF;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+                                    <div>
+                                        <h4 style="color:#0284C7; margin:0 0 4px 0; font-size:1rem;">🌐 Website Updates Review</h4>
+                                        <p style="font-size:.8rem; color:#475569; margin:0;">Review manually or use Auto-Sync to process all automatically.</p>
+                                    </div>
+                                    <button onclick="window.runSmartAutoSync()" class="success" style="background:#0284C7; border:none; padding:10px 16px; border-radius:8px; font-weight:bold; font-size:13px; box-shadow:0 2px 4px rgba(2,132,199,0.3);">🚀 Smart Auto-Sync All</button>
+                                </div>
+                                
+                                <div id="webSyncListContainer" class="scroll-list-box" style="max-height:450px; background:#fff; padding:6px; border:1px solid #BAE6FD;">
+                                    <div style="text-align:center; padding:20px; color:#0284C7; font-weight:bold;">⏳ Loading Pending Updates...</div>
+                                </div>
+                            </div>
+                        `;
+
+                        // --- 📍 HELPER: લોકેશન પરથી પેન્ટ્રી બોય શોધવા ---
+                        function getPantryBoyForLocation(locName) {
+                            if (!locName) return "";
+                            const empsInLoc = employeeList.filter(e => e.locationNode === locName && e.assignedPantryId && e.status !== 'Inactive');
+                            if (empsInLoc.length === 0) return "";
+                            
+                            const counts = {};
+                            let maxCount = 0;
+                            let bestPb = "";
+                            empsInLoc.forEach(e => {
+                                counts[e.assignedPantryId] = (counts[e.assignedPantryId] || 0) + 1;
+                                if (counts[e.assignedPantryId] > maxCount) {
+                                    maxCount = counts[e.assignedPantryId];
+                                    bestPb = e.assignedPantryId;
+                                }
+                            });
+                            return bestPb; // જે પેન્ટ્રી બોય પાસે આ લોકેશનના સૌથી વધુ એમ્પ્લોયી હશે તે સિલેક્ટ થશે
+                        }
+                        
+                        db.ref('webSyncPending').on('value', snap => {
+                            const data = snap.val() || {};
+                            const listContainer = document.getElementById('webSyncListContainer');
+                            if(!listContainer) return;
+                            
+                            const items = Object.values(data);
+                            if(items.length === 0) {
+                                listContainer.innerHTML = '<p style="padding:20px; text-align:center; color:#10B981; font-weight:bold;">✅ All synced! No new updates from the website.</p>';
+                                return;
+                            }
+                            
+                            listContainer.innerHTML = items.map(item => {
+                                const locHtml = item.locationNode ? `<br><span style="font-size:11px; color:#0A56D0; font-weight:bold;">📍 Auto-Location: ${safeStr(item.locationNode)}</span>` : '';
+                                return `
+                                <div style="border:1px solid #BAE6FD; background:#fff; border-radius:8px; padding:10px; margin-bottom:8px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+                                        <div>
+                                            <strong style="color:#0369A1; font-size:14px;">${safeStr(item.name)}</strong><br>
+                                            <span style="font-size:11px; color:#64748B;">Detected As: <b>${safeStr(item.category)}</b></span>
+                                            ${locHtml}
+                                        </div>
+                                        <button onclick="window.ignoreWebSync('${item.id}')" style="background:#FEE2E2; color:#DC3545; border:1px solid #FECACA; padding:4px 8px; font-size:10px; border-radius:6px; font-weight:bold; cursor:pointer;">✕ Ignore</button>
+                                    </div>
+                                    <div style="display:flex; gap:8px;">
+                                        <button onclick="window.addWebSyncAsNew('${item.id}')" class="success" style="flex:1; padding:8px; font-size:11px; font-weight:bold; border-radius:6px; border:none; cursor:pointer;">➕ Add as New</button>
+                                        <button onclick="window.openMergeWebSync('${item.id}')" style="flex:1; background:#F59E0B; color:#fff; border:none; padding:8px; font-size:11px; font-weight:bold; border-radius:6px; cursor:pointer;">🔄 Manual Replace</button>
+                                    </div>
+                                </div>
+                                `;
+                            }).join('');
+                        });
+
+                        // --- 🚀 SMART BULK AUTO-SYNC LOGIC ---
+                        window.runSmartAutoSync = async function() {
+                            const snap = await db.ref('webSyncPending').once('value');
+                            const pendingData = snap.val();
+                            if(!pendingData) return appAlert('Notice', 'No pending updates to sync.');
+
+                            let rawItems = Object.values(pendingData);
+                            const activeEmps = employeeList.filter(e => e.status !== 'Inactive');
+                            
+                            // 1. ડુપ્લીકેટ નામ રોકવા (Deduplication)
+                            const uniquePending = [];
+                            const seenNames = new Set();
+                            rawItems.forEach(item => {
+                                const cleanName = item.name.toLowerCase().trim();
+                                if (!seenNames.has(cleanName)) {
+                                    seenNames.add(cleanName);
+                                    uniquePending.push(item);
+                                } else {
+                                    // ડુપ્લીકેટ છે, તો તેને ફાયરબેઝમાંથી કાઢી નાખો
+                                    db.ref('webSyncPending/' + item.id).remove();
+                                }
+                            });
+                            
+                            if(uniquePending.length === 0) return;
+
+                            appConfirm('Confirm Auto-Sync', `Ready to Auto-Sync ${uniquePending.length} unique records.<br><br><b>Logic:</b><br>✔️ Exact/Minor spelling typos will be merged.<br>➕ Completely new names will be added.<br>📍 Pantry Boy will be auto-assigned based on location.`, async () => {
+                                
+                                appAlert('Processing', 'Auto-Sync is running... Please wait.');
+                                
+                                function getSimilarity(s1, s2) {
+                                    s1 = s1.toLowerCase(); s2 = s2.toLowerCase();
+                                    let longer = s1, shorter = s2;
+                                    if (s1.length < s2.length) { longer = s2; shorter = s1; }
+                                    let longerLength = longer.length;
+                                    if (longerLength === 0) return 1.0;
+                                    let costs = [];
+                                    for (let i = 0; i <= longerLength; i++) {
+                                        let lastValue = i;
+                                        for (let j = 0; j <= shorter.length; j++) {
+                                            if (i === 0) costs[j] = j;
+                                            else if (j > 0) {
+                                                let newValue = costs[j - 1];
+                                                if (longer.charAt(i - 1) !== shorter.charAt(j - 1))
+                                                    newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                                                costs[j - 1] = lastValue;
+                                                lastValue = newValue;
+                                            }
+                                        }
+                                        if (i > 0) costs[shorter.length] = lastValue;
+                                    }
+                                    return (longerLength - costs[shorter.length]) / parseFloat(longerLength);
+                                }
+
+                                const updates = {};
+                                let mergedCount = 0;
+                                let addedCount = 0;
+                                let pendingCount = 0;
+
+                                uniquePending.forEach(item => {
+                                    let bestMatchId = "";
+                                    let highestSim = 0;
+
+                                    activeEmps.forEach(emp => {
+                                        let sim = getSimilarity(item.name, emp.name || "");
+                                        if (sim > highestSim) {
+                                            highestSim = sim;
+                                            bestMatchId = emp.id;
+                                        }
+                                    });
+
+                                    if (highestSim >= 0.85) {
+                                        // AUTO-MERGE (Spelling Mistake / Typo)
+                                        updates['employees/' + bestMatchId + '/name'] = item.name;
+                                        updates['employees/' + bestMatchId + '/source'] = "website";
+                                        if(item.locationNode) updates['employees/' + bestMatchId + '/locationNode'] = item.locationNode;
+                                        updates['webSyncPending/' + item.id] = null; 
+                                        mergedCount++;
+                                        
+                                        if(item.locationNode && !venueList.some(v => v.name.toLowerCase() === item.locationNode.toLowerCase())) {
+                                            const vId = 'vnu_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+                                            updates['venues/' + vId] = { id: vId, name: item.locationNode };
+                                        }
+
+                                    } else if (highestSim < 0.35) {
+                                        // AUTO-ADD & AUTO-ASSIGN PB
+                                        const empId = 'emp_web_' + Date.now() + Math.floor(Math.random() * 10000);
+                                        const autoPbId = getPantryBoyForLocation(item.locationNode);
+                                        
+                                        updates['employees/' + empId] = {
+                                            id: empId,
+                                            name: item.name,
+                                            category: item.category,
+                                            assignedPantryId: autoPbId, // 📍 Auto-Assigned PB!
+                                            locationNode: item.locationNode || "",
+                                            department: "",
+                                            status: "Active",
+                                            source: "website"
+                                        };
+                                        updates['webSyncPending/' + item.id] = null;
+                                        addedCount++;
+                                        
+                                        if(item.locationNode && !venueList.some(v => v.name.toLowerCase() === item.locationNode.toLowerCase())) {
+                                            const vId = 'vnu_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+                                            updates['venues/' + vId] = { id: vId, name: item.locationNode };
+                                        }
+                                    } else {
+                                        // LEAVE PENDING
+                                        pendingCount++;
+                                    }
+                                });
+
+                                if (Object.keys(updates).length > 0) {
+                                    await db.ref().update(updates);
+                                    appAlert('Success', `<b>Auto-Sync Complete!</b><br>✔️ Merged/Fixed: ${mergedCount}<br>➕ Added New: ${addedCount}<br>⚠️ Left for Manual Review: ${pendingCount}`);
+                                } else {
+                                    appAlert('Notice', `No safe auto-actions could be performed. All ${pendingCount} records require manual review.`);
+                                }
+                            });
+                        };
+
+                        window.ignoreWebSync = function(id) {
+                            appConfirm('Ignore Update', 'Are you sure you want to ignore this name?', () => {
+                                db.ref('webSyncPending/' + id).remove();
+                            });
+                        };
+
+                        // મેન્યુઅલ એડમાં પણ ઓટો-પેન્ટ્રી બોય અસાઇન
+                        window.addWebSyncAsNew = function(id) {
+                            db.ref('webSyncPending/' + id).once('value').then(snap => {
+                                const data = snap.val();
+                                if(data) {
+                                    const empId = 'emp_web_' + Date.now() + Math.floor(Math.random() * 1000);
+                                    const autoPbId = getPantryBoyForLocation(data.locationNode);
+                                    
+                                    if(data.locationNode && !venueList.some(v => v.name.toLowerCase() === data.locationNode.toLowerCase())) {
+                                        const vId = 'vnu_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+                                        db.ref('venues/' + vId).set({ id: vId, name: data.locationNode });
+                                    }
+                                    db.ref('employees/' + empId).set({
+                                        id: empId, 
+                                        name: data.name, 
+                                        category: data.category, 
+                                        assignedPantryId: autoPbId, // 📍 Auto-Assigned PB!
+                                        locationNode: data.locationNode || "", 
+                                        department: "", 
+                                        status: "Active", 
+                                        source: "website"
+                                    }).then(() => {
+                                        db.ref('webSyncPending/' + id).remove();
+                                        appAlert('Added', 'New employee added & assigned successfully!');
+                                    });
+                                }
+                            });
+                        };
+
+                        window.openMergeWebSync = function(id) {
+                            db.ref('webSyncPending/' + id).once('value').then(snap => {
+                                const data = snap.val();
+                                if(!data) return;
+                                const activeEmps = employeeList.filter(e => e.status !== 'Inactive');
+                                
+                                const locParam = data.locationNode ? data.locationNode.replace(/'/g, "\\'") : '';
+                                const modal = document.createElement('div');
+                                modal.className = 'popup-overlay';
+                                modal.id = 'mergeWebSyncModal';
+                                modal.innerHTML = `
+                                    <div class="popup-card" style="max-width:400px; padding:20px; border-radius:12px;">
+                                        <h3 style="color:#D97706; margin-top:0; margin-bottom:8px; font-size:16px;">🔄 Manual Replace</h3>
+                                        <p style="font-size:12px; color:#475569; margin-bottom:14px;">Select the existing employee to overwrite with <b>"${data.name}"</b>.</p>
+                                        <input type="text" id="mergeSearchEmp" placeholder="🔍 Search name..." style="padding:10px; margin-bottom:6px; border-radius:8px; border:1px solid #CBD5E1; width:100%; box-sizing:border-box;" oninput="window.filterMergeEmpSelect()">
+                                        <select id="mergeTargetEmp" size="5" style="width:100%; padding:6px; border-radius:8px; border:1px solid #CBD5E1; font-size:12px; margin-bottom:16px;">
+                                            ${activeEmps.map(e => `<option value="${e.id}">${safeStr(e.name)} [${safeStr(e.category)}]</option>`).join('')}
+                                        </select>
+                                        <div style="display:flex; gap:8px;">
+                                            <button onclick="document.getElementById('mergeWebSyncModal').remove()" class="danger" style="flex:1; padding:10px; border-radius:8px; font-weight:bold; font-size:12px;">Cancel</button>
+                                            <button onclick="window.executeMergeWebSync('${id}', '${data.name.replace(/'/g, "\\'")}', '${data.category}', '${locParam}')" class="success" style="flex:1; padding:10px; border-radius:8px; background:#D97706; font-weight:bold; font-size:12px;">Update Name</button>
+                                        </div>
+                                    </div>
+                                `;
+                                document.body.appendChild(modal);
+
+                                window.filterMergeEmpSelect = function() {
+                                    const q = document.getElementById('mergeSearchEmp').value.toLowerCase().trim();
+                                    const sel = document.getElementById('mergeTargetEmp');
+                                    sel.querySelectorAll('option').forEach(opt => {
+                                        opt.style.display = opt.text.toLowerCase().includes(q) ? 'block' : 'none';
+                                    });
+                                };
+                            });
+                        };
+
+                        window.executeMergeWebSync = function(syncId, newName, newCategory, newLoc) {
+                            const targetEmpId = document.getElementById('mergeTargetEmp').value;
+                            if(!targetEmpId) return appAlert('Error', 'Select an employee from the list.');
+                            const updates = { name: newName, source: "website" };
+                            if(newLoc) {
+                                updates.locationNode = newLoc;
+                                if(!venueList.some(v => v.name.toLowerCase() === newLoc.toLowerCase())) {
+                                    const vId = 'vnu_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+                                    updates['venues/' + vId] = { id: vId, name: newLoc };
+                                }
+                            }
+                            db.ref('employees/' + targetEmpId).update(updates).then(() => {
+                                db.ref('webSyncPending/' + syncId).remove();
+                                document.getElementById('mergeWebSyncModal').remove();
+                                appAlert('Updated', 'Employee updated successfully!');
+                            });
+                        };
+                        break;
+
+                    case 'settings':
                         cont.innerHTML = `
                           <div class="card"><h4 style="margin-bottom:12px; color:#44474E; font-size:1rem;">⚙️ Change Admin Password</h4><input type="password" id="newAdminPass" placeholder="New Password" value="${adminSecurity.password}" style="padding:14px; border-radius:10px; border:1px solid #CBD5E1;"><button id="saveAdminCreds" class="success" style="width:100%; min-height:44px;">Update Password</button></div>
                           
@@ -8408,7 +9000,9 @@ if (
                 const daysInMonth = getDaysInMonth(yy, mm);
                 
                 let emps = employeeList.filter(e => e.status !== 'Inactive');
-                if (pantryId !== 'All') emps = emps.filter(e => e.assignedPantryId === pantryId);
+                if (pantryId !== 'All') {
+                    emps = emps.filter(e => e.assignedPantryId === pantryId || (e.tempPantryIds && e.tempPantryIds[pantryId] === true));
+                }
                 
                 if (categoryVal !== 'All') {
                     const catMatch = categoryVal.trim().toLowerCase();
@@ -9198,7 +9792,7 @@ if (
             // ============================================================
             // NEW: PANTRY BOY DELIVERY REPORT (REGULAR & MEETINGS) FOR ADMIN
             // ============================================================
-            window.generatePantryBoyReport = function(type, isExcel, overrideMonth, overrideSupply, overridePantryId) {
+                        window.generatePantryBoyReport = function(type, isExcel, overrideMonth, overrideSupply, overridePantryId) {
                 const month = overrideMonth || document.getElementById('reportMonth')?.value;
                 if (!month) return appAlert('Error', 'Select month.');
                 
@@ -9239,13 +9833,23 @@ if (
                     return bevCols.some(b => n.includes(b.toLowerCase())) || n.includes('milk') || n.includes('soup') || n.includes('bournvita');
                 };
 
-               if (type === 'regular') {
+                if (type === 'regular') {
                     const filtered = logsData.filter(l => l.date && parseDMYToYMD(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
                     
                     const uniqueLogs = {};
                     filtered.forEach(log => {
                         if (selectedPantryId !== 'All' && log.pantryId !== selectedPantryId) return;
-                        // ડબલ એન્ટ્રી રોકવા માટે Employee + Date + Session થી ફિલ્ટર
+                        
+                        // મેન્ટેનન્સ અને ડ્રાઈવરને પેન્ટ્રી બોયના રેગ્યુલર રિપોર્ટમાંથી બાકાત કરવા
+                        const emp = employeeList.find(e => e.id === log.employeeId);
+                        if (emp) {
+                            const cat = (emp.category || '').toLowerCase();
+                            const dept = (emp.department || '').toLowerCase();
+                            if (cat.includes('maintenance') || dept.includes('maintenance') || cat.includes('driver') || dept.includes('driver')) {
+                                return; // આ એન્ટ્રી રિપોર્ટમાં ગણાશે નહીં
+                            }
+                        }
+
                         uniqueLogs[log.employeeId + '_' + log.date + '_' + log.session] = log;
                     });
                     
@@ -9253,8 +9857,15 @@ if (
                         const ymd = parseDMYToYMD(log.date);
                         const drink = mapBeverageType(log.drink);
                         
-                        if (!reportData[ymd]) reportData[ymd] = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0 };
+                        if (!reportData[ymd]) reportData[ymd] = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0, locs: new Set() };
                         reportData[ymd][drink] += 1;
+
+                        let empLoc = log.locationNode;
+                        if(!empLoc) {
+                            const emp = employeeList.find(e => e.id === log.employeeId);
+                            if(emp && emp.locationNode) empLoc = emp.locationNode;
+                        }
+                        if(empLoc) reportData[ymd].locs.add(empLoc);
                     });
                 } else if (type === 'meeting') {
                     const flatMeetingItems = [];
@@ -9271,7 +9882,8 @@ if (
                                             date: item.itemSpecificDate || ev.date,
                                             pantryName: item.servedBy || ev.servedByName || ev.pantryName || 'Unknown',
                                             drink: item.name,
-                                            qty: Number(item.qty) || 0
+                                            qty: Number(item.qty) || 0,
+                                            location: item.locationNode || ev.locationNode || ''
                                         });
                                     }
                                 }
@@ -9292,7 +9904,8 @@ if (
                                     date: rec.DateFormatted || convertYMDtoDMY(rec.RawDate),
                                     pantryName: rec.ServedBy || 'Unknown',
                                     drink: rec.Item,
-                                    qty: Number(rec.Qty) || 0
+                                    qty: Number(rec.Qty) || 0,
+                                    location: rec.Location || ''
                                 });
                             }
                         }
@@ -9307,8 +9920,9 @@ if (
                         const ymd = parseDMYToYMD(item.date);
                         const drink = mapBeverageType(item.drink);
                         
-                        if (!reportData[ymd]) reportData[ymd] = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0 };
+                        if (!reportData[ymd]) reportData[ymd] = { 'Tea':0, 'Coffee':0, 'Green Tea':0, 'Lemon Tea':0, 'Black Tea':0, 'Black Coffee':0, locs: new Set() };
                         reportData[ymd][drink] += item.qty;
+                        if(item.location) reportData[ymd].locs.add(item.location);
                     });
                 }
 
@@ -9319,9 +9933,9 @@ if (
                 const headStyle = { font: { bold: true }, alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle }, fill: { fgColor: { rgb: "F1F5F9" } } };
                 const cellCenter = { alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle } };
                 
-                excelData.push([{ v: title, s: { font: { bold: true, sz: 14 }, alignment: { horizontal: 'center' } } }, '', '', '', '', '', '']);
+                excelData.push([{ v: title, s: { font: { bold: true, sz: 14 }, alignment: { horizontal: 'center' } } }, '', '', '', '', '', '', '']);
                 excelData.push([
-                    {v:'Date', s:headStyle}, 
+                    {v:'Date', s:headStyle}, {v:'Locations Covered', s:headStyle},
                     {v:'Tea', s:headStyle}, {v:'Coffee', s:headStyle}, {v:'Green Tea', s:headStyle}, 
                     {v:'Lemon Tea', s:headStyle}, {v:'Black Tea', s:headStyle}, {v:'Black Coffee', s:headStyle}
                 ]);
@@ -9333,6 +9947,7 @@ if (
                     
                     if (reportData[ymd]) {
                         const rowD = reportData[ymd];
+                        const locsStr = Array.from(rowD.locs).filter(Boolean).join(', ') || '-';
                         
                         grandTotals['Tea'] += rowD['Tea'];
                         grandTotals['Coffee'] += rowD['Coffee'];
@@ -9342,17 +9957,18 @@ if (
                         grandTotals['Black Coffee'] += rowD['Black Coffee'];
 
                         trs += `<tr>
-                            <td style="font-weight:bold;">${dmy}</td>
-                            <td>${rowD['Tea'] || '-'}</td>
-                            <td>${rowD['Coffee'] || '-'}</td>
-                            <td>${rowD['Green Tea'] || '-'}</td>
-                            <td>${rowD['Lemon Tea'] || '-'}</td>
-                            <td>${rowD['Black Tea'] || '-'}</td>
-                            <td>${rowD['Black Coffee'] || '-'}</td>
+                            <td style="font-weight:bold; border:1px solid #000;">${dmy}</td>
+                            <td style="border:1px solid #000; color:#475569; font-size:10px;">${locsStr}</td>
+                            <td style="border:1px solid #000;">${rowD['Tea'] || '-'}</td>
+                            <td style="border:1px solid #000;">${rowD['Coffee'] || '-'}</td>
+                            <td style="border:1px solid #000;">${rowD['Green Tea'] || '-'}</td>
+                            <td style="border:1px solid #000;">${rowD['Lemon Tea'] || '-'}</td>
+                            <td style="border:1px solid #000;">${rowD['Black Tea'] || '-'}</td>
+                            <td style="border:1px solid #000;">${rowD['Black Coffee'] || '-'}</td>
                         </tr>`;
 
                         excelData.push([
-                            {v: dmy, s: cellCenter}, 
+                            {v: dmy, s: cellCenter}, {v: locsStr, s: cellCenter},
                             {v: rowD['Tea'] || 0, s: cellCenter}, {v: rowD['Coffee'] || 0, s: cellCenter},
                             {v: rowD['Green Tea'] || 0, s: cellCenter}, {v: rowD['Lemon Tea'] || 0, s: cellCenter},
                             {v: rowD['Black Tea'] || 0, s: cellCenter}, {v: rowD['Black Coffee'] || 0, s: cellCenter}
@@ -9363,20 +9979,20 @@ if (
                 const grandAll = Object.values(grandTotals).reduce((a,b)=>a+b, 0);
 
                 if (trs === '') {
-                    trs = `<tr><td colspan="7" style="padding:20px; text-align:center; color:#64748B;">No delivery data found for this selection.</td></tr>`;
+                    trs = `<tr><td colspan="8" style="padding:20px; text-align:center; color:#64748B;">No delivery data found for this selection.</td></tr>`;
                 } else {
                     trs += `<tr style="background:#F1F5F9; font-weight:bold;">
-                        <td style="text-align:right; padding-right:12px;">GRAND TOTAL</td>
-                        <td style="color:#0A56D0;">${grandTotals['Tea']}</td>
-                        <td style="color:#0A56D0;">${grandTotals['Coffee']}</td>
-                        <td style="color:#0A56D0;">${grandTotals['Green Tea']}</td>
-                        <td style="color:#0A56D0;">${grandTotals['Lemon Tea']}</td>
-                        <td style="color:#0A56D0;">${grandTotals['Black Tea']}</td>
-                        <td style="color:#0A56D0;">${grandTotals['Black Coffee']}</td>
+                        <td colspan="2" style="text-align:right; padding-right:12px; border:1px solid #000;">GRAND TOTAL</td>
+                        <td style="color:#0A56D0; border:1px solid #000;">${grandTotals['Tea']}</td>
+                        <td style="color:#0A56D0; border:1px solid #000;">${grandTotals['Coffee']}</td>
+                        <td style="color:#0A56D0; border:1px solid #000;">${grandTotals['Green Tea']}</td>
+                        <td style="color:#0A56D0; border:1px solid #000;">${grandTotals['Lemon Tea']}</td>
+                        <td style="color:#0A56D0; border:1px solid #000;">${grandTotals['Black Tea']}</td>
+                        <td style="color:#0A56D0; border:1px solid #000;">${grandTotals['Black Coffee']}</td>
                     </tr>`;
 
                     excelData.push([
-                        {v: 'GRAND TOTAL', s: headStyle}, 
+                        {v: 'GRAND TOTAL', s: headStyle}, {v: '', s: headStyle},
                         {v: grandTotals['Tea'], s: headStyle}, {v: grandTotals['Coffee'], s: headStyle},
                         {v: grandTotals['Green Tea'], s: headStyle}, {v: grandTotals['Lemon Tea'], s: headStyle},
                         {v: grandTotals['Black Tea'], s: headStyle}, {v: grandTotals['Black Coffee'], s: headStyle}
@@ -9387,8 +10003,8 @@ if (
                     if (grandAll === 0) return appAlert('No Data', 'No data to export.');
                     const wb = XLSX.utils.book_new();
                     const ws = XLSX.utils.aoa_to_sheet(excelData);
-                    ws['!merges'] = [{ s: {r:0, c:0}, e: {r:0, c:6} }];
-                    ws['!cols'] = [{wch: 15}, {wch: 12}, {wch: 12}, {wch: 12}, {wch: 12}, {wch: 12}, {wch: 14}];
+                    ws['!merges'] = [{ s: {r:0, c:0}, e: {r:0, c:7} }, { s: {r:excelData.length-1, c:0}, e: {r:excelData.length-1, c:1} }];
+                    ws['!cols'] = [{wch: 12}, {wch: 25}, {wch: 10}, {wch: 10}, {wch: 10}, {wch: 10}, {wch: 10}, {wch: 12}];
                     XLSX.utils.book_append_sheet(wb, ws, "Delivery Report");
                     window.pantryDownloadExcelFile(wb, `PantryBoy_${type}_Report_${month}.xlsx`);
                     appAlert('Downloaded', 'Excel downloaded successfully!');
@@ -9402,6 +10018,7 @@ if (
                             <thead>
                                 <tr style="background:#F1F5F9;">
                                     <th style="border:1px solid #000; padding:6px;">Date</th>
+                                    <th style="border:1px solid #000; padding:6px;">Locations Covered</th>
                                     <th style="border:1px solid #000; padding:6px;">Tea</th>
                                     <th style="border:1px solid #000; padding:6px;">Coffee</th>
                                     <th style="border:1px solid #000; padding:6px;">Green Tea</th>
@@ -9435,7 +10052,7 @@ if (
                                 .preview-content { padding: 0 !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; overflow: visible !important; }
                                 .preview-header { display: none !important; }
                                 table.print-table { width: 100% !important; max-width: 100% !important; table-layout: auto !important; }
-                                table.print-table th, table.print-table td { padding: 5px 4px !important; font-size: 11.5px !important; height: 38px !important; text-align:center; border:1px solid #000; }
+                                table.print-table th, table.print-table td { padding: 5px 4px !important; font-size: 11px !important; height: auto !important; text-align:center; border:1px solid #000; }
                             }
                         </style>
                     `;
@@ -9443,7 +10060,6 @@ if (
                     container.classList.remove('hidden');
                 }
             };
-
             // ============================================================
             // 3. DOWNLOAD ALL CATEGORIES EXCEL
             // ============================================================
@@ -12096,17 +12712,11 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     return recYMD.startsWith(selectedMonthYMD);
                 });
 
-                const searchTerms = searchQuery.split(/\s+/).filter(Boolean);
-                if (searchTerms.length > 0) {
-                    filteredRecords = filteredRecords.filter(rec => {
-                        const rowText = Object.values(rec).join(' ').toLowerCase();
-                        return searchTerms.every(term => rowText.includes(term));
-                    });
-                }
-
-                                const slips = {};
+                                // પહેલા બધી ચિઠ્ઠીઓને ભેગી (Group) કરવાની છે, જેથી સિક્વન્સ જળવાઈ રહે
+                const slips = {};
                 filteredRecords.forEach(rec => {
-                    const key = `${rec.DateFormatted}_${rec.Purpose}`; // હવે ગ્રુપ માત્ર તારીખ અને પર્પઝથી બનશે
+                    const key = `${rec.DateFormatted}_${rec.Purpose}_${rec.Vendor}`;
+                    
                     if(!slips[key]) {
                         slips[key] = {
                             key: key,
@@ -12131,7 +12741,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     slips[key].idsToDelete.push(rec);
                 });
 
-                // તારીખ પ્રમાણે સોર્ટિંગ (1 થી 31 - Ascending Order)
+                // ચિઠ્ઠીઓને તારીખ પ્રમાણે સોર્ટ કરો
                 const sortedSlips = Object.values(slips).sort((a, b) => {
                     const dateA = window.parseDMYToYMD ? window.parseDMYToYMD(a.DateFormatted) : a.DateFormatted;
                     const dateB = window.parseDMYToYMD ? window.parseDMYToYMD(b.DateFormatted) : b.DateFormatted;
@@ -12142,8 +12752,25 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     return dateA.localeCompare(dateB);
                 });
 
+                // સોર્ટ કર્યા પછી દરેક ચિઠ્ઠીને સિરીયલ નંબર આપો (જેમ કે SLP-2609-001)
+                const [yy, mm] = selectedMonthYMD.split('-');
+                const prefix = `SLP-${yy.slice(-2)}${mm}-`;
+                sortedSlips.forEach((slip, idx) => {
+                    slip.slipNo = prefix + String(idx + 1).padStart(3, '0');
+                });
+
+                // હવે સર્ચ ફિલ્ટર એપ્લાય કરો, જેથી નંબર બદલાય નહીં
+                let finalSlips = sortedSlips;
+                const searchTerms = searchQuery.split(/\s+/).filter(Boolean);
+                if (searchTerms.length > 0) {
+                    finalSlips = sortedSlips.filter(slip => {
+                        const rowText = `${slip.slipNo} ${slip.DateFormatted} ${slip.Vendor} ${slip.Purpose} ${slip.ReqName} ${slip.Location} ${slip.ServedBy} ${slip.items.map(i=>i.Item).join(' ')}`.toLowerCase();
+                        return searchTerms.every(term => rowText.includes(term));
+                    });
+                }
+
                 let html = '';
-                if(sortedSlips.length === 0) {
+                if(finalSlips.length === 0) {
                     html = `<div style="text-align:center; padding:20px; color:#64748b; font-weight:bold; background:#fff; border-radius:6px; border:1px solid #cbd5e1;">No records found.</div>`;
                 } else {
                     html = `
@@ -12151,7 +12778,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                         <table style="width:100%; border-collapse:collapse; font-size:10px; text-align:left; min-width:320px;">
                             <thead style="background:#f1f5f9; border-bottom:2px solid #cbd5e1; position:sticky; top:0; z-index:5;">
                                 <tr>
-                                    <th style="padding:4px; width:20%;">Date</th>
+                                    <th style="padding:4px; width:20%;">Date & No.</th>
                                     <th style="padding:4px; width:35%;">Details</th>
                                     <th style="padding:4px; width:15%; text-align:right;">Amt</th>
                                     <th style="padding:4px; width:30%; text-align:center;">Action</th>
@@ -12160,21 +12787,23 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                             <tbody>
                     `;
 
-                    sortedSlips.forEach((slip, idx) => {
+                    finalSlips.forEach((slip, idx) => {
                         const delData = encodeURIComponent(JSON.stringify(slip.idsToDelete)).replace(/'/g, "%27");
                         const itemsData = encodeURIComponent(JSON.stringify(slip)).replace(/'/g, "%27");
 
                         html += `
                             <tr style="border-bottom:1px solid #e2e8f0; background:${idx%2===0?'#fff':'#f8fafc'};">
-                                <td style="padding:8px 4px; font-weight:bold; color:#1e293b; vertical-align:top;">${slip.DateFormatted.slice(0,5)}</td>
+                                <td style="padding:8px 4px; font-weight:bold; color:#1e293b; vertical-align:top;">
+                                    ${slip.DateFormatted.slice(0,5)}<br>
+                                    <span style="color:#d97706; font-size:9px;">#${slip.slipNo}</span>
+                                </td>
                                 <td style="padding:8px 4px; vertical-align:top; line-height:1.4;">
                                     <b style="color:#d97706; font-size:11px;">${slip.Purpose}</b><br>
                                     <span style="color:#64748b; font-size:9px;">Req: ${slip.ReqName}</span><br>
-                                    <span style="color:#0284c7; font-size:9px;">${Array.from(slip.Vendors).join(', ')} (${slip.itemCount} Items)</span>
+                                    <span style="color:#0284c7; font-size:9px;">${slip.Vendor} (${slip.itemCount} Items)</span>
                                 </td>
                                 <td style="padding:8px 4px; text-align:right; font-weight:bold; color:#10b981; vertical-align:top; font-size:12px;">₹${slip.totalAmt.toFixed(2)}</td>
                                 <td style="padding:4px 2px; text-align:center; vertical-align:top;">
-
                                     <div style="display:flex; flex-direction:column; gap:4px; align-items:center;">
                                         <button onclick="window.viewMgSlip('${itemsData}')" style="background:#fef3c7; color:#d97706; border:1px solid #fde68a; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:10px; cursor:pointer; width:100%;">📜 Slip</button>
                                         <button onclick="window.editMgGroup('${itemsData}')" style="background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:10px; cursor:pointer; width:100%;">✏️ Edit</button>
@@ -12186,7 +12815,6 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     });
                     html += `</tbody></table></div>`;
                 }
-
                 if(containerMain) containerMain.innerHTML = html;
                 if(containerPopup) containerPopup.innerHTML = html;
             };
@@ -12262,12 +12890,9 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 });
             };
 
-            // 📜 View Slip Function (કાચી ચિઠ્ઠી બતાવવા માટે)
+             // 📜 Direct Print Slip Function (કાચી ચિઠ્ઠી સીધી પ્રિન્ટ માટે)
             window.viewMgSlip = function(encodedData) {
                 const slip = JSON.parse(decodeURIComponent(encodedData));
-                
-                const existing = document.getElementById('mgSlipPopupOverlay');
-                if(existing) existing.remove();
 
                 let itemRows = slip.items.map(it => `
                     <tr>
@@ -12278,67 +12903,51 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     </tr>
                 `).join('');
 
-                const modal = document.createElement('div');
-                modal.className = 'popup-overlay';
-                modal.id = 'mgSlipPopupOverlay';
-                modal.innerHTML = `
-                    <div class="popup-card" style="width:95vw; max-width:400px; padding:12px; border-radius:8px;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center;">
-                            <button onclick="window.printMgSlipContent()" style="background:#0A56D0; color:#fff; border:none; padding:4px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">🖨️ Print Slip</button>
-                            <button onclick="document.getElementById('mgSlipPopupOverlay').remove()" style="background:transparent; border:none; color:#ef4444; font-size:18px; font-weight:bold; cursor:pointer;">✕</button>
+                const content = `
+                    <div class="slip-card" id="mgSlipPrintableArea" style="background:#fff; border:1px dashed #94a3b8; border-radius:2px; padding:12px; margin:auto; max-width:400px; font-family: 'Courier New', monospace; color:#000;">
+                        <div class="slip-header" style="text-align:center; font-weight:bold; font-size:16px; text-decoration:underline; margin-bottom:4px;">GUEST SLIP</div>
+                        <div style="text-align:center; font-size:12px; font-weight:bold; margin-bottom:10px; color:#d97706;">Slip No: #${slip.slipNo}</div>
+                        
+                        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:10px;">
+                            <div><b>To,<br>Manager,</b><br><b style="font-size:14px; text-decoration:underline;">${slip.Vendor}</b></div>
+                            <div style="text-align:right;">
+                                <b>Date:</b> ${slip.DateFormatted}<br>
+                                <b>Location:</b> ${slip.Location || '-'}
+                            </div>
                         </div>
                         
-                        <div class="slip-card" id="mgSlipPrintableArea" style="background:#fff; border:1px dashed #94a3b8; border-radius:2px; padding:12px; margin:auto; max-width:400px; font-family: 'Courier New', monospace; color:#000;">
-                            <div class="slip-header" style="text-align:center; font-weight:bold; font-size:16px; text-decoration:underline; margin-bottom:10px;">GUEST SLIP</div>
-                            <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:10px;">
-                                <div><b>To,<br>Manager,</b><br><b style="font-size:14px; text-decoration:underline;">${slip.Vendor}</b></div>
-                                <div style="text-align:right;">
-                                    <b>Date:</b> ${slip.DateFormatted}<br>
-                                    <b>Location:</b> ${slip.Location || '-'}
-                                </div>
-                            </div>
-                            
-                            <table class="slip-table" style="width:100%; border-collapse:collapse; margin-bottom:10px; font-size:12px; border-top:1px solid #000; border-bottom:1px solid #000;">
-                                <thead>
-                                    <tr>
-                                        <th style="text-align:left; padding:4px 2px; border-bottom:1px solid #000;">Item</th>
-                                        <th style="text-align:center; padding:4px 2px; border-bottom:1px solid #000; width:15%;">Qty</th>
-                                        <th style="text-align:center; padding:4px 2px; border-bottom:1px solid #000; width:20%;">Rate</th>
-                                        <th style="text-align:right; padding:4px 2px; border-bottom:1px solid #000; width:20%;">Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${itemRows}
-                                    <tr style="border-top:1px solid #000; border-bottom:1px solid #000; background:#f8fafc;">
-                                        <td colspan="3" style="text-align:right; padding:6px 4px; font-weight:bold; font-size:13px;">Grand Total:</td>
-                                        <td style="text-align:right; padding:6px 4px; font-weight:bold; font-size:14px; color:#1e293b;">₹${slip.totalAmt.toFixed(2)}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <table class="slip-table" style="width:100%; border-collapse:collapse; margin-bottom:10px; font-size:12px; border-top:1px solid #000; border-bottom:1px solid #000;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:left; padding:4px 2px; border-bottom:1px solid #000;">Item</th>
+                                    <th style="text-align:center; padding:4px 2px; border-bottom:1px solid #000; width:15%;">Qty</th>
+                                    <th style="text-align:center; padding:4px 2px; border-bottom:1px solid #000; width:20%;">Rate</th>
+                                    <th style="text-align:right; padding:4px 2px; border-bottom:1px solid #000; width:20%;">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${itemRows}
+                                <tr style="border-top:1px solid #000; border-bottom:1px solid #000; background:#f8fafc;">
+                                    <td colspan="3" style="text-align:right; padding:6px 4px; font-weight:bold; font-size:13px;">Grand Total:</td>
+                                    <td style="text-align:right; padding:6px 4px; font-weight:bold; font-size:14px; color:#1e293b;">₹${slip.totalAmt.toFixed(2)}</td>
+                                </tr>
+                            </tbody>
+                        </table>
 
-                            <div style="font-size:11px; line-height:1.5;">
-                                <div><b>Req By:</b> ${slip.ReqName}</div>
-                                <div><b>Purpose:</b> ${slip.Purpose}</div>
-                                <div><b>Served By:</b> ${slip.ServedBy}</div>
-                            </div>
-                            <div style="margin-top:40px; display:flex; justify-content:space-between; font-size:11px; font-weight:bold;">
-                                <span>Pantry Sign</span>
-                                <span>Guest Sign</span>
-                            </div>
+                        <div style="font-size:11px; line-height:1.5;">
+                            <div><b>Req By:</b> ${slip.ReqName}</div>
+                            <div><b>Purpose:</b> ${slip.Purpose}</div>
+                            <div><b>Served By:</b> ${slip.ServedBy}</div>
                         </div>
                     </div>
                 `;
-                document.body.appendChild(modal);
-            };
 
-            window.printMgSlipContent = function() {
-                const content = document.getElementById('mgSlipPrintableArea').outerHTML;
                 const container = document.getElementById('printAreaContainer');
                 container.style.zIndex = "999999999";
                 container.innerHTML = `
                     <div class="preview-card" style="max-width:450px; width:95vw; height:auto; padding:20px;">
                         <div class="preview-header hide-on-print" style="margin-bottom:16px; display:flex; justify-content:space-between;">
-                            <button onclick="window.print()" class="success" style="padding:8px 16px; border-radius:8px;">🖨️ Print Now</button>
+                            <button onclick="window.print()" class="success" style="padding:8px 16px; border-radius:8px;">🖨️ Print Slip</button>
                             <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger" style="padding:8px 16px; border-radius:8px;">✕ Close</button>
                         </div>
                         <div class="preview-content" style="padding:0; background:#fff;">
@@ -12357,6 +12966,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 `;
                 container.classList.remove('hidden');
             };
+
             // ✏️ Edit Group Function (આખી મીટિંગ એડિટ કરવા માટે)
             window.editMgGroup = function(encodedData) {
                 const slip = JSON.parse(decodeURIComponent(encodedData));
