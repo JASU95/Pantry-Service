@@ -1,6 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+    // ⚠️ જ્યારે પણ તમે ગિટહબ પર નવો કોડ નાખો, ત્યારે આ વર્ઝન નંબર બદલી નાખવો (દા.ત. 1.0.1 થી 1.0.2)
+    const APP_VERSION = "1.0.2"; 
+    const currentAppVersion = localStorage.getItem('dau_pantry_version');
+
+    if (currentAppVersion !== APP_VERSION) {
+        // નવું વર્ઝન સેવ કરો
+        localStorage.setItem('dau_pantry_version', APP_VERSION);
+        
+        // 1. Service Worker (PWA) નો જૂનો કેશ કાઢી નાખવા
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                }
+            });
+        }
+
+        // 2. બ્રાઉઝરને બળજબરીથી નવું પેજ લોડ કરાવવા માટે URL પાછળ ટાઈમસ્ટેમ્પ લગાવવો
+        const cleanUrl = window.location.origin + window.location.pathname;
+        const freshUrl = cleanUrl + '?update=' + new Date().getTime();
+        
+        window.location.replace(freshUrl);
+    }
+</script>
 	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
@@ -7697,8 +7722,7 @@
                             window.renderDauPurchaseAccessAdmin?.();
                         }, 50);
                         break;
-
-                                                           case 'web_sync':
+case 'web_sync':
                         cont.innerHTML = `
                             <div class="card" style="border:2px solid #0284C7; background:#F0F9FF;">
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
@@ -7715,10 +7739,18 @@
                             </div>
                         `;
 
-                        // --- 📍 HELPER: લોકેશન પરથી પેન્ટ્રી બોય શોધવા ---
+                        // --- 📍 HELPER: રૂમ નંબર અલગ પાડવા માટે ---
+                        function parseWebLoc(locStr) {
+                            if(!locStr) return { loc: '', room: '' };
+                            const match = locStr.match(/^(.*?)\s*\(\s*Room\s*(.*?)\s*\)$/i);
+                            if(match) return { loc: match[1].trim(), room: match[2].trim() };
+                            return { loc: locStr.trim(), room: '' };
+                        }
+
                         function getPantryBoyForLocation(locName) {
                             if (!locName) return "";
-                            const empsInLoc = employeeList.filter(e => e.locationNode === locName && e.assignedPantryId && e.status !== 'Inactive');
+                            const parsed = parseWebLoc(locName);
+                            const empsInLoc = employeeList.filter(e => e.locationNode === parsed.loc && e.assignedPantryId && e.status !== 'Inactive');
                             if (empsInLoc.length === 0) return "";
                             
                             const counts = {};
@@ -7731,7 +7763,7 @@
                                     bestPb = e.assignedPantryId;
                                 }
                             });
-                            return bestPb; // જે પેન્ટ્રી બોય પાસે આ લોકેશનના સૌથી વધુ એમ્પ્લોયી હશે તે સિલેક્ટ થશે
+                            return bestPb;
                         }
                         
                         db.ref('webSyncPending').on('value', snap => {
@@ -7746,7 +7778,9 @@
                             }
                             
                             listContainer.innerHTML = items.map(item => {
-                                const locHtml = item.locationNode ? `<br><span style="font-size:11px; color:#0A56D0; font-weight:bold;">📍 Auto-Location: ${safeStr(item.locationNode)}</span>` : '';
+                                const parsed = parseWebLoc(item.locationNode);
+                                const roomTxt = parsed.room ? ` | 🚪 Room: ${parsed.room}` : '';
+                                const locHtml = parsed.loc ? `<br><span style="font-size:11px; color:#0A56D0; font-weight:bold;">📍 Auto-Location: ${safeStr(parsed.loc)}${roomTxt}</span>` : '';
                                 return `
                                 <div style="border:1px solid #BAE6FD; background:#fff; border-radius:8px; padding:10px; margin-bottom:8px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
                                     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
@@ -7766,7 +7800,6 @@
                             }).join('');
                         });
 
-                        // --- 🚀 SMART BULK AUTO-SYNC LOGIC ---
                         window.runSmartAutoSync = async function() {
                             const snap = await db.ref('webSyncPending').once('value');
                             const pendingData = snap.val();
@@ -7775,7 +7808,6 @@
                             let rawItems = Object.values(pendingData);
                             const activeEmps = employeeList.filter(e => e.status !== 'Inactive');
                             
-                            // 1. ડુપ્લીકેટ નામ રોકવા (Deduplication)
                             const uniquePending = [];
                             const seenNames = new Set();
                             rawItems.forEach(item => {
@@ -7784,15 +7816,12 @@
                                     seenNames.add(cleanName);
                                     uniquePending.push(item);
                                 } else {
-                                    // ડુપ્લીકેટ છે, તો તેને ફાયરબેઝમાંથી કાઢી નાખો
                                     db.ref('webSyncPending/' + item.id).remove();
                                 }
                             });
-                            
                             if(uniquePending.length === 0) return;
 
-                            appConfirm('Confirm Auto-Sync', `Ready to Auto-Sync ${uniquePending.length} unique records.<br><br><b>Logic:</b><br>✔️ Exact/Minor spelling typos will be merged.<br>➕ Completely new names will be added.<br>📍 Pantry Boy will be auto-assigned based on location.`, async () => {
-                                
+                            appConfirm('Confirm Auto-Sync', `Ready to Auto-Sync ${uniquePending.length} unique records.`, async () => {
                                 appAlert('Processing', 'Auto-Sync is running... Please wait.');
                                 
                                 function getSimilarity(s1, s2) {
@@ -7808,10 +7837,8 @@
                                             if (i === 0) costs[j] = j;
                                             else if (j > 0) {
                                                 let newValue = costs[j - 1];
-                                                if (longer.charAt(i - 1) !== shorter.charAt(j - 1))
-                                                    newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
-                                                costs[j - 1] = lastValue;
-                                                lastValue = newValue;
+                                                if (longer.charAt(i - 1) !== shorter.charAt(j - 1)) newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                                                costs[j - 1] = lastValue; lastValue = newValue;
                                             }
                                         }
                                         if (i > 0) costs[shorter.length] = lastValue;
@@ -7820,59 +7847,49 @@
                                 }
 
                                 const updates = {};
-                                let mergedCount = 0;
-                                let addedCount = 0;
-                                let pendingCount = 0;
+                                let mergedCount = 0; let addedCount = 0; let pendingCount = 0;
 
                                 uniquePending.forEach(item => {
-                                    let bestMatchId = "";
-                                    let highestSim = 0;
-
+                                    let bestMatchId = ""; let highestSim = 0;
                                     activeEmps.forEach(emp => {
                                         let sim = getSimilarity(item.name, emp.name || "");
-                                        if (sim > highestSim) {
-                                            highestSim = sim;
-                                            bestMatchId = emp.id;
-                                        }
+                                        if (sim > highestSim) { highestSim = sim; bestMatchId = emp.id; }
                                     });
 
+                                    const parsedLoc = parseWebLoc(item.locationNode);
+                                    const finalBuilding = parsedLoc.loc;
+                                    const finalRoom = parsedLoc.room;
+
                                     if (highestSim >= 0.85) {
-                                        // AUTO-MERGE (Spelling Mistake / Typo)
                                         updates['employees/' + bestMatchId + '/name'] = item.name;
                                         updates['employees/' + bestMatchId + '/source'] = "website";
-                                        if(item.locationNode) updates['employees/' + bestMatchId + '/locationNode'] = item.locationNode;
+                                        if(finalBuilding) updates['employees/' + bestMatchId + '/locationNode'] = finalBuilding;
+                                        if(finalRoom) updates['employees/' + bestMatchId + '/roomNo'] = finalRoom;
+                                        
                                         updates['webSyncPending/' + item.id] = null; 
                                         mergedCount++;
                                         
-                                        if(item.locationNode && !venueList.some(v => v.name.toLowerCase() === item.locationNode.toLowerCase())) {
+                                        if(finalBuilding && !venueList.some(v => v.name.toLowerCase() === finalBuilding.toLowerCase())) {
                                             const vId = 'vnu_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-                                            updates['venues/' + vId] = { id: vId, name: item.locationNode };
+                                            updates['venues/' + vId] = { id: vId, name: finalBuilding };
                                         }
-
                                     } else if (highestSim < 0.35) {
-                                        // AUTO-ADD & AUTO-ASSIGN PB
                                         const empId = 'emp_web_' + Date.now() + Math.floor(Math.random() * 10000);
                                         const autoPbId = getPantryBoyForLocation(item.locationNode);
                                         
                                         updates['employees/' + empId] = {
-                                            id: empId,
-                                            name: item.name,
-                                            category: item.category,
-                                            assignedPantryId: autoPbId, // 📍 Auto-Assigned PB!
-                                            locationNode: item.locationNode || "",
-                                            department: "",
-                                            status: "Active",
-                                            source: "website"
+                                            id: empId, name: item.name, category: item.category,
+                                            assignedPantryId: autoPbId, locationNode: finalBuilding || "", roomNo: finalRoom || "",
+                                            department: "", status: "Active", source: "website"
                                         };
                                         updates['webSyncPending/' + item.id] = null;
                                         addedCount++;
                                         
-                                        if(item.locationNode && !venueList.some(v => v.name.toLowerCase() === item.locationNode.toLowerCase())) {
+                                        if(finalBuilding && !venueList.some(v => v.name.toLowerCase() === finalBuilding.toLowerCase())) {
                                             const vId = 'vnu_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-                                            updates['venues/' + vId] = { id: vId, name: item.locationNode };
+                                            updates['venues/' + vId] = { id: vId, name: finalBuilding };
                                         }
                                     } else {
-                                        // LEAVE PENDING
                                         pendingCount++;
                                     }
                                 });
@@ -7886,33 +7903,23 @@
                             });
                         };
 
-                        window.ignoreWebSync = function(id) {
-                            appConfirm('Ignore Update', 'Are you sure you want to ignore this name?', () => {
-                                db.ref('webSyncPending/' + id).remove();
-                            });
-                        };
+                        window.ignoreWebSync = function(id) { appConfirm('Ignore Update', 'Are you sure?', () => { db.ref('webSyncPending/' + id).remove(); }); };
 
-                        // મેન્યુઅલ એડમાં પણ ઓટો-પેન્ટ્રી બોય અસાઇન
                         window.addWebSyncAsNew = function(id) {
                             db.ref('webSyncPending/' + id).once('value').then(snap => {
                                 const data = snap.val();
                                 if(data) {
                                     const empId = 'emp_web_' + Date.now() + Math.floor(Math.random() * 1000);
+                                    const parsed = parseWebLoc(data.locationNode);
                                     const autoPbId = getPantryBoyForLocation(data.locationNode);
                                     
-                                    if(data.locationNode && !venueList.some(v => v.name.toLowerCase() === data.locationNode.toLowerCase())) {
+                                    if(parsed.loc && !venueList.some(v => v.name.toLowerCase() === parsed.loc.toLowerCase())) {
                                         const vId = 'vnu_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-                                        db.ref('venues/' + vId).set({ id: vId, name: data.locationNode });
+                                        db.ref('venues/' + vId).set({ id: vId, name: parsed.loc });
                                     }
                                     db.ref('employees/' + empId).set({
-                                        id: empId, 
-                                        name: data.name, 
-                                        category: data.category, 
-                                        assignedPantryId: autoPbId, // 📍 Auto-Assigned PB!
-                                        locationNode: data.locationNode || "", 
-                                        department: "", 
-                                        status: "Active", 
-                                        source: "website"
+                                        id: empId, name: data.name, category: data.category, assignedPantryId: autoPbId,
+                                        locationNode: parsed.loc || "", roomNo: parsed.room || "", department: "", status: "Active", source: "website"
                                     }).then(() => {
                                         db.ref('webSyncPending/' + id).remove();
                                         appAlert('Added', 'New employee added & assigned successfully!');
@@ -7926,22 +7933,24 @@
                                 const data = snap.val();
                                 if(!data) return;
                                 const activeEmps = employeeList.filter(e => e.status !== 'Inactive');
-                                
-                                const locParam = data.locationNode ? data.locationNode.replace(/'/g, "\\'") : '';
+                                const parsed = parseWebLoc(data.locationNode);
+                                const locParam = parsed.loc ? parsed.loc.replace(/'/g, "\\'") : '';
+                                const roomParam = parsed.room ? parsed.room.replace(/'/g, "\\'") : '';
+
                                 const modal = document.createElement('div');
                                 modal.className = 'popup-overlay';
                                 modal.id = 'mergeWebSyncModal';
                                 modal.innerHTML = `
                                     <div class="popup-card" style="max-width:400px; padding:20px; border-radius:12px;">
                                         <h3 style="color:#D97706; margin-top:0; margin-bottom:8px; font-size:16px;">🔄 Manual Replace</h3>
-                                        <p style="font-size:12px; color:#475569; margin-bottom:14px;">Select the existing employee to overwrite with <b>"${data.name}"</b>.</p>
+                                        <p style="font-size:12px; color:#475569; margin-bottom:14px;">Overwrite existing employee with <b>"${data.name}"</b>.</p>
                                         <input type="text" id="mergeSearchEmp" placeholder="🔍 Search name..." style="padding:10px; margin-bottom:6px; border-radius:8px; border:1px solid #CBD5E1; width:100%; box-sizing:border-box;" oninput="window.filterMergeEmpSelect()">
                                         <select id="mergeTargetEmp" size="5" style="width:100%; padding:6px; border-radius:8px; border:1px solid #CBD5E1; font-size:12px; margin-bottom:16px;">
                                             ${activeEmps.map(e => `<option value="${e.id}">${safeStr(e.name)} [${safeStr(e.category)}]</option>`).join('')}
                                         </select>
                                         <div style="display:flex; gap:8px;">
                                             <button onclick="document.getElementById('mergeWebSyncModal').remove()" class="danger" style="flex:1; padding:10px; border-radius:8px; font-weight:bold; font-size:12px;">Cancel</button>
-                                            <button onclick="window.executeMergeWebSync('${id}', '${data.name.replace(/'/g, "\\'")}', '${data.category}', '${locParam}')" class="success" style="flex:1; padding:10px; border-radius:8px; background:#D97706; font-weight:bold; font-size:12px;">Update Name</button>
+                                            <button onclick="window.executeMergeWebSync('${id}', '${data.name.replace(/'/g, "\\'")}', '${locParam}', '${roomParam}')" class="success" style="flex:1; padding:10px; border-radius:8px; background:#D97706; font-weight:bold; font-size:12px;">Update Name</button>
                                         </div>
                                     </div>
                                 `;
@@ -7950,14 +7959,12 @@
                                 window.filterMergeEmpSelect = function() {
                                     const q = document.getElementById('mergeSearchEmp').value.toLowerCase().trim();
                                     const sel = document.getElementById('mergeTargetEmp');
-                                    sel.querySelectorAll('option').forEach(opt => {
-                                        opt.style.display = opt.text.toLowerCase().includes(q) ? 'block' : 'none';
-                                    });
+                                    sel.querySelectorAll('option').forEach(opt => { opt.style.display = opt.text.toLowerCase().includes(q) ? 'block' : 'none'; });
                                 };
                             });
                         };
 
-                        window.executeMergeWebSync = function(syncId, newName, newCategory, newLoc) {
+                        window.executeMergeWebSync = function(syncId, newName, newLoc, newRoom) {
                             const targetEmpId = document.getElementById('mergeTargetEmp').value;
                             if(!targetEmpId) return appAlert('Error', 'Select an employee from the list.');
                             const updates = { name: newName, source: "website" };
@@ -7968,6 +7975,8 @@
                                     updates['venues/' + vId] = { id: vId, name: newLoc };
                                 }
                             }
+                            if(newRoom) updates.roomNo = newRoom;
+                            
                             db.ref('employees/' + targetEmpId).update(updates).then(() => {
                                 db.ref('webSyncPending/' + syncId).remove();
                                 document.getElementById('mergeWebSyncModal').remove();
@@ -7980,6 +7989,13 @@
                         cont.innerHTML = `
                           <div class="card"><h4 style="margin-bottom:12px; color:#44474E; font-size:1rem;">⚙️ Change Admin Password</h4><input type="password" id="newAdminPass" placeholder="New Password" value="${adminSecurity.password}" style="padding:14px; border-radius:10px; border:1px solid #CBD5E1;"><button id="saveAdminCreds" class="success" style="width:100%; min-height:44px;">Update Password</button></div>
                           
+                          <!-- 🧹 Magic Cleanup Card -->
+                          <div class="card" style="margin-top:16px; border:2px solid #EF4444; background:#FEF2F2;">
+                            <h4 style="color:#DC3545; margin-bottom:12px; font-size:1rem;">🧹 Clean & Merge Duplicate Locations</h4>
+                            <p style="font-size:.8rem; color:#44474E; margin-bottom:12px;">Remove Room numbers from locations (e.g. Faculty Block 1) and move the room number to the employee's profile.</p>
+                            <button id="cleanLocationsBtn" class="danger" style="width:100%; min-height:44px; font-weight:bold; border-radius:8px;">Run Cleanup Now</button>
+                          </div>
+
                           <!-- ☕ Card 1: IA Caterers / Contractor Beverage Master -->
                           <div class="card" style="margin-top:16px; border:2px solid #0A56D0; background:#F8FAFC;">
                             <h4 style="color:#0A56D0; margin-bottom:6px; font-size:1rem;">☕ IA Caterers (Contractor) Beverage List</h4>
@@ -8017,6 +8033,49 @@
                             if (np) db.ref('adminSecurityConfig').set({ password: np });
                             appAlert('Success', 'Password updated.');
                         };
+                        
+                        document.getElementById('cleanLocationsBtn').onclick = async () => {
+                            appConfirm('Merge Locations', 'This will remove room numbers from Locations and move them to Employee profiles. Do you want to proceed?', async () => {
+                                appAlert('Processing', 'Please wait...');
+                                const updates = {};
+                                const cleanVenues = {};
+
+                                employeeList.forEach(emp => {
+                                    if (emp.locationNode && emp.locationNode.includes('(Room')) {
+                                        const match = emp.locationNode.match(/^(.*?)\s*\(\s*Room\s*(.*?)\s*\)$/i);
+                                        if (match) {
+                                            const baseLoc = match[1].trim();
+                                            const room = match[2].trim();
+                                            updates['employees/' + emp.id + '/locationNode'] = baseLoc;
+                                            updates['employees/' + emp.id + '/roomNo'] = room;
+                                            cleanVenues[baseLoc.toLowerCase()] = baseLoc;
+                                        }
+                                    }
+                                });
+
+                                venueList.forEach(v => {
+                                    if (v.name.includes('(Room')) {
+                                        updates['venues/' + v.id] = null; 
+                                        const match = v.name.match(/^(.*?)\s*\(\s*Room/i);
+                                        if(match) cleanVenues[match[1].trim().toLowerCase()] = match[1].trim();
+                                    } else {
+                                        cleanVenues[v.name.toLowerCase()] = v.name; 
+                                    }
+                                });
+
+                                Object.values(cleanVenues).forEach(locName => {
+                                    if (!venueList.some(v => v.name.toLowerCase() === locName.toLowerCase() && !v.name.includes('(Room'))) {
+                                        const vId = 'vnu_clean_' + Date.now() + Math.floor(Math.random()*1000);
+                                        updates['venues/' + vId] = { id: vId, name: locName };
+                                    }
+                                });
+
+                                await db.ref().update(updates);
+                                appAlert('Success', '✅ All locations merged to Building names and Room Numbers moved to Employees!');
+                                if (typeof renderAdminVenues === 'function') renderAdminVenues();
+                            });
+                        };
+
                         document.getElementById('backupBtn').onclick = backupAllData;
                         document.getElementById('restoreBtn').onclick = restoreAllData;
 
@@ -8248,19 +8307,19 @@ if (
                 const cat = document.getElementById('categoryFilter')?.value || '';
                 const pFilter = document.getElementById('pantryFilter')?.value || '';
                 
-                // નવો ફેરફાર: સ્પેસ કાઢીને ફિલ્ટર કરો અને Inactive એમ્પ્લોયીને હાઈડ કરો
                 const filtered = employeeList.filter(e => e.status !== 'Inactive' && (e.name || '').toLowerCase().includes(search) && (!cat || (e.category || '').trim().toLowerCase() === cat.toLowerCase()) && (!pFilter || e.assignedPantryId === pFilter));                
                 const container = document.getElementById('employeeListContainer');
                 if (!container) return;
-                if (!filtered.length) { container.innerHTML =
-                    `<p style="text-align:center; padding:20px; color:#74777F; font-size:.9rem;">No employees.</p>`; return; }
+                if (!filtered.length) { container.innerHTML = `<p style="text-align:center; padding:20px; color:#74777F; font-size:.9rem;">No employees.</p>`; return; }
+                
                 container.innerHTML = filtered.map(emp => {
                     const pantryName = pantryTeam.find(p => p.id === emp.assignedPantryId)?.name || 'Unassigned';
                     const loc = emp.locationNode || 'Unassigned Node';
+                    const roomStr = emp.roomNo ? ` | 🚪 Room: ${emp.roomNo}` : '';
                     const dept = emp.department || 'Unassigned';
                     return `
                 <div class="employee-item" style="margin:6px 4px;">
-                  <span><strong>${safeStr(emp.name)}</strong><br><small style="color:#74777F;">${safeStr(emp.category)} | 🧑‍🍳 ${pantryName} | 📍 ${loc} | 🏢 ${dept}</small></span>
+                  <span><strong>${safeStr(emp.name)}</strong><br><small style="color:#74777F;">${safeStr(emp.category)} | 🧑‍🍳 ${pantryName} | 📍 ${loc}${roomStr} | 🏢 ${dept}</small></span>
                   <span style="display:flex; align-items:center; gap:4px;">
                     <button class="editEmployeeBtn" data-id="${emp.id}" style="background:transparent; border:none; cursor:pointer; font-size:1.1rem; padding:6px 8px; color:#0A56D0; border-radius:8px;">✏️</button>
                     <button onclick="window.pantryDeleteHandler('employee','${emp.id}')" style="background:transparent; border:none; color:#DC3545; cursor:pointer; font-size:1.1rem; padding:6px 8px; border-radius:8px;">🗑</button>
@@ -8275,7 +8334,7 @@ if (
                 });
             }
 
-            window.openEmployeeForm = function(existing = null) {
+          window.openEmployeeForm = function(existing = null) {
                 document.getElementById('dynamicFormCard')?.remove();
                 const form = document.createElement('div');
                 form.className = 'card';
@@ -8296,10 +8355,21 @@ if (
                 form.innerHTML = `
               <h3 style="color:#0A56D0; margin-bottom:12px; font-size:1.1rem;">${existing?.id ? '✏️ Edit' : '➕ Add'} Employee</h3>
               <input id="empName" placeholder="Name" value="${safeStr(existing?.name)}" style="text-align:left; padding:14px; border-radius:10px; border:1px solid #CBD5E1;">
-              <select id="empCat" style="padding:14px; border-radius:10px; border:1px solid #CBD5E1;"><option value="">Category</option><option value="Faculty" ${existing?.category==='Faculty'?'selected':''}>Faculty</option><option value="Staff" ${existing?.category==='Staff'?'selected':''}>Staff</option><option value="Law" ${existing?.category==='Law'?'selected':''}>Law</option><option value="Outsourced" ${existing?.category==='Outsourced'?'selected':''}>Outsourced</option></select>
-              <label style="font-size:.85rem; color:#44474E; display:block; font-weight:500;">Assign Pantry Boy:</label><select id="empPantryAssign" style="margin-top:4px; margin-bottom:12px; padding:14px; border-radius:10px; border:1px solid #CBD5E1;"><option value="">-- Unassigned --</option>${pantryOpts}</select>
-              <label style="font-size:.85rem; color:#44474E; display:block; font-weight:500;">Location Node:</label><select id="empLocationNodeAssign" style="margin-top:4px; margin-bottom:12px; padding:14px; border-radius:10px; border:1px solid #CBD5E1;"><option value="">-- No Location --</option>${venueOpts}</select>
-              <label style="font-size:.85rem; color:#44474E; display:block; font-weight:500;">Department:</label><select id="empDepartmentAssign" style="margin-top:4px; padding:14px; border-radius:10px; border:1px solid #CBD5E1;"><option value="">-- Select --</option>${deptOpts}</select>
+              <select id="empCat" style="margin-top:4px; padding:14px; border-radius:10px; border:1px solid #CBD5E1; width:100%;"><option value="">Category</option><option value="Faculty" ${existing?.category==='Faculty'?'selected':''}>Faculty</option><option value="Staff" ${existing?.category==='Staff'?'selected':''}>Staff</option><option value="Law" ${existing?.category==='Law'?'selected':''}>Law</option><option value="Outsourced" ${existing?.category==='Outsourced'?'selected':''}>Outsourced</option></select>
+              
+              <div style="display:flex; gap:8px; margin-top:4px; margin-bottom:12px;">
+                  <div style="flex:2;">
+                      <label style="font-size:.85rem; color:#44474E; display:block; font-weight:500;">Building/Location:</label>
+                      <select id="empLocationNodeAssign" style="margin-top:4px; padding:14px; border-radius:10px; border:1px solid #CBD5E1; width:100%;"><option value="">-- No Location --</option>${venueOpts}</select>
+                  </div>
+                  <div style="flex:1;">
+                      <label style="font-size:.85rem; color:#44474E; display:block; font-weight:500;">Room No:</label>
+                      <input id="empRoom" placeholder="E.g. 1224" value="${safeStr(existing?.roomNo)}" style="margin-top:4px; padding:14px; border-radius:10px; border:1px solid #CBD5E1; width:100%; box-sizing:border-box;">
+                  </div>
+              </div>
+              
+              <label style="font-size:.85rem; color:#44474E; display:block; font-weight:500;">Assign Pantry Boy:</label><select id="empPantryAssign" style="margin-top:4px; margin-bottom:12px; padding:14px; border-radius:10px; border:1px solid #CBD5E1; width:100%;"><option value="">-- Unassigned --</option>${pantryOpts}</select>
+              <label style="font-size:.85rem; color:#44474E; display:block; font-weight:500;">Department:</label><select id="empDepartmentAssign" style="margin-top:4px; padding:14px; border-radius:10px; border:1px solid #CBD5E1; width:100%;"><option value="">-- Select --</option>${deptOpts}</select>
               <div style="display:flex; gap:8px; margin-top:16px;"><button id="cancelEmployeeBtn" class="danger" style="flex:1; min-height:44px;">Cancel</button><button id="saveEmployeeBtn" class="success" style="flex:2; min-height:44px;">Save</button></div>
             `;
                 const adminContent = document.getElementById('adminContent');
@@ -8310,15 +8380,15 @@ if (
                     const cat = document.getElementById('empCat').value;
                     const pantryId = document.getElementById('empPantryAssign').value;
                     const locNode = document.getElementById('empLocationNodeAssign').value;
+                    const roomNo = document.getElementById('empRoom').value.trim();
                     const dept = document.getElementById('empDepartmentAssign').value;
                     if (!name || !cat) return appAlert('Error', 'Name and category required.');
                     const id = existing?.id || 'emp_' + Date.now();
                     db.ref('employees/' + id).set({ id, name, category: cat, assignedPantryId: pantryId,
-                        locationNode: locNode, department: dept });
+                        locationNode: locNode, roomNo: roomNo, department: dept });
                     form.remove();
                 };
             };
-
             function bulkDeleteEmployees() {
                 const checks = document.querySelectorAll('.employeeCheckbox:checked');
                 if (!checks.length) return appAlert('Error', 'Select employees.');
