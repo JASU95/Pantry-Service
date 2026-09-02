@@ -7083,13 +7083,13 @@
                 `;
 
                 switch (tab) {
-                                                        case 'pantry_ops':
+                                                       case 'pantry_ops':
                         cont.innerHTML = `
-                            <div style="background:#F8FAFC; padding:8px; border-radius:10px; margin-bottom:12px; border:1px solid #CBD5E1; display:flex; gap:8px; overflow-x:auto;">
-                                <button onclick="window.runSubTab('team', this)" class="btn sub-tab-btn" style="flex:1; background:#0A56D0; color:white; border-radius:8px; font-weight:bold; padding:8px; min-width:max-content;">🧑‍🍳 Pantry Team</button>
-                                <button onclick="window.runSubTab('leave', this)" class="btn sub-tab-btn" style="flex:1; background:#fff; color:#475569; border:1px solid #CBD5E1; border-radius:8px; font-weight:bold; padding:8px; min-width:max-content;">🏖️ Leave Mgmt</button>
-                                <button onclick="window.runSubTab('transfer', this)" class="btn sub-tab-btn" style="flex:1; background:#fff; color:#475569; border:1px solid #CBD5E1; border-radius:8px; font-weight:bold; padding:8px; min-width:max-content;">🔄 Duty Transfer</button>
-                                <button onclick="window.runSubTab('weekend', this)" class="btn sub-tab-btn" style="flex:1; background:#fff; color:#475569; border:1px solid #CBD5E1; border-radius:8px; font-weight:bold; padding:8px; min-width:max-content;">📅 Weekend Duty</button>
+                            <div style="background:#F8FAFC; padding:4px; border-radius:8px; margin-bottom:12px; border:1px solid #CBD5E1; display:flex; gap:4px; justify-content:space-between;">
+                                <button onclick="window.runSubTab('team', this)" class="btn sub-tab-btn" style="flex:1; background:#0A56D0; color:white; border-radius:6px; font-weight:bold; padding:6px 0; font-size:11px; min-height:34px;">🧑‍🍳 Team</button>
+                                <button onclick="window.runSubTab('leave', this)" class="btn sub-tab-btn" style="flex:1; background:#fff; color:#475569; border:1px solid #CBD5E1; border-radius:6px; font-weight:bold; padding:6px 0; font-size:11px; min-height:34px;">🏖️ Leave</button>
+                                <button onclick="window.runSubTab('transfer', this)" class="btn sub-tab-btn" style="flex:1; background:#fff; color:#475569; border:1px solid #CBD5E1; border-radius:6px; font-weight:bold; padding:6px 0; font-size:11px; min-height:34px;">🔄 Duty</button>
+                                <button onclick="window.runSubTab('weekend', this)" class="btn sub-tab-btn" style="flex:1; background:#fff; color:#475569; border:1px solid #CBD5E1; border-radius:6px; font-weight:bold; padding:6px 0; font-size:11px; min-height:34px;">📅 Wknd</button>
                             </div>
                             <div id="subAdminContent" style="padding-bottom:20px;"></div>
                         `;
@@ -7160,19 +7160,23 @@
                         document.getElementById('selectAllEmployees').onchange = (e) => { document.querySelectorAll('.employeeCheckbox').forEach(cb => cb.checked = e.target.checked); };
                         renderEmployeeList();
                         break;
-            // નવું ફંક્શન જે subAdminContent પર કામ કરશે
+          // નવું ફંક્શન જે subAdminContent પર કામ કરશે
             function renderPantryListAdmin() {
                 const cont = document.getElementById('subAdminContent');
                 if (!cont) return;
                 cont.innerHTML = `
-                  <div class="a-card">
-                      <h4 class="a-title">🧑‍🍳 Pantry Team Setup</h4>
-                      <div class="a-grid-3">
-                          <button id="addPantryBtn" class="a-btn primary">➕ Add New</button>
-                          <button id="previewPantryAllocBtn" class="a-btn success">👁️ Report</button>
-                          <button id="bulkDeletePantryBtn" class="a-btn danger">🗑 Delete</button>
+                  <div style="background:#fff; border-radius:8px; border:1px solid #E2E8F0; padding:8px; margin-bottom:10px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                          <h4 style="font-size:12px; font-weight:800; color:#0A56D0; margin:0; text-transform:uppercase;">🧑‍🍳 Pantry Team</h4>
+                          <label style="font-size:10px; font-weight:700; color:#334155; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                              <input type="checkbox" id="selectAllPantry" style="width:14px; height:14px; margin:0; accent-color:#0A56D0; cursor:pointer;"> Select All
+                          </label>
                       </div>
-                      <label class="a-chk-row"><input type="checkbox" id="selectAllPantry"> Select All</label>
+                      <div style="display:flex; gap:6px;">
+                          <button id="addPantryBtn" style="flex:1; background:#0A56D0; color:white; border:none; border-radius:6px; font-weight:bold; font-size:10px; padding:6px 2px; min-height:28px; cursor:pointer;">➕ Add New</button>
+                          <button id="previewPantryAllocBtn" style="flex:1; background:#10B981; color:white; border:none; border-radius:6px; font-weight:bold; font-size:10px; padding:6px 2px; min-height:28px; cursor:pointer;">👁️ Report</button>
+                          <button id="bulkDeletePantryBtn" style="flex:1; background:#EF4444; color:white; border:none; border-radius:6px; font-weight:bold; font-size:10px; padding:6px 2px; min-height:28px; cursor:pointer;">🗑 Delete</button>
+                      </div>
                   </div>
                   <div id="pantryListContainer" class="scroll-list-box" style="margin-top:0;"></div>
                 `;
@@ -8480,51 +8484,50 @@ if (
                         const dateStr = d.toLocaleDateString('en-GB'); // DD/MM/YYYY format
                         lastSeenText = ` • Last seen: ${dateStr} ${timeStr}`;
                     }
-                    const statusBadge = isOnline 
-                        ? `<span style="background:#DCFCE7; color:#166534; padding:2px 8px; border-radius:12px; font-size:0.65rem; font-weight:bold; margin-left:6px; border:1px solid #BBF7D0; align-self:center;">🟢 Online</span>` 
-                        : `<div style="color:#64748B; font-size:0.75rem; font-weight:600; margin-top:4px;">🔴 Offline${lastSeenText}</div>`;
-                    // --------------------------------------------------
+                   const statusBadge = isOnline 
+                        ? `<span style="background:#DCFCE7; color:#166534; padding:2px 6px; border-radius:6px; font-size:9px; font-weight:bold; margin-left:6px; border:1px solid #BBF7D0; align-self:center;">🟢 Online</span>` 
+                        : `<div style="color:#64748B; font-size:9px; font-weight:600; margin-top:2px;">🔴 Offline${lastSeenText}</div>`;
+                    
+                    const leaveBadgeSml = p.onLeave ? ' <span style="color:#DC3545; font-weight:700; font-size:9px; margin-left:4px;">(On Leave)</span>' : '';
 
-                    // એન્ડ્રોઇડ જેવા 'Chips' UI માટેનો કોડ
                     const chipsHtml = assignedCount > 0 
-                        ? assignedEmps.map(e => `<span style="background:#F1F5F9; color:#1E293B; font-size:0.75rem; padding:6px 12px; border-radius:100px; border:1px solid #CBD5E1; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.02);">👤 ${safeStr(e)}</span>`).join('') 
-                        : '<span style="color:#94A3B8; font-size:0.8rem; padding:4px;">No employees assigned</span>';
+                        ? assignedEmps.map(e => `<span style="background:#F1F5F9; color:#1E293B; font-size:10px; padding:4px 8px; border-radius:6px; border:1px solid #CBD5E1; white-space:nowrap;">👤 ${safeStr(e)}</span>`).join('') 
+                        : '<span style="color:#94A3B8; font-size:10px; padding:2px;">No employees</span>';
 
                     return `
-                <div class="card" style="margin:8px 4px 12px 4px; padding:16px; border-radius:16px; box-shadow:0 4px 12px rgba(0,0,0,0.05); border:1px solid #E2E8F0; background:#fff; position:relative;">
-                  <div style="position:absolute; top:16px; right:16px;">
-                     <input type="checkbox" class="pantryCheckbox" data-id="${p.id}" style="width:20px; height:20px; accent-color:#0A56D0; cursor:pointer;">
+                <div style="margin:6px 0; padding:10px; border-radius:10px; box-shadow:0 1px 3px rgba(0,0,0,0.05); border:1px solid #E2E8F0; background:#fff; position:relative;">
+                  <div style="position:absolute; top:12px; right:12px;">
+                     <input type="checkbox" class="pantryCheckbox" data-id="${p.id}" style="width:16px; height:16px; accent-color:#0A56D0; cursor:pointer;">
                   </div>
                   
-                  <div style="display:flex; flex-direction:column; padding-right:30px;">
+                  <div style="display:flex; flex-direction:column; padding-right:24px;">
                     <div style="display:flex; align-items:center;">
-                        <h3 style="margin:0; font-size:1.1rem; color:#1E293B; font-weight:800;">${safeStr(p.name)}</h3>
+                        <h3 style="margin:0; font-size:14px; color:#1E293B; font-weight:800;">${safeStr(p.name)}</h3>
+                        ${leaveBadgeSml}
                         ${isOnline ? statusBadge : ''}
                     </div>
                     ${!isOnline ? statusBadge : ''}
-                    ${leaveBadge}
                     
-                    <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:12px; font-size:0.85rem; color:#44474E;">
-                        <span style="display:flex; align-items:center; gap:4px; background:#F8FAFC; padding:4px 8px; border-radius:8px; border:1px solid #E2E8F0;">📱 ${safeStr(p.mobile)}</span>
-                        <span style="display:flex; align-items:center; gap:4px; background:#F8FAFC; padding:4px 8px; border-radius:8px; border:1px solid #E2E8F0;">🔐 PIN: <strong style="color:#146C43;">${safeStr(p.pin)}</strong></span>
+                    <div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:6px; font-size:11px; color:#475569;">
+                        <span style="display:flex; align-items:center; gap:4px; background:#F8FAFC; padding:2px 6px; border-radius:6px; border:1px solid #E2E8F0;">📱 ${safeStr(p.mobile)}</span>
+                        <span style="display:flex; align-items:center; gap:4px; background:#F8FAFC; padding:2px 6px; border-radius:6px; border:1px solid #E2E8F0;">🔐 PIN: <strong style="color:#146C43;">${safeStr(p.pin)}</strong></span>
                     </div>
                   </div>
                   
-                  <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
-                    <button class="editPantryBtn" data-id="${p.id}" style="background:#EFF6FF; border:1px solid #BFDBFE; cursor:pointer; font-size:0.85rem; padding:6px 14px; color:#0A56D0; border-radius:8px; font-weight:700;">✏️ Edit</button>
-                    <button onclick="window.pantryDeleteHandler('pantry','${p.id}')" style="background:#FEF2F2; border:1px solid #FECACA; color:#DC3545; cursor:pointer; font-size:0.85rem; padding:6px 14px; border-radius:8px; font-weight:700;">🗑 Delete</button>
-                  </div>
-
-                  <div style="margin-top:14px; border-top:1px dashed #CBD5E1; padding-top:12px;">
-                    <details style="cursor:pointer; background:#F8FAFC; padding:10px 14px; border-radius:10px; border:1px solid #E2E8F0;">
-                        <summary style="font-weight:800; color:#0A56D0; font-size:0.9rem; outline:none; user-select:none; display:flex; justify-content:space-between; align-items:center;">
-                            <span>👥 Assigned Employees (${assignedCount})</span>
-                            <span style="font-size:0.75rem; background:#E2E8F0; padding:4px 10px; border-radius:100px; color:#1E293B;">View List ▼</span>
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; border-top:1px dashed #CBD5E1; padding-top:8px;">
+                    <details style="cursor:pointer; flex:1; margin-right:8px;">
+                        <summary style="font-weight:700; color:#0A56D0; font-size:11px; outline:none; user-select:none; display:flex; align-items:center; gap:4px;">
+                            <span>👥 Assigned Staff (${assignedCount}) ▼</span>
                         </summary>
-                        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; max-height:180px; overflow-y:auto; padding-bottom:4px; padding-right:4px;">
+                        <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:8px; max-height:120px; overflow-y:auto; padding-bottom:4px;">
                             ${chipsHtml}
                         </div>
                     </details>
+                    
+                    <div style="display:flex; gap:4px; flex-shrink:0;">
+                      <button class="editPantryBtn" data-id="${p.id}" style="background:#EFF6FF; border:1px solid #BFDBFE; cursor:pointer; font-size:10px; padding:4px 10px; color:#0A56D0; border-radius:6px; font-weight:700; margin:0;">✏️ Edit</button>
+                      <button onclick="window.pantryDeleteHandler('pantry','${p.id}')" style="background:#FEF2F2; border:1px solid #FECACA; color:#DC3545; cursor:pointer; font-size:10px; padding:4px 10px; border-radius:6px; font-weight:700; margin:0;">🗑 Delete</button>
+                    </div>
                   </div>
                 </div>
               `;
