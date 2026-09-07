@@ -3,7 +3,7 @@
 <head>
 <script>
     // ⚠️ જ્યારે પણ તમે ગિટહબ પર નવો કોડ નાખો, ત્યારે આ વર્ઝન નંબર બદલી નાખવો (દા.ત. 1.0.1 થી 1.0.2)
-    const APP_VERSION = "1.0.3"; 
+    const APP_VERSION = "1.0.1"; 
     const currentAppVersion = localStorage.getItem('dau_pantry_version');
 
     if (currentAppVersion !== APP_VERSION) {
@@ -7194,24 +7194,32 @@
                         }, 50);
                         break;
 
-                    case 'employees':
-
+                                        case 'employees':
                         cont.innerHTML = adminMobileCSS + `
                   <div class="a-card">
-                      <h4 class="a-title">👥 Manage Employees</h4>
-                      <div class="a-grid-3">
-                          <input id="employeeSearch" class="a-input" placeholder="🔍 Search...">
-                          <select id="categoryFilter" class="a-input"><option value="">All Cat.</option><option>Faculty</option><option>Staff</option><option>Law</option><option>Outsourced</option></select>
-                          <select id="pantryFilter" class="a-input"><option value="">All Pantry</option>${pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}</select>
+                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                          <h4 class="a-title" style="margin:0;">👥 Manage Employees</h4>
                       </div>
+                      
+                      <!-- ૪ આઇટમ એક જ લાઇનમાં નાની સાઈઝમાં (સર્ચ, કેટેગરી, પેન્ટ્રી, સિલેક્ટ ઓલ) -->
+                      <div style="display:flex; gap:4px; margin-bottom:8px; align-items:center; width:100%; box-sizing:border-box;">
+                          <input id="employeeSearch" class="a-input" placeholder="🔍 Search..." style="flex:2; padding:6px; min-height:32px; font-size:11px;">
+                          <select id="categoryFilter" class="a-input" style="flex:1.5; padding:6px 2px; min-height:32px; font-size:10px;"><option value="">All Cat.</option><option>Faculty</option><option>Staff</option><option>Law</option><option>Outsourced</option></select>
+                          <select id="pantryFilter" class="a-input" style="flex:1.5; padding:6px 2px; min-height:32px; font-size:10px;"><option value="">All Pantry</option>${pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}</select>
+                          <label class="a-chk-row" style="flex:1; margin:0; padding:0; justify-content:center; min-height:32px; border:1px solid #CBD5E1; background:#F8FAFC; display:flex; align-items:center; font-size:10px; cursor:pointer;"><input type="checkbox" id="selectAllEmployees" style="margin-right:2px; width:12px; height:12px;"> All</label>
+                      </div>
+
                       <div class="a-grid-4">
                           <button id="addEmployeeBtn" class="a-btn primary">➕ Add</button>
                           <button id="importExcelBtn" class="a-btn success">📥 Import</button>
                           <button id="bulkAssignLocBtn" class="a-btn warning">📍 Loc/Dept</button>
                           <button id="bulkDeleteBtn" class="a-btn danger">🗑 Delete</button>
                       </div>
-                      <label class="a-chk-row"><input type="checkbox" id="selectAllEmployees"> Select All</label>
                   </div>
+                  
+                  <!-- ડુપ્લીકેટ નામ પકડવા માટેનું વોર્નિંગ બોક્સ -->
+                  <div id="empDuplicateWarningBox"></div>
+                  
                   <div id="employeeListContainer" class="scroll-list-box" style="margin-top:0;"></div>
                 `;
                         document.getElementById('employeeSearch').addEventListener('input', renderEmployeeList);
@@ -7222,8 +7230,12 @@
                         document.getElementById('bulkDeleteBtn').onclick = bulkDeleteEmployees;
                         document.getElementById('bulkAssignLocBtn').onclick = window.openBulkAssignLocPopup;
                         document.getElementById('selectAllEmployees').onchange = (e) => { document.querySelectorAll('.employeeCheckbox').forEach(cb => cb.checked = e.target.checked); };
+                        
                         renderEmployeeList();
+                        // પેજ લોડ થાય એટલે ડુપ્લીકેટ નામ ચેક કરશે
+                        setTimeout(window.checkAndShowEmployeeDuplicates, 400); 
                         break;
+
           // નવું ફંક્શન જે subAdminContent પર કામ કરશે
             function renderPantryListAdmin() {
                 const cont = document.getElementById('subAdminContent');
@@ -7864,7 +7876,20 @@ case 'web_sync':
                                 appAlert('Processing', 'Auto-Sync is running... Please wait.');
                                 
                                 function getSimilarity(s1, s2) {
-                                    s1 = s1.toLowerCase(); s2 = s2.toLowerCase();
+                                    // નવો કોડ: Dr., Prof., Mr. વગેરે શબ્દોને સરખામણી વખતે કાઢી નાખવા
+                                    const cleanName = (n) => n.toLowerCase().replace(/^(dr\.|prof\.|mr\.|ms\.|mrs\.|dr|prof|mr|ms|mrs)\s+/g, '').replace(/[^a-z0-9\s]/g, '').trim();
+                                    
+                                    s1 = cleanName(s1);
+                                    s2 = cleanName(s2);
+                                    
+                                    if(s1 === s2) return 1.0; // એકદમ સરખા જ હોય
+
+                                    // ૧. નામ આગળ-પાછળ હોય તો પણ પકડી લેવા (e.g. "Prince Vijay" vs "Vijay Prince")
+                                    const words1 = s1.split(/\s+/).sort().join(' ');
+                                    const words2 = s2.split(/\s+/).sort().join(' ');
+                                    if(words1 === words2) return 1.0;
+
+                                    // ૨. નોર્મલ સ્પેલિંગ મિસ્ટેક ચેક કરવા (Levenshtein)
                                     let longer = s1, shorter = s2;
                                     if (s1.length < s2.length) { longer = s2; shorter = s1; }
                                     let longerLength = longer.length;
@@ -7882,8 +7907,19 @@ case 'web_sync':
                                         }
                                         if (i > 0) costs[shorter.length] = lastValue;
                                     }
-                                    return (longerLength - costs[shorter.length]) / parseFloat(longerLength);
+                                    let levSim = (longerLength - costs[shorter.length]) / parseFloat(longerLength);
+
+                                    // ૩. અડધું નામ જ લખ્યું હોય ત્યારે ચેક કરવા (e.g. "Prince" vs "Prince Vijay")
+                                    let wordMatchSim = 0;
+                                    const arr1 = s1.split(/\s+/);
+                                    const arr2 = s2.split(/\s+/);
+                                    const matchCount = arr1.filter(w => arr2.includes(w)).length;
+                                    wordMatchSim = matchCount / Math.max(arr1.length, arr2.length);
+
+                                    // બંનેમાંથી જે મેચિંગ વધારે હોય તે જ આપો
+                                    return Math.max(levSim, wordMatchSim);
                                 }
+
 
                                 const updates = {};
                                 let mergedCount = 0; let addedCount = 0; let pendingCount = 0;
@@ -8365,6 +8401,187 @@ if (
                 };
                 input.click();
             }
+            // ============================================================
+            // SMART EMPLOYEE DUPLICATE SCANNER (FIXED FOR INITIALS)
+            // ============================================================
+            window.checkAndShowEmployeeDuplicates = function() {
+                const activeEmps = employeeList.filter(e => e.status !== 'Inactive');
+                const duplicates = [];
+                const seenIds = new Set();
+
+                function isDuplicate(n1, n2) {
+                    let clean = (n) => n.toLowerCase().replace(/^(dr\.|prof\.|mr\.|ms\.|mrs\.|dr|prof|mr|ms|mrs)\s+/g, '').replace(/[^a-z0-9\s]/g, '').trim();
+                    let s1 = clean(n1);
+                    let s2 = clean(n2);
+                    if (s1 === s2) return true;
+
+                    let w1 = s1.split(/\s+/);
+                    let w2 = s2.split(/\s+/);
+
+                    // સ્માર્ટ અટક (Surname) અને શોર્ટ નામ ચેકર
+                    if (w1.length >= 2 && w2.length >= 2) {
+                        let last1 = w1[w1.length - 1];
+                        let last2 = w2[w2.length - 1];
+                        
+                        // જો અટક સરખી હોય (જેમ કે supekar == supekar)
+                        if (last1 === last2 && last1.length > 2) {
+                            let first1 = w1[0];
+                            let first2 = w2[0];
+                            if (first1 === first2) return true;
+                            
+                            // 🚨 BUG FIX: જો કોઈ એક નામ શોર્ટ ફોર્મ (1 કે 2 અક્ષરનું) હોય, તો જ પહેલો અક્ષર મેચ કરો!
+                            // ઉદાહરણ: 'k' અને 'kesore' મેચ થશે, પણ 'jashvant' અને 'jitendra' મેચ નહિ થાય.
+                            let isF1Short = first1.length <= 2;
+                            let isF2Short = first2.length <= 2;
+                            
+                            if ((isF1Short || isF2Short) && first1.charAt(0) === first2.charAt(0)) {
+                                if (isF1Short !== isF2Short) return true; // એક શોર્ટ અને એક આખું
+                                if (isF1Short && isF2Short) return true; // બંને શોર્ટ
+                            }
+                        }
+                    }
+                    
+                    // નોર્મલ સ્પેલિંગ મિસ્ટેક માટે (85% મેચિંગ હોવું જરૂરી છે)
+                    let longer = s1, shorter = s2;
+                    if (s1.length < s2.length) { longer = s2; shorter = s1; }
+                    let longerLength = longer.length;
+                    if (longerLength === 0) return true;
+                    let costs = [];
+                    for (let i = 0; i <= longerLength; i++) {
+                        let lastValue = i;
+                        for (let j = 0; j <= shorter.length; j++) {
+                            if (i === 0) costs[j] = j;
+                            else if (j > 0) {
+                                let newValue = costs[j - 1];
+                                if (longer.charAt(i - 1) !== shorter.charAt(j - 1)) newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                                costs[j - 1] = lastValue; lastValue = newValue;
+                            }
+                        }
+                        if (i > 0) costs[shorter.length] = lastValue;
+                    }
+                    let sim = (longerLength - costs[shorter.length]) / parseFloat(longerLength);
+                    
+                    // 75% થી વધારીને 85% કર્યું છે, જેથી અલગ અલગ નામ ભેગા ના થઈ જાય
+                    if(sim >= 0.85) return true; 
+                    
+                    return false;
+                }
+
+                for (let i = 0; i < activeEmps.length; i++) {
+                    if (seenIds.has(activeEmps[i].id)) continue;
+                    let group = [activeEmps[i]];
+                    for (let j = i + 1; j < activeEmps.length; j++) {
+                        if (seenIds.has(activeEmps[j].id)) continue;
+                        if (isDuplicate(activeEmps[i].name, activeEmps[j].name)) { 
+                            group.push(activeEmps[j]);
+                            seenIds.add(activeEmps[j].id);
+                        }
+                    }
+                    if (group.length > 1) {
+                        duplicates.push(group);
+                        seenIds.add(activeEmps[i].id);
+                    }
+                }
+
+                const warnBox = document.getElementById('empDuplicateWarningBox');
+                if (!warnBox) return;
+
+                if (duplicates.length === 0) {
+                    warnBox.innerHTML = '';
+                    return;
+                }
+
+                let html = `<div style="background:#FEF2F2; border:1px solid #EF4444; border-radius:8px; padding:10px; margin-bottom:10px;">
+                    <h4 style="color:#B91C1C; margin:0 0 8px 0; font-size:13px;">⚠️ Duplicate Names Found! (${duplicates.length} groups)</h4>`;
+                
+                duplicates.forEach((grp, idx) => {
+                    const encodedGrp = encodeURIComponent(JSON.stringify(grp)).replace(/'/g, "%27");
+                    html += `<div style="background:#fff; border:1px dashed #FCA5A5; padding:8px; border-radius:6px; margin-bottom:6px; font-size:11px;">
+                        <div style="color:#7F1D1D; font-weight:bold; margin-bottom:4px;">Group ${idx + 1}: ${safeStr(grp[0].name)}</div>
+                        <ul style="margin:0 0 6px 16px; padding:0; color:#475569;">
+                            ${grp.map(e => `<li>${safeStr(e.name)} <span style="color:#94A3B8;">[Loc: ${e.locationNode || '-'}, PB: ${pantryTeam.find(p=>p.id===e.assignedPantryId)?.name || '-'}]</span></li>`).join('')}
+                        </ul>
+                        <button onclick="window.openMergeEmployeeModal('${encodedGrp}')" style="background:#EF4444; color:#fff; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:11px;">🔄 Review & Merge Data</button>
+                    </div>`;
+                });
+                html += `</div>`;
+                warnBox.innerHTML = html;
+            };
+
+
+            window.openMergeEmployeeModal = function(encodedGrp) {
+                const grp = JSON.parse(decodeURIComponent(encodedGrp));
+                let opts = grp.map(e => `<option value="${e.id}">${e.name} (Loc: ${e.locationNode || '-'})</option>`).join('');
+
+                const modal = document.createElement('div');
+                modal.className = 'popup-overlay';
+                modal.id = 'mergeEmpModal';
+                modal.innerHTML = `
+                    <div class="popup-card" style="max-width:400px; padding:20px;">
+                        <h3 style="color:#0A56D0; margin-top:0;">🔄 Merge Employee Data</h3>
+                        <p style="font-size:12px; color:#44474E; margin-bottom:12px;">Select the <b>Main Employee (Correct Name)</b>. All Daily Tea and Extra Tea entries of the duplicate account will be transferred to this main account, and the duplicate will be deleted.</p>
+                        
+                        <label style="font-weight:bold; font-size:12px;">Select Original (To Keep):</label>
+                        <select id="mergeKeepEmpId" style="width:100%; padding:10px; border-radius:6px; border:1px solid #0A56D0; margin-top:4px; margin-bottom:16px; background:#EFF6FF; color:#0A56D0; font-weight:bold;">
+                            ${opts}
+                        </select>
+
+                        <div style="display:flex; gap:10px;">
+                            <button onclick="document.getElementById('mergeEmpModal').remove()" class="danger" style="flex:1; padding:10px; border-radius:6px;">Cancel</button>
+                            <button onclick="window.executeEmployeeMerge('${encodedGrp}')" class="success" style="flex:1; padding:10px; border-radius:6px;">Merge Now</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            };
+
+            window.executeEmployeeMerge = function(encodedGrp) {
+                const grp = JSON.parse(decodeURIComponent(encodedGrp));
+                const keepId = document.getElementById('mergeKeepEmpId').value;
+                const keepEmp = grp.find(e => e.id === keepId);
+                const deleteIds = grp.filter(e => e.id !== keepId).map(e => e.id);
+                
+                const updates = {};
+                let transferCount = 0;
+                
+                // 1. ડેઈલી ટી (Logs) નો ડેટા ટ્રાન્સફર કરવો
+                logsData.forEach(log => {
+                    if (deleteIds.includes(log.employeeId)) {
+                        updates['logs/' + log.id + '/employeeId'] = keepId;
+                        updates['logs/' + log.id + '/employeeName'] = keepEmp.name;
+                        transferCount++;
+                    }
+                });
+
+                // 2. એકસ્ટ્રા ટી (Extra Logs) નો ડેટા ટ્રાન્સફર કરવો
+                const allExtra = window.getCombinedExtraTea();
+                allExtra.forEach(ex => {
+                    if (deleteIds.includes(ex.employeeId)) {
+                        const path = ex.isOldLog ? 'extraLogs/' : 'extraTeaRecords/';
+                        updates[path + ex.id + '/employeeId'] = keepId;
+                        updates[path + ex.id + '/employeeName'] = keepEmp.name;
+                        transferCount++;
+                    }
+                });
+
+                // 3. ડુપ્લીકેટ નામ કાઢી નાખવું (Recycle Bin માં મૂકવું)
+                grp.forEach(e => {
+                    if (e.id !== keepId) {
+                        updates['recycleBin/employees/' + e.id] = e;
+                        updates['employees/' + e.id + '/status'] = 'Inactive';
+                        updates['employees/' + e.id + '/assignedPantryId'] = "";
+                    }
+                });
+
+                db.ref().update(updates).then(() => {
+                    document.getElementById('mergeEmpModal').remove();
+                    appAlert('Success', `Employees merged! ${transferCount} entries transferred successfully.`);
+                    if (window.renderEmployeeList) window.renderEmployeeList();
+                    setTimeout(window.checkAndShowEmployeeDuplicates, 500);
+                }).catch(err => {
+                    appAlert('Error', err.message);
+                });
+            };
 
             // ============================================================
             //  EMPLOYEE LIST
@@ -9297,19 +9514,29 @@ window.openEmployeeForm = function(existing = null) {
 
                 const styleBlock = `
                 <style>
-                    .l-wrap { overflow-x: auto; background: #fff; border: 1px solid #CBD5E1; border-radius: 8px; flex: 1; min-height: 0; }
-                    .l-tbl { width: 100%; border-collapse: collapse; font-size: 11px; text-align: center; }
-                    .l-thead th { background: #F1F5F9; position: sticky; top: 0; z-index: 3; border-bottom: 2px solid #0A56D0; border-right: 1px solid #CBD5E1; padding: 2px; }
-                    .l-th-date { min-width: 45px; position: sticky; left: 0; z-index: 4; background: #F1F5F9; }
-                    .l-th-emp { font-size: 11px; color: #1E293B; line-height: 1.1; white-space: normal; word-wrap: break-word; }
-                    .l-th-sess { font-weight: 800; color: #44474E; background: #F8FAFC; width: 50px; min-width: 50px; border-right: 1px dashed #CBD5E1; }
+                    /* wrapper માં બંને બાજુ સ્ક્રોલિંગ સેટ કર્યું અને max-height આપી */
+                    .l-wrap { overflow: auto; background: #fff; border: 1px solid #CBD5E1; border-radius: 8px; flex: 1; min-height: 0; max-height: 65vh; }
+                    /* sticky હેડર માટે border-collapse: separate હોવું ફરજિયાત છે */
+                    .l-tbl { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 11px; text-align: center; }
+                    
+                    /* હેડર્સ ને ફ્રીઝ (Sticky) કરવા માટેના સેટિંગ્સ */
+                    .l-th-date { min-width: 45px; position: sticky; left: 0; top: 0; z-index: 20; background: #E0F2FE; border-bottom: 2px solid #0A56D0; border-right: 1px solid #CBD5E1; height: 36px; padding: 2px; }
+                    .l-th-emp { font-size: 11px; color: #1E293B; line-height: 1.1; white-space: normal; word-wrap: break-word; position: sticky; top: 0; z-index: 10; background: #F1F5F9; border-bottom: 1px solid #CBD5E1; border-right: 1px solid #CBD5E1; height: 36px; padding: 2px; border-top: none; }
+                    
+                    /* બીજી લાઈન (Morn / Aft) ને પહેલી લાઈનની બરાબર નીચે ફ્રીઝ કરી (top: 36px) */
+                    .l-th-sess { font-weight: 800; color: #44474E; background: #F8FAFC; width: 50px; min-width: 50px; position: sticky; top: 36px; z-index: 9; border-bottom: 2px solid #0A56D0; border-right: 1px dashed #CBD5E1; height: 24px; padding: 2px; }
                     .l-th-sess.aft { border-right: 1px solid #CBD5E1; }
-                    .l-td-date { border-bottom: 1px solid #E2E8F0; border-right: 1px solid #CBD5E1; padding: 0 2px; height: 18px; font-weight: bold; position: sticky; left: 0; background: #F8FAFC; z-index: 1; color: #0A56D0; line-height: 1; font-size: 10px; }
-                    .l-td-morn { border-bottom: 1px solid #E2E8F0; border-right: 1px dashed #E2E8F0; padding: 0; height: 18px; }
-                    .l-td-aft { border-bottom: 1px solid #E2E8F0; border-right: 1px solid #CBD5E1; padding: 0; height: 18px; }
-                    .l-sel { width: 100%; height: 18px; padding: 0; margin: 0; font-size: 10px; font-weight: 700; color: #0A56D0; border: none; background: transparent; outline: none; text-align-last: center; cursor: pointer; box-sizing: border-box; line-height: 1; appearance: none; -webkit-appearance: none; }
-                    .l-tot-lbl { border-bottom: 1px solid #CBD5E1; border-right: 1px solid #CBD5E1; padding: 0 2px; height: 18px; font-weight: 800; position: sticky; left: 0; z-index: 1; font-size: 10px; line-height: 1; }
-                    .l-tot-val { border-bottom: 1px solid #CBD5E1; border-right: 1px solid #CBD5E1; padding: 0; height: 18px; font-weight: 900; font-size: 11px; line-height: 1; }
+                    
+                    /* ટેબલનો ડેટા */
+                    .l-td-date { border-bottom: 1px solid #E2E8F0; border-right: 1px solid #CBD5E1; padding: 0 2px; height: 22px; font-weight: bold; position: sticky; left: 0; background: #F8FAFC; z-index: 5; color: #0A56D0; line-height: 1; font-size: 10px; }
+                    .l-td-morn { border-bottom: 1px solid #E2E8F0; border-right: 1px dashed #E2E8F0; padding: 0; height: 22px; }
+                    .l-td-aft { border-bottom: 1px solid #E2E8F0; border-right: 1px solid #CBD5E1; padding: 0; height: 22px; }
+                    
+                    .l-sel { width: 100%; height: 22px; padding: 0; margin: 0; font-size: 10px; font-weight: 700; color: #0A56D0; border: none; background: transparent; outline: none; text-align-last: center; cursor: pointer; box-sizing: border-box; line-height: 1; appearance: none; -webkit-appearance: none; }
+                    
+                    /* નીચેના Totals વાળી લાઈનો */
+                    .l-tot-lbl { border-bottom: 1px solid #CBD5E1; border-top: 2px solid #0A56D0; border-right: 1px solid #CBD5E1; padding: 0 2px; height: 24px; font-weight: 800; position: sticky; left: 0; z-index: 6; font-size: 10px; line-height: 1; }
+                    .l-tot-val { border-bottom: 1px solid #CBD5E1; border-top: 2px solid #0A56D0; border-right: 1px solid #CBD5E1; padding: 0; height: 24px; font-weight: 900; font-size: 11px; line-height: 1; }
                 </style>`;
 
                 let htmlArr = [styleBlock];
@@ -12184,9 +12411,13 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                         myEmployees = employeeList.filter(e => e.assignedPantryId === currentUser.id || (window.getEffectivePantryId && e.assignedPantryId === window.getEffectivePantryId(currentUser.id)));
                     }
 
-                    const vendorOpts = `<option value="DAU Direct Purchase" style="color:#059669; font-weight:bold;">🛒 DAU Direct</option>` + canteenList.map(c => `<option value="${safeStr(c.name)}">${safeStr(c.name)}</option>`).join('');
+                                        const vendorOpts = `<option value="DAU Direct Purchase" style="color:#059669; font-weight:bold;">🛒 DAU Direct</option>` + canteenList.map(c => `<option value="${safeStr(c.name)}">${safeStr(c.name)}</option>`).join('');
                     const venueOpts = venueList.map(v => `<option value="${safeStr(v.name)}">`).join('');
                     const employeeOpts = myEmployees.map(e => `<option value="${safeStr(e.name)}">`).join('');
+
+                    // નવો કોડ: બધા જૂના પર્પઝનું લિસ્ટ ભેગું કરવા (ઓટો-સજેસ્ટ માટે)
+                    const allPurposes = [...new Set(mgRecordsData.map(r=>r.Purpose).concat(typeof eventLogsData !== 'undefined' ? eventLogsData.map(e=>e.eventName) : []))].filter(Boolean).sort();
+                    const purposeOpts = allPurposes.map(p => `<option value="${safeStr(p)}">`).join('');
 
                     let servedByOpts = '';
                     if (currentRole === 'admin') {
@@ -12220,6 +12451,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
 
                         <datalist id="mgLocListGlobal">${venueOpts}</datalist>
                         <datalist id="mgEmpListGlobal">${employeeOpts}</datalist>
+                        <datalist id="mgPurposeListGlobal">${purposeOpts}</datalist> <!-- આ લાઈન નવી ઉમેરી -->
 
                         <div style="display: flex; flex-direction: column; height: 100%; overflow:hidden;">
                             
@@ -12243,7 +12475,10 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                                             <input type="time" id="mgMainTime" class="mg-cmp-inp" title="Opt Time" style="width:100%; height:34px; padding:0 4px 0 34px; font-size:10px; box-sizing:border-box; margin:0;">
                                         </div>                                        
                                         <input type="text" list="mgEmpListGlobal" id="mgMainReqBy" class="mg-cmp-inp" placeholder="👤 Req By" style="flex:1; min-width:0; height:34px; padding:0 4px; font-size:10px; border-color:#0A56D0; box-sizing:border-box;">
-                                        <input type="text" id="mgMainPurpose" class="mg-cmp-inp" placeholder="📝 Purpose" style="flex:1; min-width:0; height:34px; padding:0 4px; font-size:10px; border-color:#0A56D0; box-sizing:border-box;">
+                                        
+                                        <!-- નીચેની લાઈનમાં list="mgPurposeListGlobal" ઉમેર્યું -->
+                                        <input type="text" list="mgPurposeListGlobal" id="mgMainPurpose" class="mg-cmp-inp" placeholder="📝 Purpose" style="flex:1; min-width:0; height:34px; padding:0 4px; font-size:10px; border-color:#0A56D0; box-sizing:border-box;">
+
                                         ${window.mgCurrentRole === 'admin' 
                                             ? `<select id="mgMainServedBy" class="mg-cmp-inp" style="flex:1.2; min-width:0; height:34px; padding:0 4px; font-size:10px; border-color:#0A56D0; color:#0A56D0;">
                                                 <option value="">Served By</option>
@@ -12284,7 +12519,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                             <h3 style="color:#d97706; margin:0 0 8px 0; text-align:center; font-size:13px;">📜 Sync History</h3>
                             <div style="display:flex; gap:4px; margin-bottom: 8px;">
                                 <input type="month" id="mgMainMonthFilter" value="${currentMonthStr}" onchange="window.renderMgHistoryTable()" class="mg-cmp-inp" style="flex:1;">
-                                <input type="text" id="mgMainSearchFilter" placeholder="🔍 Search..." oninput="window.renderMgHistoryTable()" class="mg-cmp-inp" style="flex:2;">
+                                <input type="text" id="mgMainSearchFilter" placeholder="🔍 Search (Slip No, Name)..." oninput="window.renderMgHistoryTable()" class="mg-cmp-inp" style="flex:2;">
                             </div>
                             <div id="mgHistoryListMain" style="max-height: 400px; overflow-y: auto;"></div>
                         </div>
@@ -12742,13 +12977,14 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     });
                 }
 
-                // 2. Form Slips (Group by Date + Purpose + Vendor to match History View)
+                // 2. Form Slips (Group by Date + Time + Purpose + Vendor to match History View)
                 const slips = {};
                 combinedRecords.forEach(rec => {
-                    const key = `${rec.DateFormatted}_${rec.Purpose}_${rec.Vendor}`;
+                    const timeKey = rec.Time || '';
+                    const key = `${rec.DateFormatted}_${timeKey}_${rec.Purpose}_${rec.Vendor}`;
                     if(!slips[key]) {
                         slips[key] = {
-                            key: key, DateFormatted: rec.DateFormatted, Vendor: rec.Vendor, Purpose: rec.Purpose, ReqName: rec.ReqName,
+                            key: key, DateFormatted: rec.DateFormatted, Time: rec.Time || '', Vendor: rec.Vendor, Purpose: rec.Purpose, ReqName: rec.ReqName,
                             totalAmt: 0, items: [], idsToDelete: []
                         };
                     }
@@ -12856,7 +13092,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                         <div style="background:#fff; padding:6px; border-bottom:1px solid #e2e8f0; flex-shrink:0;">
                             <div style="display:flex; gap:4px; margin-bottom:6px;">
                                 <input type="month" id="mgPopupMonthFilter" value="${currentMonthStr}" onchange="window.renderMgHistoryTable()" class="mg-cmp-inp" style="flex:1; padding:6px; border-radius:4px; border:1px solid #cbd5e1;">
-                                <input type="text" id="mgPopupSearchFilter" placeholder="🔍 Smart Search..." oninput="window.renderMgHistoryTable()" class="mg-cmp-inp" style="flex:2; padding:6px; border-radius:4px; border:1px solid #cbd5e1;">
+                                <input type="text" id="mgPopupSearchFilter" placeholder="🔍 Search (Slip No, Name)..." oninput="window.renderMgHistoryTable()" class="mg-cmp-inp" style="flex:2; padding:6px; border-radius:4px; border:1px solid #cbd5e1;">
                             </div>
                             <button onclick="window.openBulkReplacePurposeModal()" class="mg-cmp-inp" style="width:100%; background:#fef3c7; color:#d97706; border:1px solid #fde68a; cursor:pointer; font-weight:bold; height:32px; border-radius:4px;">🔄 Fix/Replace Purpose Spelling</button>
                         </div>
@@ -12915,12 +13151,14 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                                 // પહેલા બધી ચિઠ્ઠીઓને ભેગી (Group) કરવાની છે, જેથી સિક્વન્સ જળવાઈ રહે
                 const slips = {};
                 filteredRecords.forEach(rec => {
-                    const key = `${rec.DateFormatted}_${rec.Purpose}_${rec.Vendor}`;
+                    const timeKey = rec.Time || '';
+                    const key = `${rec.DateFormatted}_${timeKey}_${rec.Purpose}_${rec.Vendor}`;
                     
                     if(!slips[key]) {
                         slips[key] = {
                             key: key,
                             DateFormatted: rec.DateFormatted,
+                            Time: rec.Time || '', // નવું: સમય સાચવવા અને સ્લિપ અલગ કરવા માટે
                             Vendor: rec.Vendor,
                             Vendors: new Set(),
                             Purpose: rec.Purpose,
@@ -12968,6 +13206,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                         return searchTerms.every(term => rowText.includes(term));
                     });
                 }
+                window.mgCurrentViewSlips = finalSlips; // 👈 આ લાઈન નવી ઉમેરી છે 
 
                 let html = '';
                 if(finalSlips.length === 0) {
@@ -12995,6 +13234,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                             <tr style="border-bottom:1px solid #e2e8f0; background:${idx%2===0?'#fff':'#f8fafc'};">
                                 <td style="padding:8px 4px; font-weight:bold; color:#1e293b; vertical-align:top;">
                                     ${slip.DateFormatted.slice(0,5)}<br>
+                                    <span style="color:#64748B; font-size:9px;">🕒 ${slip.Time || '-'}</span><br>
                                     <span style="color:#d97706; font-size:9px;">#${slip.slipNo}</span>
                                 </td>
                                 <td style="padding:8px 4px; vertical-align:top; line-height:1.4;">
@@ -13090,9 +13330,42 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 });
             };
 
-             // 📜 Direct Print Slip Function (કાચી ચિઠ્ઠી સીધી પ્રિન્ટ માટે)
+                         // 📜 Quick Search Helper (સ્લિપ સર્ચ કરવા માટે)
+            window.quickSearchSlip = function() {
+                const val = document.getElementById('quickSlipSearchInp').value.trim();
+                if(!val) return;
+                if(!window.mgCurrentViewSlips || window.mgCurrentViewSlips.length === 0) return;
+                
+                // તમે '001', '1', કે '01' નાખશો તો પણ સ્લિપ શોધી લેશે
+                const found = window.mgCurrentViewSlips.find(s => s.slipNo && (s.slipNo.endsWith(val) || s.slipNo === val));
+                if(found) {
+                    const slipStr = encodeURIComponent(JSON.stringify(found)).replace(/'/g, "%27");
+                    window.viewMgSlip(slipStr);
+                } else {
+                    appAlert('Not Found', 'Slip No ' + val + ' not found in current list.');
+                }
+            };
+
+            // 📜 Direct Print Slip Function (કાચી ચિઠ્ઠી સીધી પ્રિન્ટ માટે + Navigation + Search)
             window.viewMgSlip = function(encodedData) {
                 const slip = JSON.parse(decodeURIComponent(encodedData));
+                
+                // --- નવો કોડ: નેવિગેશન બટન (નાના) ---
+                let prevBtnHtml = `<span style="width:28px; display:inline-block;"></span>`;
+                let nextBtnHtml = `<span style="width:28px; display:inline-block;"></span>`;
+                
+                if (window.mgCurrentViewSlips && window.mgCurrentViewSlips.length > 0) {
+                    const currentIndex = window.mgCurrentViewSlips.findIndex(s => s.slipNo === slip.slipNo);
+                    if (currentIndex > 0) {
+                        const prevSlipStr = encodeURIComponent(JSON.stringify(window.mgCurrentViewSlips[currentIndex - 1])).replace(/'/g, "%27");
+                        prevBtnHtml = `<button onclick="window.viewMgSlip('${prevSlipStr}')" style="background:#E2E8F0; color:#1E293B; border:none; padding:6px 10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">◀</button>`;
+                    }
+                    if (currentIndex >= 0 && currentIndex < window.mgCurrentViewSlips.length - 1) {
+                        const nextSlipStr = encodeURIComponent(JSON.stringify(window.mgCurrentViewSlips[currentIndex + 1])).replace(/'/g, "%27");
+                        nextBtnHtml = `<button onclick="window.viewMgSlip('${nextSlipStr}')" style="background:#E2E8F0; color:#1E293B; border:none; padding:6px 10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">▶</button>`;
+                    }
+                }
+                // ---------------------------------
 
                 let itemRows = slip.items.map(it => `
                     <tr>
@@ -13112,6 +13385,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                             <div><b>To,<br>Manager,</b><br><b style="font-size:14px; text-decoration:underline;">${slip.Vendor}</b></div>
                             <div style="text-align:right;">
                                 <b>Date:</b> ${slip.DateFormatted}<br>
+                                <b>Time:</b> ${slip.Time || slip.items[0]?.Time || '-'}<br>
                                 <b>Location:</b> ${slip.Location || '-'}
                             </div>
                         </div>
@@ -13144,12 +13418,27 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
 
                 const container = document.getElementById('printAreaContainer');
                 container.style.zIndex = "999999999";
+                
+                // --- નવો કોડ: આખી લાઈન સિંગલ અને કોમ્પેક્ટ ---
+                const slipShortNo = slip.slipNo ? slip.slipNo.split('-').pop() : '';
+
                 container.innerHTML = `
-                    <div class="preview-card" style="max-width:450px; width:95vw; height:auto; padding:20px;">
-                        <div class="preview-header hide-on-print" style="margin-bottom:16px; display:flex; justify-content:space-between;">
-                            <button onclick="window.print()" class="success" style="padding:8px 16px; border-radius:8px;">🖨️ Print Slip</button>
-                            <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger" style="padding:8px 16px; border-radius:8px;">✕ Close</button>
+                    <div class="preview-card" style="max-width:450px; width:95vw; height:auto; padding:16px;">
+                        
+                        <div class="preview-header hide-on-print" style="margin-bottom:12px; display:flex; gap:6px; align-items:center; background:#F8FAFC; padding:6px; border-radius:6px; border:1px solid #CBD5E1; overflow-x:auto;">
+                            <!-- Nav & Search (Left Side) -->
+                            ${prevBtnHtml}
+                            <input type="text" id="quickSlipSearchInp" placeholder="No." value="${slipShortNo}" style="width:45px; text-align:center; padding:4px; border:1px solid #0A56D0; border-radius:4px; font-size:12px; font-weight:bold; color:#0A56D0; outline:none;" onkeypress="if(event.key==='Enter') window.quickSearchSlip()">
+                            <button onclick="window.quickSearchSlip()" style="background:#0A56D0; color:#fff; border:none; padding:5px 8px; border-radius:4px; font-size:12px; font-weight:bold; cursor:pointer;">🔍</button>
+                            ${nextBtnHtml}
+                            
+                            <div style="flex:1;"></div>
+                            
+                            <!-- Action Buttons (Right Side) -->
+                            <button onclick="window.print()" class="success" style="padding:6px 10px; border-radius:4px; font-size:12px; font-weight:bold; white-space:nowrap; margin:0;">🖨️ Print</button>
+                            <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger" style="padding:6px 10px; border-radius:4px; font-size:12px; font-weight:bold; white-space:nowrap; margin:0;">✕ Close</button>
                         </div>
+                        
                         <div class="preview-content" style="padding:0; background:#fff;">
                             ${content}
                         </div>
