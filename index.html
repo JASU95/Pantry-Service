@@ -2766,7 +2766,7 @@
                 
                 let currentStatementMonth = new Date().toISOString().slice(0, 7);
 
-                window.renderFilteredVendorTable = function(selectedHead, selectedMonth = currentStatementMonth) {
+                  window.renderFilteredVendorTable = function(selectedHead, selectedMonth = currentStatementMonth) {
                     currentStatementMonth = selectedMonth;
                     // ફિલ્ટર બદલતી વખતે ઓલરેડી લખેલી બેંક ડિટેલ્સ મેમરીમાં સેવ રાખો જેથી ગાયબ ના થાય
                     const savedBankName = document.getElementById('iaBankName')?.value || '';
@@ -2798,13 +2798,16 @@
                                     <option value="Office" ${selectedHead==='Office'?'selected':''}>Office</option>
                                 </select>
                             </div>
-                            <div style="padding-top:18px; display:flex; gap:10px;">
-                                <button type="button" id="printRawStatementBtn" class="btn" style="min-height:44px; padding:0 24px; border-radius:8px; background:#1E293B; font-weight:700; font-size:0.9rem;">🖨️ Print Statement Table</button>
-                                <button type="button" id="generateVendorBillBtn" class="success" style="min-height:44px; padding:0 24px; border-radius:8px; font-weight:700; background:#0A56D0; box-shadow:0 4px 10px rgba(10,86,208,0.2); font-size:0.9rem;">🧾 Generate Printable Bill for DAU</button>
+                            <div style="padding-top:18px; display:flex; gap:10px; align-items:center;">
+                                <select id="vendorPrintTypeSelect" style="padding:11px; border-radius:8px; border:2px solid #0A56D0; font-weight:bold; color:#0A56D0; background:#fff; cursor:pointer; outline:none;">
+                                    <option value="statement">📄 Print Statement</option>
+                                    <option value="bill">🧾 Print DAU Bill</option>
+                                </select>
+                                <button type="button" id="generateVendorPrintBtn" class="success" style="min-height:44px; padding:0 24px; border-radius:8px; font-weight:700; background:#0A56D0; font-size:0.9rem;">🖨️ Print / Generate</button>
                             </div>
                         </div>
                         
-                        <div class="card" style="margin-bottom:16px; padding:14px; border:1px dashed #CBD5E1; background:#FAFAFA; text-align:left; flex-shrink:0;">
+                        <div id="vendorBankDetailsSection" class="card" style="display:none; margin-bottom:16px; padding:14px; border:1px dashed #CBD5E1; background:#FAFAFA; text-align:left; flex-shrink:0;">
                             <span style="font-size:0.8rem; font-weight:700; color:#1E3A8A; display:block; margin-bottom:8px;">🏦 Optional Bank Remittance Details (For Invoice Printing):</span>
                             <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:8px;">
                                 <input type="text" id="iaBankName" placeholder="Bank Name" style="padding:8px; font-size:0.82rem; margin:0; border-radius:6px; border:1px solid #CBD5E1;">
@@ -2822,7 +2825,7 @@
                         let sr = 1;
                         let grandTotal = 0;
                         tableHtml = `
-                                                        <table class="vendor-desktop-table" id="rawVendorPrintableTargetTable" style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+                            <table class="vendor-desktop-table" id="rawVendorPrintableTargetTable" style="width:100%; border-collapse:collapse; font-size:0.9rem;">
                                 <thead>
                                     <tr>
                                         <th>S.R.</th>
@@ -2847,7 +2850,7 @@
                             if(row.accountHead==='Placement') headBadgeColor='#10B981';
 
                             tableHtml += `
-                                                                <tr>
+                                <tr>
                                     <td>${sr++}</td>
                                     <td>${safeStr(row.date)}</td>
                                     ${vendorName === 'All Vendors' ? `<td style="color:#D97706; font-weight:700;">${safeStr(row.vendor)}</td>` : ''}
@@ -2863,7 +2866,7 @@
                         });
                         tableHtml += `
                                 <tr style="font-weight:700; background:#F1F5F9; font-size:0.95rem;">
-                                    <td colspan="5" style="text-align:right; padding-right:12px;">GRAND TOTAL</td>
+                                    <td colspan="${vendorName === 'All Vendors' ? 6 : 5}" style="text-align:right; padding-right:12px;">GRAND TOTAL</td>
                                     <td style="color:#0A56D0; font-weight:800;">₹${grandTotal.toFixed(2)}</td>
                                     <td colspan="4"></td>
                                 </tr>
@@ -2873,7 +2876,6 @@
 
                     content.innerHTML = controlHtml + tableHtml;
 
-                    // જૂની લખેલી બેંક વિગતો પાછી ડ્રોપડાઉન બદલાયા પછી ફોર્મમાં ભરી દો
                     if(document.getElementById('iaBankName')) {
                         document.getElementById('iaBankName').value = savedBankName;
                         document.getElementById('iaBankAccountNo').value = savedBankAcc;
@@ -2889,26 +2891,34 @@
                         window.renderFilteredVendorTable(document.getElementById('vendorAccountHeadFilter').value, this.value);
                     };
 
-                    document.getElementById('printRawStatementBtn').onclick = function() {
-                        const targetHtml = document.getElementById('rawVendorPrintableTargetTable').outerHTML;
-                        const printContainer = document.getElementById('printAreaContainer');
-                        printContainer.style.zIndex = "100000005";
-                        printContainer.innerHTML = `
-                            <div class="preview-card" style="max-width:1050px; width:95vw; height:90vh;">
-                              <div class="preview-header hide-on-print">
-                                <button onclick="window.print()" class="success">🖨️ Print Statement Table</button>
-                                <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger">✕ Close</button>
-                              </div>
-                              <div class="preview-content" style="background:#fff; padding:20px;">
-                                <h2 style="text-align:center; margin-bottom:15px; font-family:sans-serif;">${vendorName.toUpperCase()} - REVENUE STATEMENT REPORT</h2>
-                                <table class="print-table">${targetHtml}</table>
-                              </div>
-                            </div>
-                        `;
-                        printContainer.classList.remove('hidden');
+                    document.getElementById('vendorPrintTypeSelect').onchange = function(e) {
+                        document.getElementById('vendorBankDetailsSection').style.display = e.target.value === 'bill' ? 'block' : 'none';
                     };
 
-                    document.getElementById('generateVendorBillBtn').onclick = function() {
+                    document.getElementById('generateVendorPrintBtn').onclick = function() {
+                        const printType = document.getElementById('vendorPrintTypeSelect').value;
+                        
+                        if (printType === 'statement') {
+                            const targetHtml = document.getElementById('rawVendorPrintableTargetTable').outerHTML;
+                            const printContainer = document.getElementById('printAreaContainer');
+                            printContainer.style.zIndex = "100000005";
+                            printContainer.innerHTML = `
+                                <div class="preview-card" style="max-width:1050px; width:95vw; height:90vh;">
+                                  <div class="preview-header hide-on-print">
+                                    <button onclick="window.print()" class="success">🖨️ Print Statement Table</button>
+                                    <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger">✕ Close</button>
+                                  </div>
+                                  <div class="preview-content" style="background:#fff; padding:20px;">
+                                    <h2 style="text-align:center; margin-bottom:15px; font-family:sans-serif;">${vendorName.toUpperCase()} - REVENUE STATEMENT REPORT</h2>
+                                    <table class="print-table">${targetHtml}</table>
+                                  </div>
+                                </div>
+                            `;
+                            printContainer.classList.remove('hidden');
+                            return;
+                        }
+
+                        // --- BILL GENERATION LOGIC ---
                         if(!filteredItems.length) return appAlert('No Data', 'No items available.');
                         
                         const vendorShort = vendorName.trim().slice(0, 3).toUpperCase();
@@ -2917,13 +2927,10 @@
                         const bYY = bYear ? bYear.slice(-2) : '26';
                         const bMM = bMonth || '07';
 
-                        const monthlyVendorEvents = eventLogsData.filter(ev => {
-                            const evYMD = parseDMYToYMD(ev.date);
-                            if (!evYMD || !evYMD.startsWith(reportMonthVal)) return false;
-                            return ev.items && ev.items.some(i => (i.vendor || ev.canteenSource || '').toLowerCase() === vendorName.toLowerCase());
-                        });
-                        const bCount = String(Math.max(1, monthlyVendorEvents.length)).padStart(2, '0');
-                        const invoiceNumber = `${vendorShort}/${bMM}/${bYY}/${bCount}`;
+                        // યુનિક કેટેગરી વાઈઝ ઇન્વોઇસ નંબર 
+                        const deptCodes = { 'All': '000', 'SoL': '001', 'Admissions': '002', 'Placement': '003', 'Office': '004' };
+                        const dCode = deptCodes[selectedHead] || '005';
+                        const invoiceNumber = `${vendorShort}/${bMM}${bYY}/${dCode}`;
 
                         let billRows = '';
                         let billTotal = 0;
@@ -2935,6 +2942,7 @@
                                 <tr style="height:40px !important;">
                                     <td style="border:1px solid #000 !important; text-align:center; padding:5px; font-size:13px !important; vertical-align:middle;">${billSr++}</td>
                                     <td style="border:1px solid #000 !important; text-align:center; padding:5px; font-size:13px !important; vertical-align:middle; white-space:nowrap;">${item.date}</td>
+                                    ${vendorName === 'All Vendors' ? `<td style="border:1px solid #000 !important; text-align:center; padding:5px; font-size:13px !important; vertical-align:middle;">${safeStr(item.vendor)}</td>` : ''}
                                     <td style="border:1px solid #000 !important; text-align:left; padding:5px 10px; font-size:13px !important; vertical-align:middle; font-weight:600;">${item.itemName}</td>
                                     <td style="border:1px solid #000 !important; text-align:center; padding:5px; font-size:13px !important; vertical-align:middle;">${item.qty}</td>
                                     <td style="border:1px solid #000 !important; text-align:center; padding:5px; font-size:13px !important; vertical-align:middle;">₹${item.rate}</td>
@@ -2945,7 +2953,6 @@
 
                         let headTitle = selectedHead.toLowerCase() === 'all' || selectedHead === '' ? 'ALL' : `${selectedHead.toUpperCase()}`;
 
-                        // બેંક માહિતી રીડ કરો અને IFSC કોડમાં ઓટો-પોઝિશન શૂન્ય પ્રોટેક્શન લોજીક
                         const bName = document.getElementById('iaBankName').value.trim();
                         const bAcc = document.getElementById('iaBankAccountNo').value.trim();
                         let bIfsc = document.getElementById('iaBankIFSC').value.trim();
@@ -2999,18 +3006,17 @@
                                         <span style="color:#000; font-weight:800; font-size:0.85rem; display:block; margin-bottom:2px;">BILL DETAILS:</span>
                                         <b>Invoice No:</b> <span style="font-family:monospace; font-weight:800; color:#0A56D0; font-size:14px;">${invoiceNumber}</span><br>
                                         <b>Department:</b> ${headTitle}<br>
-                                        <b>Billing Date:</b> ${getTodayInDMY()}<br>
-                                        
+                                        <b>Billing Date:</b> ${getTodayInDMY()}
                                     </div>
                                 </div>
 
                                 <table style="width: 100%; border-collapse: collapse; margin-top: 10px; border:1px solid #000 !important; color:#000;">
-                                                                    <thead>
-                                    <tr style="background: #E2E8F0 !important; height:40px !important;">
-                                        <th style="border:1px solid #000 !important; width: 8%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">S.R.</th>
-                                        <th style="border:1px solid #000 !important; width: 15%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Date</th>
-                                        ${vendorName === 'All Vendors' ? '<th style="border:1px solid #000 !important; width: 15%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Vendor</th>' : ''}
-                                        <th style="border:1px solid #000 !important; width: 45%; font-weight:700; font-size:13px !important; text-align:left; padding-left:10px; color:#000;">Item Description</th>
+                                    <thead>
+                                        <tr style="background: #E2E8F0 !important; height:40px !important;">
+                                            <th style="border:1px solid #000 !important; width: 8%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">S.R.</th>
+                                            <th style="border:1px solid #000 !important; width: 15%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Date</th>
+                                            ${vendorName === 'All Vendors' ? '<th style="border:1px solid #000 !important; width: 15%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Vendor</th>' : ''}
+                                            <th style="border:1px solid #000 !important; width: 45%; font-weight:700; font-size:13px !important; text-align:left; padding-left:10px; color:#000;">Item Description</th>
                                             <th style="border:1px solid #000 !important; width: 10%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Qty</th>
                                             <th style="border:1px solid #000 !important; width: 11%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Rate</th>
                                             <th style="border:1px solid #000 !important; width: 11%; font-weight:700; font-size:13px !important; text-align:center; color:#000;">Amount</th>
@@ -3019,17 +3025,12 @@
                                     <tbody>
                                         ${billRows}
                                         <tr style="background: #FFF !important; font-weight: bold; height:40px !important;">
-                                            <td colspan="5" style="border:1px solid #000 !important; text-align: right; padding-right: 12px; font-size:13px !important; vertical-align:middle; font-weight:700; color:#000;">GRAND TOTAL AMOUNT DUE</td>
+                                            <td colspan="${vendorName === 'All Vendors' ? 6 : 5}" style="border:1px solid #000 !important; text-align: right; padding-right: 12px; font-size:13px !important; vertical-align:middle; font-weight:700; color:#000;">GRAND TOTAL AMOUNT DUE</td>
                                             <td style="border:1px solid #000 !important; text-align:center; font-size: 14px !important; color: #000; vertical-align:middle; font-weight:800;">₹${billTotal.toFixed(2)}</td>
                                         </tr>
                                     </tbody>
                                 </table>
-
                                 ${bankDetailsHtmlBlock}
-
-                                <div style="margin-top: 50px; display: flex; justify-content: space-between; font-size: 13px; font-weight:700; color:#000;">
-                               
-                                </div>
                             </div>
                         `;
 
@@ -3064,7 +3065,6 @@
                         printContainer.classList.remove('hidden');
                     };
                 };
-
                 window.renderFilteredVendorTable('All');
                 viewer.classList.add('active');
             };
@@ -4358,9 +4358,6 @@
             // ============================================================
             //  VENDOR VIEW (No login, view only) - WITH LIVE BILLING ENGINE
             // ============================================================
-            // ============================================================
-            //  VENDOR VIEW (No login, view only) - WITH LIVE BILLING ENGINE
-            // ============================================================
             function renderVendorView(vendorName) {
                 const appDiv = document.getElementById('app');
                 appDiv.classList.remove('hidden');
@@ -4481,11 +4478,14 @@
                                     <option value="Office" ${selectedHead==='Office'?'selected':''}>Office</option>
                                 </select>
                             </div>
-                            <div style="padding-top:18px; display:flex; gap:10px;">
-                                <button type="button" id="extPrintStatementBtn" class="btn" style="min-height:44px; padding:0 24px; border-radius:8px; background:#1E293B; font-weight:700; font-size:0.9rem; cursor:pointer;">🖨️ Print Statement Table</button>
-                                <button type="button" id="extGenerateVendorBillBtn" class="success" style="min-height:44px; padding:0 24px; border-radius:8px; font-weight:700; background:#0A56D0; box-shadow:0 4px 10px rgba(10,86,208,0.2); font-size:0.9rem; cursor:pointer;">🧾 Generate Printable Invoice for DAU</button>
+                            <div style="padding-top:18px; display:flex; gap:10px; align-items:center;">
+                                <select id="extVendorPrintTypeSelect" style="padding:11px; border-radius:8px; border:2px solid #0A56D0; font-weight:bold; color:#0A56D0; background:#fff; cursor:pointer; outline:none;">
+                                    <option value="statement">📄 Print Statement</option>
+                                    <option value="bill">🧾 Print DAU Bill</option>
+                                </select>
+                                <button type="button" id="extGenerateVendorPrintBtn" class="success" style="min-height:44px; padding:0 24px; border-radius:8px; font-weight:700; background:#0A56D0; font-size:0.9rem; cursor:pointer;">🖨️ Generate</button>
                             </div>
-                            <div style="margin-top:14px; padding-top:12px; border-top:1px dashed #CBD5E1; text-align:left; width:100%;">
+                            <div id="extVendorBankDetailsSection" style="display:none; margin-top:14px; padding-top:12px; border-top:1px dashed #CBD5E1; text-align:left; width:100%;">
                                 <span style="font-size:0.8rem; font-weight:700; color:#1E3A8A; display:block; margin-bottom:8px;">🏦 Optional Bank Remittance Details (For Invoice Output):</span>
                                 <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:8px;">
                                     <input type="text" id="extBankName" placeholder="Bank Name" style="padding:8px; font-size:0.82rem; margin:0; border-radius:6px; border:1px solid #CBD5E1;">
@@ -4517,7 +4517,7 @@
                                         <th>Requested By</th>
                                         <th>Meeting / Event Purpose</th>
                                         <th>Department</th>
-                                        <th>Pantry Boy</th> <!-- Pantry Boy કોલમ ઉમેર્યું -->
+                                        <th>Pantry Boy</th> 
                                     </tr>
                                 </thead>
                                 <tbody>`;
@@ -4540,14 +4540,14 @@
                                     <td>${safeStr(row.requestedBy)}</td>
                                     <td>${safeStr(row.meeting)}</td>
                                     <td><span style="background:${headBadgeColor}; color:#fff; padding:3px 12px; border-radius:100px; font-size:0.75rem; font-weight:600;">${row.accountHead}</span></td>
-                                    <td>${safeStr(row.servedBy)}</td> <!-- Pantry Boy ડેટા ઉમેર્યો -->
+                                    <td>${safeStr(row.servedBy)}</td>
                                 </tr>`;
                         });
                         tableHtml += `
                                 <tr style="font-weight:700; background:#F1F5F9; font-size:0.95rem;">
                                     <td colspan="${vendorName === 'All Vendors' ? 6 : 5}" style="text-align:right; padding-right:12px;">GRAND TOTAL</td>
                                     <td style="color:#0A56D0; font-weight:800;">₹${grandTotal.toFixed(2)}</td>
-                                    <td colspan="4"></td> <!-- COLSPAN સુધાર્યું -->
+                                    <td colspan="4"></td> 
                                 </tr>
                                 </tbody>
                             </table>`;
@@ -4570,55 +4570,46 @@
                         window.renderExternalVendorTable(document.getElementById('extVendorAccountHeadFilter').value, this.value);
                     };
 
-                    document.getElementById('extPrintStatementBtn').onclick = function() {
-                        const targetHtml = document.getElementById('extTargetPrintableStatementTable').outerHTML;
-                        const printContainer = document.getElementById('printAreaContainer');
-                        printContainer.style.zIndex = "100000005";
-                        printContainer.innerHTML = `
-                            <div class="preview-card" style="max-width:1150px; width:95vw; height:90vh;">
-                              <div class="preview-header hide-on-print">
-                                <button onclick="window.print()" class="success">🖨️ Print Statement Table</button>
-                                <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger">✕ Close</button>
-                              </div>
-                              <div class="preview-content" style="background:#fff; padding:20px;">
-                                <h2 style="text-align:center; margin-bottom:15px;">${vendorName.toUpperCase()} - STATEMENT REVENUE</h2>
-                                <table class="print-table">${targetHtml}</table>
-                              </div>
-                            </div>
-                        `;
-                        printContainer.classList.remove('hidden');
+                    document.getElementById('extVendorPrintTypeSelect').onchange = function(e) {
+                        document.getElementById('extVendorBankDetailsSection').style.display = e.target.value === 'bill' ? 'block' : 'none';
                     };
 
-                    document.getElementById('extGenerateVendorBillBtn').onclick = function() {
+                    document.getElementById('extGenerateVendorPrintBtn').onclick = function() {
+                        const printType = document.getElementById('extVendorPrintTypeSelect').value;
+                        
+                        if (printType === 'statement') {
+                            const targetHtml = document.getElementById('extTargetPrintableStatementTable').outerHTML;
+                            const printContainer = document.getElementById('printAreaContainer');
+                            printContainer.style.zIndex = "100000005";
+                            printContainer.innerHTML = `
+                                <div class="preview-card" style="max-width:1150px; width:95vw; height:90vh;">
+                                  <div class="preview-header hide-on-print">
+                                    <button onclick="window.print()" class="success">🖨️ Print Statement Table</button>
+                                    <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger">✕ Close</button>
+                                  </div>
+                                  <div class="preview-content" style="background:#fff; padding:20px;">
+                                    <h2 style="text-align:center; margin-bottom:15px;">${vendorName.toUpperCase()} - STATEMENT REVENUE</h2>
+                                    <table class="print-table">${targetHtml}</table>
+                                  </div>
+                                </div>
+                            `;
+                            printContainer.classList.remove('hidden');
+                            return;
+                        }
+
+                        // --- BILL GENERATION LOGIC ---
                         if(!filteredItems.length) return appAlert('No Data', 'No items available.');
-                                
+                        
                         const vendorShort = vendorName.trim().slice(0, 3).toUpperCase();
                         const currentMonthYMD = document.getElementById('extVendorStatementMonthFilter')?.value || currentStatementMonth;
                         const [bYear, bMonth] = currentMonthYMD.split('-');
                         const bYY = bYear ? bYear.slice(-2) : '26';
                         const bMM = bMonth || '07';
 
-                        const monthlyVendorEvents = eventLogsData.filter(ev => {
-                            const evYMD = parseDMYToYMD(ev.date);
-                            if (!evYMD || !evYMD.startsWith(currentMonthYMD)) return false;
-                            return ev.items && ev.items.some(i => (i.vendor || ev.canteenSource || '').toLowerCase() === vendorName.toLowerCase());
-                        });
-                        
-                        const monthlyMgEvents = mgRecordsData.filter(rec => {
-                            let recYMD = '';
-                            if (rec.DateFormatted && rec.DateFormatted.includes('/')) {
-                                recYMD = parseDMYToYMD(rec.DateFormatted);
-                            } else if (rec.RawDate) {
-                                recYMD = rec.RawDate;
-                            } else {
-                                recYMD = new Date(rec.Timestamp).toISOString().split('T')[0];
-                            }
-                            if (!recYMD.startsWith(currentMonthYMD) || rec.Status === 'Review') return false;
-                            return (rec.Vendor || '').toLowerCase() === vendorName.toLowerCase();
-                        });
-
-                        const bCount = String(Math.max(1, monthlyVendorEvents.length + monthlyMgEvents.length)).padStart(2, '0');
-                        const invoiceNumber = `${vendorShort}/${bMM}/${bYY}/${bCount}`;
+                        // યુનિક કેટેગરી વાઈઝ ઇન્વોઇસ નંબર
+                        const deptCodes = { 'All': '000', 'SoL': '001', 'Admissions': '002', 'Placement': '003', 'Office': '004' };
+                        const dCode = deptCodes[selectedHead] || '005';
+                        const invoiceNumber = `${vendorShort}/${bMM}${bYY}/${dCode}`;
 
                         let billRows = '';
                         let billTotal = 0;
@@ -4766,7 +4757,7 @@
                 };
 
                 window.renderExternalVendorTable('All');
-            }
+            };
 
             // ============================================================
             //  PANTRY - DAILY / MONTHLY ENTRY (Ultra Slim Mobile Optimized)
@@ -4794,138 +4785,217 @@
                 `;
                 document.body.appendChild(modal);
             };        
- function renderServeEntry() {
+            // ============================================================
+            //  PANTRY - DAILY / MONTHLY ENTRY (ULTRA COMPACT EXCEL MODE)
+            // ============================================================
+            // ============================================================
+            //  PANTRY - DAILY / MONTHLY ENTRY (ULTRA COMPACT EXCEL MODE)
+            // ============================================================
+            function renderServeEntry() {
                 activePantryTab = 'serve';
                 const todayYMD = new Date().toISOString().split('T')[0];
+                const currentMonthYMD = todayYMD.slice(0, 7);
                 const container = document.getElementById('pantryContent');
                 
-                // નવો સ્લિમ CSS બ્લોક ખાસ ડેઈલી એન્ટ્રી માટે
+                window.lgPast = [];
+                window.lgFuture = [];
+                window.lgIsReverting = false;
+
+                const hasDauAccess = window.hasDauPurchasePermission ? window.hasDauPurchasePermission(currentUser.id) : true;
+                const supplyOpts = `<option value="Contractor">☕ IA Caterers</option>${hasDauAccess ? '<option value="DAU Direct Purchase">🛒 DAU Direct</option>' : ''}`;
+
                 const slimDailyCss = `
                 <style>
-                    .slim-ctrl-row { display: flex; gap: 4px; width: 100%; margin-bottom: 4px; }
-                    .slim-inp { flex: 1; height: 28px !important; min-height: 28px !important; padding: 0 4px !important; font-size: 11px !important; border-radius: 4px !important; border: 1px solid #CBD5E1 !important; box-sizing: border-box !important; text-align: center; background: #fff; color:#0A56D0; font-weight:bold; outline:none; }
-                    .slim-btn-nav { flex: 0.15; height: 28px !important; min-height: 28px !important; padding: 0 !important; font-size: 14px !important; border-radius: 4px !important; border: 1px solid #0A56D0 !important; color:#0A56D0; background:#fff; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor:pointer; }
-                    .slim-btn-mode { flex: 0.3; height: 28px !important; min-height: 28px !important; padding: 0 !important; font-size: 10px !important; border-radius: 4px !important; border: 1px solid #0A56D0 !important; color:#0A56D0; background:#fff; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor:pointer; }
-                    .slim-btn-mode.active { background: #0A56D0 !important; color: #fff !important; }
+                    /* 🚨 ULTRA COMPACT UNIFORM FILTERS FOR MOBILE */
+                    .slim-ctrl-panel { display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; margin-bottom: 6px; width: 100%; flex-shrink: 0; background: #E2E8F0; padding: 4px; border-radius: 6px; border: 1px solid #CBD5E1; }
+                    .slim-btn-nav { grid-column: span 1; height: 28px !important; min-height: 28px !important; padding: 0 !important; font-size: 11px !important; border-radius: 4px !important; border: 1px solid #CBD5E1 !important; color:#0A56D0; background:#fff; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor:pointer; }
+                    .slim-btn-nav:active { background: #CBD5E1; }
+                    .slim-date-wrap { grid-column: span 4; height: 28px; }
+                    .slim-btn-mode { grid-column: span 3; height: 28px !important; min-height: 28px !important; padding: 0 !important; font-size: 10px !important; border-radius: 4px !important; border: 1px solid #CBD5E1 !important; color:#64748B; background:#fff; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor:pointer; }
+                    .slim-btn-mode.active { background: #0A56D0 !important; color: #fff !important; border-color: #0A56D0 !important; }
+                    .slim-btn-undo { grid-column: span 1; height: 28px !important; min-height: 28px !important; padding: 0 !important; font-size: 13px !important; border-radius: 4px !important; border: 1px solid #CBD5E1 !important; color:#64748B; background:#fff; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor:pointer; opacity: 0.5; }
                     
-                    /* Custom Date Wrapper Overrides */
-                    .custom-date-wrapper { flex: 0.5; height: 28px !important; background: #fff; border: 1px solid #0A56D0; border-radius: 4px; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
-                    .custom-date-wrapper input { flex: 1 !important; width: 100% !important; height: 100% !important; border: none !important; background: transparent !important; text-align: center !important; font-weight: 800 !important; font-size: 11px !important; color: #0A56D0 !important; outline: none !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; cursor:pointer; }
-                    .custom-date-wrapper svg { width: 14px; height: 14px; margin-right: 4px; }
+                    .mg-cmp-inp-new { height: 28px !important; min-height: 28px !important; font-size: 10px !important; padding: 0 4px !important; border-radius: 4px !important; border: 1px solid #CBD5E1 !important; outline: none !important; box-sizing: border-box !important; background: #fff; color: #1E293B; font-weight: bold; width: 100%; margin:0; }
+                    .mg-cmp-inp-new:focus { border-color: #0A56D0; }
                     
-                    /* Table Dropdown Overrides */
-                    .slim-daily-drop .my-drop-btn { min-height: 24px !important; height: 24px !important; padding: 0 4px !important; font-size: 10px !important; border-radius: 4px !important; border:1px solid #CBD5E1 !important; box-shadow:none !important; }
-                    .slim-daily-drop .my-drop-disabled { padding: 0 4px !important; font-size: 10px !important; border-radius: 4px !important; border:1px solid #CBD5E1 !important; height:24px !important; box-sizing:border-box !important; display:flex; align-items:center; justify-content:center; }
-                    .slim-daily-drop .my-drop-item { font-size: 13px !important; padding: 12px !important; font-weight:bold; }
+                    /* Sub grid items for Row 2 */
+                    .sup-src { grid-column: span 4; }
+                    .cat-sel { grid-column: span 3; }
+                    .search-inp { grid-column: span 3; }
+
+                    /* EXCEL CELLS - NO MARGIN, NO PADDING */
+                    .l-cell-wrap { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding:0; margin:0; }
+                    .l-cell { width: 100%; height: 100%; display:flex; align-items:center; justify-content:center; font-size: 9.5px; font-weight: 800; color: #0A56D0; cursor: cell; box-sizing: border-box; outline:none; border:1px solid transparent; border-radius:2px; min-height:22px; background:#F8FAFC; user-select:none; -webkit-user-select:none; padding:0; margin:0; line-height:1.1; text-align:center; }
+                    .l-cell.active-cell { border: 1.5px solid #0A56D0; background: #E0F2FE; color: #0369A1; }
+                    .cell-highlight { background-color: #BAE6FD !important; color: #0284C7 !important; border:1px solid #7DD3FC; }
+                    .fill-handle { position: absolute; right: -3px; bottom: -3px; width: 14px; height: 14px; background: #0A56D0; border: 1.5px solid #fff; cursor: crosshair; z-index: 30; border-radius: 50%; display:none; touch-action: none; }
+                    .l-cell-wrap:has(.active-cell) .fill-handle { display:block; }
+                    
+                    /* MONTHLY GRID SPECIFIC - ULTRA SLIM */
+                    .p-l-wrap { overflow: auto; background: #fff; border: 1px solid #CBD5E1; border-radius: 4px; flex: 1; min-height: 0; max-height: 100%; position:relative; touch-action: pan-x pan-y; margin-bottom:0; }
+                    .p-l-tbl { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 9.5px; text-align: center; user-select: none; -webkit-user-select: none; }
+                    .p-l-th-date { min-width: 35px; position: sticky; left: 0; top: 0; z-index: 20; background: #E0F2FE; border-bottom: 2px solid #0A56D0; border-right: 1px solid #CBD5E1; height: 26px; padding: 0 1px; }
+                    .p-l-th-emp { font-size: 9.5px; color: #1E293B; line-height: 1; white-space: normal; word-wrap: break-word; position: sticky; top: 0; z-index: 10; background: #F1F5F9; border-bottom: 1px solid #CBD5E1; border-right: 1px solid #CBD5E1; height: 26px; padding: 1px; border-top: none; }
+                    .p-l-th-sess { font-weight: 800; color: #44474E; background: #F8FAFC; width: 42px; min-width: 42px; position: sticky; top: 26px; z-index: 9; border-bottom: 2px solid #0A56D0; border-right: 1px dashed #CBD5E1; height: 18px; padding: 0 1px; }
+                    .p-l-th-sess.aft { border-right: 1px solid #CBD5E1; }
+                    .p-l-td-date { border-bottom: 1px solid #E2E8F0; border-right: 1px solid #CBD5E1; padding: 0 1px; height: 22px; font-weight: bold; position: sticky; left: 0; background: #F8FAFC; z-index: 5; color: #0A56D0; line-height: 1; font-size: 9px; }
+                    .p-l-td-morn { border-bottom: 1px solid #E2E8F0; border-right: 1px dashed #E2E8F0; padding: 0; height: 22px; }
+                    .p-l-td-aft { border-bottom: 1px solid #E2E8F0; border-right: 1px solid #CBD5E1; padding: 0; height: 22px; }
+                    
+                    /* TOTALS LIVE CSS FOR PANTRY */
+                    .l-tot-lbl { border-bottom: 1px solid #CBD5E1; border-top: 2px solid #0A56D0; border-right: 1px solid #CBD5E1; padding: 0 1px; height: 20px; font-weight: 800; position: sticky; left: 0; z-index: 6; font-size: 9px; line-height: 1; background:#F8FAFC; color:#0A56D0; text-align:center; }
+                    .l-tot-val { border-bottom: 1px solid #CBD5E1; border-top: 2px solid #0A56D0; border-right: 1px solid #CBD5E1; padding: 0; height: 20px; font-weight: 900; font-size: 10px; line-height: 1; text-align:center; }
                 </style>
                 `;
 
-                container.innerHTML = `
-              ${slimDailyCss}
-              <div class="card" style="padding:6px; margin-bottom:4px; display:flex; flex-direction:column; flex:1; overflow:hidden; border-radius:8px;">
-                <div style="flex-shrink:0;">
-                  <!-- 1. Row: Navigation & Date & Mode -->
-                  <div class="slim-ctrl-row">
-                    <button type="button" onclick="window.changeDateBy(-1)" class="slim-btn-nav">◀</button>
-                    <div class="custom-date-wrapper" onclick="var fp = document.getElementById('beverageEntryDate')._flatpickr; if(fp) fp.open();">
-                        <input type="text" id="beverageEntryDate" value="${todayYMD}" readonly>
-                        <div style="display: flex; align-items: center; justify-content: center; color: #0A56D0; pointer-events: none;">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                        </div>
+                const bottomMenuHtml = `
+                    <div id="pantryFloatingMenu" style="position:absolute; bottom:0; left:0; width:100%; background:#fff; padding:2px; box-shadow:0 -4px 10px rgba(0,0,0,0.1); border-top:2px solid #0A56D0; z-index:99999; display:flex; gap:2px; box-sizing:border-box; align-items:center; justify-content:space-between;">
+                        <button onclick="window.applyPantryExcelVal('Tea')" style="flex:1; background:#EFF6FF; color:#1E3A8A; border:1px solid #BFDBFE; padding:4px 0; border-radius:4px; font-weight:bold; font-size:10px; cursor:pointer; line-height:1; min-height:32px;">Tea</button>
+                        <button onclick="window.applyPantryExcelVal('Coffee')" style="flex:1; background:#F1F5F9; color:#475569; border:1px solid #CBD5E1; padding:4px 0; border-radius:4px; font-weight:bold; font-size:10px; cursor:pointer; line-height:1; min-height:32px;">Coffee</button>
+                        <button onclick="window.applyPantryExcelVal('Green Tea')" style="flex:1; background:#ECFDF5; color:#065F46; border:1px solid #A7F3D0; padding:2px 0; border-radius:4px; font-weight:bold; font-size:9.5px; cursor:pointer; line-height:1.1; min-height:32px;">Green<br>Tea</button>
+                        <button onclick="window.applyPantryExcelVal('Lemon Tea')" style="flex:1; background:#FFFBEB; color:#92400E; border:1px solid #FDE68A; padding:2px 0; border-radius:4px; font-weight:bold; font-size:9.5px; cursor:pointer; line-height:1.1; min-height:32px;">Lemon<br>Tea</button>
+                        <button onclick="window.applyPantryExcelVal('Black Tea')" style="flex:1; background:#F5F3FF; color:#5B21B6; border:1px solid #DDD6FE; padding:2px 0; border-radius:4px; font-weight:bold; font-size:9.5px; cursor:pointer; line-height:1.1; min-height:32px;">Black<br>Tea</button>
+                        <button onclick="window.applyPantryExcelVal('Black Coffee')" style="flex:1; background:#FEF2F2; color:#991B1B; border:1px solid #FECACA; padding:2px 0; border-radius:4px; font-weight:bold; font-size:9.5px; cursor:pointer; line-height:1.1; min-height:32px;">Black<br>Coffee</button>
+                        <button onclick="window.applyPantryExcelVal('')" style="flex:1; background:#fee2e2; color:#dc3545; border:1px solid #fecaca; padding:4px 0; border-radius:4px; font-weight:bold; font-size:10px; cursor:pointer; line-height:1; min-height:32px;">✕<br>Clear</button>
                     </div>
-                    <button type="button" onclick="window.changeDateBy(1)" class="slim-btn-nav">▶</button>
-                    <button id="modeNameWise" class="slim-btn-mode active" style="margin-left:4px;">👤 Daily</button>
-                    <button id="modeDateWise" class="slim-btn-mode">📅 Monthly</button>
-                  </div>
-                </div>
-                <div id="beverageEntryModeContent" style="flex:1; display:flex; flex-direction:column; overflow:hidden; min-height:0;"></div>
-                <button id="saveBulkEntries" class="success" style="width:100%; padding:8px; font-size:13px; font-weight:bold; flex-shrink:0; min-height:38px; border-radius:6px; margin-top:4px;">💾 SAVE ENTRIES</button>
-              </div>
-            `;
+                `;
 
-                setTimeout(() => {
-                    if (typeof flatpickr !== 'undefined') {
-                        flatpickr("#beverageEntryDate", {
-                            dateFormat: "Y-m-d",
-                            altInput: true,
-                            altFormat: "d/m/y (D)", // શોર્ટમાં ડેટ અને વાર
-                            disableMobile: true,
-                            onChange: function() {
-                                if (typeof window.refreshAllData === 'function') window.refreshAllData();
-                            }
-                        });
-                    }
-                }, 50);
-                
+                container.innerHTML = `
+                    ${slimDailyCss}
+                    <div style="display:flex; flex-direction:column; flex:1; height:100%; position:relative; padding-bottom:38px; overflow:hidden;">
+                        
+                        <!-- 🚨 UNIFORM FILTERS GRID (2 ROWS x 12 COLS) -->
+                        <div class="slim-ctrl-panel">
+                            <!-- ROW 1 -->
+                            <button type="button" onclick="window.changeDateBy(-1)" class="slim-btn-nav">◀</button>
+                            <div class="slim-date-wrap">
+                                <input type="date" id="beverageDailyDate" value="${todayYMD}" class="mg-cmp-inp-new" style="text-align:center; color:#0A56D0; border-color:#0A56D0;">
+                                <input type="month" id="beverageMonthlyDate" value="${currentMonthYMD}" class="mg-cmp-inp-new hidden" style="text-align:center; color:#0A56D0; border-color:#0A56D0;">
+                            </div>
+                            <button type="button" onclick="window.changeDateBy(1)" class="slim-btn-nav">▶</button>
+                            <button id="modeNameWise" class="slim-btn-mode active">Daily</button>
+                            <button id="modeDateWise" class="slim-btn-mode">Monthly</button>
+
+                            <!-- ROW 2 -->
+                            <button onclick="window.lgUndo()" id="btnLgUndo" class="slim-btn-undo" disabled>↩️</button>
+                            <button onclick="window.lgRedo()" id="btnLgRedo" class="slim-btn-undo" disabled>↪️</button>
+                            <select id="dailySupplySource" class="mg-cmp-inp-new sup-src" style="text-align-last:center; color:#0A56D0; border-color:#0A56D0;">
+                                ${supplyOpts}
+                            </select>
+                            <select id="entryCategory" class="mg-cmp-inp-new cat-sel" style="text-align-last:center;">
+                                <option value="All">All Cat.</option>
+                                <option value="Faculty">Faculty</option>
+                                <option value="Staff">Staff</option>
+                                <option value="Law">Law</option>
+                                <option value="Outsourced">Outsourced</option>
+                            </select>
+                            <input id="pantryStaffSearch" placeholder="🔍 Search" class="mg-cmp-inp-new search-inp">
+                        </div>
+                        
+                        <!-- DYNAMIC GRID CONTENT -->
+                        <div id="beverageEntryModeContent" style="flex:1; display:flex; flex-direction:column; min-height:0; overflow:hidden;"></div>
+                        
+                        ${bottomMenuHtml}
+                    </div>
+                `;
+
+
                 let currentMode = 'name';
+
+                // ડાયનેમિક નેવિગેશન ફંક્શન
+                window.changeDateBy = function(days) {
+                    if (currentMode === 'name') {
+                        const dateInput = document.getElementById('beverageDailyDate');
+                        if (!dateInput || !dateInput.value) return;
+                        const current = new Date(dateInput.value);
+                        current.setDate(current.getDate() + days);
+                        dateInput.value = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}-${String(current.getDate()).padStart(2, '0')}`;
+                        renderBeverageModeContent('name');
+                    } else {
+                        const monthInput = document.getElementById('beverageMonthlyDate');
+                        if (!monthInput || !monthInput.value) return;
+                        const current = new Date(monthInput.value + '-01');
+                        current.setMonth(current.getMonth() + days);
+                        monthInput.value = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
+                        renderBeverageModeContent('date');
+                    }
+                };
 
                 function switchMode(mode) {               
                     currentMode = mode;
-                    document.getElementById('modeNameWise').className = mode === 'name' ? 'slim-btn-mode active' : 'slim-btn-mode';
-                    document.getElementById('modeDateWise').className = mode === 'date' ? 'slim-btn-mode active' : 'slim-btn-mode';
+                    const btnDaily = document.getElementById('modeNameWise');
+                    const btnMonthly = document.getElementById('modeDateWise');
+                    const inpDaily = document.getElementById('beverageDailyDate');
+                    const inpMonthly = document.getElementById('beverageMonthlyDate');
+
+                    if (mode === 'name') {
+                        btnDaily.classList.add('active');
+                        btnMonthly.classList.remove('active');
+                        inpDaily.classList.remove('hidden');
+                        inpMonthly.classList.add('hidden');
+                        const mVal = inpMonthly.value;
+                        if(mVal && !inpDaily.value.startsWith(mVal)) inpDaily.value = mVal + '-01';
+                    } else {
+                        btnDaily.classList.remove('active');
+                        btnMonthly.classList.add('active');
+                        inpDaily.classList.add('hidden');
+                        inpMonthly.classList.remove('hidden');
+                        const dVal = inpDaily.value;
+                        if(dVal) inpMonthly.value = dVal.substring(0, 7);
+                    }
                     renderBeverageModeContent(mode);
                 }
+                
                 document.getElementById('modeNameWise').onclick = () => switchMode('name');
                 document.getElementById('modeDateWise').onclick = () => switchMode('date');
-                document.getElementById('beverageEntryDate').addEventListener('change', () => renderBeverageModeContent(currentMode));
+                
+                const reloadFn = () => renderBeverageModeContent(currentMode);
+                document.getElementById('beverageDailyDate').addEventListener('change', reloadFn);
+                document.getElementById('beverageMonthlyDate').addEventListener('change', reloadFn);
+                document.getElementById('entryCategory').addEventListener('change', reloadFn);
+                document.getElementById('pantryStaffSearch').addEventListener('input', reloadFn);
+                
+                document.getElementById('dailySupplySource').addEventListener('change', function() {
+                    if(this.value === 'Contractor') {
+                        this.style.color = '#0A56D0'; this.style.borderColor = '#0A56D0';
+                    } else {
+                        this.style.color = '#047857'; this.style.borderColor = '#059669';
+                    }
+                    reloadFn();
+                });
 
                 function renderBeverageModeContent(mode) {
                     const target = document.getElementById('beverageEntryModeContent');
                     if (!target) return;
                     
                     if (mode === 'name') {
-                        const hasDauAccess = window.hasDauPurchasePermission ? window.hasDauPurchasePermission(currentUser.id) : true;
                         target.innerHTML = `
-                            <!-- 2. Row: Supply, Category, Search -->
-                            <div class="slim-ctrl-row" style="flex-shrink:0;">
-                                <select id="dailySupplySource" class="slim-inp" style="flex:0.8; font-size:10px!important; text-align-last:center; appearance:none;">
-                                    <option value="Contractor">☕ IA Caterers</option>
-                                    ${hasDauAccess ? '<option value="DAU Direct Purchase">🛒 DAU Direct</option>' : ''}
-                                </select>
-                                <input id="pantryStaffSearch" class="slim-inp" placeholder="🔍 Search" style="flex:1; font-weight:normal; color:#1E293B;">
-                                <select id="entryCategory" class="slim-inp" style="flex:0.7; font-size:10px!important; text-align-last:center; font-weight:normal; color:#1E293B; appearance:none;">
-                                    <option value="All">All Cat.</option>
-                                    <option value="Faculty">Faculty</option>
-                                    <option value="Staff">Staff</option>
-                                    <option value="Law">Law</option>
-                                    <option value="Outsourced">Outsource</option>
-                                </select>
-                            </div>
-                            
-                            <!-- 3. Main Table Box -->
-                            <div id="dailyEntryMainBox" style="flex:1; display:flex; flex-direction:column; border:1px solid #0A56D0; border-radius:6px; overflow:hidden; background:#fff; margin-top:2px;">
-                                <div id="dailyEntryHeaderLabel" style="background:#EFF6FF; padding:4px 6px; font-weight:800; color:#0A56D0; font-size:11px; border-bottom:1px solid #BFDBFE; display:flex;">
-                                    <div style="flex:2;">Name</div>
+                            <div id="dailyEntryMainBox" style="flex:1; display:flex; flex-direction:column; border:1px solid #0A56D0; border-radius:4px; overflow:hidden; background:#fff;">
+                                <div style="background:#EFF6FF; padding:2px 4px; font-weight:800; color:#0A56D0; font-size:10px; border-bottom:1px solid #BFDBFE; display:flex; align-items:center; height:18px;">
+                                    <div style="flex:2;">Employee Name</div>
                                     <div style="flex:1; text-align:center;">Morn</div>
                                     <div style="flex:1; text-align:center;">Aft</div>
                                 </div>
-                                <div id="bulkServeListContractor" style="flex:1; overflow-y:auto; overflow-x:hidden; padding:2px;"></div>
+                                <div id="bulkServeListContractor" class="pantry-scroller" style="flex:1; overflow-y:auto; overflow-x:hidden; padding:0;"></div>
                             </div>
                         `;
-                        document.getElementById('entryCategory').addEventListener('change', populateServe);
-                        document.getElementById('pantryStaffSearch').addEventListener('input', populateServe);
-                        document.getElementById('dailySupplySource').addEventListener('change', function() {
-                            const box = document.getElementById('dailyEntryMainBox');
-                            if(this.value === 'Contractor') {
-                                box.style.borderColor = '#0A56D0';
-                                this.style.color = '#0A56D0';
-                            } else {
-                                box.style.borderColor = '#059669';
-                                this.style.color = '#047857';
-                            }
-                            populateServe();
-                        });
-                        populateServe();
+                        window.populateServe();
+                        window.initPantryExcelEvents('bulkServeListContractor');
                     } else {
-                        openMonthlyGridPopup();
+                        target.innerHTML = `
+                            <div id="pantryMonthlyGridWrapper" style="flex:1; display:flex; flex-direction:column; overflow:hidden; min-height:0;"></div>
+                        `;
+                        window.openPantryLiveGrid();
                     }
                 }
 
-                window.populateServe = function populateServe() {
-                    const containerContractor = document.getElementById('bulkServeListContractor');
+                window.populateServe = function() {
+                    const container = document.getElementById('bulkServeListContractor');
+                    if(!container) return;
+                    
                     const cat = document.getElementById('entryCategory')?.value || 'All';
                     const search = document.getElementById('pantryStaffSearch')?.value.toLowerCase().trim() || '';
-                    const selectedYMD = document.getElementById('beverageEntryDate')?.value || new Date().toISOString().split('T')[0];
+                    const selectedYMD = document.getElementById('beverageDailyDate')?.value || new Date().toISOString().split('T')[0];
                     const selectedDMY = convertYMDtoDMY(selectedYMD);
                     const supplySource = document.getElementById('dailySupplySource')?.value || 'Contractor';
 
@@ -4941,7 +5011,6 @@
                         else if (dNum === 0) dayType = 'Sunday';
                     }
 
-                    // ફિલ્ટર લોજીક માટે કોમન ફંક્શન જેથી સ્પેસ કે નાના-મોટા અક્ષર નડે નહીં
                     const checkCatAndSearch = (emp) => {
                         if (cat !== 'All') {
                             const empCat = (emp.category || '').trim().toLowerCase();
@@ -4957,12 +5026,10 @@
                     };
 
                     let regularFiltered = employeeList.filter(emp => {
-                        // નવું લોજીક: કાયમી ડ્યુટી અથવા ટેમ્પરરી પરમિશન હોય તો જ બતાવો
                         const isPermanentlyAssigned = emp.assignedPantryId === effectivePantryId;
                         const hasTempAccess = emp.tempPantryIds && emp.tempPantryIds[effectivePantryId] === true;
                         
                         if (!isPermanentlyAssigned && !hasTempAccess) return false;
-                        
                         if (!checkCatAndSearch(emp)) return false;
                         if (supplySource === 'DAU Direct Purchase' && emp.dauTeaEligible !== true) return false;
                         
@@ -4981,7 +5048,6 @@
                             if (!checkCatAndSearch(emp)) return false;
                             if (supplySource === 'DAU Direct Purchase' && emp.dauTeaEligible !== true) return false;
                             
-                            // જો કર્મચારી ડીલીટ (Inactive) હોય, તો જ બતાવો જો આજના દિવસે તેની કોઈ એન્ટ્રી હોય
                             if (emp.status === 'Inactive') {
                                 const hasLogToday = logsData.some(l => l.employeeId === emp.id && l.date === selectedDMY);
                                 if (!hasLogToday) return false;
@@ -4989,696 +5055,438 @@
                             return true;
                         });
                     }
+                    
                     const specialIds = specialFiltered.map(e => e.id);
                     regularFiltered = regularFiltered.filter(e => !specialIds.includes(e.id));
                     
-                    const contractorArr = typeof CONTRACTOR_BEVERAGES !== 'undefined' ? CONTRACTOR_BEVERAGES : ['Tea','Coffee'];
-                    const dauArr = typeof DAU_PURCHASE_BEVERAGES !== 'undefined' ? DAU_PURCHASE_BEVERAGES : [];
-                    const currentDrinkArr = supplySource === 'DAU Direct Purchase' ? dauArr : contractorArr;
-                                        function buildRows(empList, drinkArr, supplySrc) {
-                        let optsHtml = `<div class="my-drop-item" style="color:#DC3545; font-weight:bold;" onclick="window.selectMyDrop(this, '', '-')">✕ None</div>`;
-                        drinkArr.forEach(d => {
-                            optsHtml += `<div class="my-drop-item" onclick="window.selectMyDrop(this, '${d}', '${d}')">${d}</div>`;
-                        });
+                    const formatDrinkHTML = (val) => {
+                        if(!val || val === '-') return '-';
+                        let v = val.toLowerCase();
+                        if(v === 'tea') return '<span style="font-size:9.5px; font-weight:800;">Tea</span>';
+                        if(v === 'coffee') return '<span style="font-size:9.5px; font-weight:800;">Coffee</span>';
+                        if(v === 'green tea') return '<span style="color:#065F46; font-size:9.5px; font-weight:800;">Green Tea</span>';
+                        if(v === 'lemon tea') return '<span style="color:#92400E; font-size:9.5px; font-weight:800;">Lemon Tea</span>';
+                        if(v === 'black tea') return '<span style="color:#5B21B6; font-size:9.5px; font-weight:800;">Black Tea</span>';
+                        if(v === 'black coffee') return '<span style="color:#991B1B; font-size:9.5px; font-weight:800;">Black Coffee</span>';
+                        return `<span style="font-size:9.5px; font-weight:800;">${val}</span>`;
+                    };
+
+                    const buildCell = (empId, dateDMY, session, currentDrink, logId) => {
+                        return `<div class="l-cell-wrap"><div class="l-cell" tabindex="0" data-emp="${empId}" data-date="${dateDMY}" data-session="${session}" data-logid="${logId || ''}" data-supply="${supplySource}" data-val="${currentDrink || ''}">${formatDrinkHTML(currentDrink)}</div><div class="fill-handle" title="Drag to copy"></div></div>`;
+                    };
+
+                    const buildRows = (empList) => {
                         return empList.map(emp => {
-                            const logs = logsData.filter(l => l.employeeId === emp.id && l.date === selectedDMY && (l.supplySource === supplySrc || (!l.supplySource && supplySrc === 'Contractor')));
+                            const logs = logsData.filter(l => l.employeeId === emp.id && l.date === selectedDMY && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
                             const morn = logs.find(l => l.session === 'Morning');
                             const aft = logs.find(l => l.session === 'Afternoon');
                             
-                            const buildDrop = (log, inputClass) => {
-                                if (log) {
-                                    return `<div class="my-drop-disabled">${log.drink}</div><input type="hidden" class="${inputClass}" data-supply="${supplySrc}" value="${log.drink}" disabled>`;
-                                }
-                                return `
-                                <div class="my-drop-wrap">
-                                    <input type="hidden" class="${inputClass} drink-input" data-supply="${supplySrc}" value="">
-                                    <div class="my-drop-btn" onclick="window.openMyDrop(this)"><span>-</span> <small style="font-size:7px;margin-left:2px;">▼</small></div>
-                                    <div class="my-drop-overlay" onclick="window.closeMyDrop(this)"></div>
-                                    <div class="my-drop-list">${optsHtml}</div>
-                                </div>`;
-                            };
-
-                            const mEl = buildDrop(morn, 'mornDrink');
-                            const aEl = buildDrop(aft, 'aftDrink');
-                            const editBtn = (morn || aft) ? `<button onclick="window.handleDirectRowEditTrigger('${emp.id}')" style="background:transparent; border:none; cursor:pointer; font-size:12px; padding:0 2px; color:#0A56D0;">✏️</button>` : '';
-                            
-                            // સ્લિમ રો ડિઝાઇન (કોઈ વધારાનું પેડિંગ નહિ)
-                            // ટેમ્પરરી એક્સેસ માટેનું બેજ
                             const isTemp = emp.tempPantryIds && emp.tempPantryIds[effectivePantryId] === true;
-                            const tempBadge = isTemp ? `<span style="background:#FEF3C7; color:#D97706; padding:1px 4px; border-radius:4px; font-size:7px; border:1px solid #FDE68A; margin-left:4px;">Guest</span>` : '';
+                            const tempBadge = isTemp ? `<span style="background:#FEF3C7; color:#D97706; padding:1px 2px; border-radius:2px; font-size:6px; border:1px solid #FDE68A; margin-left:2px;">Guest</span>` : '';
 
+                            // 🚨 ZERO PADDING & MARGIN (Ultra Compact Row)
                             return `
-                            <div class="bulk-entry-row" data-id="${emp.id}" data-name="${safeStr(emp.name)}" data-supply="${supplySrc}" style="display:flex; align-items:center; border-bottom:1px solid #E2E8F0; padding:4px 2px; min-height:28px; box-sizing:border-box;">
-                                <div style="flex:2; font-size:10px; font-weight:700; color:#1E293B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:2px; padding-right:4px;">
-                                    <div onclick="window.showEmployeePhotoPopup('${emp.id}')" style="flex:1; overflow:hidden; text-overflow:ellipsis; cursor:pointer; color:#0A56D0; text-decoration:underline; text-decoration-color:#BFDBFE; text-underline-offset:2px;">
-                                        ${safeStr(emp.name)} ${tempBadge} <span style="color:#64748B; font-weight:normal; font-size:8px;">[${emp.category.substring(0,3)}]</span>
+                            <div class="bulk-entry-row" style="display:flex; align-items:center; border-bottom:1px solid #E2E8F0; padding:0; min-height:24px; box-sizing:border-box; margin:0;">
+                                <div style="flex:2; font-size:10px; font-weight:700; color:#1E293B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:2px; padding-right:2px;">
+                                    <div onclick="window.showEmployeePhotoPopup('${emp.id}')" style="flex:1; overflow:hidden; text-overflow:ellipsis; cursor:pointer; color:#0A56D0; line-height:1;">
+                                        ${safeStr(emp.name)} ${tempBadge}
                                     </div>
-                                    ${editBtn}
+                                    <button class="pencil-focus-btn" onclick="const c = this.closest('.bulk-entry-row').querySelector('.l-cell'); if(c) { document.querySelectorAll('.l-cell').forEach(x=>x.classList.remove('active-cell')); c.classList.add('active-cell'); window.pantryActiveCell = c; }" style="background:transparent; border:none; color:#0A56D0; font-size:11px; padding:0 2px; cursor:pointer;">✏️</button>
                                 </div>
-                                <div class="slim-daily-drop" style="flex:1; padding:0 2px;">${mEl}</div>
-                                <div class="slim-daily-drop" style="flex:1; padding:0 2px;">${aEl}</div>
+                                <div style="flex:1; padding:0; height:22px;">${buildCell(emp.id, selectedDMY, 'Morning', morn ? morn.drink : '', morn?.id)}</div>
+                                <div style="flex:1; padding:0; height:22px;">${buildCell(emp.id, selectedDMY, 'Afternoon', aft ? aft.drink : '', aft?.id)}</div>
                             </div>`;
                         }).join('');
-                    }
-
-                    function renderList(container, drinkArr, supplySrc) {
-                        if (!container) return;
-                        let html = '';
-                        
-                        if (regularFiltered.length > 0) {
-                            html += `<div style="padding:4px 6px; background:#F8FAFC; border-bottom:1px solid #CBD5E1; color:#0A56D0; font-weight:bold; font-size:9px; text-transform:uppercase;">📌 Regular Assigned</div>`;
-                            html += buildRows(regularFiltered, drinkArr, supplySrc);
-                        }
-                        
-                        if (specialFiltered.length > 0) {
-                            html += `<div style="padding:4px 6px; background:#FFFBEB; border-bottom:1px solid #FDE68A; border-top:2px solid #FCD34D; color:#D97706; font-weight:bold; font-size:9px; text-transform:uppercase;">🌟 ${dayType} Duty</div>`;
-                            html += buildRows(specialFiltered, drinkArr, supplySrc);
-                        }
-
-                        if (!html) {
-                            container.innerHTML = `<p style="text-align:center; padding:20px; color:#74777F; font-size:11px;">No employees found.</p>`;
-                        } else {
-                            container.innerHTML = html;
-                        }
-                    }
-
-                    const mainContainer = document.getElementById('bulkServeListContractor') || document.getElementById('bulkServeList');
-                    if (mainContainer) renderList(mainContainer, currentDrinkArr, supplySource);
-                }
-
-                function getEffectivePantryId(pantryId) {
-                    if (typeof replacementAssignments !== 'undefined' && replacementAssignments[pantryId]) {
-                        return replacementAssignments[pantryId];
-                    }
-                    return pantryId;
-                }
-            // ============================================================
-            //  PANTRY - MONTHLY ENTRY GRID (Format/Upload Bug Fixed)
-            // ============================================================
-            window.openMonthlyGridPopup = function openMonthlyGridPopup() {
-                const popup = document.getElementById('monthlyGridPopup');
-                const content = document.getElementById('monthlyGridPopupContent');
-                popup.classList.remove('hidden');
-
-                const popupCard = popup.querySelector('.popup-card');
-                if (popupCard) {
-                    popupCard.style.padding = '8px 6px';
-                    popupCard.style.height = '99vh';
-                    popupCard.style.maxHeight = '99vh';
-                    popupCard.style.width = '100%';
-                    popupCard.style.maxWidth = '100vw'; 
-                    popupCard.style.boxSizing = 'border-box';
-                    popupCard.style.overflowX = 'hidden'; 
-                    popupCard.style.borderRadius = '12px';
-                    popupCard.style.display = 'flex';
-                    popupCard.style.flexDirection = 'column';
-                }
-
-                if (content) {
-                    content.style.flex = '1';
-                    content.style.display = 'flex';
-                    content.style.flexDirection = 'column';
-                    content.style.maxHeight = 'none'; 
-                    content.style.minHeight = '0';
-                    content.style.overflow = 'hidden';
-                    content.style.padding = '0';
-                    content.style.margin = '0';
-                }
-
-                let monthVal = document.getElementById('monthlyGridMonthPicker')?.value;
-                if (!monthVal) {
-                    const mainDate = document.getElementById('beverageEntryDate')?.value;
-                    if (mainDate) {
-                        monthVal = mainDate.slice(0, 7);
-                    } else {
-                        const today = new Date();
-                        monthVal = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-                    }
-                }
-
-                const [yy, mm] = monthVal.split('-').map(Number);
-                const daysInMonth = getDaysInMonth(yy, mm);
-
-                // --- મહિનો શોર્ટમાં દેખાડવા માટે (e.g. JUL 26) ---
-                const shortMonthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-                const shortMonthLabel = `${shortMonthNames[mm - 1]} ${String(yy).slice(-2)}`;
-
-                const hasDauAccess = window.hasDauPurchasePermission ? window.hasDauPurchasePermission(currentUser.id) : true;
-                const supplySource = document.getElementById('monthlySupplySource')?.value || 'Contractor';
-                
-                const effectivePantryId = getEffectivePantryId(currentUser.id);
-                
-                // --- નવા ફિલ્ટરની વેલ્યુ લેવા ---
-                const searchQ = document.getElementById('monthlyGridSearch')?.value.toLowerCase().trim() || '';
-                const catFilter = document.getElementById('monthlyGridCat')?.value || 'All';
-                
-                const myAssigned = employeeList.filter(emp => {
-                    let isMine = false;
-                    if (emp.assignedPantryId === effectivePantryId) isMine = true;
-                    if (typeof weekendDutiesData !== 'undefined') {
-                        ['Saturday', 'Sunday', 'Holiday'].forEach(dt => {
-                            if (weekendDutiesData[dt] && weekendDutiesData[dt][emp.id] === effectivePantryId) {
-                                isMine = true;
-                            }
-                        });
-                    }
-                    if (!isMine) return false;
-                    if (supplySource === 'DAU Direct Purchase' && emp.dauTeaEligible !== true) return false;
-                    
-                    // જો કર્મચારી ડીલીટ (Inactive) હોય, તો જ બતાવો જો આ આખા મહિનામાં તેની કોઈ એન્ટ્રી હોય
-                    if (emp.status === 'Inactive') {
-                        const hasLogThisMonth = logsData.some(l => l.employeeId === emp.id && parseDMYToYMD(l.date).startsWith(monthVal));
-                        if (!hasLogThisMonth) return false;
-                    }
-                    
-                    // --- નવું ફિલ્ટર લોજીક (Category & Search) --- સ્પેસ અને કેપિટલ લેટર પ્રોબ્લેમ ફિક્સ ---
-                    if (catFilter !== 'All') {
-                        const empCat = (emp.category || '').trim().toLowerCase();
-                        const filterCat = catFilter.trim().toLowerCase();
-                        if (filterCat === 'outsourced' || filterCat === 'outsource') {
-                            if (!empCat.includes('outsource')) return false;
-                        } else if (empCat !== filterCat) {
-                            return false;
-                        }
-                    }
-                    if (searchQ && !(emp.name || '').toLowerCase().includes(searchQ)) return false;
-
-                    return true;
-                });                
-                let selectedEmpId = document.getElementById('monthlyGridEmpPicker')?.value;
-                
-                // --- બીજો બગ ફિક્સ: જો બીજો પેન્ટ્રી બોય લોગીન થાય તો જૂના એમ્પ્લોયીનું આઈડી ક્લિયર કરવું ---
-                if (selectedEmpId && !myAssigned.some(e => e.id === selectedEmpId)) {
-                    selectedEmpId = null;
-                }
-                
-                if (!selectedEmpId && myAssigned.length > 0) {
-                    selectedEmpId = myAssigned[0].id;
-                }
-
-                const currentIndex = myAssigned.findIndex(e => e.id === selectedEmpId);
-                const prevId = currentIndex > 0 ? myAssigned[currentIndex - 1].id : null;
-                const nextId = currentIndex >= 0 && currentIndex < myAssigned.length - 1 ? myAssigned[currentIndex + 1].id : null;
-                const selectedEmp = currentIndex >= 0 ? myAssigned[currentIndex] : null;
-
-                const styleOverrides = `
-                    <style>
-                        .us-top-ctrl { height:28px !important; min-height:28px !important; margin:0 !important; padding:0 2px !important; font-size:11px !important; font-weight:bold !important; border-radius:4px !important; border:1px solid #CBD5E1 !important; outline:none !important; appearance:none !important; -webkit-appearance:none !important; background:#fff !important; color:#0A56D0 !important; box-sizing:border-box !important; text-align:center !important; display:flex !important; align-items:center !important; justify-content:center !important; width:100% !important; min-width:0 !important; max-width:100% !important; }
-                        .us-tbl-wrapper { width:100% !important; max-width:100% !important; overflow-x:hidden !important; overflow-y:auto !important; flex:1 1 auto !important; min-height:0 !important; border:1px solid #CBD5E1 !important; border-radius:6px !important; background:#fff !important; margin-bottom:4px !important; box-sizing:border-box !important; display:block !important; }
-                        .us-tbl { width:100% !important; max-width:100% !important; min-width:0 !important; border-collapse:collapse !important; table-layout:fixed !important; margin:0 !important; box-sizing:border-box !important; }
-                        .us-th { min-width:0 !important; max-width:none !important; padding:4px 0 !important; font-size:10px !important; color:#0A56D0 !important; background:#F1F5F9 !important; border-bottom:1px solid #0A56D0 !important; border-right:1px solid #E2E8F0 !important; height:24px !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; box-sizing:border-box !important; text-align:center !important; }
-                        .us-td { min-width:0 !important; max-width:none !important; padding:0 !important; margin:0 !important; height:24px !important; border-bottom:1px solid #E2E8F0 !important; border-right:1px solid #E2E8F0 !important; vertical-align:middle !important; overflow:hidden !important; box-sizing:border-box !important; }
-                        .us-sel { width:100% !important; max-width:100% !important; min-width:0 !important; height:24px !important; padding:0 !important; margin:0 !important; font-size:10px !important; font-weight:700 !important; color:#0A56D0 !important; background:transparent !important; border:none !important; appearance:none !important; -webkit-appearance:none !important; outline:none !important; box-shadow:none !important; text-align:center !important; text-align-last:center !important; cursor:pointer !important; overflow:hidden !important; text-overflow:ellipsis !important; box-sizing:border-box !important; }
-                        .us-sel:focus { border:none !important; box-shadow:none !important; background:#E0F2FE !important; }
-                        .us-btn { background:transparent !important; border:none !important; padding:0 !important; margin:0 !important; width:48% !important; min-width:0 !important; height:24px !important; font-size:11px !important; display:inline-flex !important; align-items:center !important; justify-content:center !important; cursor:pointer !important; box-sizing:border-box !important; }
-                    </style>
-                `;
-
-                const controlHtml = `
-                    ${styleOverrides}
-                    <div style="display:flex; flex-direction:column; gap:4px; flex-shrink:0; max-width:100%; overflow:hidden;">
-                        
-                        <!-- નવો ઉમેરેલો ફિલ્ટર રો (Category & Search) -->
-                        <div style="display:flex; gap:4px; width:100%;">
-                            <select id="monthlyGridCat" class="us-top-ctrl" style="flex:1;" onchange="window.saveAndRefreshGrid()">
-                                <option value="All" ${catFilter === 'All' ? 'selected' : ''}>All Cat.</option>
-                                <option value="Faculty" ${catFilter === 'Faculty' ? 'selected' : ''}>Faculty</option>
-                                <option value="Staff" ${catFilter === 'Staff' ? 'selected' : ''}>Staff</option>
-                                <option value="Law" ${catFilter === 'Law' ? 'selected' : ''}>Law</option>
-                                <option value="Outsourced" ${catFilter === 'Outsourced' ? 'selected' : ''}>Outsource</option>
-                            </select>
-                            <input type="text" id="monthlyGridSearch" class="us-top-ctrl" placeholder="🔍 Search Name..." value="${searchQ}" style="flex:2; text-align:left !important; padding-left:8px !important;" onchange="window.saveAndRefreshGrid()">
-                        </div>
-
-                        <!-- Top 4 Controls (Month, Supply, Format, Upload) -->
-                        <div style="display:grid; grid-template-columns: 1fr 1fr 0.8fr 0.8fr; gap:4px; width:100%;">
-                            
-                            <!-- Custom Month Picker (ટૂંકું નામ બતાવવા) -->
-                            <div style="position:relative; width:100%; height:28px;">
-                                <div class="us-top-ctrl" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; background:#E0F2FE !important; color:#0284C7 !important;">
-                                    📅 ${shortMonthLabel}
-                                </div>
-                                <input type="month" id="monthlyGridMonthPicker" class="us-top-ctrl" value="${monthVal}" onchange="window.saveAndRefreshGrid()" style="opacity:0; position:absolute; top:0; left:0; width:100%; height:100%; cursor:pointer;">
-                            </div>
-                            
-                            <select id="monthlySupplySource" class="us-top-ctrl" onchange="window.saveAndRefreshGrid()">
-                                <option value="Contractor" ${supplySource === 'Contractor' ? 'selected' : ''}>IA Caterers</option>
-                                ${hasDauAccess ? `<option value="DAU Direct Purchase" ${supplySource === 'DAU Direct Purchase' ? 'selected' : ''}>DAU Direct</option>` : ''}
-                            </select>
-                            <button type="button" onclick="window.downloadMonthlyGridTemplate()" class="us-top-ctrl" style="cursor:pointer; background:#1E293B !important; color:#fff !important; border:none !important;">📥 Fmt</button>
-                            <label class="us-top-ctrl" style="cursor:pointer; background:#10B981 !important; color:#fff !important; border:none !important;">
-                                📤 Up<input type="file" id="monthlyGridExcelUpload" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, .xlsx, .xls" style="display:none;" onchange="window.handleMonthlyGridExcelUpload(event)">
-                            </label>
-                        </div>
-
-                        <!-- Name Navigation -->
-                        <div style="display:flex; align-items:center; justify-content:space-between; background:#EFF6FF; border:1px solid #0A56D0; border-radius:6px; height:28px; margin-bottom:4px; width:100%; box-sizing:border-box;">
-                            <button type="button" onclick="document.getElementById('monthlyGridEmpPicker').value='${prevId}'; window.saveAndRefreshGrid();" ${!prevId ? 'disabled style="opacity:0.3;"' : ''} style="background:transparent; border:none; color:#0A56D0; font-size:16px; font-weight:bold; cursor:pointer; padding:0 8px; height:100%;">◀</button>
-                            
-                            <select id="monthlyGridEmpPicker" class="us-sel" onchange="window.saveAndRefreshGrid()" style="flex:1; height:100% !important; font-size:12px !important; color:#0A56D0;">
-                                ${myAssigned.map(e => `<option value="${e.id}" ${e.id === selectedEmpId ? 'selected' : ''}>👤 ${e.name}</option>`).join('')}
-                            </select>
-                            
-                            <button type="button" onclick="document.getElementById('monthlyGridEmpPicker').value='${nextId}'; window.saveAndRefreshGrid();" ${!nextId ? 'disabled style="opacity:0.3;"' : ''} style="background:transparent; border:none; color:#0A56D0; font-size:16px; font-weight:bold; cursor:pointer; padding:0 8px; height:100%;">▶</button>
-                        </div>
-                    </div>
-                `;
-
-                if (!myAssigned.length) {
-                    content.innerHTML = controlHtml + `<p style="padding:20px; text-align:center; font-weight:bold;">No employees.</p>`;
-                    return;
-                }
-                
-                const contractorArr = typeof CONTRACTOR_BEVERAGES !== 'undefined' ? CONTRACTOR_BEVERAGES : ['Tea','Coffee'];
-                const dauArr = typeof DAU_PURCHASE_BEVERAGES !== 'undefined' ? DAU_PURCHASE_BEVERAGES : [];
-                const currentDrinkArr = supplySource === 'DAU Direct Purchase' ? dauArr : contractorArr;
-
-                let tableHtml = `
-                <div class="us-tbl-wrapper">
-                    <table class="us-tbl">
-                        <thead style="position:sticky; top:0; z-index:10;">
-                            <!-- EXCEL માટે છુપાયેલું હેડર (ભૂલથી ડીલીટ થઇ ગયું હતું તે પાછું ઉમેર્યું) -->
-                            <tr style="display:none;">
-                                <th class="merged-header"><span class="emp-name" data-id="${selectedEmp.id}">${selectedEmp.name}</span></th>
-                            </tr>
-                            <tr>
-                                <th class="us-th" style="width:20%;">Date</th>
-                                <th class="us-th" style="width:30%;">Morning</th>
-                                <th class="us-th" style="width:30%;">Afternoon</th>
-                                <th class="us-th" style="width:20%; border-right:none;">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
-
-                if (selectedEmp) {
-                    const monthPad = String(mm).padStart(2, '0');
-                    for (let d = 1; d <= daysInMonth; d++) {
-                        const dd = String(d).padStart(2, '0');
-                        const dmy = `${dd}/${monthPad}/${yy}`;
-                        
-                        const dObj = new Date(yy, mm - 1, d);
-                        const dayStr = dObj.toLocaleDateString('en-US', { weekday: 'short' }); 
-
-                        const mLog = logsData.find(l => l.employeeId === selectedEmp.id && l.date === dmy && l.session === 'Morning' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
-                        const aLog = logsData.find(l => l.employeeId === selectedEmp.id && l.date === dmy && l.session === 'Afternoon' && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
-                        const mVal = mLog ? mLog.drink : '';
-                        const aVal = aLog ? aLog.drink : '';
-                        
-                        const copyBtn = d > 1 ? `<button type="button" onclick="window.copyPrevDateRow(this)" class="us-btn" title="Copy">📋</button>` : `<span style="width:50%;display:inline-block;"></span>`;
-                        const clearBtn = `<button type="button" onclick="window.clearDateRow(this)" class="us-btn" style="color:#DC3545;" title="Clear">✕</button>`;
-
-                        tableHtml += `
-                        <tr style="${dObj.getDay() === 0 ? 'background:#FFF5F5;' : ''}">
-                            <td class="us-td" style="font-weight:700; color:#1E293B; font-size:10px; text-align:center; line-height:1.2;">
-                                ${dd}/${monthPad}<br><span style="color:#64748B; font-weight:normal; font-size:9px;">${dayStr}</span>
-                            </td>
-                            <td class="us-td">
-                                <select class="us-sel grid-morn" data-emp="${selectedEmp.id}" data-date="${dmy}" data-logid="${mLog ? mLog.id : ''}">
-                                    <option value="">-</option>
-                                    ${currentDrinkArr.map(opt => `<option value="${opt}" ${opt === mVal ? 'selected' : ''}>${opt}</option>`).join('')}
-                                </select>
-                            </td>
-                            <td class="us-td">
-                                <select class="us-sel grid-aft" data-emp="${selectedEmp.id}" data-date="${dmy}" data-logid="${aLog ? aLog.id : ''}">
-                                    <option value="">-</option>
-                                    ${currentDrinkArr.map(opt => `<option value="${opt}" ${opt === aVal ? 'selected' : ''}>${opt}</option>`).join('')}
-                                </select>
-                            </td>
-                            <td class="us-td" style="border-right:none; font-size:0; text-align:center;">
-                                <div style="display:flex; gap:0; align-items:center; justify-content:center; height:100%; width:100%;">
-                                    ${copyBtn}${clearBtn}
-                                </div>
-                            </td>
-                        </tr>`;
-                    }
-                }
-                tableHtml += '</tbody></table></div>';                
-                
-                content.innerHTML = controlHtml + tableHtml;
-
-                window.saveAndRefreshGrid = function() { window.executeGridSave(true); openMonthlyGridPopup(); };
-                window.refreshMonthlyGrid = function() { openMonthlyGridPopup(); };
-
-                window.copyPrevDateRow = function(btn) {
-                    const currentRow = btn.closest('tr');
-                    const prevRow = currentRow.previousElementSibling;
-                    if (!prevRow) return;
-
-                    const prevSelects = prevRow.querySelectorAll('.grid-morn, .grid-aft');
-                    const currSelects = currentRow.querySelectorAll('.grid-morn, .grid-aft');
-                    
-                    let copied = false;
-                    prevSelects.forEach((sel, idx) => {
-                        if (currSelects[idx] && !currSelects[idx].disabled) {
-                            currSelects[idx].value = sel.value;
-                            copied = true;
-                        }
-                    });
-                    if (copied) {
-                        const originalIcon = btn.innerText;
-                        btn.innerText = "✓";
-                        setTimeout(() => { btn.innerText = originalIcon; }, 500);
-                    }
-                };
-
-                window.clearDateRow = function(btn) {
-                    const currentRow = btn.closest('tr');
-                    const currSelects = currentRow.querySelectorAll('.grid-morn, .grid-aft');
-                    let cleared = false;
-                    currSelects.forEach(sel => { if (!sel.disabled) { sel.value = ""; cleared = true; } });
-                    if (cleared) {
-                        const originalIcon = btn.innerText;
-                        btn.innerText = "✓";
-                        setTimeout(() => { btn.innerText = originalIcon; }, 500);
-                    }
-                };
-
-                window.executeGridSave = function(silent = false) {
-                    const selects = content.querySelectorAll('.grid-morn, .grid-aft');
-                    const selectedSupplySource = document.getElementById('monthlySupplySource')?.value || 'Contractor';
-                    const updates = {};
-                    let saved = 0;
-                    const baseId = Date.now();
-
-                    selects.forEach((sel, idx) => {
-                        const val = sel.value;
-                        const empId = sel.dataset.emp;
-                        const dateDMY = sel.dataset.date;
-                        const session = sel.className.includes('grid-morn') ? 'Morning' : 'Afternoon';
-                        const existingLogId = sel.dataset.logid;
-                        const empObj = employeeList.find(e => e.id === empId);
-                        const empName = empObj ? empObj.name : 'Unknown';
-
-                        if (existingLogId) {
-                            if (val && val !== '-') {
-                                const existingLog = logsData.find(l => l.id === existingLogId);
-                                if (existingLog && existingLog.drink !== val) {
-                                    updates[existingLogId + '/drink'] = val;
-                                    saved++;
-                                }
-                            } else {
-                                updates[existingLogId] = null;
-                                sel.dataset.logid = '';
-                                saved++;
-                            }
-                        } else {
-                            if (val && val !== '-') {
-                                const newId = 'log_' + (baseId + idx) + '_' + Math.floor(Math.random() * 10000);
-                                updates[newId] = {
-                                    id: newId, employeeId: empId, employeeName: empName,
-                                    drink: val, session: session, date: dateDMY,
-                                    pantryId: currentUser.id, pantryName: currentUser.name,
-                                    supplySource: selectedSupplySource
-                                };
-                                sel.dataset.logid = newId;
-                                saved++;
-                            }
-                        }
-                    });
-
-                    if (saved > 0) {
-                        db.ref('logs').update(updates).then(() => {
-                            if (!silent) appAlert('Success', `✅ ${saved} entries synced securely!`);
-                            if (typeof window.populateServe === 'function') window.populateServe();
-                        }).catch(err => { if(!silent) appAlert('Error', 'Save failed: ' + err.message); });
-                    } else {
-                        if (!silent) appAlert('Notice', 'No changes to save.');
-                    }
-                };
-
-                const saveBtn = document.getElementById('saveMonthlyGridPopup');
-                if(saveBtn) {
-                    saveBtn.onclick = function() {
-                        window.executeGridSave(false);
-                        setTimeout(() => { openMonthlyGridPopup(); }, 500);
                     };
-                    saveBtn.style.minHeight = '42px';
-                    saveBtn.style.padding = '8px';
-                    saveBtn.style.fontSize = '14px';
-                    saveBtn.style.marginTop = 'auto'; 
-                    saveBtn.style.flexShrink = '0';
-                    saveBtn.style.borderRadius = '8px';
-                }
-            };
-            // ===== END REPLACEMENT FOR openMonthlyGridPopup =====
 
-            // ડાયનેમિક ફોર્મેટ ડાઉનલોડ કરવાનું ફંક્શન
-            window.downloadMonthlyGridTemplate = function() {
-                // અહીં પણ નવો ઉમેરેલો મહિનો વાંચશે
-                const monthVal = document.getElementById('monthlyGridMonthPicker')?.value;
-                if (!monthVal) return appAlert('Error', 'Please select a month first.');
-                const [yy, mm] = monthVal.split('-');
-                const daysInMonth = getDaysInMonth(yy, mm);
-                
-                const supplySource = document.getElementById('monthlySupplySource')?.value || 'Contractor';
-                
-                const empHeaders = document.querySelectorAll('th.merged-header .emp-name');
-                if (empHeaders.length === 0) return appAlert('Error', 'No employees found in the grid to generate format.');
-                
-                const names = Array.from(empHeaders).map(el => el.innerText.trim());
-                
-                const row0 = ["Date"];
-                const row1 = [""];
-                
-                names.forEach(name => {
-                    row0.push(name, "");
-                    row1.push("Morning", "Afternoon");
-                });
-                
-                const data = [row0, row1];
-                
-                for (let d = 1; d <= daysInMonth; d++) {
-                    const dmy = `${String(d).padStart(2,'0')}/${mm}/${yy}`;
-                    const row = [dmy];
-                    for(let i=0; i<names.length; i++) {
-                        row.push("-", "-");
+                    let html = '';
+                    if (regularFiltered.length > 0) {
+                        html += `<div style="padding:2px 4px; background:#F8FAFC; border-bottom:1px solid #CBD5E1; color:#0A56D0; font-weight:bold; font-size:8px; text-transform:uppercase;">📌 Regular Assigned</div>`;
+                        html += buildRows(regularFiltered);
                     }
-                    data.push(row);
-                }
-                
-                const wb = XLSX.utils.book_new();
-                const ws = XLSX.utils.aoa_to_sheet(data);
-                
-                const merges = [];
-                for(let i=0; i<names.length; i++) {
-                    const baseCol = 1 + (i * 2);
-                    merges.push({s: {r: 0, c: baseCol}, e: {r: 0, c: baseCol + 1}});
-                }
-                ws['!merges'] = merges;
-                
-                const colWidths = [{wch: 12}];
-                for(let i=0; i<names.length*2; i++) colWidths.push({wch: 15});
-                ws['!cols'] = colWidths;
-                
-                XLSX.utils.book_append_sheet(wb, ws, "Format");
-                window.pantryDownloadExcelFile(wb, `Monthly_Entry_Format_${supplySource.replace(/\s+/g,'_')}_${yy}_${mm}.xlsx`);
-            };
+                    if (specialFiltered.length > 0) {
+                        html += `<div style="padding:2px 4px; background:#FFFBEB; border-bottom:1px solid #FDE68A; border-top:1px solid #FCD34D; color:#D97706; font-weight:bold; font-size:8px; text-transform:uppercase;">🌟 ${dayType} Duty</div>`;
+                        html += buildRows(specialFiltered);
+                    }
 
-            // એક્સેલ ફાઈલ રીડ અને વેલિડેટ કરવાનું ફંક્શન
-            window.handleMonthlyGridExcelUpload = async function(event) {
-                const file = event.target.files[0];
-                if (!file) return;
+                    if (!html) container.innerHTML = `<p style="text-align:center; padding:10px; color:#74777F; font-size:10px;">No employees found.</p>`;
+                    else container.innerHTML = html;
+                };
 
-                try {
-                    // પરમિશન એરર રોકવા માટે ફાઈલને તરત જ મેમરીમાં વાંચી લો
-                    const data = await file.arrayBuffer();
+                // --- PANTRY SPECIFIC MONTHLY GRID WITH LIVE TOTALS ---
+                window.openPantryLiveGrid = function() {
+                    const wrapper = document.getElementById('pantryMonthlyGridWrapper');
+                    if(!wrapper) return;
                     
-                    appAlert('Reading File', 'Please wait, checking data...');
-
-                    const wb = XLSX.read(data, { cellDates: true });
-                    const sheet = wb.Sheets[wb.SheetNames[0]];
-                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+                    const dateVal = document.getElementById('beverageMonthlyDate')?.value;
+                    if(!dateVal) return;
+                    const month = dateVal.slice(0, 7);
+                    const [yy, mm] = month.split('-');
+                    const daysInMonth = getDaysInMonth(yy, mm);
                     
-                    if (rows.length < 3) throw new Error("Invalid format. Missing headers or data rows.");
+                    const supplySource = document.getElementById('dailySupplySource')?.value || 'Contractor';
+                    const categoryVal = document.getElementById('entryCategory')?.value || 'All';
+                    const searchQ = document.getElementById('pantryStaffSearch')?.value.toLowerCase().trim() || '';
+                    
+                    let effectivePantryId = currentUser.id;
+                    if(typeof getEffectivePantryId === 'function') effectivePantryId = getEffectivePantryId(currentUser.id);
 
-                    const headerRow = rows[0];
-                    const sessionRow = rows[1];
-                    const errors = [];
-                    const empColMap = {};
-
-                    const monthVal = document.getElementById('monthlyGridMonthPicker')?.value || document.getElementById('liveGridMonth')?.value;
-                    if (!monthVal) throw new Error("Please select a month first.");
-                    const [targetYY, targetMM] = monthVal.split('-');
-
-                    const supplySource = document.getElementById('monthlySupplySource')?.value || document.getElementById('liveGridSupply')?.value || 'Contractor';
-                    const contractorArr = typeof CONTRACTOR_BEVERAGES !== 'undefined' ? CONTRACTOR_BEVERAGES : ['Tea','Coffee'];
-                    const dauArr = typeof DAU_PURCHASE_BEVERAGES !== 'undefined' ? DAU_PURCHASE_BEVERAGES : [];
-                    const currentDrinkArr = supplySource === 'DAU Direct Purchase' ? dauArr : contractorArr;
-
-                    // 1. કોલમને એમ્પ્લોયી સાથે મેચ કરવા
-                    for (let i = 1; i < headerRow.length; i++) {
-                        const colName = String(headerRow[i]).trim();
-                        if (colName && !colName.toLowerCase().startsWith('unnamed')) {
-                            const empName = colName;
-                            
-                            const foundEmp = employeeList.find(e => e.name.toLowerCase() === empName.toLowerCase());
-                            if (!foundEmp) {
-                                errors.push(`Row 1: Employee "${empName}" is not recognized in system.`);
-                                continue;
-                            }
-                            
-                            const empId = foundEmp.id;
-                            const mornSess = String(sessionRow[i]).trim().toLowerCase();
-                            const aftSess = String(sessionRow[i+1]).trim().toLowerCase();
-                            
-                            if (mornSess.includes('morn')) {
-                                empColMap[i] = { empId: empId, session: 'morn' };
-                            } else {
-                                errors.push(`Row 2, Col ${i+1}: Expected 'Morning', found '${sessionRow[i]}'`);
-                            }
-                            
-                            if (aftSess.includes('aft')) {
-                                empColMap[i+1] = { empId: empId, session: 'aft' };
-                            } else {
-                                errors.push(`Row 2, Col ${i+2}: Expected 'Afternoon', found '${sessionRow[i+1]}'`);
-                            }
-                        }
-                    }
-
-                    if (Object.keys(empColMap).length === 0) {
-                        throw new Error("No valid employees matched from the Excel header.");
-                    }
-
-                    // 2. ડેટા ચેક અને વેલિડેટ કરવા
-                    const updatesDOM = [];
-                    for (let r = 2; r < rows.length; r++) {
-                        const row = rows[r];
-                        if (!row || row.length === 0) continue;
-                        
-                        let rawDate = row[0];
-                        if (!rawDate) continue; 
-                        
-                        let formattedDMY = window.parseExcelDateToDMY(rawDate);
-                        if (!formattedDMY) {
-                            errors.push(`Row ${r+1}: Invalid date format "${rawDate}"`);
-                            continue;
-                        }
-                        
-                        let parts = formattedDMY.split('/');
-                        if (parts.length === 3) {
-                            // Smart Swap for American Dates from Excel
-                            if (parts[1] !== targetMM && parts[0] === targetMM) {
-                                const temp = parts[0];
-                                parts[0] = parts[1];
-                                parts[1] = temp;
-                                formattedDMY = `${parts[0]}/${parts[1]}/${parts[2]}`;
-                            }
-
-                            if (parts[1] !== targetMM || parts[2] !== targetYY) {
-                                errors.push(`Row ${r+1}: Date ${formattedDMY} does not match selected month ${targetMM}/${targetYY}`);
-                                continue;
-                            }
-                        }
-                        
-                        for (const colIdx in empColMap) {
-                            const mapping = empColMap[colIdx];
-                            let drinkVal = String(row[colIdx] || '').trim();
-                            
-                            if (drinkVal === '-' || drinkVal.toLowerCase() === 'none' || drinkVal === '') {
-                                drinkVal = "";
-                            }
-                            
-                            if (drinkVal !== "") {
-                                const isMatch = currentDrinkArr.find(d => d.toLowerCase() === drinkVal.toLowerCase());
-                                if (!isMatch) {
-                                    errors.push(`Row ${r+1}, Col ${Number(colIdx)+1}: Invalid drink "${drinkVal}". Must be: ${currentDrinkArr.join(', ')}`);
-                                } else {
-                                    drinkVal = isMatch;
-                                }
-                            }
-                            
-                            if (errors.length === 0) {
-                                const sessionClass = mapping.session === 'morn' ? 'Morning' : 'Afternoon';
-                                const selector = `select.grid-${mapping.session}[data-emp="${mapping.empId}"][data-date="${formattedDMY}"], select.l-sel[data-emp="${mapping.empId}"][data-date="${formattedDMY}"][data-session="${sessionClass}"]`;
-                                updatesDOM.push({ selector, value: drinkVal });
-                            }
-                        }
-                    }
-
-                    // 3. એરર બતાવવી અથવા ગ્રીડમાં ડેટા ભરી દેવો
-                    if (errors.length > 0) {
-                        const displayErrors = errors.slice(0, 15);
-                        const moreStr = errors.length > 15 ? `<li>...and ${errors.length - 15} more errors.</li>` : '';
-                        const modal = document.createElement('div');
-                        modal.className = 'popup-overlay';
-                        modal.style.zIndex = '9999999';
-                        modal.innerHTML = `
-                            <div class="popup-card" style="max-width: 500px;">
-                                <h3 style="color:#DC3545; margin-top:0;">❌ Import Failed (Errors Found)</h3>
-                                <p style="font-size:13px; color:#44474E; margin-bottom:12px;">Please fix the following issues in your Excel file and upload again:</p>
-                                <ul style="color:#DC3545; font-size:12px; background:#FEF2F2; padding:12px 12px 12px 24px; border-radius:8px; border:1px solid #FECACA; max-height:250px; overflow-y:auto; margin-bottom:16px;">
-                                    ${displayErrors.map(e => `<li style="margin-bottom:4px;">${e}</li>`).join('')}
-                                    ${moreStr}
-                                </ul>
-                                <button onclick="this.closest('.popup-overlay').remove()" class="danger" style="width:100%; padding:10px; border-radius:8px;">Close & Fix File</button>
-                            </div>
-                        `;
-                        document.body.appendChild(modal);
-                    } else {
-                        let appliedCount = 0;
-                        updatesDOM.forEach(upd => {
-                            const sel = document.querySelector(upd.selector);
-                            if (sel && !sel.disabled) {
-                                sel.value = upd.value;
-                                sel.style.backgroundColor = '#DCFCE7';
-                                setTimeout(() => { sel.style.backgroundColor = 'transparent'; }, 2500);
-                                appliedCount++;
-                            }
+                    let emps = employeeList.filter(e => e.status !== 'Inactive');
+                    emps = emps.filter(e => e.assignedPantryId === effectivePantryId || (e.tempPantryIds && e.tempPantryIds[effectivePantryId] === true));
+                    
+                    if (categoryVal !== 'All') {
+                        const catMatch = categoryVal.trim().toLowerCase();
+                        emps = emps.filter(e => {
+                            const c = (e.category || '').trim().toLowerCase();
+                            if (catMatch === 'outsourced' || catMatch === 'outsource') return c.includes('outsource');
+                            return c === catMatch;
                         });
-                        appAlert('Import Success', `✅ Validated and applied ${appliedCount} entries. Click 'Save Monthly Entries' at the bottom to confirm.`);
-                        
-                        if (typeof window.recalcAdminLiveGridTotals === 'function') {
-                            window.recalcAdminLiveGridTotals();
-                        }
+                    }
+                    
+                    if (searchQ) {
+                        emps = emps.filter(e => (e.name || '').toLowerCase().includes(searchQ));
                     }
 
-                } catch (err) {
-                    appAlert('Import Error', err.message);
-                } finally {
-                    if (event.target) event.target.value = '';
-                }
-            };
+                    if(!emps.length) {
+                        wrapper.innerHTML = `<div style="flex:1; display:flex; justify-content:center; align-items:center; color:#64748B; font-weight:bold; font-size:11px;">No employees for this filter.</div>`;
+                        return;
+                    }
 
-                document.getElementById('saveBulkEntries').onclick = function() {
-                    if (currentMode === 'date') return;
-                    const dateVal = document.getElementById('beverageEntryDate').value;
-                    if (!dateVal) return appAlert('Error', 'Select a date.');
-                    const selectedDMY = convertYMDtoDMY(dateVal);
-                    const updates = {};
-                    let saved = 0;
-                    const rows = document.querySelectorAll('.bulk-entry-row');
-                    if (!rows.length) return appAlert('Notice', 'No staff to process.');
+                    const formatDrinkHTML = (val) => {
+                        if(!val || val === '-') return '-';
+                        let v = val.toLowerCase();
+                        if(v === 'tea') return '<span style="font-size:9.5px; font-weight:800;">Tea</span>';
+                        if(v === 'coffee') return '<span style="font-size:9.5px; font-weight:800;">Coffee</span>';
+                        if(v === 'green tea') return '<span style="color:#065F46; font-size:9.5px; font-weight:800;">Green Tea</span>';
+                        if(v === 'lemon tea') return '<span style="color:#92400E; font-size:9.5px; font-weight:800;">Lemon Tea</span>';
+                        if(v === 'black tea') return '<span style="color:#5B21B6; font-size:9.5px; font-weight:800;">Black Tea</span>';
+                        if(v === 'black coffee') return '<span style="color:#991B1B; font-size:9.5px; font-weight:800;">Black Coffee</span>';
+                        return `<span style="font-size:9.5px; font-weight:800;">${val}</span>`;
+                    };
 
-                    rows.forEach((row) => {
-                        const empId = row.dataset.id;
-                        const empName = row.dataset.name;
-                        const supplySource = row.dataset.supply || row.querySelector('.mornDrink')?.dataset?.supply || 'Contractor';
-                        const m = row.querySelector('.mornDrink');
-                        const a = row.querySelector('.aftDrink');
-                        
-                        const genId = (session) => 'log_' + empId + '_' + selectedDMY.replace(/\//g,'') + '_' + session + '_' + supplySource.substring(0,3);
+                    const buildCell = (empId, dateDMY, session, currentDrink, logId) => {
+                        return `<div class="l-cell-wrap"><div class="l-cell" tabindex="0" data-emp="${empId}" data-date="${dateDMY}" data-session="${session}" data-logid="${logId || ''}" data-supply="${supplySource}" data-val="${currentDrink || ''}">${formatDrinkHTML(currentDrink)}</div><div class="fill-handle" title="Drag to copy"></div></div>`;
+                    };
 
-                        if (m && !m.disabled && m.value && m.value !== "-") {
-                            const id = genId('Morn');
-                            updates[id] = { id, employeeId: empId, employeeName: empName, drink: m.value, session: 'Morning', date: selectedDMY, pantryId: currentUser.id, pantryName: currentUser.name, supplySource: supplySource };
-                            saved++;
-                        }
-                        if (a && !a.disabled && a.value && a.value !== "-") {
-                            const id = genId('Aft');
-                            updates[id] = { id, employeeId: empId, employeeName: empName, drink: a.value, session: 'Afternoon', date: selectedDMY, pantryId: currentUser.id, pantryName: currentUser.name, supplySource: supplySource };
-                            saved++;
+                    let htmlArr = [];
+                    // 🚨 ID બદલીને adminLiveGridTable કર્યું જેથી ટોટલ વાળું ફંક્શન ઓટોમેટિક કામ કરે
+                    htmlArr.push(`<div class="p-l-wrap pantry-scroller" id="pantryGridScroller"><table class="p-l-tbl" id="adminLiveGridTable">`);
+                    htmlArr.push(`<thead><tr><th rowspan="2" class="p-l-th-date">Date</th>`);
+                    emps.forEach(emp => { htmlArr.push(`<th colspan="2" class="p-l-th-emp">${safeStr(emp.name)}</th>`); });
+                    htmlArr.push(`</tr><tr>`);
+                    emps.forEach(() => { htmlArr.push(`<th class="p-l-th-sess">Morn</th><th class="p-l-th-sess aft">Aft</th>`); });
+                    htmlArr.push(`</tr></thead><tbody>`);
+
+                    const fastLogMap = {};
+                    logsData.forEach(l => {
+                        if (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')) {
+                            fastLogMap[l.employeeId + '_' + l.date + '_' + l.session] = l;
                         }
                     });
 
-                    if (saved > 0) {
-                        db.ref('logs').update(updates).then(() => {
-                            appAlert('Logged', `✅ ${saved} entries synced securely!`);
-                            populateServe();
-                        }).catch(err => appAlert('Error', 'Save failed: ' + err.message));
-                    } else {
-                        appAlert('Notice', 'No changes to save.');
+                    for (let d = 1; d <= daysInMonth; d++) {
+                        const dd = String(d).padStart(2,'0');
+                        const dmy = `${dd}/${mm}/${yy}`;
+                        const dObj = new Date(yy, mm - 1, d);
+                        const dayName = dObj.toLocaleDateString('en-US', { weekday: 'short' });
+                        
+                        htmlArr.push(`<tr><td class="p-l-td-date">${dd} <span style="font-size:7px; font-weight:normal; color:#64748B;">${dayName}</span></td>`);
+                        emps.forEach(emp => {
+                            const mLog = fastLogMap[emp.id + '_' + dmy + '_Morning'];
+                            const aLog = fastLogMap[emp.id + '_' + dmy + '_Afternoon'];
+                            htmlArr.push(`<td class="p-l-td-morn">${buildCell(emp.id, dmy, 'Morning', mLog ? mLog.drink : '', mLog?.id)}</td>`);
+                            htmlArr.push(`<td class="p-l-td-aft">${buildCell(emp.id, dmy, 'Afternoon', aLog ? aLog.drink : '', aLog?.id)}</td>`);
+                        });
+                        htmlArr.push(`</tr>`);
+                    }
+                    // 🚨 નીચે adminLiveGridTotals ઉમેર્યું એટલે લાઈવ ટોટલ દેખાશે
+                    htmlArr.push(`</tbody><tbody id="adminLiveGridTotals"></tbody></table></div>`);
+                    wrapper.innerHTML = htmlArr.join('');
+                    
+                    setTimeout(() => {
+                        if(typeof window.recalcAdminLiveGridTotals === 'function') window.recalcAdminLiveGridTotals();
+                        window.initPantryExcelEvents('pantryGridScroller');
+                    }, 100);
+                };
+
+                // --- SHARED EXCEL LOGIC FOR PANTRY BOY (Both Daily & Monthly) ---
+                window.initPantryExcelEvents = function(scrollerId) {
+                    const scroller = document.getElementById(scrollerId);
+                    if (!scroller) return;
+
+                    // 1. UNDO / REDO MEMORY LOGIC
+                    window.updateLgUndoRedoUI = function() {
+                        const btnU = document.getElementById('btnLgUndo');
+                        const btnR = document.getElementById('btnLgRedo');
+                        if(btnU) {
+                            btnU.disabled = window.lgPast.length === 0;
+                            btnU.style.opacity = window.lgPast.length === 0 ? '0.5' : '1';
+                        }
+                        if(btnR) {
+                            btnR.disabled = window.lgFuture.length === 0;
+                            btnR.style.opacity = window.lgFuture.length === 0 ? '0.5' : '1';
+                        }
+                    };
+
+                    window.lgRecordChange = function(changes) {
+                        if(window.lgIsReverting) return;
+                        window.lgPast.push(changes);
+                        window.lgFuture = [];
+                        window.updateLgUndoRedoUI();
+                    };
+
+                    const formatDrinkHTML = (val) => {
+                        if(!val || val === '-') return '-';
+                        let v = val.toLowerCase();
+                        if(v === 'tea') return '<span style="font-size:9.5px; font-weight:800;">Tea</span>';
+                        if(v === 'coffee') return '<span style="font-size:9.5px; font-weight:800;">Coffee</span>';
+                        if(v === 'green tea') return '<span style="color:#065F46; font-size:9.5px; font-weight:800;">Green Tea</span>';
+                        if(v === 'lemon tea') return '<span style="color:#92400E; font-size:9.5px; font-weight:800;">Lemon Tea</span>';
+                        if(v === 'black tea') return '<span style="color:#5B21B6; font-size:9.5px; font-weight:800;">Black Tea</span>';
+                        if(v === 'black coffee') return '<span style="color:#991B1B; font-size:9.5px; font-weight:800;">Black Coffee</span>';
+                        return `<span style="font-size:9.5px; font-weight:800;">${val}</span>`;
+                    };
+
+                    window.lgUndo = function() {
+                        if(!window.lgPast.length) return;
+                        const changes = window.lgPast.pop();
+                        window.lgIsReverting = true;
+                        
+                        const redoChanges = [];
+                        changes.forEach(ch => {
+                            const cell = document.querySelector(`.l-cell[data-emp="${ch.emp}"][data-date="${ch.date}"][data-session="${ch.session}"]`);
+                            if(cell) {
+                                redoChanges.push({ emp: ch.emp, date: ch.date, session: ch.session, supply: ch.supply, logid: cell.dataset.logid, oldVal: ch.newVal, newVal: ch.oldVal });
+                                cell.dataset.val = ch.oldVal;
+                                cell.innerHTML = formatDrinkHTML(ch.oldVal);
+                                window.saveGridCellChange(cell, ch.oldVal);
+                            }
+                        });
+                        window.lgFuture.push(redoChanges);
+                        window.lgIsReverting = false;
+                        window.updateLgUndoRedoUI();
+                    };
+
+                    window.lgRedo = function() {
+                        if(!window.lgFuture.length) return;
+                        const changes = window.lgFuture.pop();
+                        window.lgIsReverting = true;
+                        
+                        const undoChanges = [];
+                        changes.forEach(ch => {
+                            const cell = document.querySelector(`.l-cell[data-emp="${ch.emp}"][data-date="${ch.date}"][data-session="${ch.session}"]`);
+                            if(cell) {
+                                undoChanges.push({ emp: ch.emp, date: ch.date, session: ch.session, supply: ch.supply, logid: cell.dataset.logid, oldVal: ch.newVal, newVal: ch.oldVal });
+                                cell.dataset.val = ch.oldVal;
+                                cell.innerHTML = formatDrinkHTML(ch.oldVal);
+                                window.saveGridCellChange(cell, ch.oldVal);
+                            }
+                        });
+                        window.lgPast.push(undoChanges);
+                        window.lgIsReverting = false;
+                        window.updateLgUndoRedoUI();
+                    };
+
+                    window.clearPantrySelection = function() {
+                        document.querySelectorAll('.l-cell').forEach(c => c.classList.remove('active-cell', 'cell-highlight'));
+                        window.pantrySelectedCells = [];
+                        window.pantryActiveCell = null;
+                    };
+
+                    window.applyPantryExcelVal = function(val) {
+                        let nextCell = null;
+                        if(window.pantrySelectedCells && window.pantrySelectedCells.length > 0) {
+                            const changes = [];
+                            window.pantrySelectedCells.forEach(c => {
+                                const oldVal = c.dataset.val || '';
+                                if(oldVal !== val) {
+                                    changes.push({ emp: c.dataset.emp, date: c.dataset.date, session: c.dataset.session, supply: c.dataset.supply, logid: c.dataset.logid, oldVal: oldVal, newVal: val });
+                                    c.dataset.val = val;
+                                    c.innerHTML = formatDrinkHTML(val);
+                                    window.saveGridCellChange(c, val);
+                                }
+                            });
+                            if(changes.length) window.lgRecordChange(changes);
+                            window.clearPantrySelection();
+                        } else if(window.pantryActiveCell) {
+                            const oldVal = window.pantryActiveCell.dataset.val || '';
+                            if(oldVal !== val) {
+                                window.lgRecordChange([{ emp: window.pantryActiveCell.dataset.emp, date: window.pantryActiveCell.dataset.date, session: window.pantryActiveCell.dataset.session, supply: window.pantryActiveCell.dataset.supply, logid: window.pantryActiveCell.dataset.logid, oldVal: oldVal, newVal: val }]);
+                                window.pantryActiveCell.dataset.val = val;
+                                window.pantryActiveCell.innerHTML = formatDrinkHTML(val);
+                                window.saveGridCellChange(window.pantryActiveCell, val);
+                            }
+                            
+                            const allCells = Array.from(document.querySelectorAll('.l-cell'));
+                            const currentIndex = allCells.indexOf(window.pantryActiveCell);
+                            
+                            window.pantryActiveCell.classList.remove('active-cell');
+                            
+                            // Auto-advance logic
+                            if (currentIndex >= 0 && currentIndex < allCells.length - 1) {
+                                nextCell = allCells[currentIndex + 1];
+                            }
+                            
+                            if (nextCell) {
+                                window.pantryActiveCell = nextCell;
+                                window.pantryActiveCell.classList.add('active-cell');
+                                nextCell.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+                            } else {
+                                window.pantryActiveCell = null;
+                            }
+                        }
+                    };
+
+                    if(!scroller.dataset.eventsBound) {
+                        scroller.dataset.eventsBound = "true";
+                        
+                        scroller.addEventListener('click', function(e) {
+                            if (e.target.classList.contains('l-cell')) {
+                                window.clearPantrySelection();
+                                window.pantryActiveCell = e.target;
+                                window.pantryActiveCell.classList.add('active-cell');
+                            }
+                        });
+
+                        document.addEventListener('keydown', function(e) {
+                            if (window.pantryActiveCell) {
+                                if (e.key === 'Backspace' || e.key === 'Delete') {
+                                    e.preventDefault();
+                                    const oldVal = window.pantryActiveCell.dataset.val || '';
+                                    if(oldVal !== '') {
+                                        window.lgRecordChange([{ emp: window.pantryActiveCell.dataset.emp, date: window.pantryActiveCell.dataset.date, session: window.pantryActiveCell.dataset.session, supply: window.pantryActiveCell.dataset.supply, logid: window.pantryActiveCell.dataset.logid, oldVal: oldVal, newVal: '' }]);
+                                        window.pantryActiveCell.dataset.val = '';
+                                        window.pantryActiveCell.innerHTML = '-';
+                                        window.saveGridCellChange(window.pantryActiveCell, '');
+                                    }
+                                }
+                            }
+                        });
+
+                        // 2D Drag Logic
+                        let isDragging = false;
+                        let startColIndex = -1, startRowIndex = -1;
+                        let fillValue = '';
+                        let scrollInterval = null;
+                        let lastX = 0, lastY = 0;
+
+                        function getEventPos(e) {
+                            if (e.touches && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                            if (e.changedTouches && e.changedTouches.length > 0) return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+                            return { x: e.clientX, y: e.clientY };
+                        }
+
+                        function handleDragStart(e) {
+                            if (e.target.classList.contains('fill-handle')) {
+                                e.preventDefault(); e.stopPropagation();
+                                isDragging = true;
+                                const wrap = e.target.closest('.l-cell-wrap');
+                                const startSelect = wrap.querySelector('.l-cell');
+                                fillValue = startSelect.dataset.val || '';
+
+                                let parentCell = wrap.closest('td') || wrap.closest('div[style*="flex:1"]');
+                                let parentRow = parentCell.closest('tr') || parentCell.closest('.bulk-entry-row');
+                                
+                                startColIndex = Array.from(parentRow.children).indexOf(parentCell);
+                                startRowIndex = Array.from(parentRow.parentElement.children).indexOf(parentRow);
+                                
+                                window.pantrySelectedCells = [startSelect];
+                                startSelect.classList.add('cell-highlight');
+
+                                if (scrollInterval) clearInterval(scrollInterval);
+                                scrollInterval = setInterval(() => {
+                                    if(!isDragging) return;
+                                    const rect = scroller.getBoundingClientRect();
+                                    let scrolled = false;
+                                    if(lastY > rect.bottom - 40) { scroller.scrollTop += 25; scrolled = true; }
+                                    else if(lastY < rect.top + 40) { scroller.scrollTop -= 25; scrolled = true; }
+                                    if(lastX > rect.right - 40) { scroller.scrollLeft += 25; scrolled = true; }
+                                    else if(lastX < rect.left + 40) { scroller.scrollLeft -= 25; scrolled = true; }
+                                    if(scrolled) processDragMove(lastX, lastY);
+                                }, 40);
+                            }
+                        }
+
+                        function processDragMove(clientX, clientY) {
+                            const handle = document.querySelector('.active-cell + .fill-handle');
+                            if(handle) handle.style.visibility = 'hidden';
+                            const elem = document.elementFromPoint(clientX, clientY);
+                            if(handle) handle.style.visibility = 'visible';
+
+                            if (!elem) return;
+                            let td = elem.closest('td') || elem.closest('div[style*="flex:1"]');
+                            if (!td) return;
+                            let tr = td.closest('tr') || td.closest('.bulk-entry-row');
+                            if (!tr || !tr.parentElement) return;
+                            
+                            const currentColIndex = Array.from(tr.children).indexOf(td);
+                            const currentRowIndex = Array.from(tr.parentElement.children).indexOf(tr);
+                            const tbody = tr.parentElement;
+                            
+                            if(window.pantrySelectedCells) window.pantrySelectedCells.forEach(s => s.classList.remove('cell-highlight'));
+                            window.pantrySelectedCells = [];
+                            
+                            const minRow = Math.min(startRowIndex, currentRowIndex);
+                            const maxRow = Math.max(startRowIndex, currentRowIndex);
+                            const minCol = Math.min(startColIndex, currentColIndex);
+                            const maxCol = Math.max(startColIndex, currentColIndex);
+                            
+                            for (let r = minRow; r <= maxRow; r++) {
+                                const row = tbody.children[r];
+                                if (row) {
+                                    for (let c = minCol; c <= maxCol; c++) {
+                                        const targetTd = row.children[c];
+                                        if (targetTd) {
+                                            const sel = targetTd.querySelector('.l-cell');
+                                            if (sel) {
+                                                sel.classList.add('cell-highlight');
+                                                window.pantrySelectedCells.push(sel);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        function handleDragMove(e) {
+                            if (!isDragging) return;
+                            e.preventDefault(); 
+                            const pos = getEventPos(e);
+                            lastX = pos.x; lastY = pos.y;
+                            processDragMove(lastX, lastY);
+                        }
+
+                        function handleDragEnd(e) {
+                            if (isDragging) {
+                                isDragging = false;
+                                clearInterval(scrollInterval);
+                                if (window.pantrySelectedCells && window.pantrySelectedCells.length > 0) {
+                                    const changes = [];
+                                    window.pantrySelectedCells.forEach(sel => {
+                                        sel.classList.remove('cell-highlight');
+                                        const oldVal = sel.dataset.val || '';
+                                        if (oldVal !== fillValue) {
+                                            changes.push({ emp: sel.dataset.emp, date: sel.dataset.date, session: sel.dataset.session, supply: sel.dataset.supply, logid: sel.dataset.logid, oldVal: oldVal, newVal: fillValue });
+                                            sel.dataset.val = fillValue;
+                                            sel.innerHTML = formatDrinkHTML(fillValue);
+                                            window.saveGridCellChange(sel, fillValue);
+                                        }
+                                    });
+                                    if(changes.length) window.lgRecordChange(changes);
+                                }
+                                window.clearPantrySelection();
+                            }
+                        }
+
+                        scroller.addEventListener('touchstart', handleDragStart, {passive: false});
+                        scroller.addEventListener('mousedown', handleDragStart);
+                        document.addEventListener('touchmove', handleDragMove, {passive: false});
+                        document.addEventListener('mousemove', handleDragMove);
+                        document.addEventListener('touchend', handleDragEnd);
+                        document.addEventListener('mouseup', handleDragEnd);
                     }
                 };
+
                 renderBeverageModeContent('name');
             }
             // ============================================================
@@ -7769,7 +7577,7 @@
                             <p style="font-size:.8rem; color:#475569; margin-bottom:12px;">Grant permission to selected Pantry Staff to log items directly purchased by DAU University.</p>
                             
                             <div id="dauPurchasePantryList" class="scroll-list-box" style="min-height:140px; max-height:300px; background:#fff; padding:6px;"></div>
-                            <button id="saveDauPurchaseAccessBtn" class="success" style="width:100%; min-height:44px; margin-top:12px; font-size:14px; font-weight:700; border-radius:8px; background:#059669;">💾 Save Access Permissions</button>
+                            <button id="saveDauPurchaseAccessBtn" class="success" style="width:100%; min-height:44px; margin-top:12px; font-size:14px; font-weight:700; border-radius:8px; background:#059669;">?? Save Access Permissions</button>
                           </div>
                         `;
 
@@ -9473,10 +9281,15 @@ if (
                 }
 
                 if (!isReload) {
+                    // નવો કોડ: Undo/Redo મેમરી રીસેટ
+                    window.lgPast = [];
+                    window.lgFuture = [];
+                    window.lgIsReverting = false;
+
                     const pantryOptsHtml = pantryTeam.map(p => `<option value="${p.id}" ${p.id === pantryId ? 'selected' : ''}>${safeStr(p.name)}</option>`).join('');
                     
                     const filterHtml = `
-                        <div style="display:flex; gap:4px; flex-wrap:nowrap; margin-bottom:6px; align-items:center; background:#F1F5F9; padding:4px; border-radius:6px; border:1px solid #CBD5E1;">
+                        <div style="display:flex; gap:4px; flex-wrap:nowrap; margin-bottom:4px; align-items:center; background:#F1F5F9; padding:4px; border-radius:6px; border:1px solid #CBD5E1;">
                             <input type="month" id="liveGridMonth" value="${month}" style="flex:1; min-width:0; height:24px; padding:0 4px; font-size:10px; border-radius:4px; border:1px solid #94A3B8; outline:none; box-sizing:border-box;" onchange="window.reloadAdminLiveGrid()">
                             
                             <select id="liveGridSupply" style="flex:1; min-width:0; height:24px; padding:0 4px; font-size:10px; border-radius:4px; border:1px solid #94A3B8; outline:none; box-sizing:border-box;" onchange="window.reloadAdminLiveGrid()">
@@ -9499,24 +9312,42 @@ if (
                         </div>
                     `;
 
+                    const bottomMenuHtml = `
+                        <div id="excelFloatingMenu" style="position:absolute; bottom:0; left:0; width:100%; background:#fff; padding:6px 4px; box-shadow:0 -4px 10px rgba(0,0,0,0.1); border-top:2px solid #0A56D0; z-index:99999; display:flex; gap:3px; box-sizing:border-box; align-items:center; justify-content:space-between;">
+                            <button onclick="window.applyExcelMenuVal('Tea')" style="flex:1; background:#EFF6FF; color:#1E3A8A; border:1px solid #BFDBFE; padding:6px 2px; border-radius:6px; font-weight:bold; font-size:10px; cursor:pointer; line-height:1.2; text-align:center; min-height:36px;">Tea</button>
+                            <button onclick="window.applyExcelMenuVal('Coffee')" style="flex:1; background:#F1F5F9; color:#475569; border:1px solid #CBD5E1; padding:6px 2px; border-radius:6px; font-weight:bold; font-size:10px; cursor:pointer; line-height:1.2; text-align:center; min-height:36px;">Coffee</button>
+                            <button onclick="window.applyExcelMenuVal('Green Tea')" style="flex:1; background:#ECFDF5; color:#065F46; border:1px solid #A7F3D0; padding:6px 2px; border-radius:6px; font-weight:bold; font-size:10px; cursor:pointer; line-height:1.2; text-align:center; min-height:36px;">Green<br>Tea</button>
+                            <button onclick="window.applyExcelMenuVal('Lemon Tea')" style="flex:1; background:#FFFBEB; color:#92400E; border:1px solid #FDE68A; padding:6px 2px; border-radius:6px; font-weight:bold; font-size:10px; cursor:pointer; line-height:1.2; text-align:center; min-height:36px;">Lemon<br>Tea</button>
+                            <button onclick="window.applyExcelMenuVal('Black Tea')" style="flex:1; background:#F5F3FF; color:#5B21B6; border:1px solid #DDD6FE; padding:6px 2px; border-radius:6px; font-weight:bold; font-size:10px; cursor:pointer; line-height:1.2; text-align:center; min-height:36px;">Black<br>Tea</button>
+                            <button onclick="window.applyExcelMenuVal('Black Coffee')" style="flex:1; background:#FEF2F2; color:#991B1B; border:1px solid #FECACA; padding:6px 2px; border-radius:6px; font-weight:bold; font-size:10px; cursor:pointer; line-height:1.2; text-align:center; min-height:36px;">Black<br>Coffee</button>
+                            <button onclick="window.applyExcelMenuVal('')" style="flex:1; background:#fee2e2; color:#dc3545; border:1px solid #fecaca; padding:6px 2px; border-radius:6px; font-weight:bold; font-size:10px; cursor:pointer; line-height:1.2; text-align:center; min-height:36px;">✕<br>Clear</button>
+                        </div>
+                    `;
+
                     const container = document.getElementById('adminPopupContainer');
                     container.style.zIndex = "999999";
+                    // 🚨 જગ્યા બચાવવા padding અને margin ઓછા કર્યા છે
                     container.innerHTML = `
-                        <div class="popup-card full" style="max-width:98vw; width:98vw; height:95vh; max-height:95vh; padding:10px; border-radius:12px; display:flex; flex-direction:column; overflow:hidden; background:#F8FAFC;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-shrink:0;">
-                                <h3 style="margin:0; font-size:15px; color:#0A56D0;">✏️ Live Edit Grid</h3>
-                                <button onclick="document.getElementById('adminPopupContainer').classList.add('hidden')" class="danger" style="padding:4px 12px; font-size:11px; border-radius:6px; font-weight:bold; cursor:pointer;">✕ Close</button>
+                        <div class="popup-card full" style="max-width:98vw; width:98vw; height:97vh; max-height:97vh; padding:4px; border-radius:8px; display:flex; flex-direction:column; overflow:hidden; background:#F8FAFC; position:relative;">
+                            
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; flex-shrink:0; background:#E0F2FE; padding:4px 8px; border-radius:6px; border:1px solid #BAE6FD;">
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <h3 style="margin:0; font-size:14px; color:#0A56D0;">✏️ Live Grid</h3>
+                                    <button onclick="window.lgUndo()" id="btnLgUndo" disabled style="background:#fff; color:#64748B; border:1px solid #CBD5E1; border-radius:4px; padding:2px 8px; font-size:11px; cursor:pointer; opacity:0.5; font-weight:bold;">↩️ Undo</button>
+                                    <button onclick="window.lgRedo()" id="btnLgRedo" disabled style="background:#fff; color:#64748B; border:1px solid #CBD5E1; border-radius:4px; padding:2px 8px; font-size:11px; cursor:pointer; opacity:0.5; font-weight:bold;">↪️ Redo</button>
+                                </div>
+                                <button onclick="document.getElementById('adminPopupContainer').classList.add('hidden')" class="danger" style="padding:2px 10px; font-size:11px; border-radius:4px; font-weight:bold; cursor:pointer; margin:0; height:24px;">✕ Close</button>
                             </div>
                             
                             ${filterHtml}
 
-                            <div id="adminLiveGridContentWrapper" style="padding:0; overflow:hidden; display:flex; flex-direction:column; flex:1; background:transparent;">
+                            <div id="adminLiveGridContentWrapper" style="padding:0; overflow:hidden; display:flex; flex-direction:column; flex:1; background:transparent; position:relative; margin-bottom:48px;">
                                 <div style="padding:40px; text-align:center; color:#0A56D0; font-size:14px; font-weight:bold; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%;">
                                     <div style="width:24px; height:24px; border:3px solid #E0F2FE; border-top:3px solid #0A56D0; border-radius:50%; animation:spin 1s linear infinite; margin-bottom:12px;"></div>
-                                    <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
                                     Loading Initial Data...
                                 </div>
                             </div>
+                            ${bottomMenuHtml}
                         </div>
                     `;
                     container.classList.remove('hidden');
@@ -9534,56 +9365,44 @@ if (
                     wrapper.innerHTML = `<div style="flex:1; display:flex; justify-content:center; align-items:center; color:#64748B; font-weight:bold;">No employees found for this filter combination.</div>`;
                     return;
                 }
-
-                const contractorArr = typeof CONTRACTOR_BEVERAGES !== 'undefined' ? CONTRACTOR_BEVERAGES : ['Tea','Coffee'];
-                const dauArr = typeof DAU_PURCHASE_BEVERAGES !== 'undefined' ? DAU_PURCHASE_BEVERAGES : [];
-                const drinkArr = supplySource === 'DAU Direct Purchase' ? dauArr : contractorArr;
                 
-                const optCache = {};
-                const getOptHtml = (val) => {
-                    if (optCache[val]) return optCache[val];
-                    let o = `<option value="">-</option>`;
-                    drinkArr.forEach(d => {
-                        o += `<option value="${d}" ${d === val ? 'selected' : ''}>${d}</option>`;
-                    });
-                    optCache[val] = o;
-                    return o;
-                };
-                
-                const buildSelect = (empId, dateDMY, session, currentDrink, logId) => {
-                    return `<select class="l-sel" data-emp="${empId}" data-date="${dateDMY}" data-session="${session}" data-logid="${logId || ''}" data-supply="${supplySource}" onchange="window.saveAdminLiveGridChange(this)">${getOptHtml(currentDrink)}</select>`;
+                const buildCell = (empId, dateDMY, session, currentDrink, logId) => {
+                    let disp = currentDrink || '-';
+                    return `<div class="l-cell-wrap"><div class="l-cell" tabindex="0" data-emp="${empId}" data-date="${dateDMY}" data-session="${session}" data-logid="${logId || ''}" data-supply="${supplySource}" data-val="${currentDrink || ''}">${disp}</div><div class="fill-handle" title="Drag to copy"></div></div>`;
                 };
 
                 const styleBlock = `
                 <style>
-                    /* wrapper માં બંને બાજુ સ્ક્રોલિંગ સેટ કર્યું અને max-height આપી */
-                    .l-wrap { overflow: auto; background: #fff; border: 1px solid #CBD5E1; border-radius: 8px; flex: 1; min-height: 0; max-height: 65vh; }
-                    /* sticky હેડર માટે border-collapse: separate હોવું ફરજિયાત છે */
-                    .l-tbl { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 11px; text-align: center; }
+                    .l-wrap { overflow: auto; background: #fff; border: 1px solid #CBD5E1; border-radius: 8px; flex: 1; min-height: 0; max-height: 100%; position:relative; touch-action: pan-x pan-y; }
+                    .l-tbl { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 11px; text-align: center; user-select: none; -webkit-user-select: none; }
                     
-                    /* હેડર્સ ને ફ્રીઝ (Sticky) કરવા માટેના સેટિંગ્સ */
                     .l-th-date { min-width: 45px; position: sticky; left: 0; top: 0; z-index: 20; background: #E0F2FE; border-bottom: 2px solid #0A56D0; border-right: 1px solid #CBD5E1; height: 36px; padding: 2px; }
                     .l-th-emp { font-size: 11px; color: #1E293B; line-height: 1.1; white-space: normal; word-wrap: break-word; position: sticky; top: 0; z-index: 10; background: #F1F5F9; border-bottom: 1px solid #CBD5E1; border-right: 1px solid #CBD5E1; height: 36px; padding: 2px; border-top: none; }
                     
-                    /* બીજી લાઈન (Morn / Aft) ને પહેલી લાઈનની બરાબર નીચે ફ્રીઝ કરી (top: 36px) */
                     .l-th-sess { font-weight: 800; color: #44474E; background: #F8FAFC; width: 50px; min-width: 50px; position: sticky; top: 36px; z-index: 9; border-bottom: 2px solid #0A56D0; border-right: 1px dashed #CBD5E1; height: 24px; padding: 2px; }
                     .l-th-sess.aft { border-right: 1px solid #CBD5E1; }
                     
-                    /* ટેબલનો ડેટા */
-                    .l-td-date { border-bottom: 1px solid #E2E8F0; border-right: 1px solid #CBD5E1; padding: 0 2px; height: 22px; font-weight: bold; position: sticky; left: 0; background: #F8FAFC; z-index: 5; color: #0A56D0; line-height: 1; font-size: 10px; }
-                    .l-td-morn { border-bottom: 1px solid #E2E8F0; border-right: 1px dashed #E2E8F0; padding: 0; height: 22px; }
-                    .l-td-aft { border-bottom: 1px solid #E2E8F0; border-right: 1px solid #CBD5E1; padding: 0; height: 22px; }
+                    .l-td-date { border-bottom: 1px solid #E2E8F0; border-right: 1px solid #CBD5E1; padding: 0 2px; height: 26px; font-weight: bold; position: sticky; left: 0; background: #F8FAFC; z-index: 5; color: #0A56D0; line-height: 1; font-size: 10px; }
+                    .l-td-morn { border-bottom: 1px solid #E2E8F0; border-right: 1px dashed #E2E8F0; padding: 0; height: 26px; }
+                    .l-td-aft { border-bottom: 1px solid #E2E8F0; border-right: 1px solid #CBD5E1; padding: 0; height: 26px; }
                     
-                    .l-sel { width: 100%; height: 22px; padding: 0; margin: 0; font-size: 10px; font-weight: 700; color: #0A56D0; border: none; background: transparent; outline: none; text-align-last: center; cursor: pointer; box-sizing: border-box; line-height: 1; appearance: none; -webkit-appearance: none; }
+                    /* 🚨 EXCEL CELL CSS */
+                    .l-cell-wrap { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+                    .l-cell { width: 100%; height: 100%; display:flex; align-items:center; justify-content:center; font-size: 10px; font-weight: 700; color: #0A56D0; cursor: cell; box-sizing: border-box; outline:none; }
                     
-                    /* નીચેના Totals વાળી લાઈનો */
+                    .l-cell.active-cell { border: 2px solid #0A56D0; background: #E0F2FE; color: #0369A1; }
+                    .cell-highlight { background-color: #BAE6FD !important; color: #0284C7 !important; border:1px solid #7DD3FC; }
+                    
+                    .fill-handle { position: absolute; right: -5px; bottom: -5px; width: 18px; height: 18px; background: #0A56D0; border: 2px solid #fff; cursor: crosshair; z-index: 30; border-radius: 50%; display:none; touch-action: none; }
+                    .l-cell-wrap:has(.active-cell) .fill-handle { display:block; }
+                    
                     .l-tot-lbl { border-bottom: 1px solid #CBD5E1; border-top: 2px solid #0A56D0; border-right: 1px solid #CBD5E1; padding: 0 2px; height: 24px; font-weight: 800; position: sticky; left: 0; z-index: 6; font-size: 10px; line-height: 1; }
                     .l-tot-val { border-bottom: 1px solid #CBD5E1; border-top: 2px solid #0A56D0; border-right: 1px solid #CBD5E1; padding: 0; height: 24px; font-weight: 900; font-size: 11px; line-height: 1; }
                 </style>`;
 
                 let htmlArr = [styleBlock];
 
-                htmlArr.push(`<div class="l-wrap"><table class="l-tbl" style="min-width:${emps.length * 100 + 45}px;" id="adminLiveGridTable">`);
+                htmlArr.push(`<div class="l-wrap" id="adminGridScroller"><table class="l-tbl" style="min-width:${emps.length * 100 + 45}px;" id="adminLiveGridTable">`);
                 htmlArr.push(`<thead class="l-thead"><tr><th rowspan="2" class="l-th-date">Date</th>`);
                 emps.forEach(emp => {
                     htmlArr.push(`<th colspan="2" class="l-th-emp">${safeStr(emp.name)}</th>`);
@@ -9613,8 +9432,8 @@ if (
                         const mLog = fastLogMap[emp.id + '_' + dmy + '_Morning'];
                         const aLog = fastLogMap[emp.id + '_' + dmy + '_Afternoon'];
                         
-                        htmlArr.push(`<td class="l-td-morn">${buildSelect(emp.id, dmy, 'Morning', mLog ? mLog.drink : '', mLog?.id)}</td>`);
-                        htmlArr.push(`<td class="l-td-aft">${buildSelect(emp.id, dmy, 'Afternoon', aLog ? aLog.drink : '', aLog?.id)}</td>`);
+                        htmlArr.push(`<td class="l-td-morn">${buildCell(emp.id, dmy, 'Morning', mLog ? mLog.drink : '', mLog?.id)}</td>`);
+                        htmlArr.push(`<td class="l-td-aft">${buildCell(emp.id, dmy, 'Afternoon', aLog ? aLog.drink : '', aLog?.id)}</td>`);
                     });
                     htmlArr.push(`</tr>`);
                 }
@@ -9622,63 +9441,357 @@ if (
 
                 wrapper.innerHTML = htmlArr.join('');
 
+                // 🚨 EXCEL 2D DRAG TO COPY, AUTO SCROLL, KEYBOARD & UNDO/REDO LOGIC
                 setTimeout(() => {
                     window.recalcAdminLiveGridTotals();
-                }, 10);
+                    
+                    const scroller = document.getElementById('adminGridScroller');
+                    if (!scroller) return;
+                    
+                    if (!window.liveGridExcelModeInit) {
+                        window.liveGridExcelModeInit = true;
+                        let clipboardValue = ''; 
+                        let activeCell = null;
+                        let selectedCellsList = [];
+                        
+                        // 1. UNDO / REDO MEMORY LOGIC
+                        window.updateLgUndoRedoUI = function() {
+                            const btnU = document.getElementById('btnLgUndo');
+                            const btnR = document.getElementById('btnLgRedo');
+                            if(btnU) {
+                                btnU.disabled = window.lgPast.length === 0;
+                                btnU.style.opacity = window.lgPast.length === 0 ? '0.5' : '1';
+                                btnU.style.borderColor = window.lgPast.length === 0 ? '#CBD5E1' : '#0A56D0';
+                                btnU.style.color = window.lgPast.length === 0 ? '#64748B' : '#0A56D0';
+                            }
+                            if(btnR) {
+                                btnR.disabled = window.lgFuture.length === 0;
+                                btnR.style.opacity = window.lgFuture.length === 0 ? '0.5' : '1';
+                                btnR.style.borderColor = window.lgFuture.length === 0 ? '#CBD5E1' : '#10B981';
+                                btnR.style.color = window.lgFuture.length === 0 ? '#64748B' : '#10B981';
+                            }
+                        };
+
+                        window.lgRecordChange = function(changes) {
+                            if(window.lgIsReverting) return;
+                            window.lgPast.push(changes);
+                            window.lgFuture = [];
+                            window.updateLgUndoRedoUI();
+                        };
+
+                        window.lgUndo = function() {
+                            if(!window.lgPast.length) return;
+                            const changes = window.lgPast.pop();
+                            window.lgIsReverting = true;
+                            
+                            const redoChanges = [];
+                            changes.forEach(ch => {
+                                const cell = document.querySelector(`.l-cell[data-emp="${ch.emp}"][data-date="${ch.date}"][data-session="${ch.session}"]`);
+                                if(cell) {
+                                    redoChanges.push({ emp: ch.emp, date: ch.date, session: ch.session, oldVal: ch.newVal, newVal: ch.oldVal });
+                                    cell.dataset.val = ch.oldVal;
+                                    cell.innerText = ch.oldVal || '-';
+                                    window.saveGridCellChange(cell, ch.oldVal);
+                                }
+                            });
+                            window.lgFuture.push(redoChanges);
+                            window.lgIsReverting = false;
+                            window.updateLgUndoRedoUI();
+                        };
+
+                        window.lgRedo = function() {
+                            if(!window.lgFuture.length) return;
+                            const changes = window.lgFuture.pop();
+                            window.lgIsReverting = true;
+                            
+                            const undoChanges = [];
+                            changes.forEach(ch => {
+                                const cell = document.querySelector(`.l-cell[data-emp="${ch.emp}"][data-date="${ch.date}"][data-session="${ch.session}"]`);
+                                if(cell) {
+                                    undoChanges.push({ emp: ch.emp, date: ch.date, session: ch.session, oldVal: ch.newVal, newVal: ch.oldVal });
+                                    cell.dataset.val = ch.oldVal;
+                                    cell.innerText = ch.oldVal || '-';
+                                    window.saveGridCellChange(cell, ch.oldVal);
+                                }
+                            });
+                            window.lgPast.push(undoChanges);
+                            window.lgIsReverting = false;
+                            window.updateLgUndoRedoUI();
+                        };
+
+                        // 2. CLEAR SELECTION
+                        function clearSelection() {
+                            document.querySelectorAll('.l-cell').forEach(c => {
+                                c.classList.remove('active-cell', 'cell-highlight');
+                            });
+                            selectedCellsList = [];
+                            activeCell = null;
+                        }
+
+                        // 3. APPLY MENU VALUE WITH UNDO/REDO & AUTO-ADVANCE
+                        window.applyExcelMenuVal = function(val) {
+                            let nextCell = null;
+                            if(selectedCellsList.length > 0) {
+                                const changes = [];
+                                selectedCellsList.forEach(c => {
+                                    const oldVal = c.dataset.val || '';
+                                    if(oldVal !== val) {
+                                        changes.push({ emp: c.dataset.emp, date: c.dataset.date, session: c.dataset.session, oldVal: oldVal, newVal: val });
+                                        c.dataset.val = val;
+                                        c.innerText = val || '-';
+                                        window.saveGridCellChange(c, val);
+                                    }
+                                });
+                                if(changes.length) window.lgRecordChange(changes);
+                                clearSelection();
+                            } else if(activeCell) {
+                                const oldVal = activeCell.dataset.val || '';
+                                if(oldVal !== val) {
+                                    window.lgRecordChange([{ emp: activeCell.dataset.emp, date: activeCell.dataset.date, session: activeCell.dataset.session, oldVal: oldVal, newVal: val }]);
+                                    activeCell.dataset.val = val;
+                                    activeCell.innerText = val || '-';
+                                    window.saveGridCellChange(activeCell, val);
+                                }
+                                
+                                const allCells = Array.from(document.querySelectorAll('.l-cell'));
+                                const currentIndex = allCells.indexOf(activeCell);
+                                
+                                if (currentIndex >= 0 && currentIndex < allCells.length - 1) {
+                                    nextCell = allCells[currentIndex + 1];
+                                }
+                                
+                                activeCell.classList.remove('active-cell');
+                                
+                                if (nextCell) {
+                                    activeCell = nextCell;
+                                    activeCell.classList.add('active-cell');
+                                    nextCell.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+                                } else {
+                                    activeCell = null;
+                                }
+                            }
+                        };
+
+                        // 4. CELL CLICK -> ACTIVE CELL
+                        scroller.addEventListener('click', function(e) {
+                            if (e.target.classList.contains('l-cell')) {
+                                clearSelection();
+                                activeCell = e.target;
+                                activeCell.classList.add('active-cell');
+                            }
+                        });
+
+                        // 5. KEYBOARD ACTIONS
+                        document.addEventListener('keydown', function(e) {
+                            if (activeCell) {
+                                if (e.key === 'Backspace' || e.key === 'Delete') {
+                                    e.preventDefault();
+                                    const oldVal = activeCell.dataset.val || '';
+                                    if(oldVal !== '') {
+                                        window.lgRecordChange([{ emp: activeCell.dataset.emp, date: activeCell.dataset.date, session: activeCell.dataset.session, oldVal: oldVal, newVal: '' }]);
+                                        activeCell.dataset.val = '';
+                                        activeCell.innerText = '-';
+                                        window.saveGridCellChange(activeCell, '');
+                                    }
+                                }
+                                if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C')) {
+                                    e.preventDefault();
+                                    clipboardValue = activeCell.dataset.val;
+                                    activeCell.style.backgroundColor = '#FEF08A';
+                                    setTimeout(() => activeCell.style.backgroundColor = '', 300);
+                                }
+                                if ((e.ctrlKey || e.metaKey) && (e.key === 'v' || e.key === 'V')) {
+                                    e.preventDefault();
+                                    window.applyExcelMenuVal(clipboardValue);
+                                }
+                            }
+                        });
+                        
+                        // 6. 2D DRAG TO FILL
+                        let isDragging = false;
+                        let startColIndex = -1;
+                        let startRowIndex = -1;
+                        let fillValue = '';
+                        let scrollInterval = null;
+                        let lastX = 0, lastY = 0;
+
+                        function getEventPos(e) {
+                            if (e.touches && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                            if (e.changedTouches && e.changedTouches.length > 0) return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+                            return { x: e.clientX, y: e.clientY };
+                        }
+
+                        function handleDragStart(e) {
+                            if (e.target.classList.contains('fill-handle')) {
+                                e.preventDefault(); 
+                                e.stopPropagation();
+                                isDragging = true;
+
+                                const wrap = e.target.closest('.l-cell-wrap');
+                                const startSelect = wrap.querySelector('.l-cell');
+                                fillValue = startSelect.dataset.val || '';
+
+                                const td = wrap.closest('td');
+                                const tr = td.closest('tr');
+                                startColIndex = Array.from(tr.children).indexOf(td);
+                                startRowIndex = Array.from(tr.parentElement.children).indexOf(tr);
+                                
+                                selectedCellsList = [startSelect];
+                                startSelect.classList.add('cell-highlight');
+
+                                if (scrollInterval) clearInterval(scrollInterval);
+                                scrollInterval = setInterval(() => {
+                                    if(!isDragging) return;
+                                    const rect = scroller.getBoundingClientRect();
+                                    let scrolled = false;
+                                    
+                                    if(lastY > rect.bottom - 40) { scroller.scrollTop += 25; scrolled = true; }
+                                    else if(lastY < rect.top + 40) { scroller.scrollTop -= 25; scrolled = true; }
+                                    
+                                    if(lastX > rect.right - 40) { scroller.scrollLeft += 25; scrolled = true; }
+                                    else if(lastX < rect.left + 40) { scroller.scrollLeft -= 25; scrolled = true; }
+                                    
+                                    if(scrolled) processDragMove(lastX, lastY);
+                                }, 40);
+                            }
+                        }
+
+                        function processDragMove(clientX, clientY) {
+                            const handle = document.querySelector('.active-cell + .fill-handle');
+                            if(handle) handle.style.visibility = 'hidden';
+
+                            const elem = document.elementFromPoint(clientX, clientY);
+                            
+                            if(handle) handle.style.visibility = 'visible';
+
+                            if (!elem) return;
+                            const td = elem.closest('td');
+                            if (!td) return;
+                            const tr = td.closest('tr');
+                            if (!tr || !tr.parentElement) return;
+                            
+                            const currentColIndex = Array.from(tr.children).indexOf(td);
+                            const currentRowIndex = Array.from(tr.parentElement.children).indexOf(tr);
+                            const tbody = tr.parentElement;
+                            
+                            if(currentColIndex < 1 || currentRowIndex < 0) return; 
+
+                            selectedCellsList.forEach(s => s.classList.remove('cell-highlight'));
+                            selectedCellsList = [];
+                            
+                            const minRow = Math.min(startRowIndex, currentRowIndex);
+                            const maxRow = Math.max(startRowIndex, currentRowIndex);
+                            const minCol = Math.min(startColIndex, currentColIndex);
+                            const maxCol = Math.max(startColIndex, currentColIndex);
+                            
+                            for (let r = minRow; r <= maxRow; r++) {
+                                const row = tbody.children[r];
+                                if (row) {
+                                    for (let c = minCol; c <= maxCol; c++) {
+                                        const targetTd = row.children[c];
+                                        if (targetTd) {
+                                            const sel = targetTd.querySelector('.l-cell');
+                                            if (sel) {
+                                                sel.classList.add('cell-highlight');
+                                                selectedCellsList.push(sel);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        function handleDragMove(e) {
+                            if (!isDragging) return;
+                            e.preventDefault(); 
+                            const pos = getEventPos(e);
+                            lastX = pos.x;
+                            lastY = pos.y;
+                            processDragMove(lastX, lastY);
+                        }
+
+                        function handleDragEnd(e) {
+                            if (isDragging) {
+                                isDragging = false;
+                                clearInterval(scrollInterval);
+                                
+                                if (selectedCellsList.length > 0) {
+                                    const changes = [];
+                                    selectedCellsList.forEach(sel => {
+                                        sel.classList.remove('cell-highlight');
+                                        const oldVal = sel.dataset.val || '';
+                                        if (oldVal !== fillValue) {
+                                            changes.push({ emp: sel.dataset.emp, date: sel.dataset.date, session: sel.dataset.session, oldVal: oldVal, newVal: fillValue });
+                                            sel.dataset.val = fillValue;
+                                            sel.innerText = fillValue || '-';
+                                            window.saveGridCellChange(sel, fillValue);
+                                        }
+                                    });
+                                    if(changes.length) window.lgRecordChange(changes);
+                                }
+                                selectedCellsList = [];
+                                clearSelection();
+                            }
+                        }
+
+                        scroller.addEventListener('touchstart', handleDragStart, {passive: false});
+                        scroller.addEventListener('mousedown', handleDragStart);
+                        document.addEventListener('touchmove', handleDragMove, {passive: false});
+                        document.addEventListener('mousemove', handleDragMove);
+                        document.addEventListener('touchend', handleDragEnd);
+                        document.addEventListener('mouseup', handleDragEnd);
+                    }
+                }, 500);
             };
 
-            window.saveAdminLiveGridChange = function(selectEl) {
-                const empId = selectEl.dataset.emp;
-                const dateDMY = selectEl.dataset.date;
-                const session = selectEl.dataset.session;
-                const supplySource = selectEl.dataset.supply;
-                const existingLogId = selectEl.dataset.logid;
-                const val = selectEl.value;
+            window.saveGridCellChange = function(cellEl, val) {
+                const empId = cellEl.dataset.emp;
+                const dateDMY = cellEl.dataset.date;
+                const session = cellEl.dataset.session;
+                const supplySource = cellEl.dataset.supply;
+                const existingLogId = cellEl.dataset.logid;
 
-                selectEl.style.backgroundColor = '#FEF3C7';
+                cellEl.style.backgroundColor = '#FEF3C7';
 
                 if (existingLogId) {
-                    if (val) {
+                    if (val && val !== '-') {
                         db.ref('logs/' + existingLogId).update({ drink: val }).then(() => {
-                            selectEl.style.backgroundColor = '#DCFCE7';
-                            setTimeout(() => selectEl.style.backgroundColor = 'transparent', 1000);
+                            cellEl.style.backgroundColor = '#DCFCE7';
+                            setTimeout(() => cellEl.style.backgroundColor = 'transparent', 1000);
                             window.recalcAdminLiveGridTotals();
                         });
                     } else {
                         db.ref('logs/' + existingLogId).remove().then(() => {
-                            selectEl.dataset.logid = '';
-                            selectEl.style.backgroundColor = 'transparent';
+                            cellEl.dataset.logid = '';
+                            cellEl.style.backgroundColor = 'transparent';
                             window.recalcAdminLiveGridTotals();
                         });
                     }
                 } else {
-                    if (val) {
+                    if (val && val !== '-') {
                         const empObj = employeeList.find(e => e.id === empId);
                         const empName = empObj ? empObj.name : 'Unknown';
-                        
                         let pId = empObj ? empObj.assignedPantryId : 'admin';
                         let pName = 'Admin';
                         if (pId && pId !== 'admin') {
                             const pb = pantryTeam.find(p => p.id === pId);
                             if (pb) pName = pb.name;
                         }
-                        
                         const newId = 'log_live_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
-                        const logData = {
+                        
+                        db.ref('logs/' + newId).set({
                             id: newId, employeeId: empId, employeeName: empName,
                             drink: val, session: session, date: dateDMY,
                             pantryId: pId || 'admin', pantryName: pName,
                             supplySource: supplySource
-                        };
-
-                        db.ref('logs/' + newId).set(logData).then(() => {
-                            selectEl.dataset.logid = newId;
-                            selectEl.style.backgroundColor = '#DCFCE7';
-                            setTimeout(() => selectEl.style.backgroundColor = 'transparent', 1000);
+                        }).then(() => {
+                            cellEl.dataset.logid = newId;
+                            cellEl.style.backgroundColor = '#DCFCE7';
+                            setTimeout(() => cellEl.style.backgroundColor = 'transparent', 1000);
                             window.recalcAdminLiveGridTotals();
                         });
                     } else {
-                        selectEl.style.backgroundColor = 'transparent';
+                        cellEl.style.backgroundColor = 'transparent';
                     }
                 }
             };
@@ -9689,15 +9802,15 @@ if (
                 const tbodyTotals = document.getElementById('adminLiveGridTotals');
                 if(!tbodyTotals) return;
 
-                const allSelects = table.querySelectorAll('.l-sel');
+                const allCells = table.querySelectorAll('.l-cell');
                 const empTotals = {};
                 
-                allSelects.forEach(sel => {
-                    const emp = sel.dataset.emp;
+                allCells.forEach(cell => {
+                    const emp = cell.dataset.emp;
                     if(!empTotals[emp]) {
                         empTotals[emp] = { tea:0, coffee:0, green:0, lemon:0, blackTea:0, blackCoffee:0, total:0 };
                     }
-                    const val = sel.value.toLowerCase();
+                    const val = (cell.dataset.val || '').toLowerCase();
                     if(val === 'tea') empTotals[emp].tea++;
                     else if(val === 'coffee') empTotals[emp].coffee++;
                     else if(val === 'green tea') empTotals[emp].green++;
@@ -9705,13 +9818,15 @@ if (
                     else if(val === 'black tea') empTotals[emp].blackTea++;
                     else if(val === 'black coffee') empTotals[emp].blackCoffee++;
                     
-                    if(val) empTotals[emp].total++;
+                    if(val && val !== '-') empTotals[emp].total++;
                 });
 
-                const firstRowSelects = table.querySelector('tbody').querySelectorAll('.l-sel');
+                const firstTr = table.querySelector('tbody tr');
+                if (!firstTr) return;
+                const firstRowCells = firstTr.querySelectorAll('.l-cell');
                 const empsInOrder = [];
-                for(let i=0; i<firstRowSelects.length; i+=2) {
-                    empsInOrder.push(firstRowSelects[i].dataset.emp);
+                for(let i=0; i<firstRowCells.length; i+=2) {
+                    empsInOrder.push(firstRowCells[i].dataset.emp);
                 }
 
                 const drinksArr = [
