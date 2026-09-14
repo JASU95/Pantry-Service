@@ -12617,7 +12617,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
             // ============================================================
             //  NEW MEETINGS & GUESTS MODULE (2-Line Ultra Compact & Live Sync)
             // ============================================================
-                        window.renderMeetingsGuestsUI = function(containerId, currentRole) {
+window.renderMeetingsGuestsUI = function(containerId, currentRole) {
                 try {
                     const container = document.getElementById(containerId);
                     if (!container) return;
@@ -12670,18 +12670,22 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
 
                         <div style="display: flex; flex-direction: column; height: 100%; overflow:hidden;">
                             
-                            <!-- એડિટ મોડ માટે હિડન ઇનપુટ -->
                             <input type="hidden" id="mgEditModeSlipIds" value="">
 
-                            <!-- 🚨 કોમ્પેક્ટ બટન રો (Save અને Clear All બટન સાથે) -->
-                            <div style="display: flex; gap: 4px; margin-bottom: 8px; width: 100%; align-items: center;">
-                                <button type="button" onclick="window.downloadMgFormat()" class="btn sm" style="flex: 1; padding: 4px 0; font-size: 10px; min-height: 32px; background: #F8FAFC; color: #1E293B; border: 1px solid #CBD5E1;">📥 Fmt</button>
-                                <label class="btn sm" style="flex: 1; padding: 4px 0; font-size: 10px; min-height: 32px; background: #EFF6FF; color: #0A56D0; border: 1px solid #BFDBFE; margin: 0; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                            <!-- 🚨 કૉમ્પેક્ટ બટન રો (Clear અને Save ની વચ્ચે Review છૂટું પાડ્યું) -->
+                            <div style="display: flex; gap: 3px; margin-bottom: 8px; width: 100%; align-items: center; flex-wrap: nowrap; overflow: hidden; white-space: nowrap;">
+                                <button type="button" onclick="window.downloadMgFormat()" class="btn sm" style="flex: 1; padding: 0; font-size: 10px; min-height: 32px; background: #F8FAFC; color: #1E293B; border: 1px solid #CBD5E1;">📥 Fmt</button>
+                                <label class="btn sm" style="flex: 1; padding: 0; font-size: 10px; min-height: 32px; background: #EFF6FF; color: #0A56D0; border: 1px solid #BFDBFE; margin: 0; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                                     📂 Imp <input type="file" style="display: none;" onchange="window.handleMgExcelUpload(event)">
                                 </label>
-                                <button type="button" onclick="window.openMgHistory()" class="btn sm" style="flex: 1; padding: 4px 0; font-size: 10px; min-height: 32px; background: #FFFBEB; color: #D97706; border: 1px solid #FDE68A;">📜 Hist</button>
-                                <button type="button" onclick="window.clearAllMgColumns()" class="btn sm" style="flex: 1; padding: 4px 0; font-size: 10px; min-height: 32px; background: #FEF2F2; color: #DC3545; border: 1px solid #FECACA;">🧹 Clear All</button>
-                                <button type="button" onclick="window.submitMgForm()" class="btn success sm" style="flex: 1.2; padding: 4px 0; font-size: 11px; font-weight: bold; min-height: 32px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">💾 Save</button>
+                                <button type="button" onclick="window.openMgHistory()" class="btn sm" style="flex: 1; padding: 0; font-size: 10px; min-height: 32px; background: #FFFBEB; color: #D97706; border: 1px solid #FDE68A;">📜 Hist</button>
+                                
+                                <button type="button" onclick="window.clearAllMgColumns()" class="btn sm" style="flex: 1; padding: 0; font-size: 10px; min-height: 32px; background: #FEF2F2; color: #DC3545; border: 1px solid #FECACA;">🧹 Clr</button>
+                                
+                                <!-- ⚠️ આ બટન વચ્ચે મૂક્યું અને margin થી અલગ કર્યું -->
+                                <button type="button" id="adminMgReviewBtn" onclick="window.openDuplicateReviewModal()" class="btn sm" style="display:none; flex: 1.2; padding: 0; font-size: 11px; min-height: 32px; background: #FEF2F2; color: #DC3545; border: 2px solid #EF4444; font-weight:bold; margin-left: 4px; margin-right: 4px;">⚠️ Rev (<span id="mgReviewCount">0</span>)</button>
+                                
+                                <button type="button" onclick="window.submitMgForm()" class="btn success sm" style="flex: 1.5; padding: 0; font-size: 11px; font-weight: bold; min-height: 32px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">💾 Save</button>
                             </div>
 
                             <div style="flex-grow: 1; overflow: hidden; background: #fff; border-radius: 4px; border: 1px solid #0A56D0; display:flex; flex-direction:column;">
@@ -12707,10 +12711,9 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                                 </div>
                             </div>
                         </div>
-                        <div id="mgReviewSection" style="display:none; margin-top: 10px;"></div>
                     `;
 
-                    // સ્માર્ટ સર્ચ એન્જિન...
+                    // સ્માર્ટ સર્ચ એન્જિન
                     window.handleMgAc = function(inp, type, colId) {
                         let list = document.getElementById('mgGlobalSmartAcList');
                         if(!list) {
@@ -12757,7 +12760,6 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                             inp.value = val;
                             let list = document.getElementById('mgGlobalSmartAcList');
                             if(list) list.style.display = 'none';
-                            // ઇનપુટ બદલાય એટલે સેવડ સ્ટેટ કાઢી નાખો
                             inp.closest('.drag-wrap').dataset.saved = "false";
                             const dateInp = document.querySelector(`#tr_date .col-cell-${colId} input`);
                             if(dateInp) { dateInp.style.backgroundColor = "transparent"; dateInp.style.color = "#0A56D0"; }
@@ -12773,7 +12775,6 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                         }
                     });
 
-                    // ઇનપુટ ટાઈપ થાય ત્યારે સેવ થયેલું માર્કિંગ હટાવવા
                     document.getElementById('mgTransposedTable').addEventListener('input', function(e) {
                         const td = e.target.closest('.drag-wrap');
                         if(td) {
@@ -12785,8 +12786,8 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     });
 
                     for(let i=0; i<4; i++) { window.addMgRow(); }
-
                     setTimeout(() => { if(window.initMgDragToFill) window.initMgDragToFill(); }, 500);
+                    
                 } catch(e) { console.error(e); }
             };
             // ============================================================
@@ -12809,14 +12810,13 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 }
             };
 
-            window.handleMgExcelUpload = function(event) {
+window.handleMgExcelUpload = function(event) {
                 const file = event.target.files[0];
                 if (!file) return;
                 
                 appAlert('Reading File', 'Extracting Meeting entries from Excel...');
                 
                 const reader = new FileReader();
-                
                 reader.onload = async function(e) {
                     try {
                         const data = e.target.result;
@@ -12828,6 +12828,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
 
                         const updates = {};
                         let importCount = 0;
+                        let localBatchSet = new Set(); // 🚨 NEW
 
                         rows.forEach((row, idx) => {
                             const getVal = (keys) => {
@@ -12852,14 +12853,12 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
 
                             if (!itemName) return; 
 
-                            // Time ફોર્મેટ 09:30 જેવું સેટ કરવું
                             if (timeVal.length > 5) timeVal = timeVal.substring(0,5);
-// 100% BULLETPROOF DATE PARSER FOR EXCEL
+
                             let formattedDMY = '';
                             let rawYMD = '';
 
                             if (typeof rawDate === 'number') {
-                                // Excel ના Serial Number ને સીધો જ તારીખમાં ફેરવશે (No Timezone Issues)
                                 const date_info = new Date((rawDate - 25569) * 86400 * 1000);
                                 const dd = String(date_info.getUTCDate()).padStart(2, '0');
                                 const mm = String(date_info.getUTCMonth() + 1).padStart(2, '0');
@@ -12867,7 +12866,6 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                                 formattedDMY = `${dd}-${mm}-${yyyy}`;
                                 rawYMD = `${yyyy}-${mm}-${dd}`;
                             } else if (rawDate instanceof Date && !isNaN(rawDate)) {
-                                // 12 કલાક આગળ કરીને દિવસ બદલાતો અટકાવશે
                                 const safeDate = new Date(rawDate.getTime() + (12 * 60 * 60 * 1000));
                                 const dd = String(safeDate.getUTCDate()).padStart(2, '0');
                                 const mm = String(safeDate.getUTCMonth() + 1).padStart(2, '0');
@@ -12875,7 +12873,6 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                                 formattedDMY = `${dd}-${mm}-${yyyy}`;
                                 rawYMD = `${yyyy}-${mm}-${dd}`;
                             } else if (typeof rawDate === 'string' && rawDate.trim() !== '') {
-                                // જો એક્સેલમાંથી ટેક્સ્ટ તરીકે આવે તો 
                                 let str = rawDate.trim().replace(/\//g, '-'); 
                                 const p = str.split('-');
                                 if (p.length === 3) {
@@ -12900,20 +12897,26 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
 
                             const cleanStr = (str) => (str || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
                             
-                            // STRICT DUPLICATE CHECKER FOR EXCEL UPLOAD
-                            const isDuplicate = mgRecordsData.some(existing => {
+                            const isDuplicateInDB = mgRecordsData.some(existing => {
                                 if (existing.Status === 'Review') return false;
-                                if (existing.RawDate !== rawYMD) return false; // Date must match
-                                
+                                if (existing.RawDate !== rawYMD) return false; 
                                 if (cleanStr(existing.ReqName) !== cleanStr(reqName)) return false;
                                 if (existing.Vendor !== vendor) return false;
-
                                 if (cleanStr(existing.Item) !== cleanStr(itemName)) return false;
                                 if (existing.Qty !== qty) return false;
-                                
                                 return true;
                             });
-                            const finalStatus = isDuplicate ? 'Review' : 'Approved';
+
+                            // 🚨 CHECK LOCAL BATCH
+                            const localKey = `${rawYMD}_${cleanStr(reqName)}_${vendor}_${cleanStr(itemName)}_${qty}`;
+                            const isDuplicateInBatch = localBatchSet.has(localKey);
+
+                            let finalStatus = (isDuplicateInDB || isDuplicateInBatch) ? 'Review' : 'Approved';
+                            
+                            if(finalStatus !== 'Review') {
+                                localBatchSet.add(localKey);
+                            }
+
                             const id = 'mgrec_' + Date.now() + '_' + idx + '_' + Math.random().toString(36).substring(2, 6);
                             
                             updates['meetingsGuestsRecords/' + id] = {
@@ -13236,7 +13239,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 document.addEventListener('mouseup', endDrag);
                 document.addEventListener('touchend', endDrag);
             };
-            window.submitMgForm = function() {
+window.submitMgForm = function() {
                 const dateCells = document.querySelectorAll('#tr_date td.drag-wrap');
                 if(dateCells.length === 0) return appAlert("Error", "No columns found.");
 
@@ -13253,11 +13256,12 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     idsToDelete = JSON.parse(editIdsInput.value);
                 }
 
+                let localBatchSet = new Set(); // 🚨 NEW: કરન્ટ બેચમાં ડુપ્લીકેટ પકડવા
+
                 dateCells.forEach(td => {
                     const colId = td.dataset.col;
                     if(!colId) return;
                     
-                    // જો કોલમ ઓલરેડી સેવ થઈ ગઈ હોય તો એને ફરી સેવ નહીં કરે
                     if(td.dataset.saved === "true") return; 
 
                     const rowDate = document.querySelector(`#tr_date .col-cell-${colId} input`).value;
@@ -13272,7 +13276,6 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     const rate = parseFloat(document.querySelector(`#tr_rate .col-cell-${colId} input`).value) || 0;
                     const amt = parseFloat(document.querySelector(`#tr_amt .col-cell-${colId} input`).value) || 0;
 
-                    // જો આખી કોલમ ખાલી હોય તો તેને ઇગ્નોર કરો
                     if(!reqName && !purp && !vend && !itm && qt === 0) return; 
 
                     if(!rowDate || !reqName || !purp || !srv || !vend || !itm || qt <= 0) {
@@ -13280,12 +13283,13 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     }
 
                     validEntriesCount++;
-                    columnsToMarkSaved.push(colId); // આ કોલમ સાચી છે, એટલે સેવ થયા પછી તેને લીલી કરીશું
+                    columnsToMarkSaved.push(colId);
 
                     const id = 'mgrec_' + Date.now() + '_' + colId + '_' + Math.random().toString(36).substring(2, 5);
                     const cleanStr = (str) => (str || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
                     
-                    const isDuplicate = mgRecordsData.some(existing => {
+                    // CHECK DB
+                    const isDuplicateInDB = mgRecordsData.some(existing => {
                         if (existing.Status === 'Review') return false; 
                         if (existing.RawDate !== rowDate) return false; 
                         if (cleanStr(existing.ReqName) !== cleanStr(reqName)) return false;
@@ -13294,9 +13298,18 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                         if (existing.Qty !== qt) return false;
                         return true;
                     });
+
+                    // CHECK LOCAL BATCH (Current Save Action)
+                    const localKey = `${rowDate}_${cleanStr(reqName)}_${vend}_${cleanStr(itm)}_${qt}`;
+                    const isDuplicateInBatch = localBatchSet.has(localKey);
+
+                    let finalStatus = (isDuplicateInDB || isDuplicateInBatch) ? 'Review' : 'Approved';
                     
-                    let finalStatus = isDuplicate ? 'Review' : 'Approved';
-                    if(isDuplicate) duplicateCount++;
+                    if(finalStatus === 'Review') {
+                        duplicateCount++;
+                    } else {
+                        localBatchSet.add(localKey);
+                    }
 
                     if (vend && itm) {
                         const vKey = vend.toLowerCase().trim();
@@ -13323,7 +13336,6 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 if(!isValid) return appAlert("Missing Info", "Please fill Date, Req By, Purpose, Served By, Vendor, Item, and Qty for all entered columns.");
                 if(validEntriesCount === 0) return appAlert("Notice", "No new or modified entries found to save.");
 
-                // 🚨 EDIT MODE: જો એડિટ કરતા હોઈએ તો જૂનો ડેટા ડીલીટ કરી દો
                 if(idsToDelete.length > 0) {
                     let oldEventsDeleted = new Set();
                     idsToDelete.forEach(it => {
@@ -13343,7 +13355,6 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     if(duplicateCount > 0) appAlert("Notice", `Saved! ${duplicateCount} entries look like Duplicates and are moved to 'Pending Review'.`);
                     else appAlert("Success", "Meeting Entries Saved Successfully!");
                     
-                    // 🚨 સેવ થયેલી કોલમને ખાલી કરવાને બદલે લીલી (Mark Saved) કરો
                     columnsToMarkSaved.forEach(id => {
                         document.querySelectorAll('.col-cell-' + id).forEach(td => {
                             td.dataset.saved = "true";
@@ -13355,7 +13366,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                         }
                     });
 
-                    if(editIdsInput) editIdsInput.value = ""; // એડિટ મોડ પૂરો
+                    if(editIdsInput) editIdsInput.value = ""; 
 
                     window.renderMgHistoryTable();
                     window.renderMgReviewSection();
@@ -13658,25 +13669,73 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                         </div>
                         <div style="background:#fff; padding:6px; border-bottom:1px solid #e2e8f0; flex-shrink:0;">
                             <div style="display:flex; gap:4px; margin-bottom:6px;">
-                                <input type="month" id="mgPopupMonthFilter" value="${currentMonthStr}" onchange="window.renderMgHistoryTable()" class="mg-cmp-inp" style="flex:1; padding:6px; border-radius:4px; border:1px solid #cbd5e1;">
+                                <select id="mgPopupMonthFilter" onchange="window.renderMgHistoryTable()" class="mg-cmp-inp" style="flex:1; padding:6px; border-radius:4px; border:1px solid #cbd5e1; background:#fff;">
+                                    <option value="ALL">All Months</option>
+                                    <option value="${currentMonthStr}" selected>Current Month</option>
+                                </select>
                                 <input type="text" id="mgPopupSearchFilter" placeholder="🔍 Search (Slip No, Name)..." oninput="window.renderMgHistoryTable()" class="mg-cmp-inp" style="flex:2; padding:6px; border-radius:4px; border:1px solid #cbd5e1;">
                             </div>
-                            <button onclick="window.openBulkReplacePurposeModal()" class="mg-cmp-inp" style="width:100%; background:#fef3c7; color:#d97706; border:1px solid #fde68a; cursor:pointer; font-weight:bold; height:32px; border-radius:4px;">🔄 Fix/Replace Purpose Spelling</button>
+                            <div style="display:flex; gap:4px;">
+                                <button onclick="window.openBulkReplacePurposeModal()" class="mg-cmp-inp" style="flex:1; background:#fef3c7; color:#d97706; border:1px solid #fde68a; cursor:pointer; font-weight:bold; height:32px; border-radius:4px;">🔄 Fix Purpose</button>
+                                <button onclick="window.openDuplicateReviewModal()" id="historyMgReviewBtn" class="mg-cmp-inp" style="display:none; flex:1; background:#FEF2F2; color:#DC3545; border:1px solid #FECACA; cursor:pointer; font-weight:bold; height:32px; border-radius:4px;">⚠️ Pending Review (<span id="historyMgReviewCount">0</span>)</button>
+                            </div>
                         </div>
                         <div id="mgHistoryListPopup" style="flex-grow:1; overflow-y:auto; background:#fff; padding:4px;"></div>
                     </div>
                 `;
                 document.body.appendChild(modal);
                 window.renderMgHistoryTable();
-            };	
+                
+                // આ લાઈનથી પોપઅપ ખુલતા જ રિવ્યુનું કાઉન્ટ અપડેટ થઈ જશે
+                if (typeof window.renderMgReviewSection === 'function') window.renderMgReviewSection();
 
-            window.renderMgHistoryTable = function() {
+                // ડાયનેમિકલી બધા મહિનાના ઓપ્શન ઉમેરવા
+                setTimeout(() => {
+                    const sel = document.getElementById('mgPopupMonthFilter');
+                    if(!sel) return;
+                    const getSafeYMD = (rec) => {
+                        if (rec.RawDate) return rec.RawDate;
+                        if (rec.DateFormatted) {
+                            let p = String(rec.DateFormatted).split(/[\/\-]/);
+                            if(p.length===3) {
+                                if(p[2].length===4) return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+                                if(p[0].length===4) return `${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;
+                            }
+                        }
+                        if (rec.date) {
+                            let p = String(rec.date).split(/[\/\-]/);
+                            if(p.length===3) {
+                                if(p[2].length===4) return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+                                if(p[0].length===4) return `${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;
+                            }
+                        }
+                        return '';
+                    };
+                    let allRecs = [];
+                    if(typeof mgRecordsData !== 'undefined') allRecs = allRecs.concat(mgRecordsData);
+                    if(typeof eventLogsData !== 'undefined') allRecs = allRecs.concat(eventLogsData);
+                    
+                    let months = new Set();
+                    allRecs.forEach(r => {
+                        let ymd = getSafeYMD(r);
+                        if(ymd) months.add(ymd.slice(0, 7));
+                    });
+                    let monthArr = Array.from(months).sort().reverse();
+                    
+                    sel.innerHTML = '<option value="ALL">All Months</option>';
+                    monthArr.forEach(m => {
+                        let isSel = (m === currentMonthStr) ? 'selected' : '';
+                        sel.innerHTML += `<option value="${m}" ${isSel}>${m}</option>`;
+                    });
+                }, 500);
+            };
+
+window.renderMgHistoryTable = function() {
                 const containerMain = document.getElementById('mgHistoryListMain');
                 const containerPopup = document.getElementById('mgHistoryListPopup');
                 
                 const mainPicker = document.getElementById('mgMainMonthFilter');
                 const popupPicker = document.getElementById('mgPopupMonthFilter');
-                // જે મહિનાનું ફિલ્ટર સેટ કર્યું હોય તે YYYY-MM ફોર્મેટમાં લેશે 
                 const selectedMonthYMD = popupPicker ? popupPicker.value : (mainPicker ? mainPicker.value : new Date().toISOString().slice(0, 7));
 
                 const mainSearch = document.getElementById('mgMainSearchFilter');
@@ -13685,7 +13744,6 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
 
                 let combinedRecords = mgRecordsData.filter(rec => rec.Status !== 'Review');
 
-                // જૂની ઇવેન્ટ્સ (eventLogsData) પણ અંદર જોડી દેશે
                 if (typeof eventLogsData !== 'undefined' && eventLogsData.length > 0) {
                     eventLogsData.forEach(ev => {
                         if (ev.items && Array.isArray(ev.items) && ev.items.length > 0) {
@@ -13708,12 +13766,10 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     });
                 }
 
-                // જો પેન્ટ્રી બોય લોગિન હોય તો ફક્ત તેની જ હિસ્ટ્રી દેખાશે
                 if (window.mgCurrentRole === 'pantry' && typeof currentUser !== 'undefined' && currentUser) {
                     combinedRecords = combinedRecords.filter(rec => (rec.ServedBy || '').toLowerCase().includes(currentUser.name.toLowerCase()));
                 }
 
-                // 🚨 100% BULLETPROOF DATE PARSER: ગમે તે તારીખ હોય તેને YYYY-MM-DD માં કન્વર્ટ કરશે જ.
                 const getSafeYMD = (rec) => {
                     if (rec.RawDate) return rec.RawDate;
                     if (rec.DateFormatted) {
@@ -13725,16 +13781,15 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                         }
                     }
                     if (rec.Timestamp) return new Date(rec.Timestamp).toISOString().split('T')[0];
-                    return '2000-01-01'; // જો કશું ના હોય તો ડીફોલ્ટ 
+                    return '2000-01-01'; 
                 };
 
-                // ફિલ્ટર: જે મહિનો પસંદ કર્યો છે તે મહિનાના જ રેકોર્ડ લેશે
                 let filteredRecords = combinedRecords.filter(rec => {
+                    if (selectedMonthYMD === 'ALL') return true;
                     let recYMD = getSafeYMD(rec);
                     return recYMD.startsWith(selectedMonthYMD);
                 });
 
-                // ચિઠ્ઠીઓ (Slips) ભેગી કરવાની પ્રક્રિયા
                 const slips = {};
                 filteredRecords.forEach(rec => {
                     const timeKey = rec.Time || '';
@@ -13743,7 +13798,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     if(!slips[key]) {
                         slips[key] = {
                             key: key,
-                            RawDateForSort: getSafeYMD(rec), // સોર્ટિંગ માટે સાચી તારીખ
+                            RawDateForSort: getSafeYMD(rec), 
                             DateFormatted: rec.DateFormatted,
                             Time: rec.Time || '', 
                             Vendor: rec.Vendor,
@@ -13752,13 +13807,18 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                             ReqName: rec.ReqName,
                             ServedBy: rec.ServedBy,
                             Location: rec.Location || '-',
-                            Timestamp: rec.Timestamp,
+                            Timestamp: rec.Timestamp || 0,
                             totalAmt: 0,
                             itemCount: 0,
                             items: [],
                             idsToDelete: [] 
                         };
                     }
+                    // સૌથી જૂનો સમય પકડવા માટે જેથી સ્લિપનો અસલી ટાઈમ મળે
+                    if (rec.Timestamp && (!slips[key].Timestamp || rec.Timestamp < slips[key].Timestamp)) {
+                        slips[key].Timestamp = rec.Timestamp;
+                    }
+
                     slips[key].items.push(rec);
                     slips[key].Vendors.add(rec.Vendor);
                     slips[key].itemCount += 1;
@@ -13766,22 +13826,30 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     slips[key].idsToDelete.push(rec);
                 });
 
-                // તારીખ પ્રમાણે ચિઠ્ઠીઓને સોર્ટ કરો
-                const sortedSlips = Object.values(slips).sort((a, b) => {
-                    if (a.RawDateForSort === b.RawDateForSort) {
-                        return a.Timestamp - b.Timestamp;
+                const slipsArray = Object.values(slips);
+
+                // 🚨 સ્લિપને યુનિક અને ફિક્સ નંબર આપવા માટે એન્ટ્રી સેવ થયાના સમય (Timestamp) પ્રમાણે સોર્ટ કરો
+                slipsArray.sort((a, b) => a.Timestamp - b.Timestamp);
+
+                const monthCounters = {};
+                slipsArray.forEach((slip) => {
+                    let yymm = '2609'; // fallback
+                    const match = slip.RawDateForSort.match(/^(\d{4})-(\d{2})/);
+                    if(match) {
+                        yymm = match[1].slice(-2) + match[2];
                     }
-                    return a.RawDateForSort.localeCompare(b.RawDateForSort);
+                    if (!monthCounters[yymm]) monthCounters[yymm] = 1;
+                    slip.slipNo = `SLP-${yymm}-${String(monthCounters[yymm]++).padStart(3, '0')}`;
                 });
 
-                // સ્લિપ નંબર આપો (ઉદા. SLP-2609-001)
-                const [yy, mm] = selectedMonthYMD.split('-');
-                const prefix = `SLP-${yy.slice(-2)}${mm}-`;
-                sortedSlips.forEach((slip, idx) => {
-                    slip.slipNo = prefix + String(idx + 1).padStart(3, '0');
+                // હવે સ્ક્રીન પર બતાવવા માટે તારીખ પ્રમાણે (ઊલટા ક્રમમાં) સોર્ટ કરો
+                const sortedSlips = slipsArray.sort((a, b) => {
+                    if (a.RawDateForSort === b.RawDateForSort) {
+                        return b.Timestamp - a.Timestamp;
+                    }
+                    return b.RawDateForSort.localeCompare(a.RawDateForSort);
                 });
 
-                // સર્ચ ફિલ્ટર
                 let finalSlips = sortedSlips;
                 const searchTerms = searchQuery.split(/\s+/).filter(Boolean);
                 if (searchTerms.length > 0) {
@@ -13794,7 +13862,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
 
                 let html = '';
                 if(finalSlips.length === 0) {
-                    html = `<div style="text-align:center; padding:20px; color:#64748b; font-weight:bold; background:#fff; border-radius:6px; border:1px solid #cbd5e1;">No meeting records found for ${selectedMonthYMD}.</div>`;
+                    html = `<div style="text-align:center; padding:20px; color:#64748b; font-weight:bold; background:#fff; border-radius:6px; border:1px solid #cbd5e1;">No meeting records found for ${selectedMonthYMD === 'ALL' ? 'Any Month' : selectedMonthYMD}.</div>`;
                 } else {
                     html = `
                     <div style="overflow-x:auto; border:1px solid #cbd5e1; border-radius:6px; background:#fff;">
@@ -13819,7 +13887,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                                 <td style="padding:8px 4px; font-weight:bold; color:#1e293b; vertical-align:top;">
                                     ${slip.DateFormatted.slice(0,5)}<br>
                                     <span style="color:#64748B; font-size:9px;">🕒 ${slip.Time || '-'}</span><br>
-                                    <span style="color:#d97706; font-size:9px;">#${slip.slipNo}</span>
+                                    <span style="color:#d97706; font-size:10px;">#${slip.slipNo.split('-').pop()}</span>
                                 </td>
                                 <td style="padding:8px 4px; vertical-align:top; line-height:1.4;">
                                     <b style="color:#d97706; font-size:11px;">${slip.Purpose}</b><br>
@@ -14100,118 +14168,49 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                     appAlert("Edit Mode", "Data loaded into the main grid. Make changes and click 'Save' to update.");
                 }, 100);
             };
-            
-            
-           window.renderMgReviewSection = function() {
-                const container = document.getElementById('mgReviewSection');
-                if (!container) return;
+           
+window.renderMgReviewSection = function() {
+                const btn = document.getElementById('adminMgReviewBtn');
+                const countSpan = document.getElementById('mgReviewCount');
                 
-                // જો કરન્ટ રોલ એડમિન ના હોય (એટલે કે પેન્ટ્રી બોય હોય), તો આ સેક્શન હાઈડ જ રાખો
+                // નવા ઉમેરેલા હિસ્ટ્રી પોપઅપના બટન અને કાઉન્ટ
+                const histBtn = document.getElementById('historyMgReviewBtn');
+                const histCountSpan = document.getElementById('historyMgReviewCount');
+                
                 if (window.mgCurrentRole !== 'admin') { 
-                    container.style.display = 'none'; 
+                    if(btn) btn.style.display = 'none'; 
+                    if(histBtn) histBtn.style.display = 'none';
                     return; 
                 }
-             window.deleteFullMgSlip = function(encodedData) {
-                appConfirm('Delete Slip', 'Are you sure you want to delete ALL items in this slip? (Can be restored from Recycle Bin)', () => {
-                    const items = JSON.parse(decodeURIComponent(encodedData));
-                    const updates = {};
-                    let oldEventsDeleted = new Set();
-
-                    items.forEach(item => {
-                        if (item.isOldEvent || item.isOld) {
-                            const oId = item.originalId;
-                            if(!oldEventsDeleted.has(oId)) {
-                                const orig = eventLogsData.find(e => e.id === oId);
-                                if (orig) db.ref('recycleBin/eventLogs/' + oId).set(orig);
-                                db.ref('eventLogs/' + oId).remove();
-                                oldEventsDeleted.add(oId);
-                            }
-                        } else {
-                            db.ref('recycleBin/meetingsGuestsRecords/' + item.id).set(item);
-                            updates['meetingsGuestsRecords/' + item.id] = null;
-                        }
-                    });
-
-                    if (Object.keys(updates).length > 0) {
-                        db.ref().update(updates).then(() => {
-                            appAlert('Deleted', 'Entire slip moved to Recycle Bin.');
-                            window.renderMgHistoryTable();
-                        });
-                    } else {
-                        appAlert('Deleted', 'Events moved to Recycle Bin.');
-                        window.renderMgHistoryTable();
+                const duplicatesToShow = typeof mgRecordsData !== 'undefined' ? mgRecordsData.filter(r => r.Status === 'Review') : [];
+                
+                if(duplicatesToShow.length === 0) { 
+                    if(btn) btn.style.display = 'none'; 
+                    if(histBtn) histBtn.style.display = 'none';
+                } else {
+                    if(btn) {
+                        btn.style.display = 'flex';
+                        btn.style.alignItems = 'center';
+                        btn.style.justifyContent = 'center';
                     }
-                });
-            };
-
-            window.executeDuplicateCleanup = function() {
-                const checked = document.querySelectorAll('.dup-scanner-chk:checked');
-                if (checked.length === 0) return appAlert('Select Items', 'Please select at least one duplicate to delete.');
-
-                appConfirm('Confirm Deletion', `Are you sure you want to delete ${checked.length} duplicate slips? (Can be restored from Recycle Bin)`, () => {
-                    const updates = {};
-                    let oldEventsDeleted = new Set();
-                    let countDeleted = 0;
-
-                    checked.forEach(cb => {
-                        const items = JSON.parse(decodeURIComponent(cb.value));
-                        items.forEach(item => {
-                            if (item.isOldEvent || item.isOld) {
-                                const oId = item.originalId;
-                                if(!oldEventsDeleted.has(oId)) {
-                                    const orig = eventLogsData.find(e => e.id === oId);
-                                    if (orig) db.ref('recycleBin/eventLogs/' + oId).set(orig);
-                                    db.ref('eventLogs/' + oId).remove();
-                                    oldEventsDeleted.add(oId);
-                                    countDeleted++;
-                                }
-                            } else {
-                                db.ref('recycleBin/meetingsGuestsRecords/' + item.id).set(item);
-                                updates['meetingsGuestsRecords/' + item.id] = null;
-                                countDeleted++;
-                            }
-                        });
-                    });
-
-                    if (Object.keys(updates).length > 0) {
-                        db.ref().update(updates).then(() => finishCleanup(countDeleted));
-                    } else {
-                        finishCleanup(countDeleted);
+                    if(histBtn) {
+                        histBtn.style.display = 'flex';
+                        histBtn.style.alignItems = 'center';
+                        histBtn.style.justifyContent = 'center';
                     }
-                });
-
-                function finishCleanup(count) {
-                    const modal = document.getElementById('duplicateScannerModal');
-                    if(modal) modal.remove();
-                    appAlert('Success', `Moved ${count} duplicate items to Recycle Bin!`);
-                    if (window.renderMgHistoryTable) window.renderMgHistoryTable();
+                    if(countSpan) countSpan.innerText = duplicatesToShow.length;
+                    if(histCountSpan) histCountSpan.innerText = duplicatesToShow.length;
                 }
             };
-             
-                const duplicatesToShow = typeof mgRecordsData !== 'undefined' ? mgRecordsData.filter(r => r.Status === 'Review') : [];
-                if(duplicatesToShow.length === 0) { container.style.display = 'none'; return; }
-
-                container.style.display = 'block';
-                
-                // લાંબા લિસ્ટના બદલે એક જ મોટું બટન બતાવશે
-                container.innerHTML = `
-                    <div style="background:#fef2f2; border:2px solid #ef4444; border-radius:8px; padding:12px; text-align:center; margin-bottom:16px;">
-                        <h3 style="color:#b91c1c; margin:0 0 8px 0; font-size:14px;">⚠️ ${duplicatesToShow.length} Possible Duplicates Found</h3>
-                        <p style="font-size:11px; color:#444; margin-bottom:10px;">Some entries look exactly like existing ones. Please review them.</p>
-                        <button onclick="window.openDuplicateReviewModal()" class="btn danger" style="width:100%; font-weight:bold; padding:10px; border-radius:6px;">🔍 Review & Manage Duplicates</button>
-                    </div>
-                `;
-            };
-
-            window.openDuplicateReviewModal = function() {
+window.openDuplicateReviewModal = function() {
                 const duplicatesToShow = mgRecordsData.filter(r => r.Status === 'Review');
                 
-                // તારીખ પ્રમાણે સોર્ટિંગ (1 થી 31)
+                // 🚨 તારીખ પ્રમાણે સોર્ટિંગ (Newest First) - સપ્ટેમ્બર પહેલા દેખાશે
                 duplicatesToShow.sort((a, b) => {
-                    const dateA = window.parseDMYToYMD ? window.parseDMYToYMD(a.DateFormatted) : a.DateFormatted;
-                    const dateB = window.parseDMYToYMD ? window.parseDMYToYMD(b.DateFormatted) : b.DateFormatted;
-                    if (dateA === dateB) return a.Timestamp - b.Timestamp;
-                    return dateA.localeCompare(dateB);
+                    const dateA = a.RawDate || (window.parseDMYToYMD ? window.parseDMYToYMD(a.DateFormatted) : a.DateFormatted);
+                    const dateB = b.RawDate || (window.parseDMYToYMD ? window.parseDMYToYMD(b.DateFormatted) : b.DateFormatted);
+                    if (dateA === dateB) return b.Timestamp - a.Timestamp;
+                    return dateB.localeCompare(dateA); // ઊંધો ક્રમ (Z-A)
                 });
 
                 let rowsHtml = duplicatesToShow.map(rec => {
@@ -14232,6 +14231,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                         </div>
                     </label>
                 `}).join('');
+
                 const modalHtml = `
                     <div id="dupReviewModal" class="popup-overlay" style="display:flex; align-items:center; justify-content:center; z-index:999999; background:rgba(0,0,0,0.6);">
                         <div class="popup-card" style="width:95%; max-width:500px; height:85vh; display:flex; flex-direction:column; padding:0; overflow:hidden; border-radius:12px;">
