@@ -4967,22 +4967,46 @@
                     </div>
                 `;
 
+                   // 🚨 નવું ફંક્શન: તારીખ અને વારને સમાન બ્લુ કલરમાં એકસાથે (21/09/2026, Mon) બતાવશે
+                window.updateDailyCustomDisplay = function() {
+                    const dtInp = document.getElementById('beverageDailyDate');
+                    const disp = document.getElementById('dailyDateCustomDisplay');
+                    if(dtInp && disp && dtInp.value) {
+                        const parts = dtInp.value.split('-'); // YYYY-MM-DD
+                        if(parts.length === 3) {
+                            const d = new Date(dtInp.value);
+                            const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+                            const dayName = !isNaN(d) ? days[d.getDay()] : '';
+                            // 🚨 તારીખ અને વાર એક જ ટેક્સ્ટમાં બતાવશે - કોઈ બોક્સ નહિ!
+                            disp.innerText = `${parts[2]}/${parts[1]}/${parts[0]}, ${dayName}`;
+                        }
+                    }
+                };
+
                 container.innerHTML = `
                     ${slimDailyCss}
                     <div style="display:flex; flex-direction:column; flex:1; height:100%; position:relative; padding-bottom:38px; overflow:hidden;">
                         
-                        <!-- 🚨 UNIFORM FILTERS GRID (2 ROWS x 12 COLS) -->
+                        <!-- 🚨 UNIFORM FILTERS PANEL -->
                         <div class="slim-ctrl-panel">
-                            <!-- ROW 1 -->
-                            <button type="button" onclick="window.changeDateBy(-1)" class="slim-btn-nav">◀</button>
-                            <div class="slim-date-wrap">
-                                <input type="date" id="beverageDailyDate" value="${todayYMD}" class="mg-cmp-inp-new" style="text-align:center; color:#0A56D0; border-color:#0A56D0;">
-                                <input type="month" id="beverageMonthlyDate" value="${currentMonthYMD}" class="mg-cmp-inp-new hidden" style="text-align:center; color:#0A56D0; border-color:#0A56D0;">
+                            
+                            <!-- ROW 1 (Flexbox વાપરીને તારીખ માટે પૂરતી જગ્યા આપી જેથી ૨૦૨૬ ક્યારેય ના કપાય) -->
+                            <div style="grid-column: span 12; display: flex; gap: 3px; align-items: center; width: 100%;">
+                                <button type="button" onclick="window.changeDateBy(-1)" class="slim-btn-nav" style="width:26px; min-width:26px; flex-shrink:0;">◀</button>
+                                
+                                <div class="slim-date-wrap" style="flex:1; min-width:0; position:relative; height:28px;">
+                                    <!-- સાદું ડિસ્પ્લે: તારીખ અને વાર બંને એક જ ટેક્સ્ટમાં -->
+                                    <div id="dailyDateCustomDisplay" class="mg-cmp-inp-new" style="display:flex; align-items:center; justify-content:center; text-align:center; color:#0A56D0; border:1px solid #0A56D0; font-size:11px; font-weight:700; height:28px; width:100%; pointer-events:none; background:#fff; white-space:nowrap; overflow:hidden; border-radius:4px;"></div>
+                                    <!-- પારદર્શક કેલેન્ડર ઇનપુટ (ક્લિક કરતા જ ઓરિજિનલ કેલેન્ડર ખુલશે) -->
+                                    <input type="date" id="beverageDailyDate" value="${todayYMD}" style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; z-index:2; cursor:pointer;" onchange="window.updateDailyCustomDisplay(); renderBeverageModeContent('name');">
+                                    <input type="month" id="beverageMonthlyDate" value="${currentMonthYMD}" class="mg-cmp-inp-new hidden" style="text-align:center; color:#0A56D0; border-color:#0A56D0; height:28px;">
+                                </div>
+                                
+                                <button type="button" onclick="window.changeDateBy(1)" class="slim-btn-nav" style="width:26px; min-width:26px; flex-shrink:0;">▶</button>
+                                <button id="modeNameWise" class="slim-btn-mode active" style="padding:0 8px; flex-shrink:0; width:auto;">Daily</button>
+                                <button id="modeDateWise" class="slim-btn-mode" style="padding:0 8px; flex-shrink:0; width:auto;">Monthly</button>
+                                <button onclick="window.renderCrossServeView()" class="slim-btn-mode" style="padding:0 6px; flex-shrink:0; width:auto; background:#FFFBEB; color:#D97706; border-color:#FDE68A;">🌐 All Staff</button>
                             </div>
-                            <button type="button" onclick="window.changeDateBy(1)" class="slim-btn-nav">▶</button>
-                            <button id="modeNameWise" class="slim-btn-mode active" style="grid-column: span 2;">Daily</button>
-                            <button id="modeDateWise" class="slim-btn-mode" style="grid-column: span 2;">Monthly</button>
-                            <button onclick="window.renderCrossServeView()" class="slim-btn-mode" style="grid-column: span 2; background:#FFFBEB; color:#D97706; border-color:#FDE68A;">🌐 All Staff</button>
 
                             <!-- ROW 2 -->
                             <button onclick="window.lgUndo()" id="btnLgUndo" class="slim-btn-undo" disabled>↩️</button>
@@ -5007,6 +5031,8 @@
                     </div>
                 `;
 
+                // શરૂઆતમાં તારીખ સેટ કરવા માટે
+                setTimeout(window.updateDailyCustomDisplay, 50);
 
                 let currentMode = 'name';
 
@@ -5018,6 +5044,7 @@
                         const current = new Date(dateInput.value);
                         current.setDate(current.getDate() + days);
                         dateInput.value = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}-${String(current.getDate()).padStart(2, '0')}`;
+                        window.updateDailyCustomDisplay();
                         renderBeverageModeContent('name');
                     } else {
                         const monthInput = document.getElementById('beverageMonthlyDate');
@@ -5034,20 +5061,24 @@
                     const btnDaily = document.getElementById('modeNameWise');
                     const btnMonthly = document.getElementById('modeDateWise');
                     const inpDaily = document.getElementById('beverageDailyDate');
+                    const dispDaily = document.getElementById('dailyDateCustomDisplay');
                     const inpMonthly = document.getElementById('beverageMonthlyDate');
 
                     if (mode === 'name') {
                         btnDaily.classList.add('active');
                         btnMonthly.classList.remove('active');
-                        inpDaily.classList.remove('hidden');
-                        inpMonthly.classList.add('hidden');
+                        if (dispDaily) dispDaily.style.display = 'flex';
+                        if (inpDaily) inpDaily.style.display = 'block';
+                        if (inpMonthly) inpMonthly.classList.add('hidden');
                         const mVal = inpMonthly.value;
                         if(mVal && !inpDaily.value.startsWith(mVal)) inpDaily.value = mVal + '-01';
+                        window.updateDailyCustomDisplay();
                     } else {
                         btnDaily.classList.remove('active');
                         btnMonthly.classList.add('active');
-                        inpDaily.classList.add('hidden');
-                        inpMonthly.classList.remove('hidden');
+                        if (dispDaily) dispDaily.style.display = 'none';
+                        if (inpDaily) inpDaily.style.display = 'none';
+                        if (inpMonthly) inpMonthly.classList.remove('hidden');
                         const dVal = inpDaily.value;
                         if(dVal) inpMonthly.value = dVal.substring(0, 7);
                     }
@@ -5057,7 +5088,10 @@
                 document.getElementById('modeNameWise').onclick = () => switchMode('name');
                 document.getElementById('modeDateWise').onclick = () => switchMode('date');
                 
-                const reloadFn = () => renderBeverageModeContent(currentMode);
+                const reloadFn = () => {
+                    window.updateDailyCustomDisplay();
+                    renderBeverageModeContent(currentMode);
+                };
                 document.getElementById('beverageDailyDate').addEventListener('change', reloadFn);
                 document.getElementById('beverageMonthlyDate').addEventListener('change', reloadFn);
                 document.getElementById('entryCategory').addEventListener('change', reloadFn);
@@ -7321,6 +7355,44 @@
                                 });
                             }
                         });
+                        break;
+
+                    // 🚨 Settings નું નવું ઓપ્શન 
+                    case 'settings':
+                        cont.innerHTML = adminMobileCSS + `
+                            <div class="a-card">
+                                <h4 class="a-title">⚙️ System Settings</h4>
+                                <p style="font-size:11px; color:#64748B; margin-bottom:12px;">Manage database backups and security.</p>
+                                
+                                <div class="backup-restore-box" style="margin-bottom:16px; background:#F0F9FF; border:1px dashed #0A56D0; padding:12px; border-radius:8px; text-align:center;">
+                                    <h5 style="color:#0A56D0; margin:0 0 10px 0; font-size:13px;">💾 Database Backup & Restore</h5>
+                                    <div style="display:flex; gap:8px;">
+                                        <button id="btnSettingsBackup" class="a-btn primary" style="flex:1; min-height:40px;">📥 Backup Data</button>
+                                        <button id="btnSettingsRestore" class="a-btn danger" style="flex:1; min-height:40px;">📤 Restore Data</button>
+                                    </div>
+                                </div>
+                                
+                                <div style="border:1px solid #CBD5E1; padding:12px; border-radius:8px; background:#F8FAFC;">
+                                    <h5 style="color:#334155; margin:0 0 8px 0; font-size:12px;">🔐 Change Admin Password</h5>
+                                    <input type="text" id="newAdminPassInput" class="a-input" placeholder="Enter New Password" style="margin-bottom:8px;">
+                                    <button id="saveNewAdminPassBtn" class="a-btn success" style="min-height:40px;">Update Password</button>
+                                </div>
+                            </div>
+                        `;
+                        
+                        document.getElementById('btnSettingsBackup').onclick = backupAllData;
+                        document.getElementById('btnSettingsRestore').onclick = restoreAllData;
+                        document.getElementById('saveNewAdminPassBtn').onclick = () => {
+                            const newPass = document.getElementById('newAdminPassInput').value.trim();
+                            if(!newPass) return appAlert('Error', 'Please enter a valid password.');
+                            appConfirm('Change Password', 'Are you sure you want to change the Admin Password?', () => {
+                                db.ref('adminSecurityConfig').set({ password: newPass }).then(() => {
+                                    appAlert('Success', 'Admin password changed successfully!');
+                                    document.getElementById('newAdminPassInput').value = '';
+                                    adminSecurity.password = newPass; // નવો પાસવર્ડ સિસ્ટમમાં સેવ કરો
+                                }).catch(err => appAlert('Error', err.message));
+                            });
+                        };
                         break;
 
                 }
@@ -14331,7 +14403,7 @@ window.openDuplicateReviewModal = function() {
                     flatpickr(dateInput, {
                         dateFormat: "Y-m-d",
                         altInput: true,          
-                        altFormat: "d/m/Y",      
+                        altFormat: "d/m/Y (D)", // 🚨 આનાથી તારીખની બાજુમાં કૌંસમાં વાર (Mon, Tue) દેખાશે[span_1](start_span)[span_1](end_span)
                         disableMobile: true, 
                         onChange: function(selectedDates, dateStr) {
                             window.refreshAllData();
