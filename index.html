@@ -10698,6 +10698,12 @@ window.exportIndividualReport = async function(type) {
     
     <!-- ઉપરના ઓર્ગેનાઇઝર ખાના એકદમ નાના અને સાઇડ-બાય-સાઇડ સેટ કર્યા -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #F1F5F9; padding: 8px; border-radius: 10px; margin-bottom: 8px; border: 1px solid #E2E8F0; flex-shrink:0;">
+        <div style="grid-column: span 2; display: flex; align-items: center; justify-content: flex-end; margin-bottom: 4px;">
+            <label style="font-size: 11px; font-weight: bold; color: #DC3545; display: flex; align-items: center; cursor: pointer;">
+                <input type="checkbox" id="editEvtIsEvent" ${ev.isEvent ? 'checked' : ''} style="width: 14px; height: 14px; margin-right: 4px; accent-color: #DC3545;">
+                🎪 Is this an Event? (Exclude from regular meetings)
+            </label>
+        </div>
         <div>
             <label style="font-size:11px; font-weight:700; color:#44474E; display:block;">👤 Organizer</label>
             <input type="text" id="editEvtOrderedBy" value="${safeStr(ev.orderedBy)}" style="width:100%; padding:6px 8px; border-radius:6px; border:1px solid #CBD5E1; margin:2px 0 0 0; font-size:12px; box-sizing:border-box;">
@@ -12657,6 +12663,22 @@ window.submitMgForm = function() {
         let localBatchSet = new Set();
         let columnsToMarkSaved = [];
 
+        // 🚨 નવો ફેરફાર: કયા વેન્ડરનો કયો સ્લિપ નંબર હતો તે યાદ રાખવા માટે
+        const vendorSlipMap = {};
+        if (editIdsInput && editIdsInput.value) {
+            try {
+                const parsedIds = JSON.parse(editIdsInput.value);
+                parsedIds.forEach(it => {
+                    if (!it.isOldEvent && !it.isOld) {
+                        const existingRec = mgRecordsData.find(r => r.id === it.id);
+                        if (existingRec && existingRec.Vendor && existingRec.SlipNo) {
+                            vendorSlipMap[existingRec.Vendor] = existingRec.SlipNo;
+                        }
+                    }
+                });
+            } catch(e) {}
+        }
+
         entriesData.forEach(data => {
             const { colId, rowDate, timeVal, reqName, purp, srv, locVal, vend, itm, qt, rate, amt } = data;
             columnsToMarkSaved.push(colId);
@@ -12664,7 +12686,14 @@ window.submitMgForm = function() {
             const id = 'mgrec_' + Date.now() + '_' + colId + '_' + Math.random().toString(36).substring(2, 5);
             const cleanStr = (str) => (str || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
 
-            // 🚨 ડુપ્લીકેટ ચેકર (જૂની સેવ થયેલી એન્ટ્રીને કશું નહિ કરે, માત્ર આ નવી આવતી એન્ટ્રીને Review માં મોકલશે)
+            // 🚨 જો નવો વેન્ડર હોય, તો તેને નવો સ્લિપ નંબર આપો, જૂનો વેન્ડર હોય તો જૂનો જ સ્લિપ નંબર રહેશે
+            const safeVendor = vend || 'Unknown';
+            if (!vendorSlipMap[safeVendor]) {
+                vendorSlipMap[safeVendor] = Math.random().toString(36).substring(2, 7).toUpperCase();
+            }
+            const currentSlipNo = vendorSlipMap[safeVendor];
+
+            // ડુપ્લીકેટ ચેકર
             const isDuplicateInDB = mgRecordsData.some(existing => {
                 if (existing.Status === 'Review') return false;
                 if (existing.RawDate !== rowDate) return false;
@@ -12695,20 +12724,26 @@ window.submitMgForm = function() {
                 const currentCatalog = vendorItemsCatalog[vKey] || [];
                 if (!currentCatalog.some(i => i.name.toLowerCase() === itm.toLowerCase())) {
                     currentCatalog.push({ name: itm, rate: rate });
-                    db.ref('vendorItems/' + vKey).set(currentCatalog);
+                    updates['vendorItems/' + vKey] = currentCatalog;
                 }
             }
             if (locVal && !venueList.some(v => v.name.toLowerCase() === locVal.toLowerCase())) {
                 const vId = 'vnu_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-                db.ref('venues/' + vId).set({ id: vId, name: locVal });
+                updates['venues/' + vId] = { id: vId, name: locVal };
             }
+
+            const isEventCheckbox = document.getElementById('editEvtIsEvent');
+            const isEventValue = isEventCheckbox ? isEventCheckbox.checked : false;
 
             updates['meetingsGuestsRecords/' + id] = {
                 id: id, RawDate: rowDate, DateFormatted: convertYMDtoDMY(rowDate),
-                Day: getDayOfWeek(convertYMDtoDMY(rowDate)), Time: timeVal,
+                Day: typeof getDayOfWeek === 'function' ? getDayOfWeek(convertYMDtoDMY(rowDate)) : '',
+                Time: timeVal,
                 Item: itm, Qty: qt, Rate: rate, Amount: amt, Unit: 'Nos',
                 ReqName: reqName, Purpose: purp, Location: locVal,
-                Vendor: vend, ServedBy: srv, Status: finalStatus, Timestamp: Date.now()
+                Vendor: vend, ServedBy: srv, Status: finalStatus, Timestamp: Date.now(),
+                isEvent: isEventValue,
+                SlipNo: currentSlipNo // 🚨 અહીં નવો કે જૂનો સાચો સ્લિપ નંબર અસાઇન થશે
             };
         });
 
@@ -12743,7 +12778,7 @@ window.submitMgForm = function() {
             if(editIdsInput) editIdsInput.value = ""; // એડિટ મોડ બંધ
 
             window.renderMgHistoryTable();
-            window.renderMgReviewSection();
+            if(typeof window.renderMgReviewSection === 'function') window.renderMgReviewSection();
         }).catch(err => appAlert('Error', err.message));
     };
 
@@ -13089,6 +13124,11 @@ window.submitMgForm = function() {
                         <option value="ALL">All Vendors</option>
                     </select>
                     <input type="text" id="mgPopupSearchFilter" placeholder="🔍 Search..." oninput="window.renderMgHistoryTable()" style="flex:1.5; min-width:100px; padding:6px; font-size:11px; border-radius:4px; border:1px solid #cbd5e1; outline:none;">
+                    <select id="mgPopupTypeFilter" onchange="window.renderMgHistoryTable()" style="flex:1; min-width:80px; padding:6px; font-size:11px; border-radius:4px; border:1px solid #cbd5e1; outline:none; background:#fff; font-weight:bold; color:#DC3545;">
+                        <option value="ALL">All Types</option>
+                        <option value="Meeting">Meetings Only</option>
+                        <option value="Event">Events Only</option>
+                    </select>
                 </div>
                 <div style="display:flex; gap:6px; width:100%;">
                     <button onclick="window.openBulkReplacePurposeModal()" style="flex:1; background:#fef3c7; color:#d97706; border:1px solid #fde68a; cursor:pointer; font-weight:bold; padding:6px; font-size:11px; border-radius:4px;">🔄 Fix Purpose</button>
@@ -13114,11 +13154,35 @@ window.submitMgForm = function() {
         let months = new Set();
         let vendors = new Set();
         
+        // 🚨 મહિનાને પરફેક્ટ YYYY-MM ફોર્મેટમાં ફેરવવાનું ફંક્શન
+        const getSafeYMDForPopup = (rec) => {
+            if (rec.RawDate) return rec.RawDate;
+            let dStr = rec.DateFormatted || rec.date;
+            if (dStr) {
+                let d = String(dStr).trim().replace(/[\/\-]/g, '-');
+                let p = d.split('-');
+                if (p.length === 3) {
+                    if (p[2].length === 4) return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+                    if (p[0].length === 4) return `${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;
+                }
+            }
+            return '';
+        };
+
         allRecs.forEach(r => {
-            let ymd = r.RawDate || r.date || r.DateFormatted;
-            if(ymd && ymd.length >= 7) months.add(ymd.slice(0, 7).replace(/\//g,'-'));
-            if (r.Vendor) vendors.add(r.Vendor);
-            if (r.canteenSource) vendors.add(r.canteenSource);
+            let ymd = getSafeYMDForPopup(r);
+            if(ymd && ymd.length >= 7) months.add(ymd.slice(0, 7));
+            
+            // 🚨 ભેગા થયેલા વેન્ડરના નામને છૂટા (Single) પાડવાનું ફંક્શન
+            const addVendor = (vStr) => {
+                if(!vStr || vStr === '-') return;
+                vStr.split(',').forEach(v => {
+                    let cv = v.trim();
+                    if(cv && cv !== 'Various') vendors.add(cv);
+                });
+            };
+            addVendor(r.Vendor);
+            addVendor(r.canteenSource);
         });
         
         if(sel) {
@@ -13254,7 +13318,10 @@ window.renderMgHistoryTable = function() {
         }
 
         slips[key].items.push(rec);
-        slips[key].Vendors.add(rec.Vendor);
+        // 🚨 ઍરેમાં ભેગા થયેલા નામ અલગ-અલગ સ્ટોર કરવા
+        if (rec.Vendor) {
+            rec.Vendor.split(',').forEach(v => slips[key].Vendors.add(v.trim()));
+        }
         if (rec.Time) slips[key].allTimes.add(rec.Time); // બધા ટાઈમ ભેગા કરો
         slips[key].itemCount += 1;
         slips[key].totalAmt += Number(rec.Amount) || 0;
@@ -13265,13 +13332,16 @@ window.renderMgHistoryTable = function() {
     const slipsArray = Object.values(slips);
     slipsArray.sort((a, b) => a.Timestamp - b.Timestamp);
 
-    const monthCounters = {};
     slipsArray.forEach((slip) => {
-        let yymm = '2609';
-        const match = slip.RawDateForSort.match(/^(\d{4})-(\d{2})/);
-        if(match) yymm = match[1].slice(-2) + match[2];
-        if (!monthCounters[yymm]) monthCounters[yymm] = 1;
-        slip.slipNo = `SLP-${yymm}-${String(monthCounters[yymm]++).padStart(3, '0')}`;
+        const firstItem = slip.items[0];
+        if (firstItem && firstItem.SlipNo) {
+            slip.slipNo = firstItem.SlipNo;
+        } else if (firstItem && firstItem.id) {
+            // Fallback for older entries
+            slip.slipNo = firstItem.id.substring(firstItem.id.length - 5).toUpperCase();
+        } else {
+            slip.slipNo = Math.random().toString(36).substring(2, 7).toUpperCase();
+        }
     });
 
     const sortedSlips = slipsArray.sort((a, b) => {
@@ -13281,7 +13351,19 @@ window.renderMgHistoryTable = function() {
 
     let finalSlips = sortedSlips;
     if (selectedVendor !== 'ALL') {
-        finalSlips = finalSlips.filter(slip => slip.Vendors.has(selectedVendor) || slip.Vendor === selectedVendor);
+        finalSlips = finalSlips.filter(slip => {
+            // 🚨 સિંગલ વેન્ડર પર ક્લિક કરવાથી તે વેન્ડર જે પણ ગ્રુપમાં હશે તે બધા દેખાડશે
+            return Array.from(slip.Vendors).some(v => v === selectedVendor) || (slip.Vendor && slip.Vendor.includes(selectedVendor));
+        });
+    }
+
+    const typeFilter = document.getElementById('mgPopupTypeFilter') ? document.getElementById('mgPopupTypeFilter').value : 'ALL';
+    if (typeFilter !== 'ALL') {
+        finalSlips = finalSlips.filter(slip => {
+            // Check if any item in the slip is marked as an event
+            const isEvent = slip.items.some(item => item.isEvent === true);
+            return typeFilter === 'Event' ? isEvent : !isEvent;
+        });
     }
 
     const searchTerms = searchQuery.split(/\s+/).filter(Boolean);
@@ -13540,7 +13622,10 @@ window.viewMgSlip = function(encodedData) {
                 <input type="text" id="quickSlipSearchInp" placeholder="No." value="${slipShortNo}" style="width:45px; text-align:center; padding:4px; border:1px solid #0A56D0; border-radius:4px; font-size:12px; font-weight:bold; color:#0A56D0; outline:none;" onkeypress="if(event.key==='Enter') window.quickSearchSlip()">
                 <button onclick="window.quickSearchSlip()" style="background:#0A56D0; color:#fff; border:none; padding:5px 8px; border-radius:4px; font-size:12px; font-weight:bold; cursor:pointer;">🔍</button>
                 ${nextBtnHtml}
-                <div style="flex:1;"></div>
+               <div style="flex:1;"></div>
+                <!-- 🚨 નવો ફેરફાર: પ્રિવ્યૂ સ્લિપની અંદર જ એડિટ કરવા માટે નવું બટન -->
+                <button onclick="window.editMgSlipInline('${encodedData}')" style="background:#10B981; color:#fff; border:none; padding:6px 10px; border-radius:4px; font-size:12px; font-weight:bold; white-space:nowrap; margin:0; cursor:pointer;">✏️ Edit Items</button>
+                <button onclick="document.getElementById('printAreaContainer').classList.add('hidden'); window.editMgGroup('${encodedData}')" style="background:#F59E0B; color:#fff; border:none; padding:6px 10px; border-radius:4px; font-size:12px; font-weight:bold; white-space:nowrap; margin:0; cursor:pointer;">✏️ Edit All</button>
                 <button onclick="window.print()" class="success" style="padding:6px 10px; border-radius:4px; font-size:12px; font-weight:bold; white-space:nowrap; margin:0;">🖨️ Print</button>
                 <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger" style="padding:6px 10px; border-radius:4px; font-size:12px; font-weight:bold; white-space:nowrap; margin:0;">✕ Close</button>
             </div>
@@ -13560,7 +13645,202 @@ window.viewMgSlip = function(encodedData) {
     `;
     container.classList.remove('hidden');
 };
+// ============================================================
+//  INLINE GUEST SLIP EDITOR (EDIT ITEMS INSIDE THE SLIP)
+// ============================================================
+window.editMgSlipInline = function(encodedData) {
+    const slip = JSON.parse(decodeURIComponent(encodedData));
+    const container = document.querySelector('#printAreaContainer .preview-content');
+    if(!container) return;
 
+    window._currentInlineSlip = slip;
+
+    let itemRows = slip.items.map(it => `
+        <tr class="inline-slip-row">
+            <td style="padding:4px 2px; border-bottom:1px dashed #cbd5e1;">
+                <input type="text" class="islip-name" value="${safeStr(it.Item)}" style="width:100%; padding:6px; font-size:12px; border:1px solid #0A56D0; border-radius:4px; box-sizing:border-box;">
+            </td>
+            <td style="padding:4px 2px; text-align:center; border-bottom:1px dashed #cbd5e1;">
+                <input type="number" class="islip-qty" value="${it.Qty}" min="1" oninput="window.calcInlineSlipTotal()" style="width:100%; padding:6px; font-size:12px; text-align:center; border:1px solid #0A56D0; border-radius:4px; box-sizing:border-box;">
+            </td>
+            <td style="padding:4px 2px; text-align:center; border-bottom:1px dashed #cbd5e1;">
+                <input type="number" class="islip-rate" value="${it.Rate !== '-' ? it.Rate : 0}" min="0" oninput="window.calcInlineSlipTotal()" style="width:100%; padding:6px; font-size:12px; text-align:center; border:1px solid #0A56D0; border-radius:4px; box-sizing:border-box;">
+            </td>
+            <td style="padding:4px 2px; text-align:right; font-weight:bold; border-bottom:1px dashed #cbd5e1; color:#0A56D0;">
+                ₹<span class="islip-amt">${Number(it.Amount || 0).toFixed(2)}</span>
+            </td>
+            <td style="padding:4px 2px; text-align:center; border-bottom:1px dashed #cbd5e1;">
+                <button onclick="this.closest('tr').remove(); window.calcInlineSlipTotal();" style="background:#fee2e2; color:#dc3545; border:none; padding:6px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">✕</button>
+            </td>
+        </tr>
+    `).join('');
+
+    const content = `
+        <div class="slip-card" style="background:#fff; border:2px solid #0A56D0; border-radius:8px; padding:12px; margin:auto; max-width:450px; color:#000; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+            <div style="background:#EFF6FF; color:#0A56D0; padding:8px; border-radius:6px; margin-bottom:10px; font-weight:bold; text-align:center; font-size:14px;">
+                ✏️ EDIT ITEMS IN GUEST SLIP #${slip.slipNo.split('-').pop()}
+            </div>
+            
+            <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:12px; background:#F8FAFC; padding:8px; border-radius:6px; border:1px solid #E2E8F0;">
+                <div><b style="color:#64748B;">Vendor:</b><br><span style="font-size:13px; font-weight:bold; color:#D97706;">${slip.Vendor}</span></div>
+                <div style="text-align:right;">
+                    <b style="color:#64748B;">Date:</b> <b>${slip.DateFormatted}</b><br>
+                    <b style="color:#64748B;">Req By:</b> <b>${slip.ReqName}</b>
+                </div>
+            </div>
+            
+            <table style="width:100%; border-collapse:collapse; margin-bottom:10px; font-size:12px;">
+                <thead>
+                    <tr style="background:#F1F5F9;">
+                        <th style="text-align:left; padding:6px 4px; border:1px solid #CBD5E1; color:#334155;">Item Name</th>
+                        <th style="text-align:center; padding:6px 4px; border:1px solid #CBD5E1; width:60px; color:#334155;">Qty</th>
+                        <th style="text-align:center; padding:6px 4px; border:1px solid #CBD5E1; width:60px; color:#334155;">Rate</th>
+                        <th style="text-align:right; padding:6px 4px; border:1px solid #CBD5E1; width:65px; color:#334155;">Total</th>
+                        <th style="text-align:center; padding:6px 4px; border:1px solid #CBD5E1; width:40px; color:#334155;">Del</th>
+                    </tr>
+                </thead>
+                <tbody id="inlineSlipTbody">
+                    ${itemRows}
+                </tbody>
+                <tfoot>
+                    <tr style="background:#f8fafc;">
+                        <td colspan="5" style="padding:10px 4px; text-align:center; border-bottom:1px solid #E2E8F0;">
+                            <button onclick="window.addInlineSlipRow()" style="background:#10B981; color:#fff; border:none; padding:8px 16px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:12px; width:100%; box-shadow:0 2px 4px rgba(16,185,129,0.2);">➕ Add New Item</button>
+                        </td>
+                    </tr>
+                    <tr style="background:#E0F2FE;">
+                        <td colspan="3" style="text-align:right; padding:10px 8px; font-weight:bold; font-size:13px; color:#0A56D0;">Grand Total:</td>
+                        <td colspan="2" style="text-align:left; padding:10px 8px; font-weight:900; font-size:15px; color:#0A56D0;">₹<span id="islipGrandTotal">${slip.totalAmt.toFixed(2)}</span></td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div style="display:flex; gap:10px; margin-top:16px;">
+                <button onclick="window.viewMgSlip('${encodedData}')" class="danger" style="flex:1; padding:12px; border-radius:6px; font-weight:bold; font-size:13px;">Cancel</button>
+                <button onclick="window.saveInlineSlip()" class="success" style="flex:2; padding:12px; border-radius:6px; font-weight:bold; font-size:13px; box-shadow:0 2px 4px rgba(20,108,67,0.3);">💾 Save Changes</button>
+            </div>
+        </div>
+    `;
+
+    container.innerHTML = content;
+    
+    const header = document.querySelector('#printAreaContainer .preview-header');
+    if(header) header.style.display = 'none';
+};
+
+window.addInlineSlipRow = function() {
+    const tbody = document.getElementById('inlineSlipTbody');
+    const tr = document.createElement('tr');
+    tr.className = 'inline-slip-row new-row';
+    tr.innerHTML = `
+        <td style="padding:4px 2px; border-bottom:1px dashed #cbd5e1;">
+            <input type="text" class="islip-name" placeholder="Item Name" style="width:100%; padding:6px; font-size:12px; border:1px solid #0A56D0; border-radius:4px; box-sizing:border-box;">
+        </td>
+        <td style="padding:4px 2px; text-align:center; border-bottom:1px dashed #cbd5e1;">
+            <input type="number" class="islip-qty" value="1" min="1" oninput="window.calcInlineSlipTotal()" style="width:100%; padding:6px; font-size:12px; text-align:center; border:1px solid #0A56D0; border-radius:4px; box-sizing:border-box;">
+        </td>
+        <td style="padding:4px 2px; text-align:center; border-bottom:1px dashed #cbd5e1;">
+            <input type="number" class="islip-rate" value="0" min="0" oninput="window.calcInlineSlipTotal()" style="width:100%; padding:6px; font-size:12px; text-align:center; border:1px solid #0A56D0; border-radius:4px; box-sizing:border-box;">
+        </td>
+        <td style="padding:4px 2px; text-align:right; font-weight:bold; border-bottom:1px dashed #cbd5e1; color:#0A56D0;">
+            ₹<span class="islip-amt">0.00</span>
+        </td>
+        <td style="padding:4px 2px; text-align:center; border-bottom:1px dashed #cbd5e1;">
+            <button onclick="this.closest('tr').remove(); window.calcInlineSlipTotal();" style="background:#fee2e2; color:#dc3545; border:none; padding:6px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">✕</button>
+        </td>
+    `;
+    tbody.appendChild(tr);
+};
+
+window.calcInlineSlipTotal = function() {
+    let total = 0;
+    document.querySelectorAll('.inline-slip-row').forEach(row => {
+        const q = parseFloat(row.querySelector('.islip-qty').value) || 0;
+        const r = parseFloat(row.querySelector('.islip-rate').value) || 0;
+        const amt = q * r;
+        row.querySelector('.islip-amt').innerText = amt.toFixed(2);
+        total += amt;
+    });
+    const gt = document.getElementById('islipGrandTotal');
+    if(gt) gt.innerText = total.toFixed(2);
+};
+
+window.saveInlineSlip = function() {
+    const slip = window._currentInlineSlip;
+    const rows = document.querySelectorAll('.inline-slip-row');
+    if(rows.length === 0) return appAlert('Error', 'Slip cannot be empty. Please add at least one item or delete the slip entirely from the history menu.');
+
+    const updates = {};
+    
+    // Delete old
+    let oldEventsDeleted = new Set();
+    slip.idsToDelete.forEach(it => {
+        if (it.isOldEvent || it.isOld) {
+            const oId = it.originalId;
+            if (oId && !oldEventsDeleted.has(oId)) {
+                updates['eventLogs/' + oId] = null;
+                oldEventsDeleted.add(oId);
+            }
+        } else {
+            updates['meetingsGuestsRecords/' + it.id] = null;
+        }
+    });
+
+    // Re-insert
+    const rawYMD = slip.items[0].RawDate || parseDMYToYMD(slip.DateFormatted);
+    const timeVal = slip.Time || '09:00';
+    const rowVendor = slip.Vendor; 
+
+    rows.forEach((row, idx) => {
+        const iName = row.querySelector('.islip-name').value.trim();
+        const iQty = parseFloat(row.querySelector('.islip-qty').value) || 0;
+        const iRate = parseFloat(row.querySelector('.islip-rate').value) || 0;
+        const amt = iQty * iRate;
+        
+        if(iName && iQty > 0) {
+            const id = 'mgrec_' + Date.now() + '_' + idx + '_' + Math.random().toString(36).substring(2, 5);
+            updates['meetingsGuestsRecords/' + id] = {
+                id: id,
+                RawDate: rawYMD,
+                DateFormatted: slip.DateFormatted,
+                Day: typeof getDayOfWeek === 'function' ? getDayOfWeek(slip.DateFormatted.replace(/-/g, '/')) : '',
+                Time: timeVal,
+                Item: iName,
+                Qty: iQty,
+                Rate: iRate,
+                Amount: amt,
+                Unit: 'Nos',
+                ReqName: slip.ReqName,
+                Purpose: slip.Purpose,
+                Location: slip.Location || 'Campus',
+                Vendor: rowVendor,
+                ServedBy: slip.ServedBy,
+                Status: 'Approved', 
+                Timestamp: Date.now() + idx,
+                SlipNo: slip.slipNo 
+            };
+            
+            const vKey = rowVendor.toLowerCase().trim();
+            const currentCatalog = vendorItemsCatalog[vKey] || [];
+            if (!currentCatalog.some(it => it.name.toLowerCase() === iName.toLowerCase())) {
+                currentCatalog.push({ name: iName, rate: iRate });
+                updates['vendorItems/' + vKey] = currentCatalog;
+            }
+        }
+    });
+
+    db.ref().update(updates).then(() => {
+        appAlert('Success', 'Guest Slip items updated successfully!');
+        document.getElementById('printAreaContainer').classList.add('hidden');
+        
+        const header = document.querySelector('#printAreaContainer .preview-header');
+        if(header) header.style.display = '';
+
+        if(typeof window.renderMgHistoryTable === 'function') window.renderMgHistoryTable();
+    }).catch(err => {
+        appAlert('Error', err.message);
+    });
+};
             // ✏️ Edit Group Function (આખી મીટિંગ એડિટ કરવા માટે)
             window.editMgGroup = function(encodedData) {
                 const slip = JSON.parse(decodeURIComponent(encodedData));
