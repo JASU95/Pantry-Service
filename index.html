@@ -5217,29 +5217,88 @@
                         return `<div class="l-cell-wrap"><div class="l-cell" tabindex="0" data-emp="${empId}" data-date="${dateDMY}" data-session="${session}" data-logid="${logId || ''}" data-supply="${supplySource}" data-val="${currentDrink || ''}">${formatDrinkHTML(currentDrink)}</div><div class="fill-handle" title="Drag to copy"></div></div>`;
                     };
 
-                    const buildRows = (empList) => {
+                                                            const buildRows = (empList) => {
                         return empList.map(emp => {
                             const logs = logsData.filter(l => l.employeeId === emp.id && l.date === selectedDMY && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
                             const morn = logs.find(l => l.session === 'Morning');
                             const aft = logs.find(l => l.session === 'Afternoon');
                             
+                            // --- NEW VIP EXTRAS (TRANSPARENT CROSS BUTTON & COMPACT UI) ---
+                            const isVip = emp.vipMultipleTea === true;
+                            const extraLogs = logs.filter(l => l.session && l.session.startsWith('Extra_'));
+                            
+                            // નામનું શોર્ટ ફોર્મ (દા.ત. Prem Kumar Chopra -> PKC)
+                            const nameParts = (emp.name || '').trim().split(' ');
+                            let initials = nameParts.length === 1 ? nameParts[0].substring(0, 3).toUpperCase() : nameParts.map(n => n[0]).join('').toUpperCase();
+                            
+                            let extraHtml = '';
+                            let vipAddBtnMini = '';
+
+                            if (isVip) {
+                                // 🚨 મેઈન લાઈનમાં જમણી બાજુ આવતું એકદમ મોડર્ન અને નાનું + બટન
+                                vipAddBtnMini = `<button onclick="window.addVipExtraDrink('${emp.id}', '${selectedDMY}', '${supplySource}')" style="background:#F59E0B; color:#fff; border:none; border-radius:4px; font-size:11px; font-weight:800; padding:2px 6px; margin-left:4px; cursor:pointer; flex-shrink:0; box-shadow:0 1px 2px rgba(217,119,6,0.3); outline:none;">+ ☕</button>`;
+
+                                // જો એક પણ એક્સ્ટ્રા ચા આપી હશે, તો જ પીળું બોક્સ ખુલશે
+                                if (extraLogs.length > 0) {
+                                    let extraCells = extraLogs.map((exLog) => {
+                                        // 🚨 ટ્રાન્સપરન્ટ એન્ડ્રોઇડ સ્ટાઈલ ક્રોસ બટન (No Background)
+                                        return `
+                                        <div style="position:relative; display:inline-block; margin-right:4px; margin-top:2px;">
+                                            <div style="padding:0; height:20px; width:40px; flex-shrink:0;">
+                                                ${buildCell(emp.id, selectedDMY, exLog.session, exLog.drink, exLog.id)}
+                                            </div>
+                                            <button onclick="window.removeVipExtraDrinkDirect('${exLog.id}')" style="position:absolute; top:-8px; right:-8px; background:transparent; color:#DC3545; border:none; font-size:12px; font-weight:900; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:5; padding:2px; outline:none; text-shadow: 0 1px 1px rgba(255,255,255,0.8);">✕</button>
+                                        </div>`;
+                                    }).join('');
+                                    
+                                    extraHtml = `
+                                    <div style="display:flex; flex-wrap:wrap; gap:4px; padding:4px 8px 6px 8px; background:#FFFBEB; align-items:center; border-top:1px dashed #FDE68A; border-radius:0 0 8px 8px;">
+                                        <span style="font-size:9.5px; font-weight:800; color:#D97706; margin-right:4px;">🌟 VIP (${initials}):</span>
+                                        ${extraCells}
+                                    </div>`;
+                                }
+                            }
+                            // --------------------------------
+                            
                             const isTemp = emp.tempPantryIds && emp.tempPantryIds[effectivePantryId] === true;
                             const tempBadge = isTemp ? `<span style="background:#FEF3C7; color:#D97706; padding:1px 2px; border-radius:2px; font-size:6px; border:1px solid #FDE68A; margin-left:2px;">Guest</span>` : '';
 
-                            // 🚨 ZERO PADDING & MARGIN (Ultra Compact Row)
+                            // કાર્ડ ડિઝાઇન
+                            const hasExtrasOpen = extraLogs.length > 0;
+                            const wrapperStyle = isVip 
+                                ? `border:1px solid ${hasExtrasOpen ? '#FDE68A' : '#E2E8F0'}; background:#fff; margin:4px 0; border-radius:8px; box-shadow:0 1px 2px rgba(0,0,0,0.05);` 
+                                : `border-bottom:1px solid #E2E8F0; background:#fff;`;
+
                             return `
-                            <div class="bulk-entry-row" style="display:flex; align-items:center; border-bottom:1px solid #E2E8F0; padding:0; min-height:24px; box-sizing:border-box; margin:0;">
-                                <div style="flex:2; font-size:10px; font-weight:700; color:#1E293B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:2px; padding-right:2px;">
-                                    <div onclick="window.showEmployeePhotoPopup('${emp.id}')" style="flex:1; overflow:hidden; text-overflow:ellipsis; cursor:pointer; color:#0A56D0; line-height:1;">
-                                        ${safeStr(emp.name)} ${tempBadge}
+                            <div style="display:flex; flex-direction:column; ${wrapperStyle}">
+                                <div class="bulk-entry-row" style="display:flex; align-items:center; padding:0; min-height:28px; box-sizing:border-box; margin:0; ${hasExtrasOpen ? 'background:#FAFAFA; border-radius:8px 8px 0 0;' : ''}">
+                                    <div style="flex:2; font-size:10.5px; font-weight:700; color:#1E293B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:2px; padding-right:2px; padding-left:4px;">
+                                        <div onclick="window.showEmployeePhotoPopup('${emp.id}')" style="flex:1; overflow:hidden; text-overflow:ellipsis; cursor:pointer; color:#0A56D0; line-height:1.1;">
+                                            ${safeStr(emp.name)} ${tempBadge}
+                                        </div>
+                                        <button class="pencil-focus-btn" onclick="const c = this.closest('.bulk-entry-row').querySelector('.l-cell'); if(c) { document.querySelectorAll('.l-cell').forEach(x=>x.classList.remove('active-cell')); c.classList.add('active-cell'); window.pantryActiveCell = c; }" style="background:transparent; border:none; color:#0A56D0; font-size:11px; padding:0 2px; cursor:pointer; outline:none;">✏️</button>
                                     </div>
-                                    <button class="pencil-focus-btn" onclick="const c = this.closest('.bulk-entry-row').querySelector('.l-cell'); if(c) { document.querySelectorAll('.l-cell').forEach(x=>x.classList.remove('active-cell')); c.classList.add('active-cell'); window.pantryActiveCell = c; }" style="background:transparent; border:none; color:#0A56D0; font-size:11px; padding:0 2px; cursor:pointer;">✏️</button>
+                                    <div style="flex:1; padding:0; height:22px; padding-right:2px; display:flex; align-items:center;">
+                                        ${buildCell(emp.id, selectedDMY, 'Morning', morn ? morn.drink : '', morn?.id)}
+                                    </div>
+                                    <div style="flex:1; padding:0; height:22px; padding-right:2px; display:flex; align-items:center; justify-content:flex-end;">
+                                        <div style="flex:1; height:100%;">${buildCell(emp.id, selectedDMY, 'Afternoon', aft ? aft.drink : '', aft?.id)}</div>
+                                        ${vipAddBtnMini}
+                                    </div>
                                 </div>
-                                <div style="flex:1; padding:0; height:22px;">${buildCell(emp.id, selectedDMY, 'Morning', morn ? morn.drink : '', morn?.id)}</div>
-                                <div style="flex:1; padding:0; height:22px;">${buildCell(emp.id, selectedDMY, 'Afternoon', aft ? aft.drink : '', aft?.id)}</div>
+                                ${extraHtml}
                             </div>`;
                         }).join('');
                     };
+
+                // --- NEW FUNCTION TO DIRECTLY DELETE VIP EXTRA DRINK (NO POPUP) ---
+                window.removeVipExtraDrinkDirect = function(logId) {
+                    db.ref('logs/' + logId).remove().then(() => {
+                        if (typeof window.populateServe === 'function') {
+                            window.populateServe();
+                        }
+                    });
+                };
 
                     let html = '';
                     if (regularFiltered.length > 0) {
@@ -5631,6 +5690,40 @@
 
                 renderBeverageModeContent('name');
             }
+                            // --- NEW FUNCTION FOR VIP EXTRA DRINKS ---
+                window.addVipExtraDrink = function(empId, dateDMY, supplySource) {
+                    const empObj = employeeList.find(e => e.id === empId);
+                    if(!empObj) return;
+                    
+                    const newId = 'log_live_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+                    const sessionName = 'Extra_' + Date.now(); 
+                    
+                    let pId = empObj.assignedPantryId || 'admin';
+                    if (currentUser && currentUser.role === 'pantry') {
+                        pId = currentUser.id;
+                    }
+                    let pName = currentUser ? currentUser.name : 'Admin';
+
+                    db.ref('logs/' + newId).set({
+                        id: newId, 
+                        employeeId: empId, 
+                        employeeName: empObj.name,
+                        drink: '', 
+                        session: sessionName, 
+                        date: dateDMY,
+                        pantryId: pId, 
+                        pantryName: pName,
+                        supplySource: supplySource
+                    }).then(() => {
+                        // 🚨 નવો સુધારો: ડેટાબેઝમાં એન્ટ્રી સેવ થયા પછી તરત જ સ્ક્રીન રિફ્રેશ કરો!
+                        if (typeof window.populateServe === 'function') {
+                            window.populateServe();
+                        }
+                    }).catch(err => {
+                        appAlert('Error', 'Unable to add extra tea box: ' + err.message);
+                    });
+                };                
+
             // ============================================================
             //  MY RECORDS (Only Tea/Coffee history)
             // ============================================================
@@ -6862,12 +6955,12 @@
                         document.getElementById('previewMeetingBtn').onclick = () => window.previewIndividualReport('meeting');
                         document.getElementById('downloadAllExcelBtn2').onclick = () => window.downloadAllCategoriesExcel();
                         document.getElementById('liveEditGridBtn').onclick = () => {
-                            const month = document.getElementById('reportMonth').value;
-                            const supply = document.getElementById('reportSupplySource').value;
-                            const pantryId = document.getElementById('gridExportPantrySelect').value;
-                            const cat = document.getElementById('gridExportCategorySelect').value;
-                            window.openAdminLiveGrid(month, supply, pantryId, cat);
-                        };
+    const month = document.getElementById('reportMonth').value;
+    const supply = document.getElementById('reportSupplySource').value;
+    const pantryId = document.getElementById('gridExportPantrySelect').value;
+    const cat = document.getElementById('gridExportCategorySelect').value;
+    window.openAdminLiveGrid(month, supply, pantryId, cat);
+};
                         document.getElementById('downloadGridExcelBtn').onclick = () => window.adminExportMonthlyGrid('excel');
                         document.getElementById('printGridPdfBtn').onclick = () => window.adminExportMonthlyGrid('print');
 
@@ -7922,7 +8015,13 @@ if (
                       <select id="empPantryAssign" style="margin-bottom:12px; padding:12px; border-radius:8px; border:1px solid #CBD5E1; width:100%;"><option value="">-- Unassigned --</option>${pantryOpts}</select>
                       
                       <label style="font-size:.85rem; color:#44474E; display:block; font-weight:600; margin-bottom:4px;">Department:</label>
-                      <select id="empDepartmentAssign" style="margin-bottom:20px; padding:12px; border-radius:8px; border:1px solid #CBD5E1; width:100%;"><option value="">-- Select --</option>${deptOpts}</select>
+                      <select id="empDepartmentAssign" style="margin-bottom:12px; padding:12px; border-radius:8px; border:1px solid #CBD5E1; width:100%;"><option value="">-- Select --</option>${deptOpts}</select>
+                      
+                      <!-- VIP Checkbox added here -->
+                      <div style="background:#FFFBEB; border:1px solid #FDE68A; padding:10px; border-radius:8px; margin-bottom:20px; display:flex; align-items:center; gap:8px;">
+                          <input type="checkbox" id="empVipMultipleTea" ${existing?.vipMultipleTea ? 'checked' : ''} style="width:18px; height:18px; accent-color:#D97706; cursor:pointer;">
+                          <label for="empVipMultipleTea" style="font-size:.85rem; color:#92400E; font-weight:700; cursor:pointer; margin:0;">🌟 VIP (Unlimited Daily Access)</label>
+                      </div>
                       
                       <div style="display:flex; gap:10px;">
                           <button id="cancelEmployeeBtn" class="danger" style="flex:1; min-height:44px; border-radius:8px; font-weight:bold;">Cancel</button>
@@ -7944,11 +8043,12 @@ if (
                     const roomNo = document.getElementById('empRoom').value.trim();
                     const dept = document.getElementById('empDepartmentAssign').value;
                     const pUrl = document.getElementById('empPhotoUrl').value.trim();
+                    const isVip = document.getElementById('empVipMultipleTea').checked; // VIP status 
                     
                     if (!name || !cat) return appAlert('Error', 'Name and category are required.');
                     
                     const id = existing?.id || 'emp_' + Date.now();
-                    db.ref('employees/' + id).set({ id, name, category: cat, assignedPantryId: pantryId, locationNode: locNode, roomNo: roomNo, department: dept, photoUrl: pUrl });
+                    db.ref('employees/' + id).set({ id, name, category: cat, assignedPantryId: pantryId, locationNode: locNode, roomNo: roomNo, department: dept, photoUrl: pUrl, vipMultipleTea: isVip });
                     form.remove();
                     appAlert('Success', 'Employee saved successfully!');
                 };
@@ -8724,622 +8824,615 @@ if (
                 }
             };
             // ============================================================
-            //  ADMIN LIVE EDIT MONTHLY GRID (EXTREME OPTIMIZED FOR ZERO LAG)
-            // ============================================================
-            window.reloadAdminLiveGrid = function() {
-                const m = document.getElementById('liveGridMonth').value;
-                const s = document.getElementById('liveGridSupply').value;
-                const p = document.getElementById('liveGridPantry').value;
-                const c = document.getElementById('liveGridCat').value;
+//  ADMIN LIVE EDIT MONTHLY GRID (EXTREME OPTIMIZED FOR ZERO LAG)
+// ============================================================
+window.reloadAdminLiveGrid = function() {
+    const m = document.getElementById('liveGridMonth').value;
+    const s = document.getElementById('liveGridSupply').value;
+    const p = document.getElementById('liveGridPantry').value;
+    const c = document.getElementById('liveGridCat').value;
+    
+    const wrapper = document.getElementById('adminLiveGridContentWrapper');
+    if (wrapper) {
+        wrapper.innerHTML = `<div style="padding:40px; text-align:center; color:#0A56D0; font-size:14px; font-weight:bold; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%;">
+            <div style="width:24px; height:24px; border:3px solid #E0F2FE; border-top:3px solid #0A56D0; border-radius:50%; animation:spin 1s linear infinite; margin-bottom:12px;"></div>
+            <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+            Applying Filters... Please wait.
+        </div>`;
+    }
+    
+    setTimeout(() => {
+        window.openAdminLiveGrid(m, s, p, c, true);
+    }, 10);
+};
+
+window.openAdminLiveGrid = function(month, supplySource, pantryId, categoryVal, isReload = false) {
+    if (!month) return appAlert('Error', 'Select month.');
+    const [yy, mm] = month.split('-');
+    const daysInMonth = getDaysInMonth(yy, mm);
+    
+    let emps = employeeList.filter(e => e.status !== 'Inactive');
+    if (pantryId !== 'All') {
+        emps = emps.filter(e => e.assignedPantryId === pantryId || (e.tempPantryIds && e.tempPantryIds[pantryId] === true));
+    }
+    
+    if (categoryVal !== 'All') {
+        const catMatch = categoryVal.trim().toLowerCase();
+        emps = emps.filter(e => {
+            const c = (e.category || '').trim().toLowerCase();
+            if (catMatch === 'outsourced' || catMatch === 'outsource') return c.includes('outsource');
+            return c === catMatch;
+        });
+    }
+
+    if (!isReload) {
+        // Undo/Redo મેમરી રીસેટ
+        window.lgPast = [];
+        window.lgFuture = [];
+        window.lgIsReverting = false;
+
+        const pantryOptsHtml = pantryTeam.map(p => `<option value="${p.id}" ${p.id === pantryId ? 'selected' : ''}>${safeStr(p.name)}</option>`).join('');
+        
+        const filterHtml = `
+            <div style="display:flex; gap:4px; flex-wrap:nowrap; margin-bottom:4px; align-items:center; background:#F1F5F9; padding:4px; border-radius:6px; border:1px solid #CBD5E1;">
+                <input type="month" id="liveGridMonth" value="${month}" style="flex:1; min-width:0; height:24px; padding:0 4px; font-size:10px; border-radius:4px; border:1px solid #94A3B8; outline:none; box-sizing:border-box;" onchange="window.reloadAdminLiveGrid()">
                 
-                const wrapper = document.getElementById('adminLiveGridContentWrapper');
-                if (wrapper) {
-                    wrapper.innerHTML = `<div style="padding:40px; text-align:center; color:#0A56D0; font-size:14px; font-weight:bold; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%;">
+                <select id="liveGridSupply" style="flex:1; min-width:0; height:24px; padding:0 4px; font-size:10px; border-radius:4px; border:1px solid #94A3B8; outline:none; box-sizing:border-box;" onchange="window.reloadAdminLiveGrid()">
+                    <option value="Contractor" ${supplySource === 'Contractor' ? 'selected' : ''}>☕ IA Caterers</option>
+                    <option value="DAU Direct Purchase" ${supplySource === 'DAU Direct Purchase' ? 'selected' : ''}>🛒 DAU Direct</option>
+                </select>
+                
+                <select id="liveGridPantry" style="flex:1; min-width:0; height:24px; padding:0 4px; font-size:10px; border-radius:4px; border:1px solid #94A3B8; outline:none; box-sizing:border-box;" onchange="window.reloadAdminLiveGrid()">
+                    <option value="All" ${pantryId === 'All' ? 'selected' : ''}>All Pantry Boys</option>
+                    ${pantryOptsHtml}
+                </select>
+                
+                <select id="liveGridCat" style="flex:1; min-width:0; height:24px; padding:0 4px; font-size:10px; border-radius:4px; border:1px solid #94A3B8; outline:none; box-sizing:border-box;" onchange="window.reloadAdminLiveGrid()">
+                    <option value="All" ${categoryVal === 'All' ? 'selected' : ''}>All Categories</option>
+                    <option value="Faculty" ${categoryVal === 'Faculty' ? 'selected' : ''}>Faculty</option>
+                    <option value="Staff" ${categoryVal === 'Staff' ? 'selected' : ''}>Staff</option>
+                    <option value="Law" ${categoryVal === 'Law' ? 'selected' : ''}>Law</option>
+                    <option value="Outsourced" ${categoryVal === 'Outsourced' ? 'selected' : ''}>Outsourced</option>
+                </select>
+            </div>
+        `;
+
+        const bottomMenuHtml = `
+            <div id="excelFloatingMenu" style="position:absolute; bottom:0; left:0; width:100%; background:#fff; padding:6px 4px; box-shadow:0 -4px 10px rgba(0,0,0,0.1); border-top:2px solid #0A56D0; z-index:99999; display:flex; gap:3px; box-sizing:border-box; align-items:center; justify-content:space-between;">
+                <button onclick="window.applyExcelMenuVal('Tea')" style="flex:1; background:#EFF6FF; color:#1E3A8A; border:1px solid #BFDBFE; padding:6px 2px; border-radius:6px; font-weight:bold; font-size:10px; cursor:pointer; line-height:1.2; text-align:center; min-height:36px;">Tea</button>
+                <button onclick="window.applyExcelMenuVal('Coffee')" style="flex:1; background:#F1F5F9; color:#475569; border:1px solid #CBD5E1; padding:6px 2px; border-radius:6px; font-weight:bold; font-size:10px; cursor:pointer; line-height:1.2; text-align:center; min-height:36px;">Coffee</button>
+                <button onclick="window.applyExcelMenuVal('Green Tea')" style="flex:1; background:#ECFDF5; color:#065F46; border:1px solid #A7F3D0; padding:6px 2px; border-radius:6px; font-weight:bold; font-size:10px; cursor:pointer; line-height:1.2; text-align:center; min-height:36px;">Green<br>Tea</button>
+                <button onclick="window.applyExcelMenuVal('Lemon Tea')" style="flex:1; background:#FFFBEB; color:#92400E; border:1px solid #FDE68A; padding:6px 2px; border-radius:6px; font-weight:bold; font-size:10px; cursor:pointer; line-height:1.2; text-align:center; min-height:36px;">Lemon<br>Tea</button>
+                <button onclick="window.applyExcelMenuVal('Black Tea')" style="flex:1; background:#F5F3FF; color:#5B21B6; border:1px solid #DDD6FE; padding:6px 2px; border-radius:6px; font-weight:bold; font-size:10px; cursor:pointer; line-height:1.2; text-align:center; min-height:36px;">Black<br>Tea</button>
+                <button onclick="window.applyExcelMenuVal('Black Coffee')" style="flex:1; background:#FEF2F2; color:#991B1B; border:1px solid #FECACA; padding:6px 2px; border-radius:6px; font-weight:bold; font-size:10px; cursor:pointer; line-height:1.2; text-align:center; min-height:36px;">Black<br>Coffee</button>
+                <button onclick="window.applyExcelMenuVal('')" style="flex:1; background:#fee2e2; color:#dc3545; border:1px solid #fecaca; padding:6px 2px; border-radius:6px; font-weight:bold; font-size:10px; cursor:pointer; line-height:1.2; text-align:center; min-height:36px;">✕<br>Clear</button>
+            </div>
+        `;
+
+        const container = document.getElementById('adminPopupContainer');
+        container.style.zIndex = "999999";
+        container.innerHTML = `
+            <div class="popup-card full" style="max-width:98vw; width:98vw; height:97vh; max-height:97vh; padding:4px; border-radius:8px; display:flex; flex-direction:column; overflow:hidden; background:#F8FAFC; position:relative;">
+                
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; flex-shrink:0; background:#E0F2FE; padding:4px 8px; border-radius:6px; border:1px solid #BAE6FD;">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <h3 style="margin:0; font-size:14px; color:#0A56D0;">✏️ Live Grid</h3>
+                        <button onclick="window.lgUndo()" id="btnLgUndo" disabled style="background:#fff; color:#64748B; border:1px solid #CBD5E1; border-radius:4px; padding:2px 8px; font-size:11px; cursor:pointer; opacity:0.5; font-weight:bold;">↩️ Undo</button>
+                        <button onclick="window.lgRedo()" id="btnLgRedo" disabled style="background:#fff; color:#64748B; border:1px solid #CBD5E1; border-radius:4px; padding:2px 8px; font-size:11px; cursor:pointer; opacity:0.5; font-weight:bold;">↪️ Redo</button>
+                    </div>
+                    <button onclick="document.getElementById('adminPopupContainer').classList.add('hidden')" class="danger" style="padding:2px 10px; font-size:11px; border-radius:4px; font-weight:bold; cursor:pointer; margin:0; height:24px;">✕ Close</button>
+                </div>
+                
+                ${filterHtml}
+
+                <div id="adminLiveGridContentWrapper" style="padding:0; overflow:hidden; display:flex; flex-direction:column; flex:1; background:transparent; position:relative; margin-bottom:48px;">
+                    <div style="padding:40px; text-align:center; color:#0A56D0; font-size:14px; font-weight:bold; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%;">
                         <div style="width:24px; height:24px; border:3px solid #E0F2FE; border-top:3px solid #0A56D0; border-radius:50%; animation:spin 1s linear infinite; margin-bottom:12px;"></div>
-                        <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
-                        Applying Filters... Please wait.
-                    </div>`;
+                        Loading Initial Data...
+                    </div>
+                </div>
+                ${bottomMenuHtml}
+            </div>
+        `;
+        container.classList.remove('hidden');
+
+        setTimeout(() => {
+            window.openAdminLiveGrid(month, supplySource, pantryId, categoryVal, true);
+        }, 50);
+        return;
+    }
+
+    const wrapper = document.getElementById('adminLiveGridContentWrapper');
+    if (!wrapper) return;
+
+    if(!emps.length) {
+        wrapper.innerHTML = `<div style="flex:1; display:flex; justify-content:center; align-items:center; color:#64748B; font-weight:bold;">No employees found for this filter combination.</div>`;
+        return;
+    }
+    
+    const buildCell = (empId, dateDMY, session, currentDrink, logId) => {
+        let disp = currentDrink || '-';
+        return `<div class="l-cell-wrap"><div class="l-cell" tabindex="0" data-emp="${empId}" data-date="${dateDMY}" data-session="${session}" data-logid="${logId || ''}" data-supply="${supplySource}" data-val="${currentDrink || ''}">${disp}</div><div class="fill-handle" title="Drag to copy"></div></div>`;
+    };
+
+    const styleBlock = `
+    <style>
+        .l-wrap { overflow: auto; background: #fff; border: 1px solid #CBD5E1; border-radius: 8px; flex: 1; min-height: 0; max-height: 100%; position:relative; touch-action: pan-x pan-y; }
+        .l-tbl { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 11px; text-align: center; user-select: none; -webkit-user-select: none; }
+        
+        .l-th-date { min-width: 45px; position: sticky; left: 0; top: 0; z-index: 20; background: #E0F2FE; border-bottom: 2px solid #0A56D0; border-right: 1px solid #CBD5E1; height: 36px; padding: 2px; }
+        .l-th-emp { font-size: 11px; color: #1E293B; line-height: 1.1; white-space: normal; word-wrap: break-word; position: sticky; top: 0; z-index: 10; background: #F1F5F9; border-bottom: 1px solid #CBD5E1; border-right: 1px solid #CBD5E1; height: 36px; padding: 2px; border-top: none; }
+        
+        .l-th-sess { font-weight: 800; color: #44474E; background: #F8FAFC; width: 50px; min-width: 50px; position: sticky; top: 36px; z-index: 9; border-bottom: 2px solid #0A56D0; border-right: 1px dashed #CBD5E1; height: 24px; padding: 2px; }
+        .l-th-sess.aft { border-right: 1px solid #CBD5E1; }
+        
+        .l-td-date { border-bottom: 1px solid #E2E8F0; border-right: 1px solid #CBD5E1; padding: 0 2px; height: 26px; font-weight: bold; position: sticky; left: 0; background: #F8FAFC; z-index: 5; color: #0A56D0; line-height: 1; font-size: 10px; }
+        .l-td-morn { border-bottom: 1px solid #E2E8F0; border-right: 1px dashed #E2E8F0; padding: 0; height: 26px; }
+        .l-td-aft { border-bottom: 1px solid #E2E8F0; border-right: 1px solid #CBD5E1; padding: 0; height: 26px; }
+        
+        /* EXCEL CELL CSS */
+        .l-cell-wrap { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .l-cell { width: 100%; height: 100%; display:flex; align-items:center; justify-content:center; font-size: 10px; font-weight: 700; color: #0A56D0; cursor: cell; box-sizing: border-box; outline:none; }
+        
+        .l-cell.active-cell { border: 2px solid #0A56D0; background: #E0F2FE; color: #0369A1; }
+        .cell-highlight { background-color: #BAE6FD !important; color: #0284C7 !important; border:1px solid #7DD3FC; }
+        
+        .fill-handle { position: absolute; right: -5px; bottom: -5px; width: 18px; height: 18px; background: #0A56D0; border: 2px solid #fff; cursor: crosshair; z-index: 30; border-radius: 50%; display:none; touch-action: none; }
+        .l-cell-wrap:has(.active-cell) .fill-handle { display:block; }
+        
+        .l-tot-lbl { border-bottom: 1px solid #CBD5E1; border-top: 2px solid #0A56D0; border-right: 1px solid #CBD5E1; padding: 0 2px; height: 24px; font-weight: 800; position: sticky; left: 0; z-index: 6; font-size: 10px; line-height: 1; }
+        .l-tot-val { border-bottom: 1px solid #CBD5E1; border-top: 2px solid #0A56D0; border-right: 1px solid #CBD5E1; padding: 0; height: 24px; font-weight: 900; font-size: 11px; line-height: 1; }
+    </style>`;
+
+    let htmlArr = [styleBlock];
+
+    htmlArr.push(`<div class="l-wrap" id="adminGridScroller"><table class="l-tbl" style="min-width:${emps.length * 100 + 45}px;" id="adminLiveGridTable">`);
+    htmlArr.push(`<thead class="l-thead"><tr><th rowspan="2" class="l-th-date">Date</th>`);
+    emps.forEach(emp => {
+        htmlArr.push(`<th colspan="2" class="l-th-emp">${safeStr(emp.name)}</th>`);
+    });
+    htmlArr.push(`</tr><tr>`);
+    emps.forEach(() => {
+        htmlArr.push(`<th class="l-th-sess">Morn</th><th class="l-th-sess aft">Aft</th>`);
+    });
+    htmlArr.push(`</tr></thead><tbody>`);
+
+    const fastLogMap = {};
+    logsData.forEach(l => {
+        if (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')) {
+            fastLogMap[l.employeeId + '_' + l.date + '_' + l.session] = l;
+        }
+    });
+
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dd = String(d).padStart(2,'0');
+        const dmy = `${dd}/${mm}/${yy}`;
+        const dObj = new Date(yy, mm - 1, d);
+        const dayName = dObj.toLocaleDateString('en-US', { weekday: 'short' });
+        
+        htmlArr.push(`<tr><td class="l-td-date">${dd} <span style="font-size:8px; font-weight:normal; color:#64748B;">${dayName}</span></td>`);
+        
+        emps.forEach(emp => {
+            const mLog = fastLogMap[emp.id + '_' + dmy + '_Morning'];
+            const aLog = fastLogMap[emp.id + '_' + dmy + '_Afternoon'];
+            
+            htmlArr.push(`<td class="l-td-morn">${buildCell(emp.id, dmy, 'Morning', mLog ? mLog.drink : '', mLog?.id)}</td>`);
+            htmlArr.push(`<td class="l-td-aft">${buildCell(emp.id, dmy, 'Afternoon', aLog ? aLog.drink : '', aLog?.id)}</td>`);
+        });
+        htmlArr.push(`</tr>`);
+    }
+    htmlArr.push(`</tbody><tbody id="adminLiveGridTotals"></tbody></table></div>`);
+
+    wrapper.innerHTML = htmlArr.join('');
+
+    // EXCEL 2D DRAG TO COPY, AUTO SCROLL, KEYBOARD & UNDO/REDO LOGIC
+    setTimeout(() => {
+        window.recalcAdminLiveGridTotals();
+        
+        const scroller = document.getElementById('adminGridScroller');
+        if (!scroller) return;
+        
+        if (!window.liveGridExcelModeInit) {
+            window.liveGridExcelModeInit = true;
+            let clipboardValue = ''; 
+            let activeCell = null;
+            let selectedCellsList = [];
+            
+            window.updateLgUndoRedoUI = function() {
+                const btnU = document.getElementById('btnLgUndo');
+                const btnR = document.getElementById('btnLgRedo');
+                if(btnU) {
+                    btnU.disabled = window.lgPast.length === 0;
+                    btnU.style.opacity = window.lgPast.length === 0 ? '0.5' : '1';
+                    btnU.style.borderColor = window.lgPast.length === 0 ? '#CBD5E1' : '#0A56D0';
+                    btnU.style.color = window.lgPast.length === 0 ? '#64748B' : '#0A56D0';
                 }
-                
-                setTimeout(() => {
-                    window.openAdminLiveGrid(m, s, p, c, true);
-                }, 10);
+                if(btnR) {
+                    btnR.disabled = window.lgFuture.length === 0;
+                    btnR.style.opacity = window.lgFuture.length === 0 ? '0.5' : '1';
+                    btnR.style.borderColor = window.lgFuture.length === 0 ? '#CBD5E1' : '#10B981';
+                    btnR.style.color = window.lgFuture.length === 0 ? '#64748B' : '#10B981';
+                }
             };
 
-            window.openAdminLiveGrid = function(month, supplySource, pantryId, categoryVal, isReload = false) {
-                if (!month) return appAlert('Error', 'Select month.');
-                const [yy, mm] = month.split('-');
-                const daysInMonth = getDaysInMonth(yy, mm);
+            window.lgRecordChange = function(changes) {
+                if(window.lgIsReverting) return;
+                window.lgPast.push(changes);
+                window.lgFuture = [];
+                window.updateLgUndoRedoUI();
+            };
+
+            window.lgUndo = function() {
+                if(!window.lgPast.length) return;
+                const changes = window.lgPast.pop();
+                window.lgIsReverting = true;
                 
-                let emps = employeeList.filter(e => e.status !== 'Inactive');
-                if (pantryId !== 'All') {
-                    emps = emps.filter(e => e.assignedPantryId === pantryId || (e.tempPantryIds && e.tempPantryIds[pantryId] === true));
-                }
+                const redoChanges = [];
+                changes.forEach(ch => {
+                    const cell = document.querySelector(`.l-cell[data-emp="${ch.emp}"][data-date="${ch.date}"][data-session="${ch.session}"]`);
+                    if(cell) {
+                        redoChanges.push({ emp: ch.emp, date: ch.date, session: ch.session, oldVal: ch.newVal, newVal: ch.oldVal });
+                        cell.dataset.val = ch.oldVal;
+                        cell.innerText = ch.oldVal || '-';
+                        window.saveGridCellChange(cell, ch.oldVal);
+                    }
+                });
+                window.lgFuture.push(redoChanges);
+                window.lgIsReverting = false;
+                window.updateLgUndoRedoUI();
+            };
+
+            window.lgRedo = function() {
+                if(!window.lgFuture.length) return;
+                const changes = window.lgFuture.pop();
+                window.lgIsReverting = true;
                 
-                if (categoryVal !== 'All') {
-                    const catMatch = categoryVal.trim().toLowerCase();
-                    emps = emps.filter(e => {
-                        const c = (e.category || '').trim().toLowerCase();
-                        if (catMatch === 'outsourced' || catMatch === 'outsource') return c.includes('outsource');
-                        return c === catMatch;
+                const undoChanges = [];
+                changes.forEach(ch => {
+                    const cell = document.querySelector(`.l-cell[data-emp="${ch.emp}"][data-date="${ch.date}"][data-session="${ch.session}"]`);
+                    if(cell) {
+                        undoChanges.push({ emp: ch.emp, date: ch.date, session: ch.session, oldVal: ch.newVal, newVal: ch.oldVal });
+                        cell.dataset.val = ch.oldVal;
+                        cell.innerText = ch.oldVal || '-';
+                        window.saveGridCellChange(cell, ch.oldVal);
+                    }
+                });
+                window.lgPast.push(undoChanges);
+                window.lgIsReverting = false;
+                window.updateLgUndoRedoUI();
+            };
+
+            function clearSelection() {
+                document.querySelectorAll('.l-cell').forEach(c => {
+                    c.classList.remove('active-cell', 'cell-highlight');
+                });
+                selectedCellsList = [];
+                activeCell = null;
+            }
+
+            window.applyExcelMenuVal = function(val) {
+                let nextCell = null;
+                if(selectedCellsList.length > 0) {
+                    const changes = [];
+                    selectedCellsList.forEach(c => {
+                        const oldVal = c.dataset.val || '';
+                        if(oldVal !== val) {
+                            changes.push({ emp: c.dataset.emp, date: c.dataset.date, session: c.dataset.session, oldVal: oldVal, newVal: val });
+                            c.dataset.val = val;
+                            c.innerText = val || '-';
+                            window.saveGridCellChange(c, val);
+                        }
                     });
-                }
-
-                if (!isReload) {
-                    // નવો કોડ: Undo/Redo મેમરી રીસેટ
-                    window.lgPast = [];
-                    window.lgFuture = [];
-                    window.lgIsReverting = false;
-
-                    const pantryOptsHtml = pantryTeam.map(p => `<option value="${p.id}" ${p.id === pantryId ? 'selected' : ''}>${safeStr(p.name)}</option>`).join('');
-                    
-                    const filterHtml = `
-                        <div style="display:flex; gap:4px; flex-wrap:nowrap; margin-bottom:4px; align-items:center; background:#F1F5F9; padding:4px; border-radius:6px; border:1px solid #CBD5E1;">
-                            <input type="month" id="liveGridMonth" value="${month}" style="flex:1; min-width:0; height:24px; padding:0 4px; font-size:10px; border-radius:4px; border:1px solid #94A3B8; outline:none; box-sizing:border-box;" onchange="window.reloadAdminLiveGrid()">
-                            
-                            <select id="liveGridSupply" style="flex:1; min-width:0; height:24px; padding:0 4px; font-size:10px; border-radius:4px; border:1px solid #94A3B8; outline:none; box-sizing:border-box;" onchange="window.reloadAdminLiveGrid()">
-                                <option value="Contractor" ${supplySource === 'Contractor' ? 'selected' : ''}>☕ IA Caterers</option>
-                                <option value="DAU Direct Purchase" ${supplySource === 'DAU Direct Purchase' ? 'selected' : ''}>🛒 DAU Direct</option>
-                            </select>
-                            
-                            <select id="liveGridPantry" style="flex:1; min-width:0; height:24px; padding:0 4px; font-size:10px; border-radius:4px; border:1px solid #94A3B8; outline:none; box-sizing:border-box;" onchange="window.reloadAdminLiveGrid()">
-                                <option value="All" ${pantryId === 'All' ? 'selected' : ''}>All Pantry Boys</option>
-                                ${pantryOptsHtml}
-                            </select>
-                            
-                            <select id="liveGridCat" style="flex:1; min-width:0; height:24px; padding:0 4px; font-size:10px; border-radius:4px; border:1px solid #94A3B8; outline:none; box-sizing:border-box;" onchange="window.reloadAdminLiveGrid()">
-                                <option value="All" ${categoryVal === 'All' ? 'selected' : ''}>All Categories</option>
-                                <option value="Faculty" ${categoryVal === 'Faculty' ? 'selected' : ''}>Faculty</option>
-                                <option value="Staff" ${categoryVal === 'Staff' ? 'selected' : ''}>Staff</option>
-                                <option value="Law" ${categoryVal === 'Law' ? 'selected' : ''}>Law</option>
-                                <option value="Outsourced" ${categoryVal === 'Outsourced' ? 'selected' : ''}>Outsourced</option>
-                            </select>
-                        </div>
-                    `;
-
-                    const bottomMenuHtml = `
-                        <div id="excelFloatingMenu" style="position:absolute; bottom:0; left:0; width:100%; background:#fff; padding:6px 4px; box-shadow:0 -4px 10px rgba(0,0,0,0.1); border-top:2px solid #0A56D0; z-index:99999; display:flex; gap:3px; box-sizing:border-box; align-items:center; justify-content:space-between;">
-                            <button onclick="window.applyExcelMenuVal('Tea')" style="flex:1; background:#EFF6FF; color:#1E3A8A; border:1px solid #BFDBFE; padding:6px 2px; border-radius:6px; font-weight:bold; font-size:10px; cursor:pointer; line-height:1.2; text-align:center; min-height:36px;">Tea</button>
-                            <button onclick="window.applyExcelMenuVal('Coffee')" style="flex:1; background:#F1F5F9; color:#475569; border:1px solid #CBD5E1; padding:6px 2px; border-radius:6px; font-weight:bold; font-size:10px; cursor:pointer; line-height:1.2; text-align:center; min-height:36px;">Coffee</button>
-                            <button onclick="window.applyExcelMenuVal('Green Tea')" style="flex:1; background:#ECFDF5; color:#065F46; border:1px solid #A7F3D0; padding:6px 2px; border-radius:6px; font-weight:bold; font-size:10px; cursor:pointer; line-height:1.2; text-align:center; min-height:36px;">Green<br>Tea</button>
-                            <button onclick="window.applyExcelMenuVal('Lemon Tea')" style="flex:1; background:#FFFBEB; color:#92400E; border:1px solid #FDE68A; padding:6px 2px; border-radius:6px; font-weight:bold; font-size:10px; cursor:pointer; line-height:1.2; text-align:center; min-height:36px;">Lemon<br>Tea</button>
-                            <button onclick="window.applyExcelMenuVal('Black Tea')" style="flex:1; background:#F5F3FF; color:#5B21B6; border:1px solid #DDD6FE; padding:6px 2px; border-radius:6px; font-weight:bold; font-size:10px; cursor:pointer; line-height:1.2; text-align:center; min-height:36px;">Black<br>Tea</button>
-                            <button onclick="window.applyExcelMenuVal('Black Coffee')" style="flex:1; background:#FEF2F2; color:#991B1B; border:1px solid #FECACA; padding:6px 2px; border-radius:6px; font-weight:bold; font-size:10px; cursor:pointer; line-height:1.2; text-align:center; min-height:36px;">Black<br>Coffee</button>
-                            <button onclick="window.applyExcelMenuVal('')" style="flex:1; background:#fee2e2; color:#dc3545; border:1px solid #fecaca; padding:6px 2px; border-radius:6px; font-weight:bold; font-size:10px; cursor:pointer; line-height:1.2; text-align:center; min-height:36px;">✕<br>Clear</button>
-                        </div>
-                    `;
-
-                    const container = document.getElementById('adminPopupContainer');
-                    container.style.zIndex = "999999";
-                    // 🚨 જગ્યા બચાવવા padding અને margin ઓછા કર્યા છે
-                    container.innerHTML = `
-                        <div class="popup-card full" style="max-width:98vw; width:98vw; height:97vh; max-height:97vh; padding:4px; border-radius:8px; display:flex; flex-direction:column; overflow:hidden; background:#F8FAFC; position:relative;">
-                            
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; flex-shrink:0; background:#E0F2FE; padding:4px 8px; border-radius:6px; border:1px solid #BAE6FD;">
-                                <div style="display:flex; align-items:center; gap:6px;">
-                                    <h3 style="margin:0; font-size:14px; color:#0A56D0;">✏️ Live Grid</h3>
-                                    <button onclick="window.lgUndo()" id="btnLgUndo" disabled style="background:#fff; color:#64748B; border:1px solid #CBD5E1; border-radius:4px; padding:2px 8px; font-size:11px; cursor:pointer; opacity:0.5; font-weight:bold;">↩️ Undo</button>
-                                    <button onclick="window.lgRedo()" id="btnLgRedo" disabled style="background:#fff; color:#64748B; border:1px solid #CBD5E1; border-radius:4px; padding:2px 8px; font-size:11px; cursor:pointer; opacity:0.5; font-weight:bold;">↪️ Redo</button>
-                                </div>
-                                <button onclick="document.getElementById('adminPopupContainer').classList.add('hidden')" class="danger" style="padding:2px 10px; font-size:11px; border-radius:4px; font-weight:bold; cursor:pointer; margin:0; height:24px;">✕ Close</button>
-                            </div>
-                            
-                            ${filterHtml}
-
-                            <div id="adminLiveGridContentWrapper" style="padding:0; overflow:hidden; display:flex; flex-direction:column; flex:1; background:transparent; position:relative; margin-bottom:48px;">
-                                <div style="padding:40px; text-align:center; color:#0A56D0; font-size:14px; font-weight:bold; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%;">
-                                    <div style="width:24px; height:24px; border:3px solid #E0F2FE; border-top:3px solid #0A56D0; border-radius:50%; animation:spin 1s linear infinite; margin-bottom:12px;"></div>
-                                    Loading Initial Data...
-                                </div>
-                            </div>
-                            ${bottomMenuHtml}
-                        </div>
-                    `;
-                    container.classList.remove('hidden');
-
-                    setTimeout(() => {
-                        window.openAdminLiveGrid(month, supplySource, pantryId, categoryVal, true);
-                    }, 50);
-                    return;
-                }
-
-                const wrapper = document.getElementById('adminLiveGridContentWrapper');
-                if (!wrapper) return;
-
-                if(!emps.length) {
-                    wrapper.innerHTML = `<div style="flex:1; display:flex; justify-content:center; align-items:center; color:#64748B; font-weight:bold;">No employees found for this filter combination.</div>`;
-                    return;
-                }
-                
-                const buildCell = (empId, dateDMY, session, currentDrink, logId) => {
-                    let disp = currentDrink || '-';
-                    return `<div class="l-cell-wrap"><div class="l-cell" tabindex="0" data-emp="${empId}" data-date="${dateDMY}" data-session="${session}" data-logid="${logId || ''}" data-supply="${supplySource}" data-val="${currentDrink || ''}">${disp}</div><div class="fill-handle" title="Drag to copy"></div></div>`;
-                };
-
-                const styleBlock = `
-                <style>
-                    .l-wrap { overflow: auto; background: #fff; border: 1px solid #CBD5E1; border-radius: 8px; flex: 1; min-height: 0; max-height: 100%; position:relative; touch-action: pan-x pan-y; }
-                    .l-tbl { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 11px; text-align: center; user-select: none; -webkit-user-select: none; }
-                    
-                    .l-th-date { min-width: 45px; position: sticky; left: 0; top: 0; z-index: 20; background: #E0F2FE; border-bottom: 2px solid #0A56D0; border-right: 1px solid #CBD5E1; height: 36px; padding: 2px; }
-                    .l-th-emp { font-size: 11px; color: #1E293B; line-height: 1.1; white-space: normal; word-wrap: break-word; position: sticky; top: 0; z-index: 10; background: #F1F5F9; border-bottom: 1px solid #CBD5E1; border-right: 1px solid #CBD5E1; height: 36px; padding: 2px; border-top: none; }
-                    
-                    .l-th-sess { font-weight: 800; color: #44474E; background: #F8FAFC; width: 50px; min-width: 50px; position: sticky; top: 36px; z-index: 9; border-bottom: 2px solid #0A56D0; border-right: 1px dashed #CBD5E1; height: 24px; padding: 2px; }
-                    .l-th-sess.aft { border-right: 1px solid #CBD5E1; }
-                    
-                    .l-td-date { border-bottom: 1px solid #E2E8F0; border-right: 1px solid #CBD5E1; padding: 0 2px; height: 26px; font-weight: bold; position: sticky; left: 0; background: #F8FAFC; z-index: 5; color: #0A56D0; line-height: 1; font-size: 10px; }
-                    .l-td-morn { border-bottom: 1px solid #E2E8F0; border-right: 1px dashed #E2E8F0; padding: 0; height: 26px; }
-                    .l-td-aft { border-bottom: 1px solid #E2E8F0; border-right: 1px solid #CBD5E1; padding: 0; height: 26px; }
-                    
-                    /* 🚨 EXCEL CELL CSS */
-                    .l-cell-wrap { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
-                    .l-cell { width: 100%; height: 100%; display:flex; align-items:center; justify-content:center; font-size: 10px; font-weight: 700; color: #0A56D0; cursor: cell; box-sizing: border-box; outline:none; }
-                    
-                    .l-cell.active-cell { border: 2px solid #0A56D0; background: #E0F2FE; color: #0369A1; }
-                    .cell-highlight { background-color: #BAE6FD !important; color: #0284C7 !important; border:1px solid #7DD3FC; }
-                    
-                    .fill-handle { position: absolute; right: -5px; bottom: -5px; width: 18px; height: 18px; background: #0A56D0; border: 2px solid #fff; cursor: crosshair; z-index: 30; border-radius: 50%; display:none; touch-action: none; }
-                    .l-cell-wrap:has(.active-cell) .fill-handle { display:block; }
-                    
-                    .l-tot-lbl { border-bottom: 1px solid #CBD5E1; border-top: 2px solid #0A56D0; border-right: 1px solid #CBD5E1; padding: 0 2px; height: 24px; font-weight: 800; position: sticky; left: 0; z-index: 6; font-size: 10px; line-height: 1; }
-                    .l-tot-val { border-bottom: 1px solid #CBD5E1; border-top: 2px solid #0A56D0; border-right: 1px solid #CBD5E1; padding: 0; height: 24px; font-weight: 900; font-size: 11px; line-height: 1; }
-                </style>`;
-
-                let htmlArr = [styleBlock];
-
-                htmlArr.push(`<div class="l-wrap" id="adminGridScroller"><table class="l-tbl" style="min-width:${emps.length * 100 + 45}px;" id="adminLiveGridTable">`);
-                htmlArr.push(`<thead class="l-thead"><tr><th rowspan="2" class="l-th-date">Date</th>`);
-                emps.forEach(emp => {
-                    htmlArr.push(`<th colspan="2" class="l-th-emp">${safeStr(emp.name)}</th>`);
-                });
-                htmlArr.push(`</tr><tr>`);
-                emps.forEach(() => {
-                    htmlArr.push(`<th class="l-th-sess">Morn</th><th class="l-th-sess aft">Aft</th>`);
-                });
-                htmlArr.push(`</tr></thead><tbody>`);
-
-                const fastLogMap = {};
-                logsData.forEach(l => {
-                    if (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')) {
-                        fastLogMap[l.employeeId + '_' + l.date + '_' + l.session] = l;
+                    if(changes.length) window.lgRecordChange(changes);
+                    clearSelection();
+                } else if(activeCell) {
+                    const oldVal = activeCell.dataset.val || '';
+                    if(oldVal !== val) {
+                        window.lgRecordChange([{ emp: activeCell.dataset.emp, date: activeCell.dataset.date, session: activeCell.dataset.session, oldVal: oldVal, newVal: val }]);
+                        activeCell.dataset.val = val;
+                        activeCell.innerText = val || '-';
+                        window.saveGridCellChange(activeCell, val);
                     }
-                });
-
-                for (let d = 1; d <= daysInMonth; d++) {
-                    const dd = String(d).padStart(2,'0');
-                    const dmy = `${dd}/${mm}/${yy}`;
-                    const dObj = new Date(yy, mm - 1, d);
-                    const dayName = dObj.toLocaleDateString('en-US', { weekday: 'short' });
                     
-                    htmlArr.push(`<tr><td class="l-td-date">${dd} <span style="font-size:8px; font-weight:normal; color:#64748B;">${dayName}</span></td>`);
+                    const allCells = Array.from(document.querySelectorAll('.l-cell'));
+                    const currentIndex = allCells.indexOf(activeCell);
                     
-                    emps.forEach(emp => {
-                        const mLog = fastLogMap[emp.id + '_' + dmy + '_Morning'];
-                        const aLog = fastLogMap[emp.id + '_' + dmy + '_Afternoon'];
-                        
-                        htmlArr.push(`<td class="l-td-morn">${buildCell(emp.id, dmy, 'Morning', mLog ? mLog.drink : '', mLog?.id)}</td>`);
-                        htmlArr.push(`<td class="l-td-aft">${buildCell(emp.id, dmy, 'Afternoon', aLog ? aLog.drink : '', aLog?.id)}</td>`);
-                    });
-                    htmlArr.push(`</tr>`);
-                }
-                htmlArr.push(`</tbody><tbody id="adminLiveGridTotals"></tbody></table></div>`);
-
-                wrapper.innerHTML = htmlArr.join('');
-
-                // 🚨 EXCEL 2D DRAG TO COPY, AUTO SCROLL, KEYBOARD & UNDO/REDO LOGIC
-                setTimeout(() => {
-                    window.recalcAdminLiveGridTotals();
-                    
-                    const scroller = document.getElementById('adminGridScroller');
-                    if (!scroller) return;
-                    
-                    if (!window.liveGridExcelModeInit) {
-                        window.liveGridExcelModeInit = true;
-                        let clipboardValue = ''; 
-                        let activeCell = null;
-                        let selectedCellsList = [];
-                        
-                        // 1. UNDO / REDO MEMORY LOGIC
-                        window.updateLgUndoRedoUI = function() {
-                            const btnU = document.getElementById('btnLgUndo');
-                            const btnR = document.getElementById('btnLgRedo');
-                            if(btnU) {
-                                btnU.disabled = window.lgPast.length === 0;
-                                btnU.style.opacity = window.lgPast.length === 0 ? '0.5' : '1';
-                                btnU.style.borderColor = window.lgPast.length === 0 ? '#CBD5E1' : '#0A56D0';
-                                btnU.style.color = window.lgPast.length === 0 ? '#64748B' : '#0A56D0';
-                            }
-                            if(btnR) {
-                                btnR.disabled = window.lgFuture.length === 0;
-                                btnR.style.opacity = window.lgFuture.length === 0 ? '0.5' : '1';
-                                btnR.style.borderColor = window.lgFuture.length === 0 ? '#CBD5E1' : '#10B981';
-                                btnR.style.color = window.lgFuture.length === 0 ? '#64748B' : '#10B981';
-                            }
-                        };
-
-                        window.lgRecordChange = function(changes) {
-                            if(window.lgIsReverting) return;
-                            window.lgPast.push(changes);
-                            window.lgFuture = [];
-                            window.updateLgUndoRedoUI();
-                        };
-
-                        window.lgUndo = function() {
-                            if(!window.lgPast.length) return;
-                            const changes = window.lgPast.pop();
-                            window.lgIsReverting = true;
-                            
-                            const redoChanges = [];
-                            changes.forEach(ch => {
-                                const cell = document.querySelector(`.l-cell[data-emp="${ch.emp}"][data-date="${ch.date}"][data-session="${ch.session}"]`);
-                                if(cell) {
-                                    redoChanges.push({ emp: ch.emp, date: ch.date, session: ch.session, oldVal: ch.newVal, newVal: ch.oldVal });
-                                    cell.dataset.val = ch.oldVal;
-                                    cell.innerText = ch.oldVal || '-';
-                                    window.saveGridCellChange(cell, ch.oldVal);
-                                }
-                            });
-                            window.lgFuture.push(redoChanges);
-                            window.lgIsReverting = false;
-                            window.updateLgUndoRedoUI();
-                        };
-
-                        window.lgRedo = function() {
-                            if(!window.lgFuture.length) return;
-                            const changes = window.lgFuture.pop();
-                            window.lgIsReverting = true;
-                            
-                            const undoChanges = [];
-                            changes.forEach(ch => {
-                                const cell = document.querySelector(`.l-cell[data-emp="${ch.emp}"][data-date="${ch.date}"][data-session="${ch.session}"]`);
-                                if(cell) {
-                                    undoChanges.push({ emp: ch.emp, date: ch.date, session: ch.session, oldVal: ch.newVal, newVal: ch.oldVal });
-                                    cell.dataset.val = ch.oldVal;
-                                    cell.innerText = ch.oldVal || '-';
-                                    window.saveGridCellChange(cell, ch.oldVal);
-                                }
-                            });
-                            window.lgPast.push(undoChanges);
-                            window.lgIsReverting = false;
-                            window.updateLgUndoRedoUI();
-                        };
-
-                        // 2. CLEAR SELECTION
-                        function clearSelection() {
-                            document.querySelectorAll('.l-cell').forEach(c => {
-                                c.classList.remove('active-cell', 'cell-highlight');
-                            });
-                            selectedCellsList = [];
-                            activeCell = null;
-                        }
-
-                        // 3. APPLY MENU VALUE WITH UNDO/REDO & AUTO-ADVANCE
-                        window.applyExcelMenuVal = function(val) {
-                            let nextCell = null;
-                            if(selectedCellsList.length > 0) {
-                                const changes = [];
-                                selectedCellsList.forEach(c => {
-                                    const oldVal = c.dataset.val || '';
-                                    if(oldVal !== val) {
-                                        changes.push({ emp: c.dataset.emp, date: c.dataset.date, session: c.dataset.session, oldVal: oldVal, newVal: val });
-                                        c.dataset.val = val;
-                                        c.innerText = val || '-';
-                                        window.saveGridCellChange(c, val);
-                                    }
-                                });
-                                if(changes.length) window.lgRecordChange(changes);
-                                clearSelection();
-                            } else if(activeCell) {
-                                const oldVal = activeCell.dataset.val || '';
-                                if(oldVal !== val) {
-                                    window.lgRecordChange([{ emp: activeCell.dataset.emp, date: activeCell.dataset.date, session: activeCell.dataset.session, oldVal: oldVal, newVal: val }]);
-                                    activeCell.dataset.val = val;
-                                    activeCell.innerText = val || '-';
-                                    window.saveGridCellChange(activeCell, val);
-                                }
-                                
-                                const allCells = Array.from(document.querySelectorAll('.l-cell'));
-                                const currentIndex = allCells.indexOf(activeCell);
-                                
-                                if (currentIndex >= 0 && currentIndex < allCells.length - 1) {
-                                    nextCell = allCells[currentIndex + 1];
-                                }
-                                
-                                activeCell.classList.remove('active-cell');
-                                
-                                if (nextCell) {
-                                    activeCell = nextCell;
-                                    activeCell.classList.add('active-cell');
-                                    nextCell.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
-                                } else {
-                                    activeCell = null;
-                                }
-                            }
-                        };
-
-                        // 4. CELL CLICK -> ACTIVE CELL
-                        scroller.addEventListener('click', function(e) {
-                            if (e.target.classList.contains('l-cell')) {
-                                clearSelection();
-                                activeCell = e.target;
-                                activeCell.classList.add('active-cell');
-                            }
-                        });
-
-                        // 5. KEYBOARD ACTIONS
-                        document.addEventListener('keydown', function(e) {
-                            if (activeCell) {
-                                if (e.key === 'Backspace' || e.key === 'Delete') {
-                                    e.preventDefault();
-                                    const oldVal = activeCell.dataset.val || '';
-                                    if(oldVal !== '') {
-                                        window.lgRecordChange([{ emp: activeCell.dataset.emp, date: activeCell.dataset.date, session: activeCell.dataset.session, oldVal: oldVal, newVal: '' }]);
-                                        activeCell.dataset.val = '';
-                                        activeCell.innerText = '-';
-                                        window.saveGridCellChange(activeCell, '');
-                                    }
-                                }
-                                if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C')) {
-                                    e.preventDefault();
-                                    clipboardValue = activeCell.dataset.val;
-                                    activeCell.style.backgroundColor = '#FEF08A';
-                                    setTimeout(() => activeCell.style.backgroundColor = '', 300);
-                                }
-                                if ((e.ctrlKey || e.metaKey) && (e.key === 'v' || e.key === 'V')) {
-                                    e.preventDefault();
-                                    window.applyExcelMenuVal(clipboardValue);
-                                }
-                            }
-                        });
-                        
-                        // 6. 2D DRAG TO FILL
-                        let isDragging = false;
-                        let startColIndex = -1;
-                        let startRowIndex = -1;
-                        let fillValue = '';
-                        let scrollInterval = null;
-                        let lastX = 0, lastY = 0;
-
-                        function getEventPos(e) {
-                            if (e.touches && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-                            if (e.changedTouches && e.changedTouches.length > 0) return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
-                            return { x: e.clientX, y: e.clientY };
-                        }
-
-                        function handleDragStart(e) {
-                            if (e.target.classList.contains('fill-handle')) {
-                                e.preventDefault(); 
-                                e.stopPropagation();
-                                isDragging = true;
-
-                                const wrap = e.target.closest('.l-cell-wrap');
-                                const startSelect = wrap.querySelector('.l-cell');
-                                fillValue = startSelect.dataset.val || '';
-
-                                const td = wrap.closest('td');
-                                const tr = td.closest('tr');
-                                startColIndex = Array.from(tr.children).indexOf(td);
-                                startRowIndex = Array.from(tr.parentElement.children).indexOf(tr);
-                                
-                                selectedCellsList = [startSelect];
-                                startSelect.classList.add('cell-highlight');
-
-                                if (scrollInterval) clearInterval(scrollInterval);
-                                scrollInterval = setInterval(() => {
-                                    if(!isDragging) return;
-                                    const rect = scroller.getBoundingClientRect();
-                                    let scrolled = false;
-                                    
-                                    if(lastY > rect.bottom - 40) { scroller.scrollTop += 25; scrolled = true; }
-                                    else if(lastY < rect.top + 40) { scroller.scrollTop -= 25; scrolled = true; }
-                                    
-                                    if(lastX > rect.right - 40) { scroller.scrollLeft += 25; scrolled = true; }
-                                    else if(lastX < rect.left + 40) { scroller.scrollLeft -= 25; scrolled = true; }
-                                    
-                                    if(scrolled) processDragMove(lastX, lastY);
-                                }, 40);
-                            }
-                        }
-
-                        function processDragMove(clientX, clientY) {
-                            const handle = document.querySelector('.active-cell + .fill-handle');
-                            if(handle) handle.style.visibility = 'hidden';
-
-                            const elem = document.elementFromPoint(clientX, clientY);
-                            
-                            if(handle) handle.style.visibility = 'visible';
-
-                            if (!elem) return;
-                            const td = elem.closest('td');
-                            if (!td) return;
-                            const tr = td.closest('tr');
-                            if (!tr || !tr.parentElement) return;
-                            
-                            const currentColIndex = Array.from(tr.children).indexOf(td);
-                            const currentRowIndex = Array.from(tr.parentElement.children).indexOf(tr);
-                            const tbody = tr.parentElement;
-                            
-                            if(currentColIndex < 1 || currentRowIndex < 0) return; 
-
-                            selectedCellsList.forEach(s => s.classList.remove('cell-highlight'));
-                            selectedCellsList = [];
-                            
-                            const minRow = Math.min(startRowIndex, currentRowIndex);
-                            const maxRow = Math.max(startRowIndex, currentRowIndex);
-                            const minCol = Math.min(startColIndex, currentColIndex);
-                            const maxCol = Math.max(startColIndex, currentColIndex);
-                            
-                            for (let r = minRow; r <= maxRow; r++) {
-                                const row = tbody.children[r];
-                                if (row) {
-                                    for (let c = minCol; c <= maxCol; c++) {
-                                        const targetTd = row.children[c];
-                                        if (targetTd) {
-                                            const sel = targetTd.querySelector('.l-cell');
-                                            if (sel) {
-                                                sel.classList.add('cell-highlight');
-                                                selectedCellsList.push(sel);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        function handleDragMove(e) {
-                            if (!isDragging) return;
-                            e.preventDefault(); 
-                            const pos = getEventPos(e);
-                            lastX = pos.x;
-                            lastY = pos.y;
-                            processDragMove(lastX, lastY);
-                        }
-
-                        function handleDragEnd(e) {
-                            if (isDragging) {
-                                isDragging = false;
-                                clearInterval(scrollInterval);
-                                
-                                if (selectedCellsList.length > 0) {
-                                    const changes = [];
-                                    selectedCellsList.forEach(sel => {
-                                        sel.classList.remove('cell-highlight');
-                                        const oldVal = sel.dataset.val || '';
-                                        if (oldVal !== fillValue) {
-                                            changes.push({ emp: sel.dataset.emp, date: sel.dataset.date, session: sel.dataset.session, oldVal: oldVal, newVal: fillValue });
-                                            sel.dataset.val = fillValue;
-                                            sel.innerText = fillValue || '-';
-                                            window.saveGridCellChange(sel, fillValue);
-                                        }
-                                    });
-                                    if(changes.length) window.lgRecordChange(changes);
-                                }
-                                selectedCellsList = [];
-                                clearSelection();
-                            }
-                        }
-
-                        scroller.addEventListener('touchstart', handleDragStart, {passive: false});
-                        scroller.addEventListener('mousedown', handleDragStart);
-                        document.addEventListener('touchmove', handleDragMove, {passive: false});
-                        document.addEventListener('mousemove', handleDragMove);
-                        document.addEventListener('touchend', handleDragEnd);
-                        document.addEventListener('mouseup', handleDragEnd);
+                    if (currentIndex >= 0 && currentIndex < allCells.length - 1) {
+                        nextCell = allCells[currentIndex + 1];
                     }
-                }, 500);
-            };
-
-            window.saveGridCellChange = function(cellEl, val) {
-                const empId = cellEl.dataset.emp;
-                const dateDMY = cellEl.dataset.date;
-                const session = cellEl.dataset.session;
-                const supplySource = cellEl.dataset.supply;
-                const existingLogId = cellEl.dataset.logid;
-
-                cellEl.style.backgroundColor = '#FEF3C7';
-
-                if (existingLogId) {
-                    if (val && val !== '-') {
-                        db.ref('logs/' + existingLogId).update({ drink: val }).then(() => {
-                            cellEl.style.backgroundColor = '#DCFCE7';
-                            setTimeout(() => cellEl.style.backgroundColor = 'transparent', 1000);
-                            window.recalcAdminLiveGridTotals();
-                        });
+                    
+                    activeCell.classList.remove('active-cell');
+                    
+                    if (nextCell) {
+                        activeCell = nextCell;
+                        activeCell.classList.add('active-cell');
+                        nextCell.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
                     } else {
-                        db.ref('logs/' + existingLogId).remove().then(() => {
-                            cellEl.dataset.logid = '';
-                            cellEl.style.backgroundColor = 'transparent';
-                            window.recalcAdminLiveGridTotals();
-                        });
+                        activeCell = null;
                     }
-                } else {
-                    if (val && val !== '-') {
-                        const empObj = employeeList.find(e => e.id === empId);
-                        const empName = empObj ? empObj.name : 'Unknown';
-                        let pId = empObj ? empObj.assignedPantryId : 'admin';
-                        let pName = 'Admin';
-                        if (pId && pId !== 'admin') {
-                            const pb = pantryTeam.find(p => p.id === pId);
-                            if (pb) pName = pb.name;
+                }
+            };
+
+            scroller.addEventListener('click', function(e) {
+                if (e.target.classList.contains('l-cell')) {
+                    clearSelection();
+                    activeCell = e.target;
+                    activeCell.classList.add('active-cell');
+                }
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (activeCell) {
+                    if (e.key === 'Backspace' || e.key === 'Delete') {
+                        e.preventDefault();
+                        const oldVal = activeCell.dataset.val || '';
+                        if(oldVal !== '') {
+                            window.lgRecordChange([{ emp: activeCell.dataset.emp, date: activeCell.dataset.date, session: activeCell.dataset.session, oldVal: oldVal, newVal: '' }]);
+                            activeCell.dataset.val = '';
+                            activeCell.innerText = '-';
+                            window.saveGridCellChange(activeCell, '');
                         }
-                        const newId = 'log_live_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+                    }
+                    if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C')) {
+                        e.preventDefault();
+                        clipboardValue = activeCell.dataset.val;
+                        activeCell.style.backgroundColor = '#FEF08A';
+                        setTimeout(() => activeCell.style.backgroundColor = '', 300);
+                    }
+                    if ((e.ctrlKey || e.metaKey) && (e.key === 'v' || e.key === 'V')) {
+                        e.preventDefault();
+                        window.applyExcelMenuVal(clipboardValue);
+                    }
+                }
+            });
+            
+            let isDragging = false;
+            let startColIndex = -1;
+            let startRowIndex = -1;
+            let fillValue = '';
+            let scrollInterval = null;
+            let lastX = 0, lastY = 0;
+
+            function getEventPos(e) {
+                if (e.touches && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                if (e.changedTouches && e.changedTouches.length > 0) return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+                return { x: e.clientX, y: e.clientY };
+            }
+
+            function handleDragStart(e) {
+                if (e.target.classList.contains('fill-handle')) {
+                    e.preventDefault(); 
+                    e.stopPropagation();
+                    isDragging = true;
+
+                    const wrap = e.target.closest('.l-cell-wrap');
+                    const startSelect = wrap.querySelector('.l-cell');
+                    fillValue = startSelect.dataset.val || '';
+
+                    const td = wrap.closest('td');
+                    const tr = td.closest('tr');
+                    startColIndex = Array.from(tr.children).indexOf(td);
+                    startRowIndex = Array.from(tr.parentElement.children).indexOf(tr);
+                    
+                    selectedCellsList = [startSelect];
+                    startSelect.classList.add('cell-highlight');
+
+                    if (scrollInterval) clearInterval(scrollInterval);
+                    scrollInterval = setInterval(() => {
+                        if(!isDragging) return;
+                        const rect = scroller.getBoundingClientRect();
+                        let scrolled = false;
                         
-                        db.ref('logs/' + newId).set({
-                            id: newId, employeeId: empId, employeeName: empName,
-                            drink: val, session: session, date: dateDMY,
-                            pantryId: pId || 'admin', pantryName: pName,
-                            supplySource: supplySource
-                        }).then(() => {
-                            cellEl.dataset.logid = newId;
-                            cellEl.style.backgroundColor = '#DCFCE7';
-                            setTimeout(() => cellEl.style.backgroundColor = 'transparent', 1000);
-                            window.recalcAdminLiveGridTotals();
-                        });
-                    } else {
-                        cellEl.style.backgroundColor = 'transparent';
-                    }
+                        if(lastY > rect.bottom - 40) { scroller.scrollTop += 25; scrolled = true; }
+                        else if(lastY < rect.top + 40) { scroller.scrollTop -= 25; scrolled = true; }
+                        
+                        if(lastX > rect.right - 40) { scroller.scrollLeft += 25; scrolled = true; }
+                        else if(lastX < rect.left + 40) { scroller.scrollLeft -= 25; scrolled = true; }
+                        
+                        if(scrolled) processDragMove(lastX, lastY);
+                    }, 40);
                 }
-            };
+            }
 
-            window.recalcAdminLiveGridTotals = function() {
-                const table = document.getElementById('adminLiveGridTable');
-                if(!table) return;
-                const tbodyTotals = document.getElementById('adminLiveGridTotals');
-                if(!tbodyTotals) return;
+            function processDragMove(clientX, clientY) {
+                const handle = document.querySelector('.active-cell + .fill-handle');
+                if(handle) handle.style.visibility = 'hidden';
 
-                const allCells = table.querySelectorAll('.l-cell');
-                const empTotals = {};
+                const elem = document.elementFromPoint(clientX, clientY);
                 
-                allCells.forEach(cell => {
-                    const emp = cell.dataset.emp;
-                    if(!empTotals[emp]) {
-                        empTotals[emp] = { tea:0, coffee:0, green:0, lemon:0, blackTea:0, blackCoffee:0, total:0 };
-                    }
-                    const val = (cell.dataset.val || '').toLowerCase();
-                    if(val === 'tea') empTotals[emp].tea++;
-                    else if(val === 'coffee') empTotals[emp].coffee++;
-                    else if(val === 'green tea') empTotals[emp].green++;
-                    else if(val === 'lemon tea') empTotals[emp].lemon++;
-                    else if(val === 'black tea') empTotals[emp].blackTea++;
-                    else if(val === 'black coffee') empTotals[emp].blackCoffee++;
-                    
-                    if(val && val !== '-') empTotals[emp].total++;
-                });
+                if(handle) handle.style.visibility = 'visible';
 
-                const firstTr = table.querySelector('tbody tr');
-                if (!firstTr) return;
-                const firstRowCells = firstTr.querySelectorAll('.l-cell');
-                const empsInOrder = [];
-                for(let i=0; i<firstRowCells.length; i+=2) {
-                    empsInOrder.push(firstRowCells[i].dataset.emp);
+                if (!elem) return;
+                const td = elem.closest('td');
+                if (!td) return;
+                const tr = td.closest('tr');
+                if (!tr || !tr.parentElement) return;
+                
+                const currentColIndex = Array.from(tr.children).indexOf(td);
+                const currentRowIndex = Array.from(tr.parentElement.children).indexOf(tr);
+                const tbody = tr.parentElement;
+                
+                if(currentColIndex < 1 || currentRowIndex < 0) return; 
+
+                selectedCellsList.forEach(s => s.classList.remove('cell-highlight'));
+                selectedCellsList = [];
+                
+                const minRow = Math.min(startRowIndex, currentRowIndex);
+                const maxRow = Math.max(startRowIndex, currentRowIndex);
+                const minCol = Math.min(startColIndex, currentColIndex);
+                const maxCol = Math.max(startColIndex, currentColIndex);
+                
+                for (let r = minRow; r <= maxRow; r++) {
+                    const row = tbody.children[r];
+                    if (row) {
+                        for (let c = minCol; c <= maxCol; c++) {
+                            const targetTd = row.children[c];
+                            if (targetTd) {
+                                const sel = targetTd.querySelector('.l-cell');
+                                if (sel) {
+                                    sel.classList.add('cell-highlight');
+                                    selectedCellsList.push(sel);
+                                }
+                            }
+                        }
+                    }
                 }
+            }
 
-                const drinksArr = [
-                    { key: 'tea', label: 'Tea', color: '#1E3A8A', bg: '#EFF6FF' },
-                    { key: 'coffee', label: 'Coffee', color: '#475569', bg: '#F1F5F9' },
-                    { key: 'green', label: 'Green Tea', color: '#065F46', bg: '#ECFDF5' },
-                    { key: 'lemon', label: 'Lemon Tea', color: '#92400E', bg: '#FFFBEB' },
-                    { key: 'blackTea', label: 'Black Tea', color: '#5B21B6', bg: '#F5F3FF' },
-                    { key: 'blackCoffee', label: 'Black Coffee', color: '#991B1B', bg: '#FEF2F2' }
-                ];
+            function handleDragMove(e) {
+                if (!isDragging) return;
+                e.preventDefault(); 
+                const pos = getEventPos(e);
+                lastX = pos.x;
+                lastY = pos.y;
+                processDragMove(lastX, lastY);
+            }
 
-                let totalsHtmlArr = [];
-                drinksArr.forEach(d => {
-                    let anyDrank = false;
-                    empsInOrder.forEach(empId => { if(empTotals[empId] && empTotals[empId][d.key] > 0) anyDrank = true; });
+            function handleDragEnd(e) {
+                if (isDragging) {
+                    isDragging = false;
+                    clearInterval(scrollInterval);
                     
-                    if (anyDrank) {
-                        totalsHtmlArr.push(`<tr><td class="l-tot-lbl" style="background:${d.bg}; color:${d.color};">${d.label}</td>`);
-                        empsInOrder.forEach(empId => {
-                            let val = (empTotals[empId] && empTotals[empId][d.key]) ? empTotals[empId][d.key] : '-';
-                            totalsHtmlArr.push(`<td colspan="2" class="l-tot-val" style="background:${d.bg}; color:${d.color};">${val}</td>`);
+                    if (selectedCellsList.length > 0) {
+                        const changes = [];
+                        selectedCellsList.forEach(sel => {
+                            sel.classList.remove('cell-highlight');
+                            const oldVal = sel.dataset.val || '';
+                            if (oldVal !== fillValue) {
+                                changes.push({ emp: sel.dataset.emp, date: sel.dataset.date, session: sel.dataset.session, oldVal: oldVal, newVal: fillValue });
+                                sel.dataset.val = fillValue;
+                                sel.innerText = fillValue || '-';
+                                window.saveGridCellChange(sel, fillValue);
+                            }
                         });
-                        totalsHtmlArr.push(`</tr>`);
+                        if(changes.length) window.lgRecordChange(changes);
                     }
-                });
+                    selectedCellsList = [];
+                    clearSelection();
+                }
+            }
 
-                tbodyTotals.innerHTML = totalsHtmlArr.join('');
-            };
+            scroller.addEventListener('touchstart', handleDragStart, {passive: false});
+            scroller.addEventListener('mousedown', handleDragStart);
+            document.addEventListener('touchmove', handleDragMove, {passive: false});
+            document.addEventListener('mousemove', handleDragMove);
+            document.addEventListener('touchend', handleDragEnd);
+            document.addEventListener('mouseup', handleDragEnd);
+        }
+    }, 500);
+};
+
+window.saveGridCellChange = function(cellEl, val) {
+    const empId = cellEl.dataset.emp;
+    const dateDMY = cellEl.dataset.date;
+    const session = cellEl.dataset.session;
+    const supplySource = cellEl.dataset.supply;
+    const existingLogId = cellEl.dataset.logid;
+
+    cellEl.style.backgroundColor = '#FEF3C7';
+
+    if (existingLogId) {
+        if (val && val !== '-') {
+            db.ref('logs/' + existingLogId).update({ drink: val }).then(() => {
+                cellEl.style.backgroundColor = '#DCFCE7';
+                setTimeout(() => cellEl.style.backgroundColor = 'transparent', 1000);
+                window.recalcAdminLiveGridTotals();
+            });
+        } else {
+            db.ref('logs/' + existingLogId).remove().then(() => {
+                cellEl.dataset.logid = '';
+                cellEl.style.backgroundColor = 'transparent';
+                window.recalcAdminLiveGridTotals();
+            });
+        }
+    } else {
+        if (val && val !== '-') {
+            const empObj = employeeList.find(e => e.id === empId);
+            const empName = empObj ? empObj.name : 'Unknown';
+            let pId = empObj ? empObj.assignedPantryId : 'admin';
+            let pName = 'Admin';
+            if (pId && pId !== 'admin') {
+                const pb = pantryTeam.find(p => p.id === pId);
+                if (pb) pName = pb.name;
+            }
+            const newId = 'log_live_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+            
+            db.ref('logs/' + newId).set({
+                id: newId, employeeId: empId, employeeName: empName,
+                drink: val, session: session, date: dateDMY,
+                pantryId: pId || 'admin', pantryName: pName,
+                supplySource: supplySource
+            }).then(() => {
+                cellEl.dataset.logid = newId;
+                cellEl.style.backgroundColor = '#DCFCE7';
+                setTimeout(() => cellEl.style.backgroundColor = 'transparent', 1000);
+                window.recalcAdminLiveGridTotals();
+            });
+        } else {
+            cellEl.style.backgroundColor = 'transparent';
+        }
+    }
+};
+
+window.recalcAdminLiveGridTotals = function() {
+    const table = document.getElementById('adminLiveGridTable');
+    if(!table) return;
+    const tbodyTotals = document.getElementById('adminLiveGridTotals');
+    if(!tbodyTotals) return;
+
+    const allCells = table.querySelectorAll('.l-cell');
+    const empTotals = {};
+    
+    allCells.forEach(cell => {
+        const emp = cell.dataset.emp;
+        if(!empTotals[emp]) {
+            empTotals[emp] = { tea:0, coffee:0, green:0, lemon:0, blackTea:0, blackCoffee:0, total:0 };
+        }
+        const val = (cell.dataset.val || '').toLowerCase();
+        if(val === 'tea') empTotals[emp].tea++;
+        else if(val === 'coffee') empTotals[emp].coffee++;
+        else if(val === 'green tea') empTotals[emp].green++;
+        else if(val === 'lemon tea') empTotals[emp].lemon++;
+        else if(val === 'black tea') empTotals[emp].blackTea++;
+        else if(val === 'black coffee') empTotals[emp].blackCoffee++;
+        
+        if(val && val !== '-') empTotals[emp].total++;
+    });
+
+    const firstTr = table.querySelector('tbody tr');
+    if (!firstTr) return;
+    const firstRowCells = firstTr.querySelectorAll('.l-cell');
+    const empsInOrder = [];
+    for(let i=0; i<firstRowCells.length; i+=2) {
+        empsInOrder.push(firstRowCells[i].dataset.emp);
+    }
+
+    const drinksArr = [
+        { key: 'tea', label: 'Tea', color: '#1E3A8A', bg: '#EFF6FF' },
+        { key: 'coffee', label: 'Coffee', color: '#475569', bg: '#F1F5F9' },
+        { key: 'green', label: 'Green Tea', color: '#065F46', bg: '#ECFDF5' },
+        { key: 'lemon', label: 'Lemon Tea', color: '#92400E', bg: '#FFFBEB' },
+        { key: 'blackTea', label: 'Black Tea', color: '#5B21B6', bg: '#F5F3FF' },
+        { key: 'blackCoffee', label: 'Black Coffee', color: '#991B1B', bg: '#FEF2F2' }
+    ];
+
+    let totalsHtmlArr = [];
+    drinksArr.forEach(d => {
+        let anyDrank = false;
+        empsInOrder.forEach(empId => { if(empTotals[empId] && empTotals[empId][d.key] > 0) anyDrank = true; });
+        
+        if (anyDrank) {
+            totalsHtmlArr.push(`<tr><td class="l-tot-lbl" style="background:${d.bg}; color:${d.color};">${d.label}</td>`);
+            empsInOrder.forEach(empId => {
+                let val = (empTotals[empId] && empTotals[empId][d.key]) ? empTotals[empId][d.key] : '-';
+                totalsHtmlArr.push(`<td colspan="2" class="l-tot-val" style="background:${d.bg}; color:${d.color};">${val}</td>`);
+            });
+            totalsHtmlArr.push(`</tr>`);
+        }
+    });
+
+    tbodyTotals.innerHTML = totalsHtmlArr.join('');
+};
             // ============================================================
             // DELIVERY REPORT (REGULAR & MEETINGS - DATE WISE TOTALS)
             // ============================================================
@@ -9379,7 +9472,7 @@ if (
 
                 let reportTitle = '';
 
-                if (type === 'regular') {
+                             if (type === 'regular') {
                     reportTitle = `DAILY DELIVERY REPORT (REGULAR) - ${supplyText}`;
                     let filteredLogs = logsData.filter(l => 
                         l.date && parseDMYToYMD(l.date).startsWith(month) &&
@@ -9389,6 +9482,23 @@ if (
                     if (pantryId !== 'All') {
                         filteredLogs = filteredLogs.filter(l => l.pantryId === pantryId);
                     }
+
+                    // --- નવો કોડ શરૂ (ફક્ત Driver અને Maintenance ને રિપોર્ટમાંથી બાદ કરવા માટે) ---
+                    filteredLogs = filteredLogs.filter(l => {
+                        const emp = employeeList.find(e => e.id === l.employeeId);
+                        if (!emp) return true;
+                        
+                        const dept = (emp.department || '').toLowerCase();
+                        const cat = (emp.category || '').toLowerCase();
+                        const name = (emp.name || '').toLowerCase();
+                        
+                        // જો ડિપાર્ટમેન્ટ, કેટેગરી કે નામમાં 'driver' અથવા 'maintenance' હોય, તો તેને ટોટલમાંથી કાઢી નાખો
+                        if (dept.includes('driver') || cat.includes('driver') || name.includes('driver')) return false;
+                        if (dept.includes('maintenance') || cat.includes('maintenance') || name.includes('maintenance')) return false;
+                        
+                        return true; // બાકીના બધા (ઓફિસ આઉટસોર્સ સહિત) ગણાશે
+                    });
+                    // --- નવો કોડ પૂરો ---
 
                     filteredLogs.forEach(l => {
                         let d = (l.drink || '').toLowerCase().trim();
@@ -9404,7 +9514,8 @@ if (
                         }
                     });
 
-                } else if (type === 'meeting') {
+                }
+ else if (type === 'meeting') {
                     reportTitle = `DAILY DELIVERY REPORT (MEETINGS) - ${supplyText}`;
                     
                     // ગેસ્ટ સ્લીપ (Meeting History) માંથી માત્ર માન્ય (Without duplicates) એન્ટ્રીઓ લેવા માટે
@@ -10206,173 +10317,172 @@ window.exportIndividualReport = async function(type) {
                 appAlert('Downloaded', 'All categories combined Excel downloaded with formulas!');
             };
             // ============================================================
-            // 4. ADMIN MONTHLY GRID EXPORT (EXCEL / PDF)
-            // ============================================================
-            window.adminExportMonthlyGrid = function(format, overrideMonth, overrideSupply, overridePantry, overrideCat) {
-                const month = overrideMonth || document.getElementById('reportMonth')?.value;
-                const pantryId = overridePantry || document.getElementById('gridExportPantrySelect')?.value;
-                const categoryVal = overrideCat || document.getElementById('gridExportCategorySelect')?.value;
-                const supplySource = overrideSupply || document.getElementById('reportSupplySource')?.value || 'Contractor';
-                const supplyText = supplySource === 'Contractor' ? 'IA CATERERS' : 'DAU DIRECT PURCHASE';
-                
-                if (!month) return appAlert('Error', 'Select month.');
+// 4. ADMIN MONTHLY GRID EXPORT (EXCEL / PDF)
+// ============================================================
+window.adminExportMonthlyGrid = function(format, overrideMonth, overrideSupply, overridePantry, overrideCat) {
+    const month = overrideMonth || document.getElementById('reportMonth')?.value;
+    const pantryId = overridePantry || document.getElementById('gridExportPantrySelect')?.value;
+    const categoryVal = overrideCat || document.getElementById('gridExportCategorySelect')?.value;
+    const supplySource = overrideSupply || document.getElementById('reportSupplySource')?.value || 'Contractor';
+    const supplyText = supplySource === 'Contractor' ? 'IA CATERERS' : 'DAU DIRECT PURCHASE';
+    
+    if (!month) return appAlert('Error', 'Select month.');
 
-                const [yy, mm] = month.split('-');
-                const daysInMonth = getDaysInMonth(yy, mm);
-                
-                let emps = employeeList;
-                if (pantryId !== 'All') {
-                    emps = emps.filter(e => e.assignedPantryId === pantryId);
+    const [yy, mm] = month.split('-');
+    const daysInMonth = getDaysInMonth(yy, mm);
+    
+    let emps = employeeList;
+    if (pantryId !== 'All') {
+        emps = emps.filter(e => e.assignedPantryId === pantryId);
+    }
+    
+    if (categoryVal !== 'All') {
+        const catMatch = categoryVal.trim().toLowerCase();
+        emps = emps.filter(e => {
+            const c = (e.category || '').trim().toLowerCase();
+            if (catMatch === 'outsourced' || catMatch === 'outsource') return c.includes('outsource');
+            return c === catMatch;
+        });
+    }
+    
+    if(!emps.length) return appAlert('Notice', 'No employees found for this selection.');
+
+    if (format === 'excel') {
+        const bStyle = { style: 'thin', color: { rgb: "000000" } };
+        const cellStyle = { alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle } };
+        const headStyle = { font: { bold: true }, alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle }, fill: { fgColor: { rgb: "F1F5F9" } } };
+
+        let headers1 = [{ v: 'Date', s: headStyle }];
+        let headers2 = [{ v: '', s: headStyle }];
+        
+        const colWidths = [{ wch: 12 }];
+        const merges = [];
+
+        emps.forEach((emp, i) => {
+            const baseIdx = 1 + (i * 2);
+            headers1.push({ v: emp.name, s: headStyle });
+            headers1.push({ v: '', s: headStyle }); 
+            
+            headers2.push({ v: 'Morn', s: headStyle });
+            headers2.push({ v: 'Aft', s: headStyle });
+            
+            colWidths.push({ wch: 10 }, { wch: 10 });
+            merges.push({ s: { r: 0, c: baseIdx }, e: { r: 0, c: baseIdx + 1 } });
+        });
+
+        let data = [headers1, headers2];
+
+        const fastLogMap = {};
+        logsData.forEach(l => {
+            if (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')) {
+                fastLogMap[l.employeeId + '_' + l.date + '_' + l.session] = l;
+            }
+        });
+
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dmy = `${String(d).padStart(2,'0')}/${mm}/${yy}`;
+            let row = [{ v: dmy, s: { font: { bold: true }, alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle } } }];
+            
+            emps.forEach(emp => {
+                const mLog = fastLogMap[emp.id + '_' + dmy + '_Morning'];
+                const aLog = fastLogMap[emp.id + '_' + dmy + '_Afternoon'];
+                row.push({ v: mLog ? mLog.drink : '-', s: cellStyle });
+                row.push({ v: aLog ? aLog.drink : '-', s: cellStyle });
+            });
+            data.push(row);
+        }
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        ws['!merges'] = merges;
+        ws['!cols'] = colWidths;
+        
+        XLSX.utils.book_append_sheet(wb, ws, 'Monthly Grid');
+        window.pantryDownloadExcelFile(
+            wb,
+            `Monthly_Grid_${categoryVal}_${supplySource.replace(/\s+/g,'_')}_${month}.xlsx`
+        );
+        appAlert('Downloaded', 'Monthly Grid Excel downloaded successfully!');
+
+    } else {
+        let html = '';
+        const chunkSize = 8;
+        const dateObj = new Date(month + '-01');
+        const monthStr = dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' }); 
+        const displayCat = categoryVal === 'All' ? 'All Categories' : categoryVal;
+
+        for (let i = 0; i < emps.length; i += chunkSize) {
+            const chunkEmps = emps.slice(i, i + chunkSize);
+            
+            html += `<div style="page-break-after: always; padding-bottom: 20px;">`;
+            html += `<h2 style="text-align:center; color:#0A56D0; margin-bottom: 12px; font-family: sans-serif; font-size: 16px;">Monthly Grid Export - ${displayCat} (${supplyText}) - ${monthStr} (Page ${Math.floor(i/chunkSize) + 1})</h2>`;
+            
+            html += `<table class="print-table" style="font-size:11px; width:100%; min-width:880px; text-align:center; border-collapse:collapse; table-layout:fixed; margin-bottom: 20px;"><thead><tr>`;
+            
+            html += `<th rowspan="2" style="border:1px solid #000; padding:6px 4px; background:#F1F5F9; width:95px; font-weight:700;">Date</th>`;
+            
+            chunkEmps.forEach(emp => {
+                html += `<th colspan="2" style="border:1px solid #000; padding:6px 4px; background:#F1F5F9; font-size:11px; line-height:1.3; word-break:normal;">${safeStr(emp.name)}</th>`;
+            });
+            html += `</tr><tr>`;
+            
+            chunkEmps.forEach(() => {
+                html += `<th style="border:1px solid #000; padding:4px; background:#F8FAFC; width:49px; min-width:49px; max-width:49px; font-weight:600;">Morn</th>`;
+                html += `<th style="border:1px solid #000; padding:4px; background:#F8FAFC; width:49px; min-width:49px; max-width:49px; font-weight:600;">Aft</th>`;
+            });
+            html += `</tr></thead><tbody>`;
+            
+            // ઓપ્ટિમાઇઝેશન: સ્પીડ વધારવા માટે Hash Map પ્રિન્ટ પેજ માટે પણ
+            const fastLogMap = {};
+            logsData.forEach(l => {
+                if (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')) {
+                    fastLogMap[l.employeeId + '_' + l.date + '_' + l.session] = l;
                 }
+            });
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dmy = `${String(d).padStart(2,'0')}/${mm}/${yy}`;
+                const currentDayDate = new Date(yy, mm - 1, d);
+                const dayName = currentDayDate.toLocaleDateString('en-US', { weekday: 'long' });
+
+                html += `<tr>`;
+                html += `<td style="border:1px solid #000; padding:6px 4px; font-weight:bold; line-height:1.3; background:#F8FAFC;">${dmy}<br><span style="font-size:9px; font-weight:normal; color:#44474E;">${dayName}</span></td>`;
                 
-                if (categoryVal !== 'All') {
-                    const catMatch = categoryVal.trim().toLowerCase();
-                    emps = emps.filter(e => {
-                        const c = (e.category || '').trim().toLowerCase();
-                        if (catMatch === 'outsourced' || catMatch === 'outsource') return c.includes('outsource');
-                        return c === catMatch;
-                    });
-                }
-                
-                if(!emps.length) return appAlert('Notice', 'No employees found for this selection.');
-
-                if (format === 'excel') {
-                    const bStyle = { style: 'thin', color: { rgb: "000000" } };
-                    const cellStyle = { alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle } };
-                    const headStyle = { font: { bold: true }, alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle }, fill: { fgColor: { rgb: "F1F5F9" } } };
-
-                    let headers1 = [{ v: 'Date', s: headStyle }];
-                    let headers2 = [{ v: '', s: headStyle }];
+                chunkEmps.forEach(emp => {
+                    const mLog = fastLogMap[emp.id + '_' + dmy + '_Morning'];
+                    const aLog = fastLogMap[emp.id + '_' + dmy + '_Afternoon'];
                     
-                    const colWidths = [{ wch: 12 }];
-                    const merges = [];
-
-                    emps.forEach((emp, i) => {
-                        const baseIdx = 1 + (i * 2);
-                        headers1.push({ v: emp.name, s: headStyle });
-                        headers1.push({ v: '', s: headStyle }); 
-                        
-                        headers2.push({ v: 'Morn', s: headStyle });
-                        headers2.push({ v: 'Aft', s: headStyle });
-                        
-                        colWidths.push({ wch: 10 }, { wch: 10 });
-                        merges.push({ s: { r: 0, c: baseIdx }, e: { r: 0, c: baseIdx + 1 } });
-                    });
-
-                    let data = [headers1, headers2];
-
-                    const fastLogMap = {};
-                    logsData.forEach(l => {
-                        if (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')) {
-                            fastLogMap[l.employeeId + '_' + l.date + '_' + l.session] = l;
-                        }
-                    });
-
-                    for (let d = 1; d <= daysInMonth; d++) {
-                        const dmy = `${String(d).padStart(2,'0')}/${mm}/${yy}`;
-                        let row = [{ v: dmy, s: { font: { bold: true }, alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle } } }];
-                        
-                        emps.forEach(emp => {
-                            const mLog = fastLogMap[emp.id + '_' + dmy + '_Morning'];
-                            const aLog = fastLogMap[emp.id + '_' + dmy + '_Afternoon'];
-                            row.push({ v: mLog ? mLog.drink : '-', s: cellStyle });
-                            row.push({ v: aLog ? aLog.drink : '-', s: cellStyle });
-                        });
-                        data.push(row);
-                    }
-
-                    const wb = XLSX.utils.book_new();
-                    const ws = XLSX.utils.aoa_to_sheet(data);
-                    ws['!merges'] = merges;
-                    ws['!cols'] = colWidths;
-                    
-                    XLSX.utils.book_append_sheet(wb, ws, 'Monthly Grid');
-                    window.pantryDownloadExcelFile(
-    wb,
-    `Monthly_Grid_${categoryVal}_${supplySource.replace(/\s+/g,'_')}_${month}.xlsx`
-);
-                    appAlert('Downloaded', 'Monthly Grid Excel downloaded successfully!');
-
-                } else {
-                    let html = '';
-                    const chunkSize = 8;
-                    const dateObj = new Date(month + '-01');
-                    const monthStr = dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' }); 
-                    const displayCat = categoryVal === 'All' ? 'All Categories' : categoryVal;
-
-                    for (let i = 0; i < emps.length; i += chunkSize) {
-                        const chunkEmps = emps.slice(i, i + chunkSize);
-                        
-                        html += `<div style="page-break-after: always; padding-bottom: 20px;">`;
-                        html += `<h2 style="text-align:center; color:#0A56D0; margin-bottom: 12px; font-family: sans-serif; font-size: 16px;">Monthly Grid Export - ${displayCat} (${supplyText}) - ${monthStr} (Page ${Math.floor(i/chunkSize) + 1})</h2>`;
-                        
-                        html += `<table class="print-table" style="font-size:11px; width:100%; min-width:880px; text-align:center; border-collapse:collapse; table-layout:fixed; margin-bottom: 20px;"><thead><tr>`;
-                        
-                        html += `<th rowspan="2" style="border:1px solid #000; padding:6px 4px; background:#F1F5F9; width:95px; font-weight:700;">Date</th>`;
-                        
-                        chunkEmps.forEach(emp => {
-                            html += `<th colspan="2" style="border:1px solid #000; padding:6px 4px; background:#F1F5F9; font-size:11px; line-height:1.3; word-break:normal;">${safeStr(emp.name)}</th>`;
-                        });
-                        html += `</tr><tr>`;
-                        
-                        chunkEmps.forEach(() => {
-                            html += `<th style="border:1px solid #000; padding:4px; background:#F8FAFC; width:49px; min-width:49px; max-width:49px; font-weight:600;">Morn</th>`;
-                            html += `<th style="border:1px solid #000; padding:4px; background:#F8FAFC; width:49px; min-width:49px; max-width:49px; font-weight:600;">Aft</th>`;
-                        });
-                        html += `</tr></thead><tbody>`;
-                        
-                        // ઓપ્ટિમાઇઝેશન: સ્પીડ વધારવા માટે Hash Map પ્રિન્ટ પેજ માટે પણ
-                        const fastLogMap = {};
-                        logsData.forEach(l => {
-                            if (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')) {
-                                fastLogMap[l.employeeId + '_' + l.date + '_' + l.session] = l;
-                            }
-                        });
-
-                        for (let d = 1; d <= daysInMonth; d++) {
-                            const dmy = `${String(d).padStart(2,'0')}/${mm}/${yy}`;
-                            const currentDayDate = new Date(yy, mm - 1, d);
-                            const dayName = currentDayDate.toLocaleDateString('en-US', { weekday: 'long' });
-
-                            html += `<tr>`;
-                            html += `<td style="border:1px solid #000; padding:6px 4px; font-weight:bold; line-height:1.3; background:#F8FAFC;">${dmy}<br><span style="font-size:9px; font-weight:normal; color:#44474E;">${dayName}</span></td>`;
-                            
-                            chunkEmps.forEach(emp => {
-                                const mLog = fastLogMap[emp.id + '_' + dmy + '_Morning'];
-                                const aLog = fastLogMap[emp.id + '_' + dmy + '_Afternoon'];
-                                
-                                html += `<td style="border:1px solid #000; padding:4px; width:49px; min-width:49px; max-width:49px;">${mLog ? mLog.drink : '-'}</td>`;
-                                html += `<td style="border:1px solid #000; padding:4px; width:49px; min-width:49px; max-width:49px;">${aLog ? aLog.drink : '-'}</td>`;
-                            });
-                            html += `</tr>`;
-                        }
-                        html += `</tbody></table></div>`;
-                    }
-                    
-                    const container = document.getElementById('printAreaContainer');
-                    container.innerHTML = `
-                      <div class="preview-card" style="max-width:100%; width:98vw; height:95vh; max-height:95vh;">
-                        <div class="preview-header hide-on-print">
-                          <button onclick="window.print()" class="success">🖨️ Print Landscape</button>
-                          <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger">✕ Close</button>
-                        </div>
-                        <div class="preview-content" style="overflow-x:auto; -webkit-overflow-scrolling:touch; padding: 10px; background:#fff;">
-                          ${html}
-                        </div>
-                      </div>
-                      <style>
-                        @media print {
-                          @page { size: A4 landscape; margin: 8mm; }
-                          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background:#fff !important; }
-                          .print-table { min-width: 100% !important; width: 100% !important; table-layout: fixed !important; }
-                          .print-table th, .print-table td { padding: 4px !important; font-size: 10px !important; }
-                        }
-                      </style>
-                    `;
-                    container.classList.remove('hidden');
-                }
-            };
-
+                    html += `<td style="border:1px solid #000; padding:4px; width:49px; min-width:49px; max-width:49px;">${mLog ? mLog.drink : '-'}</td>`;
+                    html += `<td style="border:1px solid #000; padding:4px; width:49px; min-width:49px; max-width:49px;">${aLog ? aLog.drink : '-'}</td>`;
+                });
+                html += `</tr>`;
+            }
+            html += `</tbody></table></div>`;
+        }
+        
+        const container = document.getElementById('printAreaContainer');
+        container.innerHTML = `
+          <div class="preview-card" style="max-width:100%; width:98vw; height:95vh; max-height:95vh;">
+            <div class="preview-header hide-on-print">
+              <button onclick="window.print()" class="success">🖨️ Print Landscape</button>
+              <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger">✕ Close</button>
+            </div>
+            <div class="preview-content" style="overflow-x:auto; -webkit-overflow-scrolling:touch; padding: 10px; background:#fff;">
+              ${html}
+            </div>
+          </div>
+          <style>
+            @media print {
+              @page { size: A4 landscape; margin: 8mm; }
+              body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background:#fff !important; }
+              .print-table { min-width: 100% !important; width: 100% !important; table-layout: fixed !important; }
+              .print-table th, .print-table td { padding: 4px !important; font-size: 10px !important; }
+            }
+          </style>
+        `;
+        container.classList.remove('hidden');
+    }
+};
             // ============================================================
             //  PANTRY DASHBOARD
             // ============================================================
