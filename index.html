@@ -3,7 +3,7 @@
 <head>
 <script>
     // ⚠️ જ્યારે પણ તમે ગિટહબ પર નવો કોડ નાખો, ત્યારે આ વર્ઝન નંબર બદલી નાખવો (દા.ત. 1.0.1 થી 1.0.2)
-    const APP_VERSION = "1.0.2"; 
+    const APP_VERSION = "1.0.25"; 
     const currentAppVersion = localStorage.getItem('dau_pantry_version');
 
     if (currentAppVersion !== APP_VERSION) {
@@ -21,7 +21,9 @@
 
         // 2. બ્રાઉઝરને બળજબરીથી નવું પેજ લોડ કરાવવા માટે URL પાછળ ટાઈમસ્ટેમ્પ લગાવવો
         const cleanUrl = window.location.origin + window.location.pathname;
-        const freshUrl = cleanUrl + '?update=' + new Date().getTime();
+        const params = new URLSearchParams(window.location.search);
+        params.set('update', new Date().getTime());
+        const freshUrl = cleanUrl + '?' + params.toString();
         
         window.location.replace(freshUrl);
     }
@@ -35,7 +37,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="theme-color" content="#1976d2" />
-    <link rel="manifest" href="manifest.json?v=1.0.9" />
+    <link rel="manifest" href="manifest.json?v=1.0.19" />
     <link rel="apple-touch-icon" img src="logo.png" class="logo-img">
     <title>DAU Pantry Service</title>
 
@@ -1045,34 +1047,88 @@
         }
 
         /* ===== DASH MENU MODERN ===== */
+        /* ===== COMPACT APP-STYLE PANTRY DASHBOARD ===== */
         .dash-menu-modern {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            row-gap: 8px;
+            column-gap: 8px;
+            align-content: start;
+            align-items: start;
             margin-top: 4px;
             overflow-y: auto;
-            flex: 1 1 auto;
-            padding-bottom: 4px;
+            flex: 0 0 auto;
+            padding: 4px 2px 8px;
         }
         .dash-menu-modern .dash-btn {
-            border-radius: 16px;
-            padding: 20px 18px;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            min-height: 0;
+            padding: 10px 5px;
+            border-radius: 18px;
             background: #FFFFFF;
             border: 1px solid #E8EDF2;
+            box-shadow: 0 2px 7px rgba(15,23,42,.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-align: center;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .dash-menu-modern .dash-btn:active {
+            transform: scale(.96);
         }
         .dash-menu-modern .dash-btn .icon {
-            font-size: 1.5rem;
-            margin-right: 12px;
+            font-size: 1.55rem;
+            line-height: 1;
+            margin: 0;
+            flex: 0 0 auto;
         }
         .dash-menu-modern .dash-btn .label {
-            font-size: 1rem;
-            font-weight: 600;
+            display: block;
+            width: 100%;
+            font-size: .68rem;
+            line-height: 1.15;
+            font-weight: 700;
             color: #1E293B;
+            white-space: nowrap;
+            overflow: visible;
+            text-overflow: clip;
         }
         .dash-menu-modern .dash-btn .sub {
-            font-size: .7rem;
-            color: #94A3B8;
-            font-weight: 400;
+            display: none !important;
+        }
+        .dash-menu-modern .dash-btn .right {
+            display: none;
+        }
+        @media (max-width: 380px) {
+            .dash-menu-modern {
+                gap: 6px;
+                row-gap: 6px;
+                column-gap: 6px;
+            }
+            .dash-menu-modern .dash-btn {
+                border-radius: 16px;
+                padding: 8px 3px;
+            }
+            .dash-menu-modern .dash-btn .icon {
+                font-size: 1.35rem;
+            }
+            .dash-menu-modern .dash-btn .label {
+                font-size: .62rem;
+            }
+        }
+        @media (min-width: 600px) {
+            .dash-menu-modern {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: 10px;
+                row-gap: 10px;
+                column-gap: 10px;
+            }
         }
 
         /* ===== LOCATION EMPLOYEE ITEM ===== */
@@ -1407,6 +1463,178 @@
             font-size: .8rem;
             padding: 8px 16px;
         }
+
+        /* ===== PANTRY MY RECORDS COMPACT LAYOUT ===== */
+        .date-nav-btn,
+        .month-nav-btn {
+            width: 28px;
+            min-width: 28px;
+            height: 32px;
+            min-height: 32px;
+            padding: 0 !important;
+            border-radius: 7px !important;
+            background: #E2E8F0 !important;
+            color: #0A56D0 !important;
+            font-size: 22px !important;
+            line-height: 1 !important;
+            font-weight: 800 !important;
+            border: 1px solid #CBD5E1 !important;
+            box-shadow: none !important;
+        }
+        .date-nav-btn:active,
+        .month-nav-btn:active { background:#DBEAFE !important; transform:scale(.94); }
+        #myRecordsDate {
+            width: 124px !important;
+            min-width: 124px !important;
+            height: 32px !important;
+            min-height: 32px !important;
+            margin: 0 !important;
+            padding: 4px 6px !important;
+            border-radius: 7px !important;
+            font-size: 11px !important;
+            font-weight: 800 !important;
+            border: 1px solid #CBD5E1 !important;
+        }
+        .daily-metric-grid {
+            display:grid;
+            grid-template-columns:repeat(6, minmax(0,1fr));
+            gap:3px;
+            width:100%;
+            overflow:hidden;
+        }
+        .daily-metric-card {
+            min-width:0;
+            min-height:47px;
+            border:1px solid #E2E8F0;
+            border-radius:7px;
+            padding:4px 2px;
+            text-align:center;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            gap:2px;
+            overflow:hidden;
+            box-sizing:border-box;
+            white-space:nowrap;
+        }
+        .daily-metric-card.tea,.daily-metric-card.coffee { background:#F8FAFC; }
+        .daily-metric-card.green { background:#ECFDF5; border-color:#D1FAE5; }
+        .daily-metric-card.lemon { background:#FFFBEB; border-color:#FEF3C7; }
+        .daily-metric-card.blacktea { background:#F5F3FF; border-color:#EDE9FE; }
+        .daily-metric-card.blackcoffee { background:#FEF2F2; border-color:#FEE2E2; }
+        .metric-label {
+            width:100%;
+            height:16px;
+            font-size:7px;
+            line-height:8px;
+            font-weight:700;
+            color:#475569;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            white-space:normal;
+            overflow:hidden;
+        }
+        .daily-metric-card.green .metric-label { color:#065F46; }
+        .daily-metric-card.lemon .metric-label { color:#92400E; }
+        .daily-metric-card.blacktea .metric-label { color:#5B21B6; }
+        .daily-metric-card.blackcoffee .metric-label { color:#991B1B; }
+        .metric-value {
+            margin-top:2px;
+            font-size:13px;
+            line-height:1;
+            font-weight:800;
+            color:#1E293B;
+        }
+        .daily-grand-total {
+            margin-top:5px;
+            padding:5px 6px;
+            text-align:center;
+            border-radius:7px;
+            border:1px solid #BFDBFE;
+            background:#EFF6FF;
+            color:#1E40AF;
+            font-size:11px;
+            font-weight:800;
+        }
+        .reports-compact-card { margin-bottom:8px; }
+        .reports-filter-grid {
+            display:grid;
+            grid-template-columns:1fr 1fr 1fr;
+            gap:5px;
+            margin-bottom:6px;
+            padding:6px;
+            background:#F1F5F9;
+            border:1px solid #CBD5E1;
+            border-radius:8px;
+        }
+        .report-filter-box { min-width:0; }
+        .report-filter-box label {
+            display:block;
+            margin:0 0 3px;
+            font-size:9px;
+            line-height:1;
+            font-weight:800;
+            color:#475569;
+        }
+        .report-filter-box select,
+        .report-filter-box input[type="month"] {
+            width:100% !important;
+            height:32px !important;
+            min-height:32px !important;
+            margin:0 !important;
+            padding:4px 5px !important;
+            border-radius:6px !important;
+            font-size:10px !important;
+            font-weight:700 !important;
+            border:1px solid #CBD5E1 !important;
+            background:#fff !important;
+            color:#1E293B !important;
+        }
+        .month-nav-wrap {
+            display:flex;
+            align-items:center;
+            gap:2px;
+        }
+        .month-nav-wrap input[type="month"] { flex:1; min-width:0; }
+        .month-nav-btn { width:24px; min-width:24px; height:32px; min-height:32px; font-size:19px !important; }
+        .report-action-row {
+            display:grid;
+            grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);
+            gap:5px;
+            align-items:center;
+            padding:5px 0;
+            border-top:1px solid #E2E8F0;
+        }
+        .report-action-title {
+            min-width:0;
+            font-size:10px;
+            line-height:1.15;
+            font-weight:800;
+        }
+        .purple-report-row .report-action-title { color:#7C3AED; }
+        .green-report-row .report-action-title { color:#059669; }
+        .orange-report-row .report-action-title { color:#D97706; }
+        .report-action-btn {
+            width:100%;
+            height:32px !important;
+            min-height:32px !important;
+            padding:0 5px !important;
+            margin:0 !important;
+            border:none !important;
+            border-radius:6px !important;
+            color:#fff !important;
+            font-size:10px !important;
+            font-weight:800 !important;
+            white-space:nowrap;
+        }
+        .report-action-btn.purple { background:#7C3AED !important; }
+        .report-action-btn.green { background:#059669 !important; }
+        .report-action-btn.dark-green { background:#047857 !important; }
+        .report-action-btn.orange { background:#D97706 !important; }
+        .report-action-btn.dark-orange { background:#B45309 !important; }
+        .report-btn-pair { display:grid; grid-template-columns:1fr 1fr; gap:4px; }
 
         /* ===== RESPONSIVE TWEAKS ===== */
         @media (max-width: 420px) {
@@ -1886,6 +2114,140 @@
     }
 }
 
+
+/* Admin Reports v1.0.17 - ultra compact mobile layout */
+.adminContent .reports-compact-card,
+#adminContent .reports-compact-card {
+    width:100% !important;
+    max-width:100% !important;
+    box-sizing:border-box !important;
+    overflow:hidden !important;
+    padding:6px !important;
+}
+#adminContent .reports-compact-card h4 {
+    margin:0 0 4px !important;
+    line-height:1.05 !important;
+}
+#adminContent .reports-filter-grid {
+    display:grid !important;
+    grid-template-columns:1.05fr 1fr 1fr 1fr !important;
+    gap:3px !important;
+    padding:3px !important;
+    margin:0 0 4px !important;
+    width:100% !important;
+    box-sizing:border-box !important;
+}
+#adminContent .report-filter-box {
+    min-width:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+}
+#adminContent .report-filter-box label {
+    display:block !important;
+    font-size:9px !important;
+    line-height:1 !important;
+    margin:0 0 2px !important;
+    white-space:nowrap !important;
+}
+#adminContent .report-filter-box input,
+#adminContent .report-filter-box select,
+#adminContent .reports-filter-grid input,
+#adminContent .reports-filter-grid select {
+    width:100% !important;
+    min-width:0 !important;
+    height:30px !important;
+    min-height:30px !important;
+    padding:2px 5px !important;
+    margin:0 !important;
+    font-size:10px !important;
+    box-sizing:border-box !important;
+}
+#adminContent .report-action-row {
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) auto !important;
+    align-items:center !important;
+    column-gap:5px !important;
+    width:100% !important;
+    box-sizing:border-box !important;
+    padding:3px 0 !important;
+    margin:0 !important;
+    min-height:0 !important;
+}
+#adminContent .report-action-title {
+    min-width:0 !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
+    font-size:11px !important;
+    line-height:1.05 !important;
+    margin:0 !important;
+}
+#adminContent .report-btn-pair {
+    display:flex !important;
+    flex-wrap:nowrap !important;
+    gap:3px !important;
+    justify-content:flex-end !important;
+    min-width:0 !important;
+}
+#adminContent .report-action-btn {
+    flex:0 0 auto !important;
+    width:auto !important;
+    min-width:0 !important;
+    height:30px !important;
+    min-height:30px !important;
+    padding:3px 8px !important;
+    margin:0 !important;
+    font-size:10px !important;
+    line-height:1 !important;
+    white-space:nowrap !important;
+}
+#adminContent #printGridPdfBtn {
+    width:auto !important;
+    height:30px !important;
+    min-height:30px !important;
+    margin:2px 0 !important;
+    padding:3px 9px !important;
+    font-size:10px !important;
+}
+#adminContent #adminDeliveryMeetingDept {
+    width:100% !important;
+    height:29px !important;
+    min-height:29px !important;
+    font-size:10px !important;
+    margin:1px 0 !important;
+    box-sizing:border-box !important;
+}
+#adminContent .reports-compact-card > div[style*="display:flex"] {
+    gap:3px !important;
+    margin-top:1px !important;
+}
+#adminContent .reports-compact-card .a-input {
+    height:29px !important;
+    min-height:29px !important;
+    padding:2px 5px !important;
+    font-size:10px !important;
+    min-width:0 !important;
+}
+#adminContent #generateIACaterersBillBtn {
+    height:30px !important;
+    min-height:30px !important;
+    padding:3px 8px !important;
+    font-size:10px !important;
+    white-space:nowrap !important;
+}
+@media (max-width:600px) {
+    #adminContent .reports-filter-grid {
+        grid-template-columns:1.15fr .95fr .95fr .95fr !important;
+    }
+    #adminContent .report-action-title {
+        font-size:10px !important;
+    }
+    #adminContent .report-action-btn {
+        padding-left:6px !important;
+        padding-right:6px !important;
+    }
+}
+
 </style>
 	<style>
     /* ===== DAILY TEA ENTRY IMPROVEMENTS (MOBILE FIX) ===== */
@@ -1921,6 +2283,14 @@
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<style id="dauCommonMessengerStyles">
+.dau-common-chat-app{display:flex;flex-direction:column;height:100%;min-height:0;background:#efeae2;border:1px solid #dbe2ea;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(15,23,42,.06)}
+.dau-common-chat-header{background:#075e54;color:#fff;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0;min-height:58px}
+.dau-common-chat-title-wrap{display:flex;align-items:center;gap:9px;min-width:0}.dau-common-avatar{width:36px;height:36px;border-radius:50%;background:#128c7e;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}.dau-common-chat-title{font-size:14px;font-weight:800;white-space:nowrap}.dau-common-chat-sub{font-size:9px;opacity:.82;margin-top:2px;white-space:nowrap}.dau-common-share{min-height:32px;padding:6px 9px!important;border:1px solid rgba(255,255,255,.35)!important;background:rgba(255,255,255,.12)!important;color:#fff!important;border-radius:8px!important;font-size:10px!important;white-space:nowrap}
+.dau-common-messages{flex:1;min-height:0;overflow-y:auto;padding:12px 8px;background:#efeae2;-webkit-overflow-scrolling:touch}.dau-common-day{text-align:center;margin:8px 0 10px}.dau-common-day span{display:inline-block;background:#fff8c5;color:#64748b;border-radius:8px;padding:4px 9px;font-size:9px;box-shadow:0 1px 2px rgba(0,0,0,.08)}.dau-common-row{display:flex;margin:3px 0}.dau-common-row.mine{justify-content:flex-end}.dau-common-bubble{max-width:82%;background:#fff;border-radius:9px;padding:6px 8px 4px;box-shadow:0 1px 1px rgba(0,0,0,.08);word-break:break-word}.dau-common-row.mine .dau-common-bubble{background:#dcf8c6;border-top-right-radius:3px}.dau-common-row.received .dau-common-bubble{border-top-left-radius:3px}.dau-common-sender{font-size:10px;font-weight:800;color:#075e54;margin-bottom:3px}.dau-common-text{font-size:13px;line-height:1.4;white-space:pre-wrap;color:#1e293b}.dau-common-meta{display:flex;justify-content:flex-end;gap:4px;color:#7b8794;font-size:8px;margin-top:3px}.dau-common-select-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;background:#075e54;color:#fff;flex-shrink:0}.dau-common-select-bar button{border:0!important;background:transparent!important;color:#fff!important;min-height:34px!important;padding:6px 10px!important;font-size:12px!important}.dau-common-selected{outline:2px solid #0a56d0;outline-offset:1px}.dau-common-select-mark{display:inline-flex;float:left;width:20px;height:20px;border:2px solid #64748b;border-radius:50%;align-items:center;justify-content:center;margin:0 6px 2px 0;background:#fff;color:#075e54;font-size:12px;font-weight:800}.dau-common-select-mark.selected{border-color:#0a56d0;background:#0a56d0;color:#fff}.dau-common-select-start{min-height:30px!important;padding:5px 8px!important;border:1px solid rgba(255,255,255,.4)!important;background:rgba(255,255,255,.14)!important;color:#fff!important;border-radius:7px!important;font-size:10px!important;white-space:nowrap}.dau-common-select-bar{background:#075e54;color:#fff;padding:7px 8px;display:none;align-items:center;gap:8px;flex-shrink:0}.dau-common-select-bar button{min-height:32px!important;padding:5px 9px!important;border:1px solid rgba(255,255,255,.4)!important;background:rgba(255,255,255,.14)!important;color:#fff!important;border-radius:7px!important;font-size:11px!important}.dau-common-select-bar button:last-child{margin-left:auto;background:#dc3545!important;border-color:#dc3545!important}.dau-common-msg-actions{border:0!important;background:transparent!important;color:#64748b!important;min-height:16px!important;width:18px!important;padding:0!important;font-size:14px!important;line-height:14px!important;box-shadow:none!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;vertical-align:middle!important}.dau-common-action-menu{position:fixed;z-index:99999999;background:#fff;border:1px solid #e2e8f0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:4px;min-width:130px}.dau-common-action-menu button{display:block!important;width:100%!important;min-height:38px!important;padding:8px 12px!important;background:#fff!important;color:#1e293b!important;border:0!important;border-radius:7px!important;text-align:left!important;font-size:12px!important;box-shadow:none!important}.dau-common-action-menu button:active{background:#f1f5f9!important}.dau-common-compose{display:flex;align-items:flex-end;gap:6px;padding:7px;background:#f0f2f5;border-top:1px solid #dbe2ea;flex-shrink:0}.dau-common-compose textarea{flex:1;margin:0!important;min-height:40px;max-height:90px;resize:none;border:1px solid #cbd5e1;border-radius:20px;padding:10px 13px;font-size:13px;background:#fff;line-height:1.25}.dau-common-compose button{width:42px;height:42px;min-height:42px;padding:0;border-radius:50%;background:#075e54;font-size:18px;flex-shrink:0}.dau-common-empty{text-align:center;color:#64748b;padding:55px 20px;font-size:12px;line-height:1.8}.dau-common-empty:first-line{font-size:25px}.dau-external-chat-page{width:100%;height:100%;display:flex;flex-direction:column;background:#efeae2}.dau-external-chat-top{min-height:62px;background:#075e54;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;gap:10px}.dau-external-chat-top b{display:block;font-size:15px}.dau-external-chat-top span{display:block;font-size:9px;opacity:.82;margin-top:2px}.dau-external-chat-top>span{background:rgba(255,255,255,.13);padding:7px 9px;border-radius:8px;white-space:nowrap}.dau-external-chat-invalid{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:#f8fafc;color:#334155;padding:24px}.dau-external-chat-invalid>div{font-size:42px;margin-bottom:10px}.dau-external-chat-invalid h2{margin:0 0 8px;color:#dc3545}.dau-external-chat-invalid p{font-size:13px;color:#64748b;max-width:320px}
+@media(max-width:420px){.dau-common-chat-header{padding:8px}.dau-common-share{font-size:9px!important;padding:5px 7px!important}.dau-common-bubble{max-width:88%}.dau-common-text{font-size:12.5px}}
+</style>
 </head>
 <body>
 
@@ -2173,6 +2543,28 @@
                 }
                 return dmy;
             }
+
+            // Canonical monthly-log helpers: every report/grid must use the same
+            // employee + calendar date + session key. This prevents one report
+            // from counting a log that the Live Grid misses because the stored
+            // date/session was formatted differently.
+            function canonicalLogDate(value) {
+                const ymd = parseDMYToYMD(String(value || '').trim());
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(ymd)) return '';
+                return ymd;
+            }
+
+            function canonicalLogSession(value) {
+                const v = String(value || '').trim().toLowerCase();
+                if (v === 'morning' || v === 'morn' || v === 'am') return 'Morning';
+                if (v === 'afternoon' || v === 'aft' || v === 'pm') return 'Afternoon';
+                return v ? v.charAt(0).toUpperCase() + v.slice(1) : '';
+            }
+
+            function canonicalMonthlyLogKey(log) {
+                return String(log?.employeeId || '') + '_' + canonicalLogDate(log?.date) + '_' + canonicalLogSession(log?.session);
+            }
+
             function parseSnap(snap) {
                 const arr = [];
                 if (snap.exists()) {
@@ -2433,7 +2825,18 @@
                     db.ref('extraTeaRecords/' + recordId).set(recordData).then(() => { 
                         appAlert('Success', 'Extra tea record saved! ['+supplySourceVal+']'); 
                         document.getElementById('extraTeaModal').classList.add('hidden'); 
-                        window.renderExtraTeaView(); 
+                        if (activePantryTab === 'logs' && typeof renderLogsHistory === 'function') {
+                            renderLogsHistory();
+                            setTimeout(() => {
+                                const sec = document.getElementById('extraTeaInlineSection');
+                                const btn = document.getElementById('openExtraTeaInlineBtn');
+                                if (sec) sec.classList.remove('hidden');
+                                if (btn) btn.textContent = '☕ Hide Records';
+                                window.renderExtraTeaMyRecords?.();
+                            }, 50);
+                        } else {
+                            window.renderExtraTeaView();
+                        } 
                     }).catch(err => { appAlert('Error', 'Save failed: ' + err.message); }); 
                 };
                 modal.classList.remove('hidden');
@@ -2516,7 +2919,7 @@
                     const refPath = isOldLog ? 'extraLogs/' : 'extraTeaRecords/';
                     db.ref(refPath + id).remove().then(() => { 
                         appAlert('Deleted', 'Record removed.'); 
-                        window.renderExtraTeaView(); 
+                        if (window._extraTeaInlineOpen && activePantryTab === 'logs') { renderLogsHistory(); } else { window.renderExtraTeaView(); } 
                         if(typeof window.renderExtraTeaAdminRecords === 'function') window.renderExtraTeaAdminRecords();
                     }); 
                 }); 
@@ -4945,6 +5348,7 @@
                     .p-l-th-emp { font-size: 9.5px; color: #1E293B; line-height: 1; white-space: normal; word-wrap: break-word; position: sticky; top: 0; z-index: 10; background: #F1F5F9; border-bottom: 1px solid #CBD5E1; border-right: 1px solid #CBD5E1; height: 26px; padding: 1px; border-top: none; }
                     .p-l-th-sess { font-weight: 800; color: #44474E; background: #F8FAFC; width: 42px; min-width: 42px; position: sticky; top: 26px; z-index: 9; border-bottom: 2px solid #0A56D0; border-right: 1px dashed #CBD5E1; height: 18px; padding: 0 1px; }
                     .p-l-th-sess.aft { border-right: 1px solid #CBD5E1; }
+                    .p-l-th-sess.vip-monthly-header { position: sticky !important; top: 26px !important; z-index: 9 !important; border-bottom: 2px solid #0A56D0; }
                     .p-l-td-date { border-bottom: 1px solid #E2E8F0; border-right: 1px solid #CBD5E1; padding: 0 1px; height: 22px; font-weight: bold; position: sticky; left: 0; background: #F8FAFC; z-index: 5; color: #0A56D0; line-height: 1; font-size: 9px; }
                     .p-l-td-morn { border-bottom: 1px solid #E2E8F0; border-right: 1px dashed #E2E8F0; padding: 0; height: 22px; }
                     .p-l-td-aft { border-bottom: 1px solid #E2E8F0; border-right: 1px solid #CBD5E1; padding: 0; height: 22px; }
@@ -5223,37 +5627,55 @@
                             const morn = logs.find(l => l.session === 'Morning');
                             const aft = logs.find(l => l.session === 'Afternoon');
                             
-                            // --- NEW VIP EXTRAS (TRANSPARENT CROSS BUTTON & COMPACT UI) ---
+                            // --- VIP DAILY ENTRIES (SYNCED WITH MONTHLY VIP_N COLUMNS) ---
+                            // VIP entries created here use the exact same VIP_1, VIP_2... session
+                            // records used by Monthly Entry. Therefore Daily and Monthly are two
+                            // views of the same Firebase logs, not two separate data stores.
                             const isVip = emp.vipMultipleTea === true;
+                            const vipLogs = logs
+                                .filter(l => l.session && /^VIP_\d+$/.test(String(l.session)))
+                                .sort((a,b) => Number(String(a.session).split('_')[1]) - Number(String(b.session).split('_')[1]));
                             const extraLogs = logs.filter(l => l.session && l.session.startsWith('Extra_'));
                             
                             // નામનું શોર્ટ ફોર્મ (દા.ત. Prem Kumar Chopra -> PKC)
                             const nameParts = (emp.name || '').trim().split(' ');
                             let initials = nameParts.length === 1 ? nameParts[0].substring(0, 3).toUpperCase() : nameParts.map(n => n[0]).join('').toUpperCase();
                             
+                            let vipHtml = '';
                             let extraHtml = '';
                             let vipAddBtnMini = '';
 
                             if (isVip) {
-                                // 🚨 મેઈન લાઈનમાં જમણી બાજુ આવતું એકદમ મોડર્ન અને નાનું + બટન
-                                vipAddBtnMini = `<button onclick="window.addVipExtraDrink('${emp.id}', '${selectedDMY}', '${supplySource}')" style="background:#F59E0B; color:#fff; border:none; border-radius:4px; font-size:11px; font-weight:800; padding:2px 6px; margin-left:4px; cursor:pointer; flex-shrink:0; box-shadow:0 1px 2px rgba(217,119,6,0.3); outline:none;">+ ☕</button>`;
+                                // Daily + creates/synchronizes a VIP_N column entry; it is NOT Extra Tea.
+                                vipAddBtnMini = `<button title="Add VIP tea" onclick="event.stopPropagation(); window.addVipDailyEntry('${emp.id}', '${selectedDMY}', '${supplySource}')" style="background:#F59E0B; color:#fff; border:none; border-radius:4px; font-size:11px; font-weight:800; padding:2px 6px; margin-left:4px; cursor:pointer; flex-shrink:0; box-shadow:0 1px 2px rgba(217,119,6,0.3); outline:none;">+ ☕</button>`;
 
-                                // જો એક પણ એક્સ્ટ્રા ચા આપી હશે, તો જ પીળું બોક્સ ખુલશે
+                                if (vipLogs.length > 0) {
+                                    const vipCells = vipLogs.map(vLog => `
+                                        <div style="position:relative; display:inline-block; margin-right:4px; margin-top:2px;">
+                                            <div style="padding:0; height:20px; width:40px; flex-shrink:0;">
+                                                ${buildCell(emp.id, selectedDMY, vLog.session, vLog.drink, vLog.id)}
+                                            </div>
+                                            <button title="Remove this VIP entry" onclick="window.removeVipExtraDrinkDirect('${vLog.id}')" style="position:absolute; top:-8px; right:-8px; background:transparent; color:#DC3545; border:none; font-size:12px; font-weight:900; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:5; padding:2px; outline:none; text-shadow:0 1px 1px rgba(255,255,255,0.8);">✕</button>
+                                        </div>`).join('');
+                                    vipHtml = `
+                                    <div style="display:flex; flex-wrap:wrap; gap:4px; padding:4px 8px 6px 8px; background:#FFFBEB; align-items:center; border-top:1px dashed #FDE68A; border-radius:0 0 8px 8px;">
+                                        <span style="font-size:9.5px; font-weight:800; color:#D97706; margin-right:4px;">🌟 VIP (${initials}):</span>
+                                        ${vipCells}
+                                    </div>`;
+                                }
+
+                                // Keep legacy Extra_* records visually separate; they remain the separate Extra Tea function.
                                 if (extraLogs.length > 0) {
-                                    let extraCells = extraLogs.map((exLog) => {
-                                        // 🚨 ટ્રાન્સપરન્ટ એન્ડ્રોઇડ સ્ટાઈલ ક્રોસ બટન (No Background)
-                                        return `
+                                    const extraCells = extraLogs.map((exLog) => `
                                         <div style="position:relative; display:inline-block; margin-right:4px; margin-top:2px;">
                                             <div style="padding:0; height:20px; width:40px; flex-shrink:0;">
                                                 ${buildCell(emp.id, selectedDMY, exLog.session, exLog.drink, exLog.id)}
                                             </div>
-                                            <button onclick="window.removeVipExtraDrinkDirect('${exLog.id}')" style="position:absolute; top:-8px; right:-8px; background:transparent; color:#DC3545; border:none; font-size:12px; font-weight:900; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:5; padding:2px; outline:none; text-shadow: 0 1px 1px rgba(255,255,255,0.8);">✕</button>
-                                        </div>`;
-                                    }).join('');
-                                    
+                                            <button onclick="window.removeVipExtraDrinkDirect('${exLog.id}')" style="position:absolute; top:-8px; right:-8px; background:transparent; color:#DC3545; border:none; font-size:12px; font-weight:900; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:5; padding:2px; outline:none; text-shadow:0 1px 1px rgba(255,255,255,0.8);">✕</button>
+                                        </div>`).join('');
                                     extraHtml = `
-                                    <div style="display:flex; flex-wrap:wrap; gap:4px; padding:4px 8px 6px 8px; background:#FFFBEB; align-items:center; border-top:1px dashed #FDE68A; border-radius:0 0 8px 8px;">
-                                        <span style="font-size:9.5px; font-weight:800; color:#D97706; margin-right:4px;">🌟 VIP (${initials}):</span>
+                                    <div style="display:flex; flex-wrap:wrap; gap:4px; padding:4px 8px 6px 8px; background:#F8FAFC; align-items:center; border-top:1px dashed #CBD5E1; border-radius:0 0 8px 8px;">
+                                        <span style="font-size:9px; font-weight:800; color:#64748B; margin-right:4px;">Extra:</span>
                                         ${extraCells}
                                     </div>`;
                                 }
@@ -5286,16 +5708,23 @@
                                         ${vipAddBtnMini}
                                     </div>
                                 </div>
-                                ${extraHtml}
+                                ${vipHtml}${extraHtml}
                             </div>`;
                         }).join('');
                     };
 
                 // --- NEW FUNCTION TO DIRECTLY DELETE VIP EXTRA DRINK (NO POPUP) ---
                 window.removeVipExtraDrinkDirect = function(logId) {
-                    db.ref('logs/' + logId).remove().then(() => {
+                    db.ref('logs/' + logId).remove().then(() => db.ref('logs').once('value')).then(snap => {
+                        logsData = parseSnap(snap);
+                        if (document.getElementById('pantryMonthlyGridWrapper') && typeof window.openPantryLiveGrid === 'function') {
+                            window.openPantryLiveGrid();
+                        }
                         if (typeof window.populateServe === 'function') {
                             window.populateServe();
+                        }
+                        if (typeof window.loadMyRecordsData === 'function') {
+                            window.loadMyRecordsData();
                         }
                     });
                 };
@@ -5370,18 +5799,52 @@
                     };
 
                     let htmlArr = [];
-                    // 🚨 ID બદલીને adminLiveGridTable કર્યું જેથી ટોટલ વાળું ફંક્શન ઓટોમેટિક કામ કરે
+                    // VIP MONTHLY COLUMN SUPPORT
+                    // VIP users keep the normal Morning + Afternoon columns.
+                    // Each click on the VIP + button adds one COMPLETE vertical
+                    // month column (VIP 1, VIP 2, ...), covering every date in the
+                    // selected month. These logs use VIP_* sessions, so they are
+                    // counted by the normal Daily Total but are NOT Extra_* tea records.
+                    const vipColsByEmp = {};
+                    emps.forEach(emp => {
+                        const vipSessions = emp.vipMultipleTea === true
+                            ? logsData
+                                .filter(l => l.employeeId === emp.id &&
+                                    (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')) &&
+                                    l.session && /^VIP_\d+$/.test(String(l.session)))
+                                .map(l => String(l.session))
+                                .filter((v, i, a) => a.indexOf(v) === i)
+                                .sort((a,b) => Number(a.split('_')[1]) - Number(b.split('_')[1]))
+                            : [];
+                        vipColsByEmp[emp.id] = vipSessions;
+                    });
+
                     htmlArr.push(`<div class="p-l-wrap pantry-scroller" id="pantryGridScroller"><table class="p-l-tbl" id="adminLiveGridTable">`);
                     htmlArr.push(`<thead><tr><th rowspan="2" class="p-l-th-date">Date</th>`);
-                    emps.forEach(emp => { htmlArr.push(`<th colspan="2" class="p-l-th-emp">${safeStr(emp.name)}</th>`); });
+                    emps.forEach(emp => {
+                        const vipSessions = vipColsByEmp[emp.id] || [];
+                        const isVip = emp.vipMultipleTea === true;
+                        const vipBadge = isVip
+                            ? `<span title="VIP - Multiple Tea" style="display:inline-flex;align-items:center;gap:2px;color:#D97706;font-size:8px;font-weight:900;">🌟 VIP</span>`
+                            : '';
+                        const vipAdd = isVip
+                            ? `<button type="button" title="Add full-month VIP column" onclick="event.stopPropagation(); window.addVipMonthlyColumn('${emp.id}', '${month}', '${supplySource}')" style="background:#F59E0B;color:#fff;border:none;border-radius:4px;font-size:10px;font-weight:900;padding:1px 5px;min-height:18px;line-height:16px;cursor:pointer;margin-left:3px;">＋</button>`
+                            : '';
+                        htmlArr.push(`<th colspan="${2 + vipSessions.length}" class="p-l-th-emp">${safeStr(emp.name)} ${vipBadge}${vipAdd}</th>`);
+                    });
                     htmlArr.push(`</tr><tr>`);
-                    emps.forEach(() => { htmlArr.push(`<th class="p-l-th-sess">Morn</th><th class="p-l-th-sess aft">Aft</th>`); });
+                    emps.forEach(emp => {
+                        htmlArr.push(`<th class="p-l-th-sess">Morn</th><th class="p-l-th-sess aft">Aft</th>`);
+                        (vipColsByEmp[emp.id] || []).forEach((session, idx) => {
+                            htmlArr.push(`<th class="p-l-th-sess vip-monthly-header" style="background:#FFFBEB;color:#B45309;min-width:42px;" title="VIP monthly tea column">VIP ${idx + 1}<button type="button" title="Remove VIP ${idx + 1}" onclick="event.stopPropagation(); window.removeVipMonthlyColumn('${emp.id}','${month}','${supplySource}','${session}')" style="margin-left:2px;background:transparent;color:#DC2626;border:none;font-size:10px;font-weight:900;cursor:pointer;padding:0 2px;line-height:12px;">✕</button></th>`);
+                        });
+                    });
                     htmlArr.push(`</tr></thead><tbody>`);
 
                     const fastLogMap = {};
                     logsData.forEach(l => {
                         if (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')) {
-                            fastLogMap[l.employeeId + '_' + l.date + '_' + l.session] = l;
+                            if (!fastLogMap[canonicalMonthlyLogKey(l)]) fastLogMap[canonicalMonthlyLogKey(l)] = l;
                         }
                     });
 
@@ -5390,13 +5853,22 @@
                         const dmy = `${dd}/${mm}/${yy}`;
                         const dObj = new Date(yy, mm - 1, d);
                         const dayName = dObj.toLocaleDateString('en-US', { weekday: 'short' });
-                        
-                        htmlArr.push(`<tr><td class="p-l-td-date">${dd} <span style="font-size:7px; font-weight:normal; color:#64748B;">${dayName}</span></td>`);
+
+                        htmlArr.push(`<tr data-date="${dmy}"><td class="p-l-td-date">${dd} <span style="font-size:7px; font-weight:normal; color:#64748B;">${dayName}</span></td>`);
                         emps.forEach(emp => {
-                            const mLog = fastLogMap[emp.id + '_' + dmy + '_Morning'];
-                            const aLog = fastLogMap[emp.id + '_' + dmy + '_Afternoon'];
+                            const dayKey = `${yy}-${mm}-${String(d).padStart(2,'0')}`;
+                            const mLog = fastLogMap[emp.id + '_' + dayKey + '_Morning'];
+                            const aLog = fastLogMap[emp.id + '_' + dayKey + '_Afternoon'];
+
                             htmlArr.push(`<td class="p-l-td-morn">${buildCell(emp.id, dmy, 'Morning', mLog ? mLog.drink : '', mLog?.id)}</td>`);
                             htmlArr.push(`<td class="p-l-td-aft">${buildCell(emp.id, dmy, 'Afternoon', aLog ? aLog.drink : '', aLog?.id)}</td>`);
+
+                            (vipColsByEmp[emp.id] || []).forEach(session => {
+                                // VIP session names are normalized by canonicalMonthlyLogKey (VIP_1 -> Vip_1).
+                                // Use the same canonical form here so saved VIP entries render in the correct date cell.
+                                const vLog = fastLogMap[emp.id + '_' + dayKey + '_' + canonicalLogSession(session)];
+                                htmlArr.push(`<td class="p-l-td-aft" style="background:#FFFDF5;">${buildCell(emp.id, dmy, session, vLog ? vLog.drink : '', vLog?.id)}</td>`);
+                            });
                         });
                         htmlArr.push(`</tr>`);
                     }
@@ -5550,6 +6022,16 @@
                         });
 
                         document.addEventListener('keydown', function(e) {
+                            // Never hijack Backspace/Delete while the user is typing in a form field.
+                            // This keeps Android/mobile keyboard editing and native clear controls working.
+                            const target = e.target;
+                            const isFormField = target && (
+                                target.tagName === 'INPUT' ||
+                                target.tagName === 'TEXTAREA' ||
+                                target.tagName === 'SELECT' ||
+                                target.isContentEditable
+                            );
+                            if (isFormField) return;
                             if (window.pantryActiveCell) {
                                 if (e.key === 'Backspace' || e.key === 'Delete') {
                                     e.preventDefault();
@@ -5691,6 +6173,138 @@
                 renderBeverageModeContent('name');
             }
                             // --- NEW FUNCTION FOR VIP EXTRA DRINKS ---
+                // Add one complete VIP monthly column in a single action.
+                // A blank log is created for every day so the column remains available
+                // across refreshes/devices. Only cells with a selected drink contribute
+                // to Daily totals. Because the session is VIP_N (not Extra_*), these
+                // records stay out of the separate Extra Tea report.
+                window.addVipMonthlyColumn = function(empId, month, supplySource) {
+                    const empObj = employeeList.find(e => e.id === empId);
+                    if (!empObj || empObj.vipMultipleTea !== true) return;
+                    if (!month) return appAlert('Error', 'Select month first.');
+
+                    const [yy, mm] = month.split('-');
+                    const daysInMonth = getDaysInMonth(yy, mm);
+                    const matchingLogs = logsData.filter(l =>
+                        l.employeeId === empId &&
+                        (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')) &&
+                        l.session && /^VIP_\d+$/.test(String(l.session)) &&
+                        canonicalLogDate(l.date).startsWith(month)
+                    );
+
+                    const usedNumbers = matchingLogs
+                        .map(l => Number(String(l.session).split('_')[1]))
+                        .filter(n => Number.isFinite(n) && n > 0);
+                    let nextNo = 1;
+                    while (usedNumbers.includes(nextNo)) nextNo++;
+                    const sessionName = `VIP_${nextNo}`;
+
+                    let pId = empObj.assignedPantryId || 'admin';
+                    if (currentUser && currentUser.role === 'pantry') pId = currentUser.id;
+                    const pName = currentUser ? currentUser.name : 'Admin';
+                    const updates = {};
+                    const stamp = Date.now();
+
+                    for (let d = 1; d <= daysInMonth; d++) {
+                        const dd = String(d).padStart(2, '0');
+                        const dateDMY = `${dd}/${mm}/${yy}`;
+                        const newId = 'log_vip_' + stamp + '_' + d + '_' + Math.floor(Math.random() * 10000);
+                        updates['logs/' + newId] = {
+                            id: newId,
+                            employeeId: empId,
+                            employeeName: empObj.name,
+                            drink: '',
+                            session: sessionName,
+                            date: dateDMY,
+                            pantryId: pId,
+                            pantryName: pName,
+                            supplySource: supplySource,
+                            vipMonthly: true
+                        };
+                    }
+
+                    db.ref().update(updates).then(() => db.ref('logs').once('value')).then(snap => {
+                        logsData = parseSnap(snap);
+                        if (typeof window.openPantryLiveGrid === 'function') window.openPantryLiveGrid();
+                    }).catch(err => {
+                        appAlert('Error', 'Unable to add VIP monthly column: ' + err.message);
+                    });
+                };
+
+                // Remove one complete VIP monthly column (all dates) by its session.
+                window.removeVipMonthlyColumn = function(empId, month, supplySource, sessionName) {
+                    appConfirm('Remove VIP Column', `Remove ${sessionName} for this month?`, () => {
+                        const removeUpdates = {};
+                        logsData.forEach(l => {
+                            if (l.employeeId === empId &&
+                                (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')) &&
+                                l.session === sessionName &&
+                                canonicalLogDate(l.date).startsWith(month)) {
+                                removeUpdates['logs/' + l.id] = null;
+                            }
+                        });
+                        if (!Object.keys(removeUpdates).length) return;
+                        db.ref().update(removeUpdates).then(() => db.ref('logs').once('value')).then(snap => {
+                            logsData = parseSnap(snap);
+                            if (typeof window.openPantryLiveGrid === 'function') window.openPantryLiveGrid();
+                        }).catch(err => appAlert('Error', 'Unable to remove VIP monthly column: ' + err.message));
+                    });
+                };
+
+                // Daily VIP entry: use the same VIP_N session as Monthly Entry.
+                // If a full-month VIP column already exists, fill its first blank cell for
+                // this date. Otherwise create the next VIP_N session for this date; Monthly
+                // Entry will immediately discover that same session/column.
+                window.addVipDailyEntry = function(empId, dateDMY, supplySource) {
+                    const empObj = employeeList.find(e => e.id === empId);
+                    if (!empObj || empObj.vipMultipleTea !== true) return;
+                    const ymd = canonicalLogDate(dateDMY);
+                    if (!ymd) return;
+                    const month = ymd.slice(0, 7);
+                    const matching = logsData.filter(l =>
+                        l.employeeId === empId &&
+                        (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')) &&
+                        l.session && /^VIP_\d+$/.test(String(l.session)) &&
+                        canonicalLogDate(l.date).startsWith(month)
+                    );
+                    const sessions = [...new Set(matching.map(l => String(l.session)))].sort((a,b) => Number(a.split('_')[1]) - Number(b.split('_')[1]));
+                    const dateLogs = matching.filter(l => canonicalLogDate(l.date) === ymd);
+                    let target = sessions.find(session => {
+                        const same = dateLogs.find(l => String(l.session) === session);
+                        return !same || !same.drink;
+                    });
+
+                    const finish = () => db.ref('logs').once('value').then(snap => {
+                        logsData = parseSnap(snap);
+                        if (document.getElementById('pantryMonthlyGridWrapper') && typeof window.openPantryLiveGrid === 'function') window.openPantryLiveGrid();
+                        if (typeof window.populateServe === 'function') window.populateServe();
+                    });
+
+                    let pId = empObj.assignedPantryId || 'admin';
+                    if (currentUser && currentUser.role === 'pantry') pId = currentUser.id;
+                    const pName = currentUser ? currentUser.name : 'Admin';
+
+                    if (target) {
+                        const existing = dateLogs.find(l => String(l.session) === target);
+                        if (existing) return finish();
+                        const newId = 'log_vip_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+                        return db.ref('logs/' + newId).set({
+                            id:newId, employeeId:empId, employeeName:empObj.name, drink:'', session:target,
+                            date:dateDMY, pantryId:pId, pantryName:pName, supplySource:supplySource, vipMonthly:true
+                        }).then(finish).catch(err => appAlert('Error', 'Unable to add VIP entry: ' + err.message));
+                    }
+
+                    const used = sessions.map(s => Number(s.split('_')[1])).filter(n => Number.isFinite(n));
+                    let nextNo = 1;
+                    while (used.includes(nextNo)) nextNo++;
+                    const sessionName = `VIP_${nextNo}`;
+                    const newId = 'log_vip_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+                    return db.ref('logs/' + newId).set({
+                        id:newId, employeeId:empId, employeeName:empObj.name, drink:'', session:sessionName,
+                        date:dateDMY, pantryId:pId, pantryName:pName, supplySource:supplySource, vipMonthly:true
+                    }).then(finish).catch(err => appAlert('Error', 'Unable to add VIP entry: ' + err.message));
+                };
+
                 window.addVipExtraDrink = function(empId, dateDMY, supplySource) {
                     const empObj = employeeList.find(e => e.id === empId);
                     if(!empObj) return;
@@ -5715,9 +6329,14 @@
                         pantryName: pName,
                         supplySource: supplySource
                     }).then(() => {
-                        // 🚨 નવો સુધારો: ડેટાબેઝમાં એન્ટ્રી સેવ થયા પછી તરત જ સ્ક્રીન રિફ્રેશ કરો!
-                        if (typeof window.populateServe === 'function') {
+                        // Refresh whichever Daily/Monthly view is currently open.
+                        if (document.getElementById('pantryMonthlyGridWrapper') && typeof window.openPantryLiveGrid === 'function') {
+                            window.openPantryLiveGrid();
+                        } else if (typeof window.populateServe === 'function') {
                             window.populateServe();
+                        }
+                        if (typeof window.loadMyRecordsData === 'function') {
+                            window.loadMyRecordsData();
                         }
                     }).catch(err => {
                         appAlert('Error', 'Unable to add extra tea box: ' + err.message);
@@ -5729,104 +6348,255 @@
             // ============================================================
             function renderLogsHistory() {
                 activePantryTab = 'logs';
-                const todayYMD = new Date().toISOString().split('T')[0];
                 const container = document.getElementById('pantryContent');
+                if (!container) return;
+
+                // Keep the user's last selected date/month even if Firebase causes a re-render.
+                const todayYMD = new Date().toISOString().split('T')[0];
+                const selectedDate = window._myRecordsDate || todayYMD;
+                const selectedMonth = window._myReportsMonth || selectedDate.slice(0, 7);
+                const selectedSupply = window._myReportsSupply || 'Contractor';
+                const selectedCategory = window._myReportsCategory || 'All';
 
                 container.innerHTML = `
-              <div class="card" style="padding:10px; margin-bottom:10px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                  <label style="font-size:12px; color:#1E293B; font-weight:800; margin:0;">☕ Daily Matrix</label>
-                  <input type="date" id="myRecordsDate" value="${todayYMD}" style="margin:0; padding:6px; border-radius:6px; border:1px solid #CBD5E1; font-size:11px; width:130px; font-weight:bold; color:#0A56D0;">
-                </div>
-                
-                <div style="display:flex; justify-content:space-between; text-align:center; gap:4px; font-size:10px;" id="dailyMetricGrid">
-                  <div style="flex:1; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; padding:4px 2px;">
-                    <div style="color:#64748B; font-weight:700; margin-bottom:2px;">Tea</div>
-                    <div id="mStatTea" style="font-size:13px; font-weight:800; color:#1E293B;">0</div>
-                  </div>
-                  <div style="flex:1; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; padding:4px 2px;">
-                    <div style="color:#64748B; font-weight:700; margin-bottom:2px;">Coffee</div>
-                    <div id="mStatCoffee" style="font-size:13px; font-weight:800; color:#1E293B;">0</div>
-                  </div>
-                  <div style="flex:1; background:#ECFDF5; border:1px solid #D1FAE5; border-radius:6px; padding:4px 2px;">
-                    <div style="color:#065F46; font-weight:700; margin-bottom:2px;">Green</div>
-                    <div id="mStatGreen" style="font-size:13px; font-weight:800; color:#065F46;">0</div>
-                  </div>
-                  <div style="flex:1; background:#FFFBEB; border:1px solid #FEF3C7; border-radius:6px; padding:4px 2px;">
-                    <div style="color:#92400E; font-weight:700; margin-bottom:2px;">Lemon</div>
-                    <div id="mStatLemon" style="font-size:13px; font-weight:800; color:#92400E;">0</div>
-                  </div>
-                  <div style="flex:1; background:#F5F3FF; border:1px solid #EDE9FE; border-radius:6px; padding:4px 2px;">
-                    <div style="color:#5B21B6; font-weight:700; margin-bottom:2px;">Blk Tea</div>
-                    <div id="mStatBlackTea" style="font-size:13px; font-weight:800; color:#5B21B6;">0</div>
-                  </div>
-                  <div style="flex:1; background:#FEF2F2; border:1px solid #FEE2E2; border-radius:6px; padding:4px 2px;">
-                    <div style="color:#991B1B; font-weight:700; margin-bottom:2px;">Blk Cof</div>
-                    <div id="mStatBlackCoffee" style="font-size:13px; font-weight:800; color:#991B1B;">0</div>
+              <div class="card" style="padding:8px; margin-bottom:8px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:6px;">
+                  <label style="font-size:13px; color:#1E293B; font-weight:800; margin:0; white-space:nowrap;">☕ Daily Matrix</label>
+                  <div style="display:flex; align-items:center; gap:4px; flex:1; justify-content:flex-end;">
+                    <button type="button" id="myRecordsPrevDate" class="date-nav-btn" aria-label="Previous day">‹</button>
+                    <input type="date" id="myRecordsDate" value="${selectedDate}" aria-label="Daily matrix date">
+                    <button type="button" id="myRecordsNextDate" class="date-nav-btn" aria-label="Next day">›</button>
                   </div>
                 </div>
-                <div style="margin-top:6px; background:#EFF6FF; border:1px solid #BFDBFE; border-radius:6px; padding:6px; text-align:center; font-size:12px; font-weight:800; color:#1E40AF;">
-                  GRAND TOTAL: <span id="mStatGrand">0</span> Cups
+
+                <div class="daily-metric-grid" id="dailyMetricGrid">
+                  <div class="daily-metric-card tea"><div class="metric-label">Tea</div><div id="mStatTea" class="metric-value">0</div></div>
+                  <div class="daily-metric-card coffee"><div class="metric-label">Coffee</div><div id="mStatCoffee" class="metric-value">0</div></div>
+                  <div class="daily-metric-card green"><div class="metric-label">Green Tea</div><div id="mStatGreen" class="metric-value">0</div></div>
+                  <div class="daily-metric-card lemon"><div class="metric-label">Lemon Tea</div><div id="mStatLemon" class="metric-value">0</div></div>
+                  <div class="daily-metric-card blacktea"><div class="metric-label">Black Tea</div><div id="mStatBlackTea" class="metric-value">0</div></div>
+                  <div class="daily-metric-card blackcoffee"><div class="metric-label">Black Coffee</div><div id="mStatBlackCoffee" class="metric-value">0</div></div>
                 </div>
+                <div class="daily-grand-total">GRAND TOTAL: <span id="mStatGrand">0</span> Cups</div>
               </div>
-              <div class="card" style="padding:12px;">
-                <h4 style="margin-bottom:10px; color:#44474E; font-size:.95rem;">📥 My Reports & Downloads</h4>      
-                <div style="display:flex; gap:8px; margin-bottom:12px; background:#F1F5F9; padding:8px; border-radius:8px; border:1px solid #CBD5E1;">
-                    <div style="flex:1;">
-                        <label style="font-size:.75rem; color:#44474E; font-weight:700;">Select Month</label>
-                        <input type="month" id="pbReportMonth" value="${new Date().toISOString().slice(0,7)}" style="width:100%; padding:8px; border-radius:6px; border:1px solid #CBD5E1; margin-top:4px; font-size:.8rem;">
+
+              <div class="card reports-compact-card" style="padding:8px;">
+                <h4 style="margin:0 0 7px; color:#44474E; font-size:.9rem;">📥 My Reports & Downloads</h4>
+
+                <!-- Three compact filters in one line -->
+                <div class="reports-filter-grid">
+                  <div class="report-filter-box month-filter-box">
+                    <label>Month</label>
+                    <div class="month-nav-wrap">
+                      <button type="button" id="pbReportPrevMonth" class="month-nav-btn" aria-label="Previous month">‹</button>
+                      <input type="month" id="pbReportMonth" value="${selectedMonth}" aria-label="Select month">
+                      <button type="button" id="pbReportNextMonth" class="month-nav-btn" aria-label="Next month">›</button>
                     </div>
-                    <div style="flex:1;">
-                        <label style="font-size:.75rem; color:#0A56D0; font-weight:700;">Supply Source</label>
-                        <select id="pbReportSupplySource" style="width:100%; padding:8px; border-radius:6px; border:1px solid #0A56D0; color:#0A56D0; font-weight:bold; background:#fff; margin-top:4px; font-size:.8rem;">
-                            <option value="Contractor">☕ IA Caterers</option>
-                            <option value="DAU Direct Purchase">🛒 DAU Direct</option>
-                        </select>
-                    </div>
-                </div>
-                <div style="border-top:1px solid #E2E8F0; padding-top:10px; margin-top:6px;">
-                  <h5 style="color:#7C3AED; margin-bottom:6px; font-size:.85rem;">1. All Tea Entry Preview</h5>
-                  <div style="display:flex; gap:6px; align-items:center;">
-                    <select id="pbGridExportCategory" style="flex:1; margin:0; padding:0 8px; height:38px; border-radius:6px; border:1px solid #CBD5E1; font-size:.8rem; box-sizing:border-box;">
-                      <option value="All">All Categories</option>
-                      <option value="Faculty">Faculty</option>
-                      <option value="Staff">Staff</option>
-                      <option value="Law">Law</option>
-                      <option value="Outsourced">Outsourced</option>
+                  </div>
+                  <div class="report-filter-box">
+                    <label>Supply Source</label>
+                    <select id="pbReportSupplySource" aria-label="Supply source">
+                      <option value="Contractor" ${selectedSupply === 'Contractor' ? 'selected' : ''}>IA Caterers</option>
+                      <option value="DAU Direct Purchase" ${selectedSupply === 'DAU Direct Purchase' ? 'selected' : ''}>DAU Direct</option>
                     </select>
-                    <button id="pbDownloadGridExcelBtn" class="btn" style="background:#7C3AED; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">👁️ Preview</button>
+                  </div>
+                  <div class="report-filter-box">
+                    <label>Category</label>
+                    <select id="pbGridExportCategory" aria-label="Category">
+                      <option value="All" ${selectedCategory === 'All' ? 'selected' : ''}>All Categories</option>
+                      <option value="Faculty" ${selectedCategory === 'Faculty' ? 'selected' : ''}>Faculty</option>
+                      <option value="Staff" ${selectedCategory === 'Staff' ? 'selected' : ''}>Staff</option>
+                      <option value="Law" ${selectedCategory === 'Law' ? 'selected' : ''}>Law</option>
+                      <option value="Outsourced" ${selectedCategory === 'Outsourced' ? 'selected' : ''}>Outsourced</option>
+                    </select>
                   </div>
                 </div>
 
-                <div style="border-top:1px solid #E2E8F0; padding-top:10px; margin-top:10px;">
-                  <h5 style="color:#059669; margin-bottom:6px; font-size:.85rem;">2. Delivery Report (Regular)</h5>
-                  <div style="display:flex; gap:6px;">
-                    <button onclick="window.generateFreshPBDeliveryReport('regular', false)" class="btn" style="background:#059669; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">👁️ Preview</button>
-                    <button onclick="window.generateFreshPBDeliveryReport('regular', true)" class="success" style="background:#047857; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">📊 Excel</button>
+                <div class="report-action-row purple-report-row">
+                  <div class="report-action-title">1. All Tea Entry Preview</div>
+                  <button id="pbDownloadGridExcelBtn" class="report-action-btn purple">👁️ Preview</button>
+                </div>
+
+                <div class="report-action-row green-report-row">
+                  <div class="report-action-title">2. Delivery Report (Regular)</div>
+                  <div class="report-btn-pair">
+                    <button onclick="window.generateFreshPBDeliveryReport('regular', false)" class="report-action-btn green">👁️ Preview</button>
+                    <button onclick="window.generateFreshPBDeliveryReport('regular', true)" class="report-action-btn dark-green">📊 Excel</button>
                   </div>
                 </div>
 
-                <div style="border-top:1px solid #E2E8F0; padding-top:10px; margin-top:10px;">
-                  <h5 style="color:#D97706; margin-bottom:6px; font-size:.85rem;">3. Delivery Report (Meetings)</h5>
-                  <div style="display:flex; gap:6px;">
-                    <button onclick="window.generateFreshPBDeliveryReport('meeting', false)" class="btn" style="background:#D97706; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">👁️ Preview</button>
-                    <button onclick="window.generateFreshPBDeliveryReport('meeting', true)" class="success" style="background:#B45309; flex:1; margin:0; padding:0; height:38px; min-height:38px; border-radius:6px; font-size:.8rem; box-sizing:border-box; display:flex; align-items:center; justify-content:center;">📊 Excel</button>
+                <div class="report-action-row orange-report-row">
+                  <div class="report-action-title">3. Delivery Report (Meetings)</div>
+                  <div class="report-btn-pair">
+                    <button onclick="window.generateFreshPBDeliveryReport('meeting', false)" class="report-action-btn orange">👁️ Preview</button>
+                    <button onclick="window.generateFreshPBDeliveryReport('meeting', true)" class="report-action-btn dark-orange">📊 Excel</button>
                   </div>
+                </div>
+
+                <div class="report-action-row" style="border-top:1px solid #E2E8F0; border-bottom:0; padding-top:8px; margin-top:2px;">
+                  <div class="report-action-title" style="color:#D97706;">4. Extra Tea</div>
+                  <button type="button" id="openExtraTeaInlineBtn" class="report-action-btn" style="background:#D97706; color:#fff; flex:0 0 150px;">☕ Open / Close</button>
+                </div>
+                <div id="extraTeaInlineSection" class="hidden" style="margin-top:6px; border:1px solid #FDE68A; background:#FFFBEB; border-radius:8px; padding:8px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:7px;">
+                    <strong style="color:#B45309; font-size:.82rem;">☕ My Extra Tea Records</strong>
+                    <button type="button" id="addExtraTeaInlineBtn" class="success" style="padding:6px 10px; font-size:.72rem; min-height:30px;">➕ New Record</button>
+                  </div>
+                  <div class="merged-filter-row" style="margin-bottom:7px;">
+                    <input id="extraTeaSearch" placeholder="🔍 Search..." style="flex:2; margin:0; padding:7px 9px; border-radius:6px; border:1px solid #CBD5E1; font-size:.75rem;">
+                    <select id="extraTeaFilterBeverage" style="flex:1; margin:0; padding:7px 9px; border-radius:6px; border:1px solid #CBD5E1; font-size:.75rem;">
+                      <option value="">All Beverages</option>
+                      ${(typeof CONTRACTOR_BEVERAGES !== 'undefined' ? CONTRACTOR_BEVERAGES : []).concat(typeof DAU_PURCHASE_BEVERAGES !== 'undefined' ? DAU_PURCHASE_BEVERAGES : []).filter((v,i,a)=>a.indexOf(v)===i).map(b => `<option value="${b}">${b}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div id="extraTeaMyRecordsList" class="extra-tea-table-wrap" style="max-height:360px;"></div>
                 </div>
               </div>
             `;
 
-                document.getElementById('myRecordsDate').addEventListener('change', window.loadMyRecordsData);
-                
-                document.getElementById('pbDownloadGridExcelBtn').onclick = () => {
-                    const month = document.getElementById('pbReportMonth').value;
-                    const supply = document.getElementById('pbReportSupplySource').value;
-                    const cat = document.getElementById('pbGridExportCategory').value;
-                    window.previewPantryMonthlyGrid(month, supply, currentUser.id, cat);
+                const dateEl = document.getElementById('myRecordsDate');
+                const monthEl = document.getElementById('pbReportMonth');
+                const supplyEl = document.getElementById('pbReportSupplySource');
+                const categoryEl = document.getElementById('pbGridExportCategory');
+
+                const refreshDaily = () => {
+                    window._myRecordsDate = dateEl.value || todayYMD;
+                    window.loadMyRecordsData();
                 };
-                
-                setTimeout(window.loadMyRecordsData, 200);
-            }         
+
+                dateEl.addEventListener('change', refreshDaily);
+                // Use local calendar arithmetic. Do NOT use toISOString() here because
+                // it converts midnight IST to the previous UTC date and breaks the
+                // forward/backward day navigation.
+                const shiftDailyDate = (delta) => {
+                    const value = dateEl.value || todayYMD;
+                    const parts = value.split('-').map(Number);
+                    const d = new Date(parts[0], parts[1] - 1, parts[2]);
+                    d.setDate(d.getDate() + delta);
+                    const yyyy = d.getFullYear();
+                    const mm = String(d.getMonth() + 1).padStart(2, '0');
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    dateEl.value = `${yyyy}-${mm}-${dd}`;
+                    refreshDaily();
+                };
+                document.getElementById('myRecordsPrevDate').onclick = () => shiftDailyDate(-1);
+                document.getElementById('myRecordsNextDate').onclick = () => shiftDailyDate(1);
+
+                const refreshReportState = () => {
+                    window._myReportsMonth = monthEl.value;
+                    window._myReportsSupply = supplyEl.value;
+                    window._myReportsCategory = categoryEl.value;
+                };
+                monthEl.addEventListener('change', refreshReportState);
+                supplyEl.addEventListener('change', refreshReportState);
+                categoryEl.addEventListener('change', refreshReportState);
+
+                const extraInlineSection = document.getElementById('extraTeaInlineSection');
+                const openExtraInlineBtn = document.getElementById('openExtraTeaInlineBtn');
+                if (extraInlineSection && openExtraInlineBtn) {
+                    const syncExtraInline = () => {
+                        const open = !!window._extraTeaInlineOpen;
+                        extraInlineSection.classList.toggle('hidden', !open);
+                        openExtraInlineBtn.textContent = open ? '☕ Close Records' : '☕ Open Records';
+                        if (open) window.renderExtraTeaMyRecords?.();
+                    };
+                    syncExtraInline();
+                    openExtraInlineBtn.onclick = () => {
+                        window._extraTeaInlineOpen = !window._extraTeaInlineOpen;
+                        syncExtraInline();
+                    };
+                    document.getElementById('addExtraTeaInlineBtn')?.addEventListener('click', () => window.openExtraTeaForm(null));
+                    document.getElementById('extraTeaSearch')?.addEventListener('input', window.renderExtraTeaMyRecords);
+                    document.getElementById('extraTeaFilterBeverage')?.addEventListener('change', window.renderExtraTeaMyRecords);
+                }
+
+                const shiftMonth = (delta) => {
+                    const value = monthEl.value || selectedMonth;
+                    const [y, m] = value.split('-').map(Number);
+                    const d = new Date(y, m - 1 + delta, 1);
+                    monthEl.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                    refreshReportState();
+                };
+                document.getElementById('pbReportPrevMonth').onclick = () => shiftMonth(-1);
+                document.getElementById('pbReportNextMonth').onclick = () => shiftMonth(1);
+
+                document.getElementById('pbDownloadGridExcelBtn').onclick = () => {
+                    refreshReportState();
+                    window.previewPantryMonthlyGrid(monthEl.value, supplyEl.value, currentUser.id, categoryEl.value);
+                };
+
+                // load immediately; this fixes the old permanent-zero matrix.
+                window.loadMyRecordsData();
+            }
+
+            // ============================================================
+            // DAILY MATRIX DATA
+            // ============================================================
+            window.loadMyRecordsData = function() {
+                const dateEl = document.getElementById('myRecordsDate');
+                if (!dateEl) return;
+
+                const targetYMD = dateEl.value || new Date().toISOString().slice(0, 10);
+                window._myRecordsDate = targetYMD;
+                const targetDMY = convertYMDtoDMY(targetYMD);
+
+                const counts = {
+                    tea: 0,
+                    coffee: 0,
+                    greenTea: 0,
+                    lemonTea: 0,
+                    blackTea: 0,
+                    blackCoffee: 0
+                };
+
+                const isPantryUser = currentUser && currentUser.role === 'pantry';
+                const targetPantryId = isPantryUser ? currentUser.id : null;
+
+                (logsData || []).forEach(log => {
+                    if (!log || !log.date) return;
+                    if (parseDMYToYMD(log.date) !== targetYMD && log.date !== targetDMY) return;
+                    if (targetPantryId && log.pantryId !== targetPantryId) return;
+
+                    // Driver and Maintenance staff consume tea/coffee themselves.
+                    // Their entries are recorded for reference, but must NOT be included
+                    // in the Pantry Boy Daily Matrix totals. Match the same exclusion
+                    // logic used by the delivery reports (department/category/name).
+                    const emp = employeeList.find(e => e.id === log.employeeId);
+                    if (emp) {
+                        const dept = String(emp.department || '').trim().toLowerCase();
+                        const cat = String(emp.category || '').trim().toLowerCase();
+                        const name = String(emp.name || '').trim().toLowerCase();
+                        const isDriver = dept.includes('driver') || cat.includes('driver') || name.includes('driver');
+                        const isMaintenance = dept.includes('maintenance') || cat.includes('maintenance') || name.includes('maintenance');
+                        if (isDriver || isMaintenance) return;
+                    }
+
+                    const drink = String(log.drink || '').trim().toLowerCase();
+                    const qty = Number(log.qty) > 0 ? Number(log.qty) : 1;
+                    if (drink === 'tea') counts.tea += qty;
+                    else if (drink === 'coffee') counts.coffee += qty;
+                    else if (drink === 'green tea') counts.greenTea += qty;
+                    else if (drink === 'lemon tea') counts.lemonTea += qty;
+                    else if (drink === 'black tea') counts.blackTea += qty;
+                    else if (drink === 'black coffee') counts.blackCoffee += qty;
+                });
+
+                const values = {
+                    mStatTea: counts.tea,
+                    mStatCoffee: counts.coffee,
+                    mStatGreen: counts.greenTea,
+                    mStatLemon: counts.lemonTea,
+                    mStatBlackTea: counts.blackTea,
+                    mStatBlackCoffee: counts.blackCoffee
+                };
+                Object.entries(values).forEach(([id, value]) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = String(value);
+                });
+                const total = Object.values(counts).reduce((sum, value) => sum + value, 0);
+                const totalEl = document.getElementById('mStatGrand');
+                if (totalEl) totalEl.textContent = String(total);
+            };
 
             window.previewPantryMonthlyGrid = function(month, supplySource, pantryId, categoryVal) {
                 if (!month) return appAlert('Error', 'Select month.');
@@ -5838,7 +6608,7 @@
                     if (e.assignedPantryId !== pantryId) return false;
                     // Remove Inactive if no logs in this month
                     if (e.status === 'Inactive') {
-                        const hasLogThisMonth = logsData.some(l => l.employeeId === e.id && parseDMYToYMD(l.date).startsWith(month));
+                        const hasLogThisMonth = logsData.some(l => l.employeeId === e.id && canonicalLogDate(l.date).startsWith(month));
                         if (!hasLogThisMonth) return false;
                     }
                     return true;
@@ -5894,7 +6664,7 @@
                 const fastLogMap = {};
                 logsData.forEach(l => {
                     if (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')) {
-                        fastLogMap[l.employeeId + '_' + l.date + '_' + l.session] = l;
+                        if (!fastLogMap[canonicalMonthlyLogKey(l)]) fastLogMap[canonicalMonthlyLogKey(l)] = l;
                     }
                 });
 
@@ -5908,8 +6678,8 @@
                     
                     emps.forEach(emp => {
                         // સીધો જ ડેટા મેપમાંથી ઉપાડી લેશે (લૂપ નહિ ફરે)
-                        const mLog = fastLogMap[emp.id + '_' + dmy + '_Morning'];
-                        const aLog = fastLogMap[emp.id + '_' + dmy + '_Afternoon'];
+                        const mLog = fastLogMap[emp.id + '_' + `${yy}-${mm}-${String(d).padStart(2,'0')}` + '_Morning'];
+                        const aLog = fastLogMap[emp.id + '_' + `${yy}-${mm}-${String(d).padStart(2,'0')}` + '_Afternoon'];
                         
                         const mVal = mLog ? mLog.drink : '-';
                         const aVal = aLog ? aLog.drink : '-';
@@ -6506,6 +7276,7 @@
                   <button class="dash-btn" data-tab="bin" style="color:#DC3545; border-color:#FECACA; background:#FEF2F2;"><span class="icon">🗑️</span><span class="label">Recycle Bin</span></button>
                   <button class="dash-btn" data-tab="dau_purchase" style="color:#059669; border-color:#A7F3D0; background:#ECFDF5;"><span class="icon">🛒</span><span class="label">DAU Purchase Allotment</span></button>
                   <button class="dash-btn" data-tab="web_sync" style="color:#0284C7; border-color:#BAE6FD; background:#F0F9FF;"><span class="icon">🌐</span><span class="label">Web Sync Review</span></button>
+                  <button class="dash-btn" data-tab="messenger" style="color:#0A56D0; border-color:#BFDBFE; background:#EFF6FF;"><span class="icon">💬</span><span class="label">Chat</span></button>
                   <button class="dash-btn" data-tab="settings" style="color:#44474E; border-color:#E2E8F0; background:#F8FAFC;"><span class="icon">⚙️</span><span class="label">Settings</span></button>
                 </div>
               </div>
@@ -6835,124 +7606,131 @@
                         window.renderPlainEventsAdmin();
                         break;
 
+                    case 'messenger':
+                        window.renderDauCommonMessenger?.('adminContent', 'admin');
+                        break;
+
                                         case 'reports':
                         const todayYMD = new Date().toISOString().split('T')[0];
                         cont.innerHTML = adminMobileCSS + `
-                  <div class="a-card">
-                    <h4 class="a-title" style="text-align:center; justify-content:center; font-size:14px; margin-bottom:12px;">📥 Reports & Downloads</h4>
-                    
-                    <!-- Master Dropdown for Supply Source & Month -->
-                    <div style="display:flex; gap:6px; margin-bottom:12px; background:#F1F5F9; padding:8px; border-radius:8px; border:1px solid #CBD5E1; align-items:center;">
-                        <input type="month" id="reportMonth" value="${new Date().toISOString().slice(0,7)}" class="a-input" style="flex:1;">
-                        <select id="reportSupplySource" class="a-input" style="flex:1.2; border-color:#0A56D0; color:#0A56D0;">
-                            <option value="Contractor">☕ IA Caterers</option>
-                            <option value="DAU Direct Purchase">🛒 DAU Direct</option>
-                        </select>
-                    </div>
+                  <div class="card reports-compact-card" style="padding:8px; margin-bottom:8px;">
+                    <h4 style="margin:0 0 6px; color:#44474E; font-size:.9rem; text-align:center;">📥 Reports & Downloads</h4>
 
-                    <div style="border-top:1px solid #E2E8F0; padding-top:10px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                            <h5 style="color:#44474E; margin:0; font-size:12px; font-weight:bold;">1. Regular Daily Tea</h5>
-                            <label class="a-chk-row" style="padding:2px 6px; font-size:10px; margin:0;"><input type="checkbox" id="includeFeedbackCol"> +Feedback</label>
-                        </div>
-                        <div style="display:flex; gap:6px;">
-                            <select id="reportCategory" class="a-input" style="flex:1;">
-                                <option value="All">All Categories</option>
-                                <option>Faculty</option>
-                                <option>Staff</option>
-                                <option>Law</option>
-                                <option>Outsourced</option>
-                            </select>
-                            <button id="previewRegularBtn" class="a-btn success" style="flex:0.6;">👁️ Print</button>
-                        </div>
-                    </div>
-                    
-                    <div style="display:flex; gap:6px; border-top:1px dashed #E2E8F0; padding-top:10px; margin-top:10px;">
-                        <button id="previewExtraBtn" class="a-btn warning" style="flex:1;">☕ Extra Tea</button>
-                        <button id="previewMeetingBtn" class="a-btn primary" style="flex:1;">🤝 Meetings</button>
-                    </div>
-                    
-                    <div style="margin-top:10px;">
-                        <button id="downloadAllExcelBtn2" class="a-btn success" style="background:#146C43; font-size:11px;">📊 Download All Regular Tea Excel</button>
-                    </div>
-                    
-                    <div style="border-top:1px solid #E2E8F0; padding-top:10px; margin-top:10px;">
-                      <h5 style="color:#7C3AED; margin:0 0 6px 0; font-size:12px; font-weight:bold;">2. Monthly Grid Export</h5>
-                      <div class="a-grid-2" style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
-                        <select id="gridExportPantrySelect" class="a-input">
+                    <!-- Compact master filters: one line, shared wherever applicable -->
+                    <div class="reports-filter-grid" style="grid-template-columns:repeat(4,minmax(0,1fr)); gap:4px; padding:5px; margin-bottom:5px;">
+                      <div class="report-filter-box">
+                        <label>Month</label>
+                        <input type="month" id="reportMonth" value="${new Date().toISOString().slice(0,7)}" aria-label="Select month">
+                      </div>
+                      <div class="report-filter-box">
+                        <label>Source</label>
+                        <select id="reportSupplySource" aria-label="Supply source">
+                          <option value="Contractor">☕ IA</option>
+                          <option value="DAU Direct Purchase">🛒 DAU</option>
+                        </select>
+                      </div>
+                      <div class="report-filter-box">
+                        <label>Category</label>
+                        <select id="reportCategory" aria-label="Category">
+                          <option value="All">All Cat.</option>
+                          <option>Faculty</option>
+                          <option>Staff</option>
+                          <option>Law</option>
+                          <option>Outsourced</option>
+                        </select>
+                      </div>
+                      <div class="report-filter-box">
+                        <label>Pantry</label>
+                        <select id="gridExportPantrySelect" aria-label="Pantry">
                           <option value="All">All Pantry</option>
                           ${pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
                         </select>
-                        <select id="gridExportCategorySelect" class="a-input">
-                          <option value="All">All Categories</option>
-                          <option value="Faculty">Faculty</option>
-                          <option value="Staff">Staff</option>
-                          <option value="Law">Law</option>
-                          <option value="Outsourced">Outsourced</option>
-                        </select>
-                      </div>
-                      <div style="display:flex; gap:6px;">
-                        <button id="liveEditGridBtn" class="a-btn" style="background:#8B5CF6; flex:1;">✏️ Live Edit Grid</button>
-                        <button id="downloadGridExcelBtn" class="a-btn" style="background:#7C3AED; flex:1;">📗 Excel</button>
-                        <button id="printGridPdfBtn" class="a-btn" style="background:#6D28D9; flex:1;">📄 PDF/Print</button>
                       </div>
                     </div>
 
-                    <!-- 🚀 NEW: Delivery Reports for Admin -->
-                    <div style="border-top:1px solid #E2E8F0; padding-top:10px; margin-top:10px;">
-                        <h5 style="color:#059669; margin-bottom:6px; font-size:12px; font-weight:bold;">3. Delivery Report (Regular)</h5>
-                        <div style="display:flex; gap:6px; align-items:center;">
-                            <select id="adminDeliveryPantry" class="a-input" style="flex:1;">
-                                <option value="All">All Pantry Boys</option>
-                                ${pantryTeam.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
-                            </select>
-                            <button onclick="window.generateFreshPBDeliveryReport('regular', false, document.getElementById('adminDeliveryPantry').value)" class="a-btn" style="background:#059669; flex:0.5;">👁️ Print</button>
-                            <button onclick="window.generateFreshPBDeliveryReport('regular', true, document.getElementById('adminDeliveryPantry').value)" class="a-btn success" style="flex:0.5;">📊 Excel</button>
-                        </div>
-                    </div>
-                    <div style="border-top:1px solid #E2E8F0; padding-top:10px; margin-top:10px;">
-                        <h5 style="color:#D97706; margin-bottom:6px; font-size:12px; font-weight:bold;">4. Delivery Report (Meetings)</h5>
-                        <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-                            <select id="adminDeliveryMeetingPantry" class="a-input" style="flex:1; min-width:100px;">
-                                <option value="All">All Pantry Boys</option>
-                                ${pantryTeam.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}
-                            </select>
-                            <select id="adminDeliveryMeetingDept" class="a-input" style="flex:1; min-width:100px;">
-                                <option value="All">All Categories</option>
-                                <option value="SoL">SoL (Law)</option>
-                                <option value="Admissions">Admissions</option>
-                                <option value="Placement">Placement</option>
-                                <option value="Office">Office</option>
-                            </select>
-                            <div style="display:flex; gap:6px; flex:1; min-width:120px;">
-                                <button onclick="window.generateFreshPBDeliveryReport('meeting', false, document.getElementById('adminDeliveryMeetingPantry').value, document.getElementById('adminDeliveryMeetingDept').value)" class="a-btn" style="background:#D97706; flex:1;">👁️ Print</button>
-                                <button onclick="window.generateFreshPBDeliveryReport('meeting', true, document.getElementById('adminDeliveryMeetingPantry').value, document.getElementById('adminDeliveryMeetingDept').value)" class="a-btn" style="background:#B45309; color:#fff; flex:1;">📊 Excel</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 5. VERIFICATION MODULE -->
-                    <div style="margin-top:12px; background:#F0FDF4; border-radius:8px; padding:12px; border:1px solid #BBF7D0;">
-                      <h5 style="color:#15803D; margin:0 0 8px 0; font-size:12px; font-weight:700;">🏪 Bill Verification</h5>
-                      <div style="display:flex; gap:6px; margin-bottom:10px;">
-                        <select id="iaBillDepartment" class="a-input" style="flex:1.5;">
-                            <option value="Faculty">Faculty</option>
-                            <option value="Staff">Staff</option>
-                            <option value="SoL">SoL</option>
-                            <option value="Outsource">Outsource</option>
-                        </select>
-                        <input type="number" id="iaCGSTPercentage" placeholder="CGST%" value="0" min="0" step="0.1" class="a-input" style="flex:1; text-align:center;">
-                        <input type="number" id="iaSGSTPercentage" placeholder="SGST%" value="0" min="0" step="0.1" class="a-input" style="flex:1; text-align:center;">
+                    <div class="report-action-row" style="padding:4px 0;">
+                      <div class="report-action-title">1. Regular Daily Tea</div>
+                      <div style="display:flex;align-items:center;gap:4px;flex-wrap:nowrap;">
+                        <label style="display:flex;align-items:center;gap:3px;font-size:10px;font-weight:700;white-space:nowrap;color:#475569;cursor:pointer;">
+                          <input type="checkbox" id="includeFeedbackCol" style="width:14px;height:14px;margin:0;accent-color:#0A56D0;"> Feedback
+                        </label>
+                        <button id="previewRegularBtn" class="report-action-btn green">👁️ Preview</button>
+                        <button id="downloadAllExcelBtn2" class="report-action-btn dark-green">📊 Excel</button>
                       </div>
-                      <button type="button" id="generateIACaterersBillBtn" class="a-btn" style="background:#166534; font-size:11px;">🧾 Verify & Print Bill</button>
                     </div>
 
+                    <div class="report-action-row" style="padding:4px 0;">
+                      <div class="report-action-title" style="color:#7C3AED;">2. Monthly Grid</div>
+                      <div class="report-btn-pair">
+                        <button id="liveEditGridBtn" class="report-action-btn" style="background:#8B5CF6;color:#fff;">✏️ Live</button>
+                        <button id="downloadGridExcelBtn" class="report-action-btn" style="background:#7C3AED;color:#fff;">📗 Excel</button>
+                      </div>
+                    </div>
+                    <button id="printGridPdfBtn" class="report-action-btn" style="width:120px;min-height:28px;height:28px;padding:3px 8px;background:#6D28D9;color:#fff;margin:3px 0 1px;font-size:10px;border-radius:6px;">👁️ Preview</button>
+
+                    <!-- Kept hidden for existing functions that still read this ID -->
+                    <select id="gridExportCategorySelect" style="display:none;">
+                      <option value="All">All Categories</option>
+                    </select>
+
+                    <div class="report-action-row" style="padding:4px 0;">
+                      <div class="report-action-title" style="color:#059669;">3. Delivery (Regular)</div>
+                      <div class="report-btn-pair">
+                        <button onclick="window.generateFreshPBDeliveryReport('regular', false, document.getElementById('gridExportPantrySelect').value)" class="report-action-btn green">👁️ Print</button>
+                        <button onclick="window.generateFreshPBDeliveryReport('regular', true, document.getElementById('gridExportPantrySelect').value)" class="report-action-btn dark-green">📊 Excel</button>
+                      </div>
+                    </div>
+                    <select id="adminDeliveryPantry" style="display:none;"><option value="All">All Pantry Boys</option></select>
+
+                    <div class="report-action-row" style="padding:4px 0;">
+                      <div class="report-action-title" style="color:#D97706;">4. Delivery (Meetings)</div>
+                      <div class="report-btn-pair">
+                        <button onclick="window.generateFreshPBDeliveryReport('meeting', false, document.getElementById('gridExportPantrySelect').value, document.getElementById('adminDeliveryMeetingDept').value)" class="report-action-btn orange">👁️ Print</button>
+                        <button onclick="window.generateFreshPBDeliveryReport('meeting', true, document.getElementById('gridExportPantrySelect').value, document.getElementById('adminDeliveryMeetingDept').value)" class="report-action-btn dark-orange">📊 Excel</button>
+                      </div>
+                    </div>
+                    <div style="display:flex;gap:4px;margin:2px 0 1px;">
+                      <select id="adminDeliveryMeetingDept" class="a-input" style="flex:1;height:30px;min-height:30px;padding:3px 5px;font-size:10px;">
+                        <option value="All">All Meeting Heads</option>
+                        <option value="SoL">SoL (Law)</option>
+                        <option value="Admissions">Admissions</option>
+                        <option value="Placement">Placement</option>
+                        <option value="Office">Office</option>
+                      </select>
+                    </div>
+                    <select id="adminDeliveryMeetingPantry" style="display:none;"><option value="All">All Pantry Boys</option></select>
+
+                    <div class="report-action-row" style="padding:4px 0;">
+                      <div class="report-action-title" style="color:#15803D;">5. Bill Verification</div>
+                      <div class="report-btn-pair">
+                        <button type="button" id="generateIACaterersBillBtn" class="report-action-btn" style="background:#166534;color:#fff;">🧾 Verify & Print</button>
+                      </div>
+                    </div>
+                    <div style="display:flex;gap:4px;margin-top:2px;">
+                      <select id="iaBillDepartment" class="a-input" style="flex:1;height:30px;min-height:30px;padding:3px 5px;font-size:10px;">
+                        <option value="Faculty">Faculty</option>
+                        <option value="Staff">Staff</option>
+                        <option value="SoL">SoL</option>
+                        <option value="Outsource">Outsource</option>
+                      </select>
+                      <input type="number" id="iaCGSTPercentage" placeholder="CGST%" value="0" min="0" step="0.1" class="a-input" style="flex:1;height:30px;min-height:30px;padding:3px 5px;font-size:10px;">
+                      <input type="number" id="iaSGSTPercentage" placeholder="SGST%" value="0" min="0" step="0.1" class="a-input" style="flex:1;height:30px;min-height:30px;padding:3px 5px;font-size:10px;">
+                    </div>
                   </div>
                 `;
 
+                        document.getElementById('gridExportCategorySelect').value = document.getElementById('reportCategory').value;
+                        document.getElementById('reportCategory').addEventListener('change', function(){
+                            document.getElementById('gridExportCategorySelect').value = this.value;
+                        });
+                        document.getElementById('gridExportPantrySelect').addEventListener('change', function(){
+                            document.getElementById('adminDeliveryPantry').value = this.value;
+                            document.getElementById('adminDeliveryMeetingPantry').value = this.value;
+                        });
+                        document.getElementById('adminDeliveryPantry').value = document.getElementById('gridExportPantrySelect').value;
+                        document.getElementById('adminDeliveryMeetingPantry').value = document.getElementById('gridExportPantrySelect').value;
+
                         document.getElementById('previewRegularBtn').onclick = () => window.previewIndividualReport('regular');
-                        document.getElementById('previewExtraBtn').onclick = () => window.previewIndividualReport('extra');
-                        document.getElementById('previewMeetingBtn').onclick = () => window.previewIndividualReport('meeting');
                         document.getElementById('downloadAllExcelBtn2').onclick = () => window.downloadAllCategoriesExcel();
                         document.getElementById('liveEditGridBtn').onclick = () => {
     const month = document.getElementById('reportMonth').value;
@@ -6979,7 +7757,7 @@
                             const monthStr = dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
 
                             // Filter logs by Supply Source
-                            let filteredLogs = logsData.filter(l => l.date && parseDMYToYMD(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                            let filteredLogs = logsData.filter(l => l.date && canonicalLogDate(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
                             
                             filteredLogs = filteredLogs.filter(l => {
                                 const emp = employeeList.find(e => e.id === l.employeeId);
@@ -9000,7 +9778,7 @@ window.openAdminLiveGrid = function(month, supplySource, pantryId, categoryVal, 
     const fastLogMap = {};
     logsData.forEach(l => {
         if (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')) {
-            fastLogMap[l.employeeId + '_' + l.date + '_' + l.session] = l;
+            if (!fastLogMap[canonicalMonthlyLogKey(l)]) fastLogMap[canonicalMonthlyLogKey(l)] = l;
         }
     });
 
@@ -9013,8 +9791,8 @@ window.openAdminLiveGrid = function(month, supplySource, pantryId, categoryVal, 
         htmlArr.push(`<tr><td class="l-td-date">${dd} <span style="font-size:8px; font-weight:normal; color:#64748B;">${dayName}</span></td>`);
         
         emps.forEach(emp => {
-            const mLog = fastLogMap[emp.id + '_' + dmy + '_Morning'];
-            const aLog = fastLogMap[emp.id + '_' + dmy + '_Afternoon'];
+            const mLog = fastLogMap[emp.id + '_' + `${yy}-${mm}-${String(d).padStart(2,'0')}` + '_Morning'];
+            const aLog = fastLogMap[emp.id + '_' + `${yy}-${mm}-${String(d).padStart(2,'0')}` + '_Afternoon'];
             
             htmlArr.push(`<td class="l-td-morn">${buildCell(emp.id, dmy, 'Morning', mLog ? mLog.drink : '', mLog?.id)}</td>`);
             htmlArr.push(`<td class="l-td-aft">${buildCell(emp.id, dmy, 'Afternoon', aLog ? aLog.drink : '', aLog?.id)}</td>`);
@@ -9162,6 +9940,16 @@ window.openAdminLiveGrid = function(month, supplySource, pantryId, categoryVal, 
             });
 
             document.addEventListener('keydown', function(e) {
+                // Never hijack Backspace/Delete while the user is typing in a form field.
+                // This keeps Android/mobile keyboard editing and native clear controls working.
+                const target = e.target;
+                const isFormField = target && (
+                    target.tagName === 'INPUT' ||
+                    target.tagName === 'TEXTAREA' ||
+                    target.tagName === 'SELECT' ||
+                    target.isContentEditable
+                );
+                if (isFormField) return;
                 if (activeCell) {
                     if (e.key === 'Backspace' || e.key === 'Delete') {
                         e.preventDefault();
@@ -9333,16 +10121,27 @@ window.saveGridCellChange = function(cellEl, val) {
 
     if (existingLogId) {
         if (val && val !== '-') {
-            db.ref('logs/' + existingLogId).update({ drink: val }).then(() => {
+            db.ref('logs/' + existingLogId).update({ drink: val }).then(() => db.ref('logs').once('value')).then(snap => {
+                logsData = parseSnap(snap);
                 cellEl.style.backgroundColor = '#DCFCE7';
                 setTimeout(() => cellEl.style.backgroundColor = 'transparent', 1000);
                 window.recalcAdminLiveGridTotals();
+                if (cellEl.dataset.session && /^VIP_\d+$/.test(String(cellEl.dataset.session))) {
+                    if (document.getElementById('pantryMonthlyGridWrapper') && typeof window.openPantryLiveGrid === 'function') window.openPantryLiveGrid();
+                    if (typeof window.populateServe === 'function') window.populateServe();
+                }
             });
         } else {
-            db.ref('logs/' + existingLogId).remove().then(() => {
+            db.ref('logs/' + existingLogId).remove().then(() => db.ref('logs').once('value')).then(snap => {
+                logsData = parseSnap(snap);
                 cellEl.dataset.logid = '';
+                cellEl.dataset.val = '';
                 cellEl.style.backgroundColor = 'transparent';
                 window.recalcAdminLiveGridTotals();
+                if (cellEl.dataset.session && /^VIP_\d+$/.test(String(cellEl.dataset.session))) {
+                    if (document.getElementById('pantryMonthlyGridWrapper') && typeof window.openPantryLiveGrid === 'function') window.openPantryLiveGrid();
+                    if (typeof window.populateServe === 'function') window.populateServe();
+                }
             });
         }
     } else {
@@ -9362,11 +10161,16 @@ window.saveGridCellChange = function(cellEl, val) {
                 drink: val, session: session, date: dateDMY,
                 pantryId: pId || 'admin', pantryName: pName,
                 supplySource: supplySource
-            }).then(() => {
+            }).then(() => db.ref('logs').once('value')).then(snap => {
+                logsData = parseSnap(snap);
                 cellEl.dataset.logid = newId;
                 cellEl.style.backgroundColor = '#DCFCE7';
                 setTimeout(() => cellEl.style.backgroundColor = 'transparent', 1000);
                 window.recalcAdminLiveGridTotals();
+                if (cellEl.dataset.session && /^VIP_\d+$/.test(String(cellEl.dataset.session))) {
+                    if (document.getElementById('pantryMonthlyGridWrapper') && typeof window.openPantryLiveGrid === 'function') window.openPantryLiveGrid();
+                    if (typeof window.populateServe === 'function') window.populateServe();
+                }
             });
         } else {
             cellEl.style.backgroundColor = 'transparent';
@@ -9382,29 +10186,46 @@ window.recalcAdminLiveGridTotals = function() {
 
     const allCells = table.querySelectorAll('.l-cell');
     const empTotals = {};
-    
     allCells.forEach(cell => {
         const emp = cell.dataset.emp;
-        if(!empTotals[emp]) {
-            empTotals[emp] = { tea:0, coffee:0, green:0, lemon:0, blackTea:0, blackCoffee:0, total:0 };
-        }
-        const val = (cell.dataset.val || '').toLowerCase();
+        if(!empTotals[emp]) empTotals[emp] = { tea:0, coffee:0, green:0, lemon:0, blackTea:0, blackCoffee:0, total:0 };
+        const val = (cell.dataset.val || '').toLowerCase().trim();
         if(val === 'tea') empTotals[emp].tea++;
         else if(val === 'coffee') empTotals[emp].coffee++;
         else if(val === 'green tea') empTotals[emp].green++;
         else if(val === 'lemon tea') empTotals[emp].lemon++;
         else if(val === 'black tea') empTotals[emp].blackTea++;
         else if(val === 'black coffee') empTotals[emp].blackCoffee++;
-        
         if(val && val !== '-') empTotals[emp].total++;
     });
 
-    const firstTr = table.querySelector('tbody tr');
-    if (!firstTr) return;
-    const firstRowCells = firstTr.querySelectorAll('.l-cell');
-    const empsInOrder = [];
-    for(let i=0; i<firstRowCells.length; i+=2) {
-        empsInOrder.push(firstRowCells[i].dataset.emp);
+    const firstHeaderRow = table.querySelector('thead tr:first-child');
+    if (!firstHeaderRow) return;
+    const empHeaders = Array.from(firstHeaderRow.querySelectorAll('th.p-l-th-emp'));
+    const empsInOrder = empHeaders.map(th => {
+        const firstCell = table.querySelector(`.l-cell[data-emp]`);
+        return firstCell ? null : null;
+    });
+    // Get employee order from the first date row; each employee can now have 2 + N VIP cells.
+    const firstBodyRow = table.querySelector('tbody:not(#adminLiveGridTotals) tr');
+    const orderedIds = [];
+    if (firstBodyRow) {
+        firstBodyRow.querySelectorAll('.l-cell').forEach(cell => {
+            const id = cell.dataset.emp;
+            if (id && !orderedIds.includes(id)) orderedIds.push(id);
+        });
+    }
+
+    const vipCounts = {};
+    orderedIds.forEach(empId => { vipCounts[empId] = 0; });
+    const secondHeaderRow = table.querySelector('thead tr:nth-child(2)');
+    if (secondHeaderRow) {
+        // Header order is represented by employee columns; derive each employee's span from the first row.
+        empHeaders.forEach((th, i) => {
+            const span = Number(th.getAttribute('colspan') || 2);
+            const empId = orderedIds[i];
+            if (empId) vipCounts[empId] = Math.max(0, span - 2);
+        });
     }
 
     const drinksArr = [
@@ -9418,21 +10239,30 @@ window.recalcAdminLiveGridTotals = function() {
 
     let totalsHtmlArr = [];
     drinksArr.forEach(d => {
-        let anyDrank = false;
-        empsInOrder.forEach(empId => { if(empTotals[empId] && empTotals[empId][d.key] > 0) anyDrank = true; });
-        
-        if (anyDrank) {
-            totalsHtmlArr.push(`<tr><td class="l-tot-lbl" style="background:${d.bg}; color:${d.color};">${d.label}</td>`);
-            empsInOrder.forEach(empId => {
-                let val = (empTotals[empId] && empTotals[empId][d.key]) ? empTotals[empId][d.key] : '-';
-                totalsHtmlArr.push(`<td colspan="2" class="l-tot-val" style="background:${d.bg}; color:${d.color};">${val}</td>`);
-            });
-            totalsHtmlArr.push(`</tr>`);
-        }
+        let anyDrank = orderedIds.some(empId => empTotals[empId] && empTotals[empId][d.key] > 0);
+        if (!anyDrank) return;
+        totalsHtmlArr.push(`<tr><td class="l-tot-lbl" style="background:${d.bg}; color:${d.color};">${d.label}</td>`);
+        orderedIds.forEach(empId => {
+            const val = (empTotals[empId] && empTotals[empId][d.key]) ? empTotals[empId][d.key] : '-';
+            const span = 2 + (vipCounts[empId] || 0);
+            totalsHtmlArr.push(`<td colspan="${span}" class="l-tot-val" style="background:${d.bg}; color:${d.color};">${val}</td>`);
+        });
+        totalsHtmlArr.push(`</tr>`);
     });
 
+    // Keep the existing category totals and add a live overall total row for VIP-inclusive consumption.
+    if (orderedIds.some(empId => empTotals[empId] && empTotals[empId].total > 0)) {
+        totalsHtmlArr.push(`<tr><td class="l-tot-lbl" style="background:#F8FAFC;color:#1E293B;font-weight:900;">Total</td>`);
+        orderedIds.forEach(empId => {
+            const val = (empTotals[empId] && empTotals[empId].total) ? empTotals[empId].total : '-';
+            const span = 2 + (vipCounts[empId] || 0);
+            totalsHtmlArr.push(`<td colspan="${span}" class="l-tot-val" style="background:#F8FAFC;color:#1E293B;font-weight:900;">${val}</td>`);
+        });
+        totalsHtmlArr.push(`</tr>`);
+    }
     tbodyTotals.innerHTML = totalsHtmlArr.join('');
 };
+
             // ============================================================
             // DELIVERY REPORT (REGULAR & MEETINGS - DATE WISE TOTALS)
             // ============================================================
@@ -9442,10 +10272,10 @@ window.recalcAdminLiveGridTotals = function() {
                     month = document.getElementById('reportMonth').value;
                     supplySource = document.getElementById('reportSupplySource').value;
                     if(type === 'regular') {
-                        pantryId = overridePantryVal || 'All';
+                        pantryId = overridePantryVal || document.getElementById('gridExportPantrySelect')?.value || 'All';
                         pantryName = pantryId === 'All' ? 'All Pantry Boys' : pantryTeam.find(p=>p.id===pantryId)?.name || 'Unknown';
                     } else {
-                        pantryName = overridePantryVal || 'All'; 
+                        pantryName = overridePantryVal || document.getElementById('gridExportPantrySelect')?.value || 'All'; 
                         pantryId = pantryName; 
                     }
                 } else {
@@ -9475,7 +10305,7 @@ window.recalcAdminLiveGridTotals = function() {
                              if (type === 'regular') {
                     reportTitle = `DAILY DELIVERY REPORT (REGULAR) - ${supplyText}`;
                     let filteredLogs = logsData.filter(l => 
-                        l.date && parseDMYToYMD(l.date).startsWith(month) &&
+                        l.date && canonicalLogDate(l.date).startsWith(month) &&
                         (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor'))
                     );
 
@@ -9499,6 +10329,21 @@ window.recalcAdminLiveGridTotals = function() {
                         return true; // બાકીના બધા (ઓફિસ આઉટસોર્સ સહિત) ગણાશે
                     });
                     // --- નવો કોડ પૂરો ---
+
+                    // Admin master Category filter applies to the regular delivery report too.
+                    if (currentUser.role === 'admin') {
+                        const masterCat = document.getElementById('reportCategory')?.value || 'All';
+                        if (masterCat !== 'All') {
+                            const catMatch = masterCat.trim().toLowerCase();
+                            filteredLogs = filteredLogs.filter(l => {
+                                const emp = employeeList.find(e => e.id === l.employeeId);
+                                if (!emp) return false;
+                                const c = String(emp.category || '').trim().toLowerCase();
+                                if (catMatch === 'outsourced' || catMatch === 'outsource') return c.includes('outsource');
+                                return c === catMatch;
+                            });
+                        }
+                    }
 
                     filteredLogs.forEach(l => {
                         let d = (l.drink || '').toLowerCase().trim();
@@ -9771,9 +10616,9 @@ window.previewIndividualReport = function(type) {
                     emps.forEach(emp => {
                         let t = 0, c = 0, gt = 0, lt = 0, bt = 0, bc = 0;
                         
-                        const empLogs = logsData.filter(l => l.employeeId === emp.id && parseDMYToYMD(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                        const empLogs = logsData.filter(l => l.employeeId === emp.id && canonicalLogDate(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
                         const uniqueLogs = {};
-                        empLogs.forEach(log => { uniqueLogs[log.date + '_' + log.session] = log; });
+                        empLogs.forEach(log => { if (!uniqueLogs[canonicalLogDate(log.date) + '_' + canonicalLogSession(log.session)]) uniqueLogs[canonicalLogDate(log.date) + '_' + canonicalLogSession(log.session)] = log; });
                         
                         Object.values(uniqueLogs).forEach(log => {
                             const d = (log.drink || '').toLowerCase().trim();
@@ -9987,9 +10832,9 @@ window.exportIndividualReport = async function(type) {
                     emps.forEach(emp => {
                         let t = 0, c = 0, gt = 0, lt = 0, bt = 0, bc = 0;
                         
-                        const empLogs = logsData.filter(l => l.employeeId === emp.id && parseDMYToYMD(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                        const empLogs = logsData.filter(l => l.employeeId === emp.id && canonicalLogDate(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
                         const uniqueLogs = {};
-                        empLogs.forEach(log => { uniqueLogs[log.date + '_' + log.session] = log; });
+                        empLogs.forEach(log => { if (!uniqueLogs[canonicalLogDate(log.date) + '_' + canonicalLogSession(log.session)]) uniqueLogs[canonicalLogDate(log.date) + '_' + canonicalLogSession(log.session)] = log; });
                         
                         Object.values(uniqueLogs).forEach(log => {
                             const d = (log.drink || '').toLowerCase().trim();
@@ -10213,9 +11058,9 @@ window.exportIndividualReport = async function(type) {
 
                     emps.forEach(emp => {
                         let t = 0, c = 0, gt = 0, lt = 0, bt = 0, bc = 0;
-                        const empLogs = logsData.filter(l => l.employeeId === emp.id && parseDMYToYMD(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
+                        const empLogs = logsData.filter(l => l.employeeId === emp.id && canonicalLogDate(l.date).startsWith(month) && (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')));
                         const uniqueLogs = {};
-                        empLogs.forEach(log => { uniqueLogs[log.date + '_' + log.session] = log; });
+                        empLogs.forEach(log => { if (!uniqueLogs[canonicalLogDate(log.date) + '_' + canonicalLogSession(log.session)]) uniqueLogs[canonicalLogDate(log.date) + '_' + canonicalLogSession(log.session)] = log; });
                         
                         Object.values(uniqueLogs).forEach(log => {
                             const d = (log.drink || '').toLowerCase().trim();
@@ -10322,7 +11167,7 @@ window.exportIndividualReport = async function(type) {
 window.adminExportMonthlyGrid = function(format, overrideMonth, overrideSupply, overridePantry, overrideCat) {
     const month = overrideMonth || document.getElementById('reportMonth')?.value;
     const pantryId = overridePantry || document.getElementById('gridExportPantrySelect')?.value;
-    const categoryVal = overrideCat || document.getElementById('gridExportCategorySelect')?.value;
+    const categoryVal = overrideCat || document.getElementById('gridExportCategorySelect')?.value || document.getElementById('reportCategory')?.value || 'All';
     const supplySource = overrideSupply || document.getElementById('reportSupplySource')?.value || 'Contractor';
     const supplyText = supplySource === 'Contractor' ? 'IA CATERERS' : 'DAU DIRECT PURCHASE';
     
@@ -10375,7 +11220,7 @@ window.adminExportMonthlyGrid = function(format, overrideMonth, overrideSupply, 
         const fastLogMap = {};
         logsData.forEach(l => {
             if (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')) {
-                fastLogMap[l.employeeId + '_' + l.date + '_' + l.session] = l;
+                if (!fastLogMap[canonicalMonthlyLogKey(l)]) fastLogMap[canonicalMonthlyLogKey(l)] = l;
             }
         });
 
@@ -10384,8 +11229,8 @@ window.adminExportMonthlyGrid = function(format, overrideMonth, overrideSupply, 
             let row = [{ v: dmy, s: { font: { bold: true }, alignment: { horizontal: "center", vertical: "center" }, border: { top: bStyle, bottom: bStyle, left: bStyle, right: bStyle } } }];
             
             emps.forEach(emp => {
-                const mLog = fastLogMap[emp.id + '_' + dmy + '_Morning'];
-                const aLog = fastLogMap[emp.id + '_' + dmy + '_Afternoon'];
+                const mLog = fastLogMap[emp.id + '_' + `${yy}-${mm}-${String(d).padStart(2,'0')}` + '_Morning'];
+                const aLog = fastLogMap[emp.id + '_' + `${yy}-${mm}-${String(d).padStart(2,'0')}` + '_Afternoon'];
                 row.push({ v: mLog ? mLog.drink : '-', s: cellStyle });
                 row.push({ v: aLog ? aLog.drink : '-', s: cellStyle });
             });
@@ -10436,7 +11281,7 @@ window.adminExportMonthlyGrid = function(format, overrideMonth, overrideSupply, 
             const fastLogMap = {};
             logsData.forEach(l => {
                 if (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')) {
-                    fastLogMap[l.employeeId + '_' + l.date + '_' + l.session] = l;
+                    if (!fastLogMap[canonicalMonthlyLogKey(l)]) fastLogMap[canonicalMonthlyLogKey(l)] = l;
                 }
             });
 
@@ -10449,8 +11294,8 @@ window.adminExportMonthlyGrid = function(format, overrideMonth, overrideSupply, 
                 html += `<td style="border:1px solid #000; padding:6px 4px; font-weight:bold; line-height:1.3; background:#F8FAFC;">${dmy}<br><span style="font-size:9px; font-weight:normal; color:#44474E;">${dayName}</span></td>`;
                 
                 chunkEmps.forEach(emp => {
-                    const mLog = fastLogMap[emp.id + '_' + dmy + '_Morning'];
-                    const aLog = fastLogMap[emp.id + '_' + dmy + '_Afternoon'];
+                    const mLog = fastLogMap[emp.id + '_' + `${yy}-${mm}-${String(d).padStart(2,'0')}` + '_Morning'];
+                    const aLog = fastLogMap[emp.id + '_' + `${yy}-${mm}-${String(d).padStart(2,'0')}` + '_Afternoon'];
                     
                     html += `<td style="border:1px solid #000; padding:4px; width:49px; min-width:49px; max-width:49px;">${mLog ? mLog.drink : '-'}</td>`;
                     html += `<td style="border:1px solid #000; padding:4px; width:49px; min-width:49px; max-width:49px;">${aLog ? aLog.drink : '-'}</td>`;
@@ -10509,7 +11354,7 @@ window.adminExportMonthlyGrid = function(format, overrideMonth, overrideSupply, 
                     </div>`;
                 }
 
-                if (pantryScreen.innerHTML.indexOf('pantryDashboardUpcomingStream') === -1 || myPendingRequests.length > 0) {
+                if (pantryScreen.innerHTML.indexOf('pantryDashboardUpcomingStream') === -1 || pantryScreen.innerHTML.indexOf('data-tab="messenger"') === -1 || myPendingRequests.length > 0) {
                     pantryScreen.innerHTML = `
                 <div class="top-header" style="display:flex; flex-wrap:nowrap; padding:6px 4px; gap:4px; align-items:center; justify-content:space-between; width:100%; box-sizing:border-box; overflow:hidden;">
                   <div class="brand" style="font-size:11px; white-space:nowrap; flex-shrink:1; min-width:30px; max-width:35%; overflow:hidden; text-overflow:ellipsis;">🧑‍🍳<span id="currentPantryBoyNameDisplay"></span></div>
@@ -10531,8 +11376,9 @@ window.adminExportMonthlyGrid = function(format, overrideMonth, overrideSupply, 
                   <button class="dash-btn" data-tab="view_plain_events" style="color:#10B981; border-color:#A7F3D0; background:#ECFDF5;"><span class="icon">📢</span><span><span class="label">Upcoming Events</span><br><span class="sub">View admin broadcasts</span></span><span class="right">›</span></button>
                   <button class="dash-btn" data-tab="meeting_guests" style="color:#0284c7; border-color:#bae6fd; background:#f0f9ff;"><span class="icon">🤝</span><span><span class="label">Meetings & Guests</span><br><span class="sub">Log guest & meeting details</span></span><span class="right">›</span></button>
                   <button class="dash-btn" data-tab="logs" style="color:#7C3AED; border-color:#C4B5FD; background:#F5F3FF;"><span class="icon">📋</span><span><span class="label">My Records</span><br><span class="sub">Daily metrics & grid</span></span><span class="right">›</span></button>
-                  <button class="dash-btn" data-tab="extra_tea" style="color:#D97706; border-color:#FDE68A; background:#FEF3C7;"><span class="icon">☕</span><span><span class="label">Extra Tea Record</span><br><span class="sub">Log extra tea consumption</span></span><span class="right">›</span></button>
+                  <button class="dash-btn" data-tab="messenger" style="color:#0A56D0; border-color:#BFDBFE; background:#EFF6FF;"><span class="icon">💬</span><span><span class="label</span><br><span class="sub">Admin + all Pantry Boys</span></span><span class="right">›</span></button>
                   <button class="dash-btn" data-tab="profile" style="color:#44474E; border-color:#CBD5E1; background:#F8FAFC;"><span class="icon">🔐</span><span><span class="label">Change Profile PIN</span><br><span class="sub">Security settings</span></span><span class="right">›</span></button>
+                 
                 </div>
                 <div id="pantryContentArea" class="hidden" style="display:flex; flex-direction:column; flex:1; overflow:hidden; min-height:0; border-top:1px solid #E2E8F0; padding-top:8px;">
                   <div id="pantryContent" style="flex:1; overflow-y:auto; padding-bottom:12px; min-height:0;"></div>
@@ -10610,6 +11456,25 @@ window.adminExportMonthlyGrid = function(format, overrideMonth, overrideSupply, 
                 document.getElementById('pantryDashBtn').onclick = goBack;
                 document.getElementById('pantryContentBackBtn').onclick = goBack;
 
+                // Ensure Messenger button exists even when the dashboard DOM was rendered earlier.
+                const pantryMenu = document.getElementById('pantryMenuArea');
+                if (pantryMenu && !pantryMenu.querySelector('[data-tab="messenger"]')) {
+                    const b = document.createElement('button');
+                    b.className = 'dash-btn';
+                    b.setAttribute('data-tab', 'messenger');
+                    b.style.cssText = 'color:#0A56D0;border-color:#BFDBFE;background:#EFF6FF;';
+                    b.innerHTML = '<span class="icon">💬</span><span><span class="label">Chat</span><br><span class="sub">Admin + all Pantry Boys</span></span><span class="right">›</span>';
+                    b.onclick = function () {
+                        menuArea.classList.add('hidden');
+                        if (liveAlert) liveAlert.classList.add('hidden');
+                        contentArea.classList.remove('hidden');
+                        document.getElementById('pantryContentBackBtn').style.display = 'inline-flex';
+                        activePantryTab = 'messenger';
+                        if (typeof window.renderDauCommonMessenger === 'function') window.renderDauCommonMessenger('pantryContent', 'pantry');
+                    };
+                    pantryMenu.appendChild(b);
+                }
+
                                 document.querySelectorAll('#pantryMenuArea .dash-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const tab = e.currentTarget.dataset.tab;
@@ -10641,6 +11506,11 @@ window.adminExportMonthlyGrid = function(format, overrideMonth, overrideSupply, 
                                 break;
                             case 'extra_tea':
                                 if(typeof renderExtraTeaView === 'function') renderExtraTeaView();
+                                break;
+                            case 'messenger':
+                                if (typeof window.renderDauCommonMessenger === 'function') {
+                                    window.renderDauCommonMessenger('pantryContent', 'pantry');
+                                }
                                 break;
                             case 'profile':
                                 if(typeof renderPantryProfileSection === 'function') renderPantryProfileSection();
@@ -11113,6 +11983,12 @@ db.ref('dauPurchaseAccess').on('value', snap => { dauPurchaseAccessData = snap.v
                 if (renderTimeout) clearTimeout(renderTimeout);
                 renderTimeout = setTimeout(() => {
                     try {
+                        if (window.DAU_CHAT_VIEW_MODE === true) {
+                            window.renderDauExternalChatViewer?.();
+                            isRendering = false;
+                            return;
+                        }
+
                         if (vendorViewParam) {
                             const vendorName = decodeURIComponent(vendorViewParam);
                             renderVendorView(vendorName);
@@ -11190,6 +12066,9 @@ db.ref('dauPurchaseAccess').on('value', snap => { dauPurchaseAccessData = snap.v
                                     case 'weekend_duty':
                                         window.renderWeekendDutyInterface?.();
                                         break;
+                                    case 'messenger':
+                                        window.renderDauCommonMessenger?.('adminContent', 'admin');
+                                        break;
                                 }
                             }
                         } else if (currentUser.role === 'pantry') {
@@ -11207,6 +12086,9 @@ db.ref('dauPurchaseAccess').on('value', snap => { dauPurchaseAccessData = snap.v
                                         break;
                                     case 'extra_tea':
                                         renderExtraTeaMyRecords();
+                                        break;
+                                    case 'messenger':
+                                        window.renderDauCommonMessenger?.('pantryContent', 'pantry');
                                         break;
                                 }
                             }
@@ -12122,6 +13004,8 @@ window.renderMeetingsGuestsUI = function(containerId, currentRole) {
 
                     container.innerHTML = `
                         <style>
+                        .mg-meeting-shell { color:#1E293B; }
+
                         .transposed-table { border-collapse: collapse; width: 100%; table-layout: fixed; background: #fff; margin:0; padding:0; }
                         .transposed-table th.sticky-header {
                             background: #F1F5F9; color: #1E293B; z-index: 10;
@@ -14275,7 +15159,7 @@ window.openDuplicateReviewModal = function() {
                   <button class="dash-btn" data-tab="view_plain_events" style="color:#10B981; border-color:#A7F3D0; background:#ECFDF5;"><span class="icon">📢</span><span><span class="label">Upcoming Events</span><br><span class="sub">View admin broadcasts</span></span><span class="right">›</span></button>
                   <button class="dash-btn" data-tab="meeting_guests" style="color:#0284c7; border-color:#bae6fd; background:#f0f9ff;"><span class="icon">🤝</span><span><span class="label">Meetings & Guests</span><br><span class="sub">Log guest & meeting details</span></span><span class="right">›</span></button>
                   <button class="dash-btn" data-tab="logs" style="color:#7C3AED; border-color:#C4B5FD; background:#F5F3FF;"><span class="icon">📋</span><span><span class="label">My Records</span><br><span class="sub">Daily metrics & grid</span></span><span class="right">›</span></button>
-                  <button class="dash-btn" data-tab="extra_tea" style="color:#D97706; border-color:#FDE68A; background:#FEF3C7;"><span class="icon">☕</span><span><span class="label">Extra Tea Record</span><br><span class="sub">Log extra tea consumption</span></span><span class="right">›</span></button>
+                  <button class="dash-btn" data-tab="messenger" style="color:#0A56D0; border-color:#BFDBFE; background:#EFF6FF;"><span class="icon">💬</span><span><span class="label">Chat</span><br><span class="sub">Admin + all Pantry Boys</span></span><span class="right">›</span></button>
                   <button class="dash-btn" data-tab="profile" style="color:#44474E; border-color:#CBD5E1; background:#F8FAFC;"><span class="icon">🔐</span><span><span class="label">Change Profile PIN</span><br><span class="sub">Security settings</span></span><span class="right">›</span></button>
                 </div>
                 <div id="pantryContentArea" class="hidden" style="display:flex; flex-direction:column; flex:1; overflow:hidden; min-height:0; border-top:1px solid #E2E8F0; padding-top:8px;">
@@ -14352,6 +15236,7 @@ window.openDuplicateReviewModal = function() {
                             case 'meeting_guests': if(typeof window.renderMeetingsGuestsUI === 'function') window.renderMeetingsGuestsUI('pantryContent', 'pantry'); break;
                             case 'logs': if(typeof renderLogsHistory === 'function') renderLogsHistory(); break;
                             case 'extra_tea': if(typeof renderExtraTeaView === 'function') renderExtraTeaView(); break;
+                            case 'messenger': if(typeof window.renderDauCommonMessenger === 'function') window.renderDauCommonMessenger('pantryContent', 'pantry'); break;
                             case 'profile': if(typeof renderPantryProfileSection === 'function') renderPantryProfileSection(); break;
                         }
                     });
@@ -14779,6 +15664,431 @@ window.openDuplicateReviewModal = function() {
                     window.refreshAllData();
                 }
             };
+
+
+
+        // ============================================================
+        // DAU COMMON PANTRY MESSENGER
+        // Admin + ALL Pantry Boys in ONE common group room.
+        // Firebase Realtime Database only. TEXT MESSAGES ONLY.
+        // ============================================================
+        (function () {
+            'use strict';
+
+            const DAU_CHAT_NODE = 'messages';
+            const DAU_CHAT_LINK_NODE = 'chatViewLinks';
+            const DAU_CHAT_MAX = 300;
+            let dauCommonChatListener = null;
+            let dauCommonChatData = {};
+            let dauCommonChatRenderedContainer = null;
+            let dauCommonChatStarted = false;
+            let dauCommonChatSelected = new Set();
+            let dauCommonChatSelectMode = false;
+
+            function chatEsc(v) {
+                return String(v == null ? '' : v)
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+            function chatTime(ts) {
+                if (!ts) return '';
+                try { return new Date(Number(ts)).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
+                catch(e) { return ''; }
+            }
+            function chatDate(ts) {
+                if (!ts) return '';
+                try { return new Date(Number(ts)).toLocaleDateString([], {day:'2-digit', month:'short', year:'numeric'}); }
+                catch(e) { return ''; }
+            }
+            function chatMine(m) {
+                return !!(currentUser && m && m.senderId === currentUser.id);
+            }
+            function chatUserLabel() {
+                if (!currentUser) return 'Guest';
+                return currentUser.role === 'admin' ? 'Admin' : (currentUser.name || 'Pantry Boy');
+            }
+
+            function chatRenderMessages(box, data, readOnly) {
+                if (!box) return;
+                const list = Object.entries(data || {})
+                    .map(([key, value]) => ({ ...(value || {}), __key: String(key) }))
+                    .filter(m => m && (m.text || m.message) && m.senderId)
+                    .sort((a,b) => Number(a.createdAt || 0) - Number(b.createdAt || 0));
+
+                if (!list.length) {
+                    box.innerHTML = '<div class="dau-common-empty">💬<br><b>No messages yet</b><br><span>Start the common Pantry conversation.</span></div>';
+                    return;
+                }
+
+                let lastDay = '';
+                box.innerHTML = list.map(m => {
+                    const day = chatDate(m.createdAt);
+                    const dayHtml = day !== lastDay ? '<div class="dau-common-day"><span>' + chatEsc(day) + '</span></div>' : '';
+                    lastDay = day;
+                    const mine = chatMine(m);
+                    const edited = m.editedAt ? '<span>edited</span>' : '';
+                    const messageKey = String(m.__key || m.id || '');
+                    const selected = dauCommonChatSelected.has(messageKey);
+                    const selectMark = mine && dauCommonChatSelectMode && !readOnly ? `
+                          <span class="dau-common-select-mark ${selected ? 'selected' : ''}" onclick="event.stopPropagation(); window.dauCommonChatAction('${chatEsc(m.__key || m.id || '')}', 'select')">${selected ? '✓' : ''}</span>` : '';
+                    const actionBtn = mine && !readOnly && !dauCommonChatSelectMode ? `
+                          <button type="button" class="dau-common-msg-actions" onclick="event.stopPropagation(); window.dauCommonChatAction('${chatEsc(m.__key || m.id || '')}', 'menu')">⋮</button>` : '';
+                    return dayHtml + `
+                      <div class="dau-common-row ${mine ? 'mine' : 'received'}">
+                        <div class="dau-common-bubble ${selected ? 'dau-common-selected' : ''}" ${mine && dauCommonChatSelectMode && !readOnly ? `onclick="window.dauCommonChatAction('${chatEsc(m.__key || m.id || '')}', 'select')"` : ''}>
+                          ${selectMark}
+                          ${mine ? '' : `<div class="dau-common-sender">${chatEsc(m.senderName || (m.senderRole === 'admin' ? 'Admin' : 'Pantry Boy'))}</div>`}
+                          <div class="dau-common-text">${chatEsc(m.text || m.message || '')}</div>
+                          <div class="dau-common-meta"><span>${chatEsc(chatTime(m.createdAt))}</span>${edited ? '<span>• edited</span>' : ''}${actionBtn}</div>
+                        </div>
+                      </div>`;
+                }).join('');
+
+                requestAnimationFrame(() => {
+                    box.scrollTop = box.scrollHeight;
+                });
+            }
+
+            function chatScrollToBottom() {
+                const box = document.getElementById('dauCommonMessages');
+                if (box) requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
+            }
+
+            function chatUpdateSelectBar() {
+                const bar = document.getElementById('dauCommonSelectBar');
+                const count = document.getElementById('dauCommonSelectedCount');
+                if (!bar) return;
+                const n = dauCommonChatSelected.size;
+                bar.style.display = dauCommonChatSelectMode ? 'flex' : 'none';
+                if (count) count.textContent = n + ' selected';
+            }
+
+            function chatSubscribe() {
+                if (dauCommonChatStarted) return;
+                dauCommonChatStarted = true;
+                const ref = db.ref(DAU_CHAT_NODE).limitToLast(DAU_CHAT_MAX);
+                dauCommonChatListener = snap => {
+                    dauCommonChatData = snap.val() || {};
+                    const box = document.getElementById('dauCommonMessages');
+                    if (box) chatRenderMessages(box, dauCommonChatData, !!window.DAU_CHAT_VIEW_MODE);
+                    chatUpdateUnread();
+                };
+                ref.on('value', dauCommonChatListener);
+            }
+
+            function chatUpdateUnread() {
+                try {
+                    const uid = currentUser ? currentUser.id : 'guest';
+                    const key = 'dau_common_chat_seen_' + uid;
+                    const seen = Number(localStorage.getItem(key) || 0);
+                    const unread = Object.values(dauCommonChatData || {}).filter(m =>
+                        m && Number(m.createdAt || 0) > seen && !(currentUser && m.senderId === currentUser.id)
+                    ).length;
+                    document.querySelectorAll('[data-dau-chat-badge]').forEach(el => {
+                        el.textContent = unread > 99 ? '99+' : String(unread);
+                        el.style.display = unread ? 'inline-flex' : 'none';
+                    });
+                } catch(e) {}
+            }
+
+            function chatMarkSeen() {
+                try {
+                    if (!currentUser) return;
+                    const latest = Object.values(dauCommonChatData || {})
+                        .sort((a,b) => Number(b.createdAt || 0) - Number(a.createdAt || 0))[0];
+                    if (latest) localStorage.setItem('dau_common_chat_seen_' + currentUser.id, String(latest.createdAt || 0));
+                    chatUpdateUnread();
+                } catch(e) {}
+            }
+
+            window.dauCommonChatSend = async function () {
+                if (window.DAU_CHAT_VIEW_MODE || !currentUser) return;
+                const input = document.getElementById('dauCommonInput');
+                const btn = document.getElementById('dauCommonSend');
+                if (!input) return;
+                const text = input.value.trim();
+                if (!text) return;
+
+                if (btn) btn.disabled = true;
+                try {
+                    const id = db.ref(DAU_CHAT_NODE).push().key;
+                    await db.ref(DAU_CHAT_NODE + '/' + id).set({
+                        id: id,
+                        text: text,
+                        senderId: currentUser.id,
+                        senderName: currentUser.name || (currentUser.role === 'admin' ? 'Admin' : 'Pantry Boy'),
+                        senderRole: currentUser.role,
+                        createdAt: firebase.database.ServerValue.TIMESTAMP
+                    });
+                    input.value = '';
+                    chatScrollToBottom();
+                } catch (e) {
+                    console.error('Common Messenger send failed:', e);
+                    appAlert('Messenger', 'Message send failed. Please check Firebase Database rules.');
+                } finally {
+                    if (btn) btn.disabled = false;
+                    if (input) input.focus();
+                }
+            };
+
+            window.dauCommonChatShareLink = async function () {
+                if (!currentUser || currentUser.role !== 'admin') return;
+                try {
+                    const bytes = new Uint8Array(18);
+                    if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(bytes);
+                    else for (let i=0;i<bytes.length;i++) bytes[i] = Math.floor(Math.random()*256);
+                    const token = Array.from(bytes).map(b => b.toString(16).padStart(2,'0')).join('');
+                    const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
+                    await db.ref(DAU_CHAT_LINK_NODE + '/' + token).set({
+                        token: token,
+                        createdBy: currentUser.id,
+                        createdAt: firebase.database.ServerValue.TIMESTAMP,
+                        expiresAt: expiresAt,
+                        active: true
+                    });
+                    const url = window.location.origin + window.location.pathname + '?chat_view=true&token=' + encodeURIComponent(token);
+                    try {
+                        await navigator.clipboard.writeText(url);
+                        appAlert('Share Chat Link', '24-hour read-only link copied to clipboard.\n\n' + url);
+                    } catch (copyErr) {
+                        window.prompt('Copy this 24-hour read-only chat link:', url);
+                    }
+                } catch(e) {
+                    console.error(e);
+                    appAlert('Share Chat Link', 'Could not create the external link. Check Firebase Database rules.');
+                }
+            };
+
+            function chatFindMessageAndKey(id) {
+                const wanted = String(id || '');
+                const data = dauCommonChatData || {};
+                if (Object.prototype.hasOwnProperty.call(data, wanted) && data[wanted]) {
+                    return { key: wanted, message: data[wanted] };
+                }
+                const key = Object.keys(data).find(k => data[k] && String(data[k].id || '') === wanted);
+                return key ? { key: String(key), message: data[key] } : null;
+            }
+
+            function chatMessageAction(id, action) {
+                if (window.DAU_CHAT_VIEW_MODE || !currentUser) return;
+
+                if (action === 'startSelect') {
+                    dauCommonChatSelectMode = true;
+                    dauCommonChatSelected.clear();
+                    chatUpdateSelectBar();
+                    const box = document.getElementById('dauCommonMessages');
+                    if (box) chatRenderMessages(box, dauCommonChatData, false);
+                    return;
+                }
+
+                if (action === 'cancelSelect') {
+                    dauCommonChatSelected.clear();
+                    dauCommonChatSelectMode = false;
+                    document.querySelectorAll('.dau-common-action-menu').forEach(el => el.remove());
+                    const box = document.getElementById('dauCommonMessages');
+                    if (box) chatRenderMessages(box, dauCommonChatData, false);
+                    chatUpdateSelectBar();
+                    return;
+                }
+
+                if (action === 'select') {
+                    const found = chatFindMessageAndKey(id);
+                    if (!found || !found.message || found.message.senderId !== currentUser.id) return;
+                    dauCommonChatSelectMode = true;
+                    const key = found.key;
+                    if (dauCommonChatSelected.has(key)) dauCommonChatSelected.delete(key);
+                    else dauCommonChatSelected.add(key);
+                    const box = document.getElementById('dauCommonMessages');
+                    if (box) chatRenderMessages(box, dauCommonChatData, false);
+                    chatUpdateSelectBar();
+                    return;
+                }
+
+                if (action === 'deleteSelected') {
+                    const ids = Array.from(dauCommonChatSelected).filter(key => {
+                        const msg = dauCommonChatData && dauCommonChatData[key];
+                        return msg && currentUser && msg.senderId === currentUser.id;
+                    });
+                    if (!ids.length) {
+                        appAlert('Messenger', 'Please select at least one of your own messages.');
+                        return;
+                    }
+                    if (!window.confirm('Delete ' + ids.length + ' selected message' + (ids.length > 1 ? 's' : '') + '?')) return;
+                    Promise.all(ids.map(key => db.ref(DAU_CHAT_NODE + '/' + key).remove()))
+                        .then(() => {
+                            dauCommonChatSelected.clear();
+                            dauCommonChatSelectMode = false;
+                            chatUpdateSelectBar();
+                            const box = document.getElementById('dauCommonMessages');
+                            if (box) chatRenderMessages(box, dauCommonChatData, false);
+                        })
+                        .catch(e => {
+                            console.error('Messenger selected delete failed:', e);
+                            appAlert('Messenger', 'Delete failed: ' + (e && e.message ? e.message : e));
+                        });
+                    return;
+                }
+
+                const found = chatFindMessageAndKey(id);
+                if (!found || !found.message || found.message.senderId !== currentUser.id) return;
+                const firebaseKey = found.key;
+                const m = found.message;
+
+                if (action === 'menu') {
+                    document.querySelectorAll('.dau-common-action-menu').forEach(el => el.remove());
+                    const menu = document.createElement('div');
+                    menu.className = 'dau-common-action-menu';
+                    menu.innerHTML = `
+                        <button type="button" onclick="window.dauCommonChatAction('${chatEsc(firebaseKey)}','edit')">✏️ Edit</button>
+                        <button type="button" onclick="window.dauCommonChatAction('${chatEsc(firebaseKey)}','delete')">🗑️ Delete</button>
+                        <button type="button" onclick="window.dauCommonChatAction('${chatEsc(firebaseKey)}','select')">☑️ Select</button>`;
+                    document.body.appendChild(menu);
+                    const bubbles = Array.from(document.querySelectorAll('.dau-common-bubble'));
+                    const bubble = bubbles.find(el => el.querySelector('.dau-common-text') && el.querySelector('.dau-common-text').textContent === String(m.text || m.message || ''));
+                    if (bubble) {
+                        const r = bubble.getBoundingClientRect();
+                        menu.style.left = Math.max(8, Math.min(window.innerWidth - 150, r.right - 145)) + 'px';
+                        menu.style.top = Math.min(window.innerHeight - 150, r.bottom + 4) + 'px';
+                    } else {
+                        menu.style.right = '10px';
+                        menu.style.bottom = '70px';
+                    }
+                    setTimeout(() => {
+                        const close = () => { menu.remove(); document.removeEventListener('click', close); };
+                        document.addEventListener('click', close);
+                    }, 10);
+                    return;
+                }
+
+                if (action === 'delete') {
+                    if (!window.confirm('Delete this message for everyone?')) return;
+                    db.ref(DAU_CHAT_NODE + '/' + firebaseKey).remove()
+                        .catch(e => {
+                            console.error('Messenger delete failed:', e);
+                            appAlert('Messenger', 'Delete failed: ' + (e && e.message ? e.message : e));
+                        });
+                    return;
+                }
+
+                if (action === 'edit') {
+                    const updated = window.prompt('Edit message:', m.text || m.message || '');
+                    if (updated === null) return;
+                    const text = updated.trim();
+                    if (!text) return appAlert('Messenger', 'Message cannot be empty.');
+                    db.ref(DAU_CHAT_NODE + '/' + firebaseKey).update({
+                        text: text,
+                        editedAt: firebase.database.ServerValue.TIMESTAMP
+                    }).catch(e => {
+                        console.error('Messenger edit failed:', e);
+                        appAlert('Messenger', 'Edit failed: ' + (e && e.message ? e.message : e));
+                    });
+                }
+            }
+            window.dauCommonChatAction = chatMessageAction;
+
+            window.renderDauCommonMessenger = function (containerId, mode) {
+                try {
+                    const container = document.getElementById(containerId);
+                    if (!container) return;
+                    if (container.querySelector('.dau-common-chat-app')) {
+                        chatSubscribe();
+                        chatMarkSeen();
+                        return;
+                    }
+                    const isAdmin = currentUser && currentUser.role === 'admin';
+                    container.innerHTML = `
+                      <div class="dau-common-chat-app">
+                        <div id="dauCommonSelectBar" class="dau-common-select-bar" style="display:none;">
+                          <button type="button" onclick="window.dauCommonChatAction('', 'cancelSelect')">⬅ Back</button>
+                          <b id="dauCommonSelectedCount">0 selected</b>
+                          <button type="button" onclick="window.dauCommonChatAction('', 'deleteSelected')">🗑️ Delete</button>
+                        </div>
+                        <div class="dau-common-chat-header">
+                          <div class="dau-common-chat-title-wrap">
+                            <div class="dau-common-avatar">💬</div>
+                            <div><div class="dau-common-chat-title">Chat</div><div class="dau-common-chat-sub">Admin + All Pantry Boys • Live</div></div>
+                          </div>
+                          <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
+                            ${!window.DAU_CHAT_VIEW_MODE ? '<button type="button" class="dau-common-select-start" onclick=\'window.dauCommonChatAction("","startSelect")\'>☑️ Select</button>' : ''}
+                            ${isAdmin ? '<button class="dau-common-share" onclick="window.dauCommonChatShareLink()">🔗 Share</button>' : ''}
+                          </div>
+                        </div>
+                        <div id="dauCommonMessages" class="dau-common-messages"></div>
+                        <div class="dau-common-compose" ${window.DAU_CHAT_VIEW_MODE ? 'style="display:none"' : ''}>
+                          <textarea id="dauCommonInput" rows="1" maxlength="2000" placeholder="Type a message..."></textarea>
+                          <button id="dauCommonSend" onclick="window.dauCommonChatSend()">➤</button>
+                        </div>
+                      </div>`;
+
+                    const input = document.getElementById('dauCommonInput');
+                    if (input) input.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); window.dauCommonChatSend(); }
+                    });
+                    chatSubscribe();
+                    chatRenderMessages(document.getElementById('dauCommonMessages'), dauCommonChatData, false);
+                    chatUpdateSelectBar();
+                    chatMarkSeen();
+                } catch(e) {
+                    console.error('Messenger render failed:', e);
+                    if (container) container.innerHTML = '<div class="card"><b>Messenger could not be opened.</b><br><small>' + chatEsc(e.message || e) + '</small></div>';
+                }
+            };
+
+            async function validateChatViewLink() {
+                const params = new URLSearchParams(window.location.search);
+                if (params.get('chat_view') !== 'true') return false;
+                const token = params.get('token');
+                if (!token) return false;
+                try {
+                    const snap = await db.ref(DAU_CHAT_LINK_NODE + '/' + token).once('value');
+                    const link = snap.val();
+                    if (!link || link.active === false || Date.now() > Number(link.expiresAt || 0)) return false;
+                    window.DAU_CHAT_VIEW_MODE = true;
+                    window.DAU_CHAT_VIEW_TOKEN = token;
+                    return true;
+                } catch(e) {
+                    console.error('Chat link validation failed:', e);
+                    return false;
+                }
+            }
+
+            window.renderDauExternalChatViewer = async function () {
+                const app = document.getElementById('app');
+                if (!app) return;
+                if (app.dataset.dauChatExternalReady === '1') return;
+                app.dataset.dauChatExternalReady = '1';
+                const valid = await validateChatViewLink();
+                if (!valid) {
+                    app.innerHTML = '<div class="dau-external-chat-invalid"><div>🔒</div><h2>Invalid or Expired Link</h2><p>This read-only chat link is valid for 24 hours only.</p></div>';
+                    return;
+                }
+                app.classList.remove('hidden');
+                app.innerHTML = `
+                  <div class="dau-external-chat-page">
+                    <div class="dau-external-chat-top"><div><b>💬 Chat</b><span>Read-only external view</span></div><span>🔒 View Only</span></div>
+                    <div id="dauCommonExternalMessages" class="dau-common-messages"></div>
+                  </div>`;
+                const box = document.getElementById('dauCommonExternalMessages');
+                const ref = db.ref(DAU_CHAT_NODE).limitToLast(DAU_CHAT_MAX);
+                ref.on('value', snap => {
+                    const data = snap.val() || {};
+                    chatRenderMessages(box, data, true);
+                });
+            };
+
+            // Detect the external viewer as early as possible.
+            (function initChatViewFlag() {
+                try {
+                    const p = new URLSearchParams(window.location.search);
+                    if (p.get('chat_view') === 'true') window.DAU_CHAT_VIEW_MODE = true;
+                } catch(e) {}
+            })();
+
+            if (window.DAU_CHAT_VIEW_MODE === true) {
+                setTimeout(function(){ window.renderDauExternalChatViewer?.(); }, 0);
+            }
+        })();
 
         })(); // <--- MAIN BRACKET IS NOW SECURELY HERE!
 
