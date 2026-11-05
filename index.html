@@ -3,7 +3,7 @@
 <head>
 <script>
     // ⚠️ જ્યારે પણ તમે ગિટહબ પર નવો કોડ નાખો, ત્યારે આ વર્ઝન નંબર બદલી નાખવો (દા.ત. 1.0.1 થી 1.0.2)
-    const APP_VERSION = "1.0.26"; 
+    const APP_VERSION = "1.0.32"; 
     const currentAppVersion = localStorage.getItem('dau_pantry_version');
 
     if (currentAppVersion !== APP_VERSION) {
@@ -986,6 +986,31 @@
             text-align: center;
             min-width: 36px;
             background: #fff;
+        }
+
+        /* ===== MEETING ENTRY COMPACT LAYOUT (ADMIN + PANTRY) ===== */
+        .meeting-entry-compact .card { padding:8px !important; margin-bottom:7px !important; }
+        .meeting-entry-compact h3 { font-size:15px !important; margin-bottom:7px !important; }
+        .meeting-entry-compact .meeting-row { gap:5px !important; margin-bottom:6px !important; padding:6px !important; }
+        .meeting-entry-compact .meeting-row label { font-size:10px !important; margin-bottom:1px !important; }
+        .meeting-entry-compact input:not([type="checkbox"]), .meeting-entry-compact select, .meeting-entry-compact textarea { min-height:30px !important; height:30px !important; padding:4px 6px !important; margin:2px 0 4px !important; font-size:11px !important; }
+        .meeting-entry-compact .sub-section-title { font-size:11px !important; margin:5px 0 3px !important; padding-bottom:2px !important; }
+        .meeting-entry-compact .entry-card { padding:5px !important; margin-bottom:5px !important; border-radius:7px !important; }
+        .meeting-entry-compact .entry-card-header { min-height:22px !important; margin-bottom:2px !important; }
+        .meeting-entry-compact .entry-card-header button { min-height:24px !important; padding:3px 7px !important; font-size:10px !important; }
+        .meeting-entry-compact .entry-card label { font-size:9px !important; line-height:1.1 !important; }
+        .meeting-entry-compact .entry-card input, .meeting-entry-compact .entry-card select { min-height:28px !important; height:28px !important; padding:3px 5px !important; margin:1px 0 2px !important; font-size:10px !important; }
+        .meeting-entry-compact button { min-height:30px !important; padding:5px 8px !important; font-size:10px !important; }
+        @media (max-width:600px) {
+          .meeting-entry-compact .entry-card > div[style*="display:flex"] > div { min-width:0 !important; }
+          .meeting-entry-compact .entry-card > div[style*="display:flex"] { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)); gap:3px 5px !important; }
+          .meeting-entry-compact .entry-card > div[style*="display:flex"] > div:last-child { grid-column:1 / -1; }
+          .meeting-entry-compact .meeting-row > div { min-width:0 !important; margin-bottom:2px !important; }
+        }
+        @media (max-width:420px) {
+          #mgSlipSplitModal .popup-card { padding:10px !important; border-radius:12px !important; }
+          #mgSlipSplitModal .mg-split-row { grid-template-columns:minmax(0,1.4fr) 42px minmax(88px,.8fr) !important; }
+          #mgSlipSplitModal .mg-split-row > div:first-child { font-size:10px !important; }
         }
 
         /* ===== MEETING ===== */
@@ -2280,6 +2305,327 @@
 .dau-common-messages{flex:1;min-height:0;overflow-y:auto;padding:12px 8px;background:#efeae2;-webkit-overflow-scrolling:touch}.dau-common-day{text-align:center;margin:8px 0 10px}.dau-common-day span{display:inline-block;background:#fff8c5;color:#64748b;border-radius:8px;padding:4px 9px;font-size:9px;box-shadow:0 1px 2px rgba(0,0,0,.08)}.dau-common-row{display:flex;margin:3px 0}.dau-common-row.mine{justify-content:flex-end}.dau-common-bubble{max-width:82%;background:#fff;border-radius:9px;padding:6px 8px 4px;box-shadow:0 1px 1px rgba(0,0,0,.08);word-break:break-word}.dau-common-row.mine .dau-common-bubble{background:#dcf8c6;border-top-right-radius:3px}.dau-common-row.received .dau-common-bubble{border-top-left-radius:3px}.dau-common-sender{font-size:10px;font-weight:800;color:#075e54;margin-bottom:3px}.dau-common-text{font-size:13px;line-height:1.4;white-space:pre-wrap;color:#1e293b}.dau-common-meta{display:flex;justify-content:flex-end;gap:4px;color:#7b8794;font-size:8px;margin-top:3px}.dau-common-select-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;background:#075e54;color:#fff;flex-shrink:0}.dau-common-select-bar button{border:0!important;background:transparent!important;color:#fff!important;min-height:34px!important;padding:6px 10px!important;font-size:12px!important}.dau-common-selected{outline:2px solid #0a56d0;outline-offset:1px}.dau-common-select-mark{display:inline-flex;float:left;width:20px;height:20px;border:2px solid #64748b;border-radius:50%;align-items:center;justify-content:center;margin:0 6px 2px 0;background:#fff;color:#075e54;font-size:12px;font-weight:800}.dau-common-select-mark.selected{border-color:#0a56d0;background:#0a56d0;color:#fff}.dau-common-select-start{min-height:30px!important;padding:5px 8px!important;border:1px solid rgba(255,255,255,.4)!important;background:rgba(255,255,255,.14)!important;color:#fff!important;border-radius:7px!important;font-size:10px!important;white-space:nowrap}.dau-common-select-bar{background:#075e54;color:#fff;padding:7px 8px;display:none;align-items:center;gap:8px;flex-shrink:0}.dau-common-select-bar button{min-height:32px!important;padding:5px 9px!important;border:1px solid rgba(255,255,255,.4)!important;background:rgba(255,255,255,.14)!important;color:#fff!important;border-radius:7px!important;font-size:11px!important}.dau-common-select-bar button:last-child{margin-left:auto;background:#dc3545!important;border-color:#dc3545!important}.dau-common-msg-actions{border:0!important;background:transparent!important;color:#64748b!important;min-height:16px!important;width:18px!important;padding:0!important;font-size:14px!important;line-height:14px!important;box-shadow:none!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;vertical-align:middle!important}.dau-common-action-menu{position:fixed;z-index:99999999;background:#fff;border:1px solid #e2e8f0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:4px;min-width:130px}.dau-common-action-menu button{display:block!important;width:100%!important;min-height:38px!important;padding:8px 12px!important;background:#fff!important;color:#1e293b!important;border:0!important;border-radius:7px!important;text-align:left!important;font-size:12px!important;box-shadow:none!important}.dau-common-action-menu button:active{background:#f1f5f9!important}.dau-common-compose{display:flex;align-items:flex-end;gap:6px;padding:7px;background:#f0f2f5;border-top:1px solid #dbe2ea;flex-shrink:0}.dau-common-compose textarea{flex:1;margin:0!important;min-height:40px;max-height:90px;resize:none;border:1px solid #cbd5e1;border-radius:20px;padding:10px 13px;font-size:13px;background:#fff;line-height:1.25}.dau-common-compose button{width:42px;height:42px;min-height:42px;padding:0;border-radius:50%;background:#075e54;font-size:18px;flex-shrink:0}.dau-common-empty{text-align:center;color:#64748b;padding:55px 20px;font-size:12px;line-height:1.8}.dau-common-empty:first-line{font-size:25px}.dau-external-chat-page{width:100%;height:100%;display:flex;flex-direction:column;background:#efeae2}.dau-external-chat-top{min-height:62px;background:#075e54;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;gap:10px}.dau-external-chat-top b{display:block;font-size:15px}.dau-external-chat-top span{display:block;font-size:9px;opacity:.82;margin-top:2px}.dau-external-chat-top>span{background:rgba(255,255,255,.13);padding:7px 9px;border-radius:8px;white-space:nowrap}.dau-external-chat-invalid{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:#f8fafc;color:#334155;padding:24px}.dau-external-chat-invalid>div{font-size:42px;margin-bottom:10px}.dau-external-chat-invalid h2{margin:0 0 8px;color:#dc3545}.dau-external-chat-invalid p{font-size:13px;color:#64748b;max-width:320px}
 @media(max-width:420px){.dau-common-chat-header{padding:8px}.dau-common-share{font-size:9px!important;padding:5px 7px!important}.dau-common-bubble{max-width:88%}.dau-common-text{font-size:12.5px}}
 </style>
+
+
+    <!-- RESPONSIVE DEVICE LAYOUT UPDATE: mobile remains compact; desktop uses full workspace -->
+    <style id="dau-responsive-device-layout-update">
+      @media (min-width: 900px) {
+        html, body {
+          width: 100%;
+          height: 100%;
+          min-width: 0;
+          overflow: hidden;
+          padding: 0 !important;
+          background: #E8EEF5 !important;
+          align-items: stretch;
+          justify-content: stretch;
+        }
+        #app {
+          width: 100% !important;
+          max-width: none !important;
+          height: 100vh !important;
+          height: 100dvh !important;
+          min-height: 100vh !important;
+          min-height: 100dvh !important;
+          max-height: none !important;
+          border-radius: 0 !important;
+          box-shadow: none !important;
+        }
+        .screen {
+          width: 100%;
+          padding: 26px 30px;
+        }
+        .top-header {
+          border-radius: 0;
+          padding: 14px 26px;
+          min-height: 68px;
+          flex-wrap: nowrap;
+        }
+        .top-header .brand { font-size: 1.25rem; }
+        .top-header .nav-group { gap: 10px; }
+        .top-header .nav-group button {
+          padding: 9px 18px;
+          min-height: 40px;
+          font-size: .88rem;
+        }
+        .card { padding: 22px; margin-bottom: 16px; }
+
+        /* Desktop dashboards use more available horizontal space. */
+        .dash-menu-modern { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 18px; }
+        .dash-menu-modern .dash-btn { min-height: 130px; }
+        .admin-dash-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 16px; }
+
+        /* Meeting / refreshment forms: more fields per row than mobile. */
+        .meeting-entry-compact .card { padding: 18px !important; margin-bottom: 14px !important; }
+        .meeting-entry-compact h3 { font-size: 20px !important; margin-bottom: 14px !important; }
+        .meeting-entry-compact .meeting-row {
+          display: grid !important;
+          grid-template-columns: repeat(4, minmax(150px, 1fr));
+          gap: 14px !important;
+          padding: 12px !important;
+          margin-bottom: 12px !important;
+        }
+        .meeting-entry-compact .meeting-row > div { min-width: 0 !important; width: 100%; }
+        .meeting-entry-compact .meeting-row label { font-size: 13px !important; margin-bottom: 5px !important; }
+        .meeting-entry-compact input:not([type="checkbox"]),
+        .meeting-entry-compact select,
+        .meeting-entry-compact textarea {
+          min-height: 42px !important;
+          height: auto !important;
+          padding: 9px 11px !important;
+          margin: 4px 0 8px !important;
+          font-size: 14px !important;
+        }
+        .meeting-entry-compact .entry-card {
+          padding: 12px !important;
+          margin-bottom: 12px !important;
+          border-radius: 10px !important;
+        }
+        .meeting-entry-compact .entry-card-header { min-height: 36px !important; margin-bottom: 8px !important; }
+        .meeting-entry-compact .entry-card label { font-size: 12px !important; line-height: 1.3 !important; }
+        .meeting-entry-compact .entry-card input,
+        .meeting-entry-compact .entry-card select {
+          min-height: 38px !important;
+          height: auto !important;
+          padding: 7px 9px !important;
+          margin: 3px 0 6px !important;
+          font-size: 13px !important;
+        }
+        .meeting-entry-compact .entry-card > div[style*="display:flex"] {
+          display: grid !important;
+          grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+          gap: 10px 12px !important;
+        }
+        .meeting-entry-compact .entry-card > div[style*="display:flex"] > div { min-width: 0 !important; width: 100%; }
+        .meeting-entry-compact button { min-height: 38px !important; padding: 8px 14px !important; font-size: 13px !important; }
+
+        .form-grid-mobile, .mg-form-grid {
+          grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+          gap: 14px !important;
+        }
+        .full-width-mobile, .mg-full-width { grid-column: 1 / -1 !important; }
+        .form-grid-mobile label, .mg-form-grid label { font-size: 13px !important; margin-bottom: 5px !important; }
+        .form-grid-mobile input, .form-grid-mobile select,
+        .mg-form-grid input, .mg-form-grid select {
+          min-height: 40px;
+          padding: 9px 11px;
+          font-size: 14px;
+        }
+        .mg-form-area { max-height: 68vh; padding: 16px; }
+        .mg-entry-card { padding: 16px; margin-bottom: 14px; }
+        .mg-form-grid { gap: 14px; }
+        .mg-bottom-bar { flex-direction: row; align-items: center; flex-wrap: wrap; }
+
+        /* General form rows and filter grids expand on desktop. */
+        .merged-filter-row { gap: 12px; }
+        .merged-filter-row input, .merged-filter-row select { min-width: 150px; font-size: .95rem; }
+        .meeting-row:not(.meeting-entry-compact .meeting-row) > div { min-width: 150px; }
+        .popup-card.wide { max-width: 1100px; }
+        .popup-card.full { max-width: 96%; }
+      }
+
+      @media (min-width: 600px) and (max-width: 899px) {
+        #app {
+          width: 100% !important;
+          max-width: none !important;
+          height: 100vh !important;
+          height: 100dvh !important;
+          min-height: 100vh !important;
+          min-height: 100dvh !important;
+          max-height: none !important;
+          border-radius: 0 !important;
+        }
+        body { padding: 0 !important; background: #F1F5F9 !important; }
+        .form-grid-mobile, .mg-form-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .full-width-mobile, .mg-full-width { grid-column: 1 / -1; }
+      }
+    </style>
+
+
+    <style id="dau-desktop-single-screen-workspace">
+      @media (min-width: 900px) {
+        #adminScreen, #pantryScreen {
+          position: relative !important; overflow: hidden !important;
+          padding: 0 18px 14px !important;
+        }
+        #adminScreen > .top-header, #pantryScreen > .top-header {
+          margin: 0 -18px 8px !important; padding: 8px 18px !important;
+          min-height: 48px !important; flex: 0 0 48px !important;
+        }
+        #adminScreen > .top-header .brand, #pantryScreen > .top-header .brand { font-size: 14px !important; }
+        #adminScreen > .top-header .nav-group button, #pantryScreen > .top-header .nav-group button {
+          min-height: 27px !important; height: 27px !important;
+          padding: 3px 9px !important; font-size: 10px !important;
+        }
+        #adminMenuArea, #pantryMenuArea {
+          position: absolute !important; left: 18px !important; top: 60px !important;
+          bottom: 12px !important; width: 218px !important; overflow-y: auto !important;
+          padding: 5px !important; margin: 0 !important; background: #F8FAFC !important;
+          border: 1px solid #DCE4ED !important; border-radius: 8px !important;
+          box-sizing: border-box !important;
+        }
+        #adminMenuArea .admin-dash-grid, #pantryMenuArea.dash-menu-modern {
+          display: grid !important; grid-template-columns: 1fr !important;
+          gap: 4px !important; margin: 0 !important; padding: 0 !important;
+        }
+        #adminMenuArea .dash-btn, #pantryMenuArea .dash-btn {
+          display: flex !important; flex-direction: row !important; justify-content: flex-start !important;
+          align-items: center !important; text-align: left !important; gap: 8px !important;
+          min-height: 34px !important; height: auto !important; padding: 5px 8px !important;
+          margin: 0 !important; border-radius: 5px !important; font-size: 11px !important;
+          box-shadow: none !important;
+        }
+        #adminMenuArea .dash-btn .icon, #pantryMenuArea .dash-btn .icon {
+          font-size: 14px !important; line-height: 1 !important; margin: 0 !important; flex: 0 0 20px !important;
+        }
+        #adminMenuArea .dash-btn .label, #pantryMenuArea .dash-btn .label {
+          font-size: 11px !important; line-height: 1.2 !important; font-weight: 700 !important;
+        }
+        #pantryMenuArea .dash-btn .sub, #pantryMenuArea .dash-btn .right { display: none !important; }
+        #adminContentArea, #pantryContentArea {
+          position: absolute !important; display: flex !important;
+          left: 248px !important; right: 18px !important; top: 60px !important; bottom: 12px !important;
+          width: auto !important; height: auto !important; min-height: 0 !important;
+          overflow: hidden !important; margin: 0 !important; padding: 6px 0 0 !important;
+          border-top: 0 !important; border-left: 1px solid #DCE4ED !important;
+          box-sizing: border-box !important;
+        }
+        #adminContent, #pantryContent {
+          min-height: 0 !important; overflow: auto !important; padding: 0 0 8px 10px !important;
+        }
+        #adminContentArea.hidden, #pantryContentArea.hidden { display: flex !important; }
+        #adminScreen #adminBackBtn, #pantryScreen #pantryContentBackBtn { display: none !important; }
+        #adminScreen #livePantryBroadcastCard, #pantryScreen #livePantryBroadcastCard {
+          max-height: 56px !important; overflow: auto !important; padding: 5px 8px !important;
+          margin: 0 0 4px 0 !important; font-size: 10px !important;
+        }
+        #adminScreen input:not([type="checkbox"]):not([type="radio"]), #adminScreen select, #adminScreen textarea,
+        #pantryScreen input:not([type="checkbox"]):not([type="radio"]), #pantryScreen select, #pantryScreen textarea {
+          min-height: 27px !important; height: 27px !important; padding: 3px 6px !important;
+          margin: 2px 0 4px !important; font-size: 11px !important; line-height: 1.2 !important;
+          border-radius: 4px !important;
+        }
+        #adminScreen textarea, #pantryScreen textarea { min-height: 42px !important; height: auto !important; }
+        #adminScreen label, #pantryScreen label { font-size: 10px !important; line-height: 1.2 !important; margin-bottom: 2px !important; }
+        #adminScreen .card, #pantryScreen .card { padding: 8px !important; margin-bottom: 6px !important; border-radius: 6px !important; }
+        #adminScreen h2, #adminScreen h3, #adminScreen h4, #pantryScreen h2, #pantryScreen h3, #pantryScreen h4 {
+          margin-top: 3px !important; margin-bottom: 5px !important; font-size: 13px !important;
+        }
+        #adminScreen button:not(.dash-btn), #pantryScreen button:not(.dash-btn) {
+          min-height: 27px !important; padding: 4px 8px !important; font-size: 10px !important; border-radius: 5px !important;
+        }
+        #adminScreen .meeting-entry-compact .meeting-row, #pantryScreen .meeting-entry-compact .meeting-row {
+          grid-template-columns: repeat(5, minmax(0, 1fr)) !important; gap: 5px !important;
+          padding: 5px !important; margin-bottom: 5px !important;
+        }
+        #adminScreen .form-grid-mobile, #adminScreen .mg-form-grid, #pantryScreen .form-grid-mobile, #pantryScreen .mg-form-grid {
+          grid-template-columns: repeat(5, minmax(0, 1fr)) !important; gap: 6px !important;
+        }
+        #adminScreen .full-width-mobile, #adminScreen .mg-full-width, #pantryScreen .full-width-mobile, #pantryScreen .mg-full-width {
+          grid-column: 1 / -1 !important;
+        }
+        #adminScreen table th, #adminScreen table td, #pantryScreen table th, #pantryScreen table td {
+          padding: 3px 5px !important; font-size: 10px !important;
+        }
+      }
+    </style>
+
+
+    <style id="dau-meeting-entry-desktop-density-fix">
+      /* Desktop only: compact meeting item fields so more entries fit on screen.
+         Mobile layout and all existing form behaviour remain unchanged. */
+      @media (min-width: 900px) {
+        #adminScreen .meeting-entry-compact,
+        #pantryScreen .meeting-entry-compact {
+          padding: 5px !important;
+        }
+        #adminScreen .meeting-entry-compact .meeting-row,
+        #pantryScreen .meeting-entry-compact .meeting-row {
+          grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+          gap: 4px !important;
+          padding: 4px !important;
+          margin-bottom: 4px !important;
+        }
+        #adminScreen .meeting-entry-compact .meeting-row > div,
+        #pantryScreen .meeting-entry-compact .meeting-row > div {
+          min-width: 0 !important;
+          margin: 0 !important;
+        }
+        #adminScreen .meeting-entry-compact .meeting-row label,
+        #pantryScreen .meeting-entry-compact .meeting-row label {
+          font-size: 9px !important;
+          margin-bottom: 1px !important;
+        }
+        #adminScreen .meeting-entry-compact .entry-card,
+        #pantryScreen .meeting-entry-compact .entry-card {
+          padding: 4px !important;
+          margin-bottom: 4px !important;
+          border-radius: 5px !important;
+        }
+        #adminScreen .meeting-entry-compact .entry-card-header,
+        #pantryScreen .meeting-entry-compact .entry-card-header {
+          min-height: 21px !important;
+          margin-bottom: 3px !important;
+          padding: 2px 5px !important;
+          font-size: 10px !important;
+        }
+        #adminScreen .meeting-entry-compact .entry-card > div[style*="display:flex"],
+        #pantryScreen .meeting-entry-compact .entry-card > div[style*="display:flex"] {
+          display: grid !important;
+          grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+          gap: 3px !important;
+          padding: 2px 0 !important;
+        }
+        #adminScreen .meeting-entry-compact .entry-card > div[style*="display:flex"] > div,
+        #pantryScreen .meeting-entry-compact .entry-card > div[style*="display:flex"] > div {
+          min-width: 0 !important;
+          width: 100% !important;
+          margin: 0 !important;
+        }
+        #adminScreen .meeting-entry-compact .entry-card label,
+        #pantryScreen .meeting-entry-compact .entry-card label {
+          display: block !important;
+          font-size: 9px !important;
+          line-height: 1.05 !important;
+          margin: 0 0 1px !important;
+          white-space: nowrap !important;
+        }
+        #adminScreen .meeting-entry-compact .entry-card input:not([type="checkbox"]),
+        #adminScreen .meeting-entry-compact .entry-card select,
+        #pantryScreen .meeting-entry-compact .entry-card input:not([type="checkbox"]),
+        #pantryScreen .meeting-entry-compact .entry-card select {
+          min-width: 0 !important;
+          min-height: 23px !important;
+          height: 23px !important;
+          padding: 2px 4px !important;
+          margin: 0 !important;
+          font-size: 10px !important;
+          line-height: 1.1 !important;
+          border-radius: 3px !important;
+        }
+        #adminScreen .meeting-entry-compact .entry-card button,
+        #pantryScreen .meeting-entry-compact .entry-card button {
+          min-height: 21px !important;
+          height: 21px !important;
+          padding: 2px 5px !important;
+          font-size: 9px !important;
+        }
+        #adminScreen .meeting-entry-compact .sub-section-title,
+        #pantryScreen .meeting-entry-compact .sub-section-title {
+          font-size: 10px !important;
+          margin: 4px 0 2px !important;
+          padding-bottom: 2px !important;
+        }
+        #adminScreen .meeting-entry-compact > button,
+        #pantryScreen .meeting-entry-compact > button {
+          min-height: 25px !important;
+          padding: 3px 7px !important;
+          margin: 2px 2px 0 0 !important;
+          font-size: 10px !important;
+        }
+      }
+    </style>
+
 </head>
 <body>
 
@@ -2614,6 +2960,7 @@
             let plainEventsData = [];
             let canteenList = [];
             let venueList = [];
+            let locationPantryAssignments = {}; // Pantry Boy(s) assigned by location
             let binData = { employees: {}, pantryTeam: {}, extraLogs: {}, eventLogs: {}, logs: {} };
             let adminSecurity = { password: "admin123" };
             let activeAdminTab = null;
@@ -3553,7 +3900,7 @@
                 meetingSrCounter = srNo;
 
                 target.innerHTML = `
-              <div class="card" style="border-top:4px solid #0A56D0; flex-shrink:0; padding: 12px;">
+              <div class="card meeting-entry-compact" style="border-top:4px solid #0A56D0; flex-shrink:0; padding: 12px;">
                 <h3 style="color:#0A56D0; margin:0 0 16px 0; font-size:1.15rem; text-align:center;">🎪 Meeting Entry</h3>
                 
                 <div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
@@ -4015,15 +4362,15 @@
                                 <label style="font-size:.75rem; color:#44474E; font-weight:600; display:block;">1. Select Location</label>
                                 <select id="bulkLocSelect" style="margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1; width:100%;">
                                     <option value="">-- Choose Location --</option>
-                                    ${venueList.map(v => `<option value="${safeStr(v.name)}">${safeStr(v.name)}</option>`).join('')}
+                                    ${(window.getUniqueVenueList ? window.getUniqueVenueList() : venueList).map(v => `<option value="${safeStr(v.name)}">${safeStr(v.name)}</option>`).join('')}
                                 </select>
                             </div>
                             <div style="flex:1; min-width:150px;">
                                 <label style="font-size:.75rem; color:#0A56D0; font-weight:800; display:block;">2. Transfer TO Pantry Boy</label>
-                                <select id="bulkLocToPantry" style="margin:0; padding:10px 12px; border-radius:8px; border:2px solid #0A56D0; width:100%; background:#fff; color:#0A56D0; font-weight:bold;">
+                                <select id="bulkLocToPantry" multiple size="4" style="margin:0;padding:8px;border-radius:8px;border:2px solid #0A56D0;width:100%;background:#fff;color:#0A56D0;font-weight:bold;">
                                     <option value="">-- Select Destination --</option>
                                     ${pantryTeam.filter(p => !p.onLeave && p.status !== 'Inactive').map(p => `<option value="${p.id}">${safeStr(p.name)}</option>`).join('')}
-                                </select>
+                                </select><small style="display:block;color:#64748B;margin-top:5px;">Select one or more Pantry Boys for this entire location.</small>
                             </div>
                         </div>
                         <button id="btnBulkLocTransfer" class="success" style="width:100%; padding:14px; font-size:1rem; border-radius:12px; min-height:48px; background:#0A56D0; font-weight:bold; box-shadow:0 2px 4px rgba(10,86,208,0.3);">🔄 Transfer Entire Location</button>
@@ -4101,25 +4448,23 @@
                 // 1. Direct Location Transfer Logic
                 document.getElementById('btnBulkLocTransfer').onclick = function() {
                     const locName = document.getElementById('bulkLocSelect').value;
-                    const pbId = document.getElementById('bulkLocToPantry').value;
-                    
-                    if (!locName || !pbId) return appAlert('Error', 'Please select both Location and Destination Pantry Boy.');
-
-                    const empsInLoc = employeeList.filter(e => e.locationNode === locName && e.status !== 'Inactive');
-                    if (empsInLoc.length === 0) return appAlert('Notice', `No active employees found in location: ${locName}`);
-
-                    const pbName = pantryTeam.find(p => p.id === pbId)?.name || 'Unknown';
-
-                    appConfirm('Confirm Bulk Transfer', `Are you sure you want to transfer ALL ${empsInLoc.length} employees of "${locName}" to 🧑‍🍳 ${pbName}?`, () => {
-                        const updates = {};
-                        empsInLoc.forEach(e => {
-                            updates[e.id + '/assignedPantryId'] = pbId;
-                        });
-                        db.ref('employees').update(updates).then(() => {
-                            appAlert('Success', `Location "${locName}" transferred to ${pbName} successfully!`);
+                    const select = document.getElementById('bulkLocToPantry');
+                    const selectedPantryIds = Array.from(select.selectedOptions).map(o => o.value).filter(Boolean);
+                    if (!locName || !selectedPantryIds.length) return appAlert('Error', 'Please select a Location and at least one Pantry Boy.');
+                    const venue = venueList.find(v => v.name === locName);
+                    const locationKey = venue && venue.id ? venue.id : String(locName).replaceAll('.', '_').replaceAll('#', '_').replaceAll('$', '_').replaceAll('[', '_').replaceAll(']', '_').replaceAll('/', '_');
+                    const pantryNames = selectedPantryIds.map(id => pantryTeam.find(p => p.id === id)?.name || id).join(', ');
+                    appConfirm('Confirm Location Assignment', `Assign location "${locName}" to: ${pantryNames}? Employees will inherit this assignment automatically; their individual records will not be rewritten.`, () => {
+                        db.ref('locationPantryAssignments/' + locationKey).set({
+                            locationId: venue?.id || locationKey,
+                            locationName: locName,
+                            pantryIds: selectedPantryIds,
+                            updatedAt: Date.now()
+                        }).then(() => {
+                            appAlert('Success', `Location "${locName}" assigned to ${pantryNames}.`);
                             document.getElementById('bulkLocSelect').value = '';
-                            document.getElementById('bulkLocToPantry').value = '';
-                            renderTransferList(); // જો નીચેવાળું લિસ્ટ ખુલ્લું હોય તો રિફ્રેશ થઈ જાય
+                            Array.from(select.options).forEach(o => o.selected = false);
+                            renderTransferList();
                         }).catch(err => appAlert('Error', err.message));
                     });
                 };
@@ -4198,7 +4543,7 @@
                         return;
                     }
 
-                    const filtered = employeeList.filter(e => e.status !== 'Inactive' && e.assignedPantryId !== pId && (!q || e.name.toLowerCase().includes(q)));
+                    const filtered = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status) && e.assignedPantryId !== pId && (!q || e.name.toLowerCase().includes(q)));
                     
                     container.innerHTML = filtered.map(emp => `
                         <div class="employee-item" style="padding:8px 12px; margin:4px 0; background:#F8FAFC; border-radius:8px; border:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center;">
@@ -5563,7 +5908,7 @@
                     };
 
                     let regularFiltered = employeeList.filter(emp => {
-                        const isPermanentlyAssigned = emp.assignedPantryId === effectivePantryId;
+                        const isPermanentlyAssigned = window.isEmployeeAssignedToPantry(emp, effectivePantryId);
                         const hasTempAccess = emp.tempPantryIds && emp.tempPantryIds[effectivePantryId] === true;
                         
                         if (!isPermanentlyAssigned && !hasTempAccess) return false;
@@ -5756,8 +6101,8 @@
                     let effectivePantryId = currentUser.id;
                     if(typeof getEffectivePantryId === 'function') effectivePantryId = getEffectivePantryId(currentUser.id);
 
-                    let emps = employeeList.filter(e => e.status !== 'Inactive');
-                    emps = emps.filter(e => e.assignedPantryId === effectivePantryId || (e.tempPantryIds && e.tempPantryIds[effectivePantryId] === true));
+                    let emps = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status));
+                    emps = emps.filter(e => window.isEmployeeAssignedToPantry(e, effectivePantryId));
                     
                     if (categoryVal !== 'All') {
                         const catMatch = categoryVal.trim().toLowerCase();
@@ -7040,7 +7385,7 @@
                 
                 modal.innerHTML = `
                 <div class="popup-card wide" style="max-width:600px; padding:20px; display:flex; flex-direction:column; height:90vh;">
-                    <h3 style="color:#0A56D0; margin-top:0; margin-bottom:12px; flex-shrink:0;">📍 Transfer Employees to <span style="text-decoration:underline;">${locationName}</span></h3>
+                    <h3 style="color:#0A56D0; margin-top:0; margin-bottom:12px; flex-shrink:0;">📍 Manage Employees for <span style="text-decoration:underline;">${safeStr(locationName)}</span></h3>
                     
                     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; flex-shrink:0;">
                         <input type="text" id="locSearchInput" placeholder="🔍 Search Employee Name..." style="flex:2; margin:0; padding:10px 12px; border-radius:8px; border:1px solid #CBD5E1;">
@@ -7070,57 +7415,48 @@
                     
                     <div style="display:flex; gap:8px; margin-top:auto; justify-content:flex-end; flex-wrap:wrap; flex-shrink:0;">
                         <button onclick="document.getElementById('locationEmployeeModal').classList.add('hidden')" class="danger" style="flex:1; min-height:44px; border-radius:8px; font-weight:bold;">Cancel</button>
-                        <button id="locSaveEmployees" class="success" style="flex:2; min-height:44px; border-radius:8px; font-weight:bold;">💾 Move Selected to ${locationName}</button>
+                        <button id="locSaveEmployees" class="success" style="flex:2; min-height:44px; border-radius:8px; font-weight:bold;">💾 Add Selected Employees to ${safeStr(locationName)}</button>
                     </div>
                 </div>
                 `;
 
                 const list = document.getElementById('locEmployeeList');
 
-                function renderLocationList() {
+                window.getUniqueVenueList = function() {
+                const seen = new Set();
+                return (venueList || []).filter(v => {
+                    const key = String(v && v.name || '').trim().replace(/\\s+/g, ' ').toLocaleLowerCase();
+                    if (!key || seen.has(key)) return false;
+                    seen.add(key);
+                    return true;
+                });
+            };
+
+            function renderLocationList() {
                     const deptFilter = document.getElementById('locDeptFilter').value;
                     const search = document.getElementById('locSearchInput').value.toLowerCase().trim();
 
-                    let html = '';
-                    const activeEmps = employeeList.filter(e => e.status !== 'Inactive');
-                    
-                    // સોર્ટિંગ: જે પહેલેથી લોકેશનમાં છે એ સૌથી ઉપર દેખાશે
-                    const sortedEmps = activeEmps.sort((a, b) => {
-                        if (a.locationNode === locationName && b.locationNode !== locationName) return -1;
-                        if (a.locationNode !== locationName && b.locationNode === locationName) return 1;
-                        return (a.name || '').localeCompare(b.name || '');
-                    });
+                    const activeEmps = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status));
+                    const alreadyHere = activeEmps.filter(e => e.locationNode === locationName)
+                        .filter(emp => (!deptFilter || emp.department === deptFilter) && (!search || (emp.name || '').toLowerCase().includes(search)))
+                        .sort((a,b) => (a.name || '').localeCompare(b.name || ''));
+                    const available = activeEmps.filter(e => e.locationNode !== locationName)
+                        .filter(emp => (!deptFilter || emp.department === deptFilter) && (!search || (emp.name || '').toLowerCase().includes(search)))
+                        .sort((a,b) => (a.name || '').localeCompare(b.name || ''));
 
-                    const filtered = sortedEmps.filter(emp => {
-                        if (deptFilter && emp.department !== deptFilter) return false;
-                        if (search && !(emp.name || '').toLowerCase().includes(search)) return false;
-                        return true;
-                    });
-
-                    filtered.forEach(emp => {
-                        const isAlreadyHere = emp.locationNode === locationName;
+                    let html = `<div style="padding:8px 10px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;margin-bottom:8px;">
+                      <b style="color:#1D4ED8;">📍 Already in ${safeStr(locationName)} (${alreadyHere.length})</b>
+                      ${alreadyHere.length ? alreadyHere.map(emp => `<div style="padding:7px 4px;border-bottom:1px solid #DBEAFE;font-size:12px;"><b>${safeStr(emp.name)}</b> <span style="color:#64748B;">[${safeStr(emp.category || '')}] · ${safeStr(emp.department || 'No Dept')}</span> <span style="color:#16A34A;">✓ Assigned</span></div>`).join('') : '<div style="font-size:12px;color:#64748B;padding:6px 0;">No employees currently assigned to this location.</div>'}
+                    </div>
+                    <div style="padding:8px 10px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;margin-bottom:6px;"><b>➕ Employees not in this location (${available.length})</b></div>`;
+                    available.forEach(emp => {
                         const currentLoc = emp.locationNode || 'No Location Assigned';
                         const dept = emp.department || 'No Dept';
-                        
-                        if (isAlreadyHere) {
-                            html += `
-                            <div style="padding:10px 14px; margin:4px 0; background:#F1F5F9; border-radius:8px; border:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center; opacity:0.5; pointer-events:none;">
-                              <div>
-                                <strong style="color:#1E293B; font-size:13px;">${safeStr(emp.name)}</strong> <span style="color:#64748B; font-size:11px;">[${safeStr(emp.category)}] - ${dept}</span><br>
-                                <small style="color:#0A56D0; font-weight:bold; font-size:11px;">📍 Already in ${locationName}</small>
-                              </div>
-                              <span style="font-size:16px;">✅</span>
-                            </div>`;
-                        } else {
-                            html += `
-                            <label style="padding:10px 14px; margin:4px 0; background:#FFF; border-radius:8px; border:1px solid #CBD5E1; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
-                              <div>
-                                <strong style="color:#1E293B; font-size:13px;">${safeStr(emp.name)}</strong> <span style="color:#64748B; font-size:11px;">[${safeStr(emp.category)}] - ${dept}</span><br>
-                                <small style="color:#D97706; font-weight:bold; font-size:11px;">Currently at: 📍 ${currentLoc}</small>
-                              </div>
-                              <input type="checkbox" class="loc-employee-check" data-id="${emp.id}" style="width:20px; height:20px; accent-color:#0A56D0; cursor:pointer; flex-shrink:0;">
-                            </label>`;
-                        }
+                        html += `<label style="padding:10px 14px;margin:4px 0;background:#FFF;border-radius:8px;border:1px solid #CBD5E1;display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
+                          <div><strong style="color:#1E293B;font-size:13px;">${safeStr(emp.name)}</strong> <span style="color:#64748B;font-size:11px;">[${safeStr(emp.category)}] - ${safeStr(dept)}</span><br>
+                          <small style="color:#D97706;font-weight:bold;font-size:11px;">Currently at: 📍 ${safeStr(currentLoc)}</small></div>
+                          <input type="checkbox" class="loc-employee-check" data-id="${emp.id}" style="width:20px;height:20px;accent-color:#0A56D0;cursor:pointer;flex-shrink:0;">
+                        </label>`;
                     });
                     list.innerHTML = html || '<p style="padding:12px; color:#74777F; text-align:center;">No employees found.</p>';
                 }
@@ -7139,13 +7475,13 @@
                     const checks = list.querySelectorAll('.loc-employee-check:checked');
                     if(checks.length === 0) return appAlert('Notice', 'Please select at least one employee to transfer.');
                     
-                    appConfirm('Confirm Transfer', `Move ${checks.length} selected employees to ${locationName}?`, () => {
+                    appConfirm('Confirm Transfer', `Add/assign ${checks.length} selected employees to ${locationName}?`, () => {
                         const updates = {};
                         checks.forEach(cb => {
                             updates[cb.dataset.id + '/locationNode'] = locationName;
                         });
                         db.ref('employees').update(updates).then(() => {
-                            appAlert('Success', `${checks.length} employees successfully transferred to ${locationName}!`);
+                            appAlert('Success', `${checks.length} employees successfully added to ${locationName}!`);
                             modal.classList.add('hidden');
                             if(typeof renderAdminVenues === 'function') renderAdminVenues();
                         }).catch(err => { appAlert('Error', 'Update failed: ' + err.message); });
@@ -7156,6 +7492,44 @@
             // ============================================================
             //  ADMIN / PANTRY RENDER HELPERS
             // ============================================================
+
+            // LOCATION-BASED AND MULTI-PANTRY ACCESS HELPERS
+            window.getEmployeePantryIds = function(emp) {
+                const ids = new Set();
+                if (!emp) return [];
+                let hasLocationRule = false;
+                if (emp.locationNode) {
+                    const venue = (venueList || []).find(v => v.name === emp.locationNode);
+                    const key = venue && venue.id ? venue.id : String(emp.locationNode).replaceAll('.', '_').replaceAll('#', '_').replaceAll('$', '_').replaceAll('[', '_').replaceAll(']', '_').replaceAll('/', '_');
+                    const loc = (locationPantryAssignments || {})[key];
+                    const pids = loc && (loc.pantryIds || (loc.pantryId ? [loc.pantryId] : []));
+                    if (loc) hasLocationRule = true;
+                    if (Array.isArray(pids)) pids.forEach(id => id && ids.add(String(id)));
+                    else if (pids && typeof pids === 'object') Object.keys(pids).forEach(id => { if (pids[id]) ids.add(String(id)); });
+                }
+                // Explicit multi-person access is retained; a location rule replaces the old single-person legacy assignment.
+                const multi = emp.assignedPantryIds || {};
+                if (Array.isArray(multi)) multi.forEach(id => id && ids.add(String(id)));
+                else Object.keys(multi).forEach(id => { if (multi[id] === true) ids.add(String(id)); });
+                if (!hasLocationRule && emp.assignedPantryId) ids.add(String(emp.assignedPantryId));
+                return Array.from(ids);
+            };
+            window.isEmployeeAssignedToPantry = function(emp, pantryId) {
+                return !!emp && !!pantryId && (window.getEmployeePantryIds(emp).includes(String(pantryId)) ||
+                    !!(emp.tempPantryIds && emp.tempPantryIds[pantryId] === true));
+            };
+            window.resumeSavedPantrySession = function() {
+                if (currentUser || !Array.isArray(pantryTeam) || !pantryTeam.length) return false;
+                let saved = null;
+                try { saved = JSON.parse(localStorage.getItem('dau_pantry_login_session') || 'null'); } catch(e) {}
+                if (!saved || !saved.id) return false;
+                const member = pantryTeam.find(p => p.id === saved.id && p.status !== 'Inactive');
+                if (!member) { localStorage.removeItem('dau_pantry_login_session'); return false; }
+                currentUser = { role: 'pantry', id: member.id, name: member.name };
+                renderPantryDashboard();
+                return true;
+            };
+
             function renderLogin() {
                 loginScreen.classList.remove('hidden');
                 adminScreen.classList.add('hidden');
@@ -7196,6 +7570,7 @@
                     if (!member) return appAlert('Error', 'Select a staff member.');
                     if (window.checkActiveSessionStatusAndTogglePINBox()) {
                         currentUser = { role: 'pantry', id: member.id, name: member.name };
+                        localStorage.setItem('dau_pantry_login_session', JSON.stringify({ id: member.id, name: member.name, loggedInAt: Date.now() }));
                         renderPantryDashboard();
                         return;
                     }
@@ -7206,6 +7581,7 @@
                         member.name, member.pin.trim());
                     else localStorage.removeItem('dau_saved_pin_' + member.name);
                     currentUser = { role: 'pantry', id: member.id, name: member.name };
+                    localStorage.setItem('dau_pantry_login_session', JSON.stringify({ id: member.id, name: member.name, loggedInAt: Date.now() }));
                     db.ref('sessionDevices/pantry_' + member.id).set({ device: deviceFingerprint, role: 'pantry' });
                     renderPantryDashboard();
                 };
@@ -7327,15 +7703,16 @@
             `;
 
                 document.getElementById('homeAdminBtn').onclick = () => {
-                    document.getElementById('adminContentArea').classList.add('hidden');
+                    const desktopWorkspace = window.matchMedia('(min-width: 900px)').matches;
+                    document.getElementById('adminContentArea').classList.toggle('hidden', !desktopWorkspace);
                     document.getElementById('adminMenuArea').classList.remove('hidden');
                     document.getElementById('adminContent').innerHTML = '';
                     document.getElementById('adminBackBtn').style.display = 'none';
-                    
+                    activeAdminTab = null;
+                    if (desktopWorkspace) return;
+
                     adminScreen.classList.add('hidden');
                     loginScreen.classList.remove('hidden');
-                    
-                    activeAdminTab = null;
                     currentUser = null;
                     if (typeof renderLogin === 'function') renderLogin();
                 };
@@ -7362,7 +7739,8 @@
 
                 const goBack = () => {
                     activeAdminTab = null;
-                    contentArea.classList.add('hidden');
+                    const desktopWorkspace = window.matchMedia('(min-width: 900px)').matches;
+                    contentArea.classList.toggle('hidden', !desktopWorkspace);
                     menuArea.classList.remove('hidden');
                     document.getElementById('adminContent').innerHTML = '';
                     document.getElementById('adminBackBtn').style.display = 'none';
@@ -7373,9 +7751,10 @@
                 document.querySelectorAll('#adminMenuArea .dash-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const tab = e.currentTarget.dataset.tab;
-                        menuArea.classList.add('hidden');
+                        const desktopWorkspace = window.matchMedia('(min-width: 900px)').matches;
+                        if (!desktopWorkspace) menuArea.classList.add('hidden');
                         contentArea.classList.remove('hidden');
-                        document.getElementById('adminBackBtn').style.display = 'inline-flex';
+                        document.getElementById('adminBackBtn').style.display = desktopWorkspace ? 'none' : 'inline-flex';
                         if(typeof renderAdminTab === 'function') renderAdminTab(tab);
                         activeAdminTab = tab;
                     });
@@ -7473,6 +7852,13 @@
                           <label class="a-chk-row" style="flex:1; margin:0; padding:0; justify-content:center; min-height:32px; border:1px solid #CBD5E1; background:#F8FAFC; display:flex; align-items:center; font-size:10px; cursor:pointer;"><input type="checkbox" id="selectAllEmployees" style="margin-right:2px; width:12px; height:12px;"> All</label>
                       </div>
 
+                      <div style="display:flex;gap:6px;margin:0 0 8px;">
+                        <select id="employeeLocationFilter" class="a-input" style="flex:1;padding:7px;min-height:34px;font-size:11px;">
+                          <option value="">All Locations</option>
+                          ${[...new Map(venueList.map(v => [String(v.name || '').trim().replace(/\s+/g,' ').toLowerCase(),v])).values()].map(v => `<option value="${safeStr(v.name)}">${safeStr(v.name)}</option>`).join('')}
+                        </select>
+                        <button id="togglePastEmployees" class="a-btn warning" style="flex:1;">🗂 Retired / Left / Past Employees</button>
+                      </div>
                       <div class="a-grid-4">
                           <button id="addEmployeeBtn" class="a-btn primary">➕ Add</button>
                           <button id="importExcelBtn" class="a-btn success">📥 Import</button>
@@ -7482,13 +7868,51 @@
                   </div>
                   
                   <!-- ડુપ્લીકેટ નામ પકડવા માટેનું વોર્નિંગ બોક્સ -->
+                  <div class="card" style="margin:8px 0;padding:12px;border:2px solid #0A56D0;background:#EFF6FF;">
+                    <h4 style="margin:0 0 6px;color:#0A56D0;">📍 Direct Location Assignment</h4>
+                    <small style="display:block;color:#475569;margin-bottom:8px;">Select a location and one or more Pantry Boys. All employees at this location will inherit this assignment automatically.</small>
+                    <select id="empDirectLocationSelect" style="margin:0 0 8px;"><option value="">-- Select Location --</option>${[...new Map(venueList.map(v => [String(v.name || '').trim().replace(/\s+/g,' ').toLowerCase(),v])).values()].map(v => `<option value="${safeStr(v.name)}">${safeStr(v.name)}</option>`).join('')}</select>
+                    <div id="empDirectPantryChecks" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;background:#fff;border:1px solid #CBD5E1;border-radius:8px;padding:8px;max-height:150px;overflow:auto;">
+                      ${pantryTeam.filter(p => p.status !== 'Inactive').map(p => `<label style="display:flex;align-items:center;gap:7px;padding:6px;border:1px solid #E2E8F0;border-radius:7px;font-size:12px;"><input type="checkbox" class="directLocPantryCheck" value="${p.id}" style="width:17px;height:17px;margin:0;accent-color:#0A56D0;">${safeStr(p.name)}</label>`).join('')}
+                    </div>
+                    <button id="saveDirectLocationAssignment" class="success" style="width:100%;margin-top:8px;">💾 Save Location Assignment</button>
+                  </div>
                   <div id="empDuplicateWarningBox"></div>
                   
                   <div id="employeeListContainer" class="scroll-list-box" style="margin-top:0;"></div>
+                  <div id="pastEmployeeSection" class="card hidden" style="margin-top:10px;">
+                    <h4 style="color:#92400E;margin:0 0 8px;">🗂 Retired / Left / Past Employees</h4>
+                    <small style="display:block;color:#64748B;margin-bottom:8px;">Archived employees are hidden from regular entries. Their previous records remain saved.</small>
+                    <div id="pastEmployeeListContainer" class="scroll-list-box"></div>
+                  </div>
                 `;
                         document.getElementById('employeeSearch').addEventListener('input', renderEmployeeList);
                         document.getElementById('categoryFilter').addEventListener('change', renderEmployeeList);
                         document.getElementById('pantryFilter').addEventListener('change', renderEmployeeList);
+                        document.getElementById('employeeLocationFilter').addEventListener('change', renderEmployeeList);
+                        document.getElementById('togglePastEmployees').onclick = () => {
+                            const box = document.getElementById('pastEmployeeSection');
+                            box.classList.toggle('hidden');
+                            if (!box.classList.contains('hidden')) renderPastEmployeeList();
+                        };
+                        document.getElementById('empDirectLocationSelect').onchange = () => {
+                            const locName = document.getElementById('empDirectLocationSelect').value;
+                            const venue = (window.getUniqueVenueList ? window.getUniqueVenueList() : venueList).find(v => String(v.name).trim().toLowerCase() === locName.trim().toLowerCase());
+                            const key = venue && venue.id ? venue.id : locName.replaceAll('.', '_').replaceAll('#', '_').replaceAll('$', '_').replaceAll('[', '_').replaceAll(']', '_').replaceAll('/', '_');
+                            const saved = (locationPantryAssignments || {})[key] || {};
+                            const ids = Array.isArray(saved.pantryIds) ? saved.pantryIds : (saved.pantryId ? [saved.pantryId] : []);
+                            document.querySelectorAll('.directLocPantryCheck').forEach(cb => cb.checked = ids.includes(cb.value));
+                        };
+                        document.getElementById('saveDirectLocationAssignment').onclick = () => {
+                            const locName = document.getElementById('empDirectLocationSelect').value;
+                            const ids = Array.from(document.querySelectorAll('.directLocPantryCheck:checked')).map(x => x.value);
+                            if (!locName || !ids.length) return appAlert('Required', 'Select a location and at least one Pantry Boy.');
+                            const venue = (window.getUniqueVenueList ? window.getUniqueVenueList() : venueList).find(v => String(v.name).trim().toLowerCase() === locName.trim().toLowerCase());
+                            const key = venue && venue.id ? venue.id : locName.replaceAll('.', '_').replaceAll('#', '_').replaceAll('$', '_').replaceAll('[', '_').replaceAll(']', '_').replaceAll('/', '_');
+                            db.ref('locationPantryAssignments/' + key).set({locationId: venue?.id || key, locationName: locName, pantryIds: ids, updatedAt: Date.now()})
+                              .then(() => appAlert('Saved', 'Location assignment saved. Employees at this location will inherit the selected Pantry Boy(s).'))
+                              .catch(err => appAlert('Error', err.message));
+                        };
                         document.getElementById('addEmployeeBtn').onclick = () => openEmployeeForm();
                         document.getElementById('importExcelBtn').onclick = importExcel;
                         document.getElementById('bulkDeleteBtn').onclick = bulkDeleteEmployees;
@@ -7999,16 +8423,39 @@
                 `;
                         renderAdminVenues();
 
-                        document.getElementById('saveVenueBtn').onclick = () => {
-                            const name = document.getElementById('venueNameInput').value.trim();
-                            if (name) {
-                                if (venueList.some(v => v.name.toLowerCase() === name.toLowerCase())) {
-                                    return appAlert('Duplicate', 'This Location already exists!');
+                        document.getElementById('saveVenueBtn').onclick = async () => {
+                            const input = document.getElementById('venueNameInput');
+                            const name = input.value.trim().replace(/\\s+/g, ' ');
+                            if (!name) return appAlert('Error', 'Please enter a location name.');
+
+                            // Duplicate protection: ignore letter case and extra spaces.
+                            const normalizedName = name.toLocaleLowerCase();
+                            if (venueList.some(v => String(v.name || '').trim().replace(/\\s+/g, ' ').toLocaleLowerCase() === normalizedName)) {
+                                return appAlert('Duplicate', 'This Location already exists. Open the saved location to add employees.');
+                            }
+
+                            const saveBtn = document.getElementById('saveVenueBtn');
+                            saveBtn.disabled = true;
+                            try {
+                                // Recheck the latest saved locations before writing.
+                                const snapshot = await db.ref('venues').once('value');
+                                const savedVenues = snapshot.val() || {};
+                                const duplicateExists = Object.values(savedVenues).some(v =>
+                                    String(v && v.name || '').trim().replace(/\\s+/g, ' ').toLocaleLowerCase() === normalizedName
+                                );
+                                if (duplicateExists) {
+                                    return appAlert('Duplicate', 'This Location already exists. Open the saved location to add employees.');
                                 }
+
                                 const id = 'vnu_' + Date.now();
-                                db.ref('venues/' + id).set({ id, name });
-                                document.getElementById('venueNameInput').value = '';
-                                appAlert('Success', 'Location added!');
+                                await db.ref('venues/' + id).set({ id, name });
+                                input.value = '';
+                                if (typeof renderAdminVenues === 'function') renderAdminVenues();
+                                appAlert('Success', 'Location added! Open the saved location or tap Manage to select multiple employees.');
+                            } catch (err) {
+                                appAlert('Error', 'Could not save location: ' + (err.message || err));
+                            } finally {
+                                saveBtn.disabled = false;
                             }
                         };
 
@@ -8159,7 +8606,7 @@
                         function getPantryBoyForLocation(locName) {
                             if (!locName) return "";
                             const parsed = parseWebLoc(locName);
-                            const empsInLoc = employeeList.filter(e => e.locationNode && e.locationNode.toLowerCase() === parsed.loc.toLowerCase() && e.assignedPantryId && e.assignedPantryId !== 'unassigned' && e.status !== 'Inactive');
+                            const empsInLoc = employeeList.filter(e => e.locationNode && e.locationNode.toLowerCase() === parsed.loc.toLowerCase() && e.assignedPantryId && e.assignedPantryId !== 'unassigned' && !['Inactive','Retired','Left','Past'].includes(e.status));
                             if (empsInLoc.length === 0) return "";
                             
                             const counts = {};
@@ -8187,7 +8634,7 @@
                             if (!currentUser || currentUser.role !== 'admin') return;
 
                             const items = Object.values(data);
-                            const activeEmps = employeeList.filter(e => e.status !== 'Inactive');
+                            const activeEmps = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status));
                             const cleanName = (n) => (n||'').toLowerCase().replace(/^(dr\.|prof\.|mr\.|ms\.|mrs\.|dr|prof|mr|ms|mrs)\s+/g, '').replace(/[^a-z0-9\s]/g, '').trim();
                             
                             const rootUpdates = {};
@@ -8834,7 +9281,7 @@ if (
             // SMART EMPLOYEE DUPLICATE SCANNER (FIXED FOR INITIALS)
             // ============================================================
             window.checkAndShowEmployeeDuplicates = function() {
-                const activeEmps = employeeList.filter(e => e.status !== 'Inactive');
+                const activeEmps = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status));
                 const duplicates = [];
                 const seenIds = new Set();
 
@@ -9038,17 +9485,20 @@ if (
                 const search = document.getElementById('employeeSearch')?.value.toLowerCase() || '';
                 const cat = document.getElementById('categoryFilter')?.value || '';
                 const pFilter = document.getElementById('pantryFilter')?.value || '';
+                const locFilter = document.getElementById('employeeLocationFilter')?.value || '';
+                const getAssignedIds = (emp) => (window.getEmployeePantryIds ? window.getEmployeePantryIds(emp) : [emp.assignedPantryId].filter(Boolean));
                 
                 const filtered = employeeList.filter(e => {
-                    if (e.status === 'Inactive') return false;
+                    if (['Inactive','Retired','Left','Past'].includes(e.status)) return false;
+                    if (locFilter && (e.locationNode || '') !== locFilter) return false;
                     if (search && !(e.name || '').toLowerCase().includes(search)) return false;
                     if (cat && (e.category || '').trim().toLowerCase() !== cat.toLowerCase()) return false;
                     
                     // Unassigned માટેનું સ્પેશિયલ લોજીક
                     if (pFilter === 'unassigned') {
-                        if (e.assignedPantryId && e.assignedPantryId.trim() !== '') return false;
+                        if (getAssignedIds(e).length) return false;
                     } else if (pFilter !== '') {
-                        if (e.assignedPantryId !== pFilter) return false;
+                        if (!getAssignedIds(e).includes(pFilter)) return false;
                     }
                     return true;
                 });
@@ -9058,7 +9508,7 @@ if (
                 if (!filtered.length) { container.innerHTML = `<p style="text-align:center; padding:20px; color:#74777F; font-size:.9rem;">No employees.</p>`; return; }
                 
                 container.innerHTML = filtered.map(emp => {
-                    const pantryName = pantryTeam.find(p => p.id === emp.assignedPantryId)?.name || 'Unassigned';
+                    const pantryName = getAssignedIds(emp).map(id => pantryTeam.find(p => p.id === id)?.name).filter(Boolean).join(', ') || 'Unassigned';
                     const loc = emp.locationNode || 'No Loc';
                     const roomStr = emp.roomNo ? ` | 🚪 ${emp.roomNo}` : '';
                     
@@ -9078,7 +9528,9 @@ if (
                   </div>
                   <div style="display:flex; align-items:center; gap:2px; flex-shrink:0;">
                     <button class="editEmployeeBtn" data-id="${emp.id}" style="background:transparent; border:none; cursor:pointer; font-size:1.1rem; padding:4px; color:#0A56D0; border-radius:8px;">✏️</button>
-                    <button onclick="window.pantryDeleteHandler('employee','${emp.id}')" style="background:transparent; border:none; color:#DC3545; cursor:pointer; font-size:1.1rem; padding:4px; border-radius:8px;">🗑</button>
+                    <button onclick="window.archiveEmployee('${emp.id}','Retired')" title="Retired" style="background:#FEF3C7;border:none;color:#92400E;border-radius:6px;padding:5px;font-size:10px;min-height:28px;">Retire</button>
+                    <button onclick="window.archiveEmployee('${emp.id}','Left')" title="Left" style="background:#E0E7FF;border:none;color:#3730A3;border-radius:6px;padding:5px;font-size:10px;min-height:28px;">Left</button>
+                    <button onclick="window.pantryDeleteHandler('employee','${emp.id}') " style="background:transparent; border:none; color:#DC3545; cursor:pointer; font-size:1.1rem; padding:4px; border-radius:8px;">🗑</button>
                     <input type="checkbox" class="employeeCheckbox" data-id="${emp.id}" style="width:18px; height:18px; margin-left:2px; accent-color:#0A56D0;">
                   </div>
                 </div>
@@ -9091,6 +9543,37 @@ if (
                 });
             }
 
+
+            window.archiveEmployee = function(id, status) {
+                const emp = employeeList.find(e => e.id === id);
+                if (!emp) return;
+                appConfirm(status === 'Retired' ? 'Mark as Retired' : 'Mark as Left',
+                    `Move ${emp.name} to ${status} / Past Employees? Previous tea records will remain unchanged.`,
+                    () => db.ref('employees/' + id + '/status').set(status).then(() => {
+                        appAlert('Moved', `${emp.name} moved to ${status} / Past Employees.`);
+                        renderEmployeeList();
+                    }).catch(err => appAlert('Error', err.message)));
+            };
+            window.restorePastEmployee = function(id) {
+                appConfirm('Restore Employee', 'Move this employee back to the active employee list?', () => {
+                    db.ref('employees/' + id + '/status').remove().then(() => {
+                        appAlert('Restored', 'Employee restored to active list.');
+                        renderPastEmployeeList();
+                        renderEmployeeList();
+                    }).catch(err => appAlert('Error', err.message));
+                });
+            };
+            function renderPastEmployeeList() {
+                const box = document.getElementById('pastEmployeeListContainer');
+                if (!box) return;
+                const archived = employeeList.filter(e => ['Retired','Left','Past'].includes(e.status));
+                box.innerHTML = archived.length ? archived.map(e => `
+                  <div class="employee-item" style="display:flex;align-items:center;gap:8px;">
+                    <div style="flex:1;min-width:0;"><b>${safeStr(e.name)}</b><div style="font-size:11px;color:#64748B;">${safeStr(e.category || '')} · ${safeStr(e.locationNode || 'No Location')} · ${safeStr(e.status)}</div></div>
+                    <button class="sm outline" onclick="window.restorePastEmployee('${e.id}')">↩ Restore</button>
+                  </div>`).join('') : '<p style="padding:12px;text-align:center;color:#64748B;">No retired or left employees.</p>';
+            }
+
             window.openEmployeeForm = function(existing = null) {
                 document.getElementById('dynamicFormModal')?.remove();
                 const form = document.createElement('div');
@@ -9098,8 +9581,19 @@ if (
                 form.id = 'dynamicFormModal';
                 form.style.zIndex = '9999999';
 
-                const pantryOpts = pantryTeam.filter(p => p.status !== 'Inactive').map(p => `<option value="${p.id}" ${existing?.assignedPantryId === p.id ? 'selected' : ''}>${p.name}${p.onLeave ? ' (On Leave)' : ''}</option>`).join('');
-                const venueOpts = venueList.map(v => `<option value="${v.name}" ${existing?.locationNode === v.name ? 'selected' : ''}>${v.name}</option>`).join('');
+                const existingPantryIds = new Set();
+                if (existing) {
+                    const savedMulti = existing.assignedPantryIds || {};
+                    if (Array.isArray(savedMulti)) savedMulti.forEach(id => id && existingPantryIds.add(String(id)));
+                    else Object.keys(savedMulti).forEach(id => { if (savedMulti[id] === true) existingPantryIds.add(String(id)); });
+                    if (!existingPantryIds.size && existing.assignedPantryId) {
+                        const v = (venueList || []).find(x => x.name === existing.locationNode);
+                        const key = v && v.id ? v.id : String(existing.locationNode || '').replaceAll('.', '_').replaceAll('#', '_').replaceAll('$', '_').replaceAll('[', '_').replaceAll(']', '_').replaceAll('/', '_');
+                        if (!(locationPantryAssignments || {})[key]) existingPantryIds.add(String(existing.assignedPantryId));
+                    }
+                }
+                const pantryOpts = pantryTeam.filter(p => p.status !== 'Inactive').map(p => `<option value="${p.id}" ${existingPantryIds.has(p.id) ? 'selected' : ''}>${p.name}${p.onLeave ? ' (On Leave)' : ''}</option>`).join('');
+                const venueOpts = (window.getUniqueVenueList ? window.getUniqueVenueList() : venueList).map(v => `<option value="${v.name}" ${existing?.locationNode === v.name ? 'selected' : ''}>${v.name}</option>`).join('');
                 const deptOpts = ['Administration', 'Admissions', 'Finance', 'HR', 'IT', 'Library', 'Law', 'SoL', 'Placement', 'Faculty', 'Staff', 'Outsource'].map(d => `<option value="${d}" ${existing?.department === d ? 'selected' : ''}>${d}</option>`).join('');
 
                 const photoPreview = existing?.photoUrl ? `<img src="${existing.photoUrl}" style="width:60px; height:60px; border-radius:8px; object-fit:cover; border:1px solid #CBD5E1;">` : `<div style="width:60px; height:60px; border-radius:8px; background:#F1F5F9; border:1px dashed #CBD5E1; display:flex; align-items:center; justify-content:center; font-size:24px;">👤</div>`;
@@ -9136,8 +9630,11 @@ if (
                           </div>
                       </div>
                       
-                      <label style="font-size:.85rem; color:#44474E; display:block; font-weight:600; margin-bottom:4px;">Assign Pantry Boy:</label>
-                      <select id="empPantryAssign" style="margin-bottom:12px; padding:12px; border-radius:8px; border:1px solid #CBD5E1; width:100%;"><option value="">-- Unassigned --</option>${pantryOpts}</select>
+                      <label style="font-size:.85rem;color:#44474E;display:block;font-weight:600;margin-bottom:6px;">Assign Pantry Boy(s):</label>
+                      <div id="empPantryAssign" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:6px;padding:9px;border:1px solid #CBD5E1;border-radius:10px;background:#F8FAFC;max-height:170px;overflow:auto;">
+                        ${pantryTeam.filter(p => p.status !== 'Inactive').map(p => `<label style="display:flex;align-items:center;gap:8px;padding:8px;background:#fff;border:1px solid ${existingPantryIds.has(p.id) ? '#0A56D0' : '#E2E8F0'};border-radius:8px;font-size:12px;cursor:pointer;"><input type="checkbox" class="empPantryCheck" value="${p.id}" ${existingPantryIds.has(p.id) ? 'checked' : ''} style="width:18px;height:18px;margin:0;accent-color:#0A56D0;"><span style="flex:1;">${safeStr(p.name)}${p.onLeave ? ' (On Leave)' : ''}</span>${existingPantryIds.has(p.id) ? '<b style="color:#0A56D0;">✓</b>' : ''}</label>`).join('')}
+                      </div>
+                      <small style="display:block;color:#64748B;margin-bottom:12px;">✓ Tick one or more Pantry Boys. Every selected Pantry Boy can enter service for this employee.</small>
                       
                       <label style="font-size:.85rem; color:#44474E; display:block; font-weight:600; margin-bottom:4px;">Department:</label>
                       <select id="empDepartmentAssign" style="margin-bottom:12px; padding:12px; border-radius:8px; border:1px solid #CBD5E1; width:100%;"><option value="">-- Select --</option>${deptOpts}</select>
@@ -9163,7 +9660,10 @@ if (
                 document.getElementById('saveEmployeeBtn').onclick = () => {
                     const name = document.getElementById('empName').value.trim();
                     const cat = document.getElementById('empCat').value;
-                    const pantryId = document.getElementById('empPantryAssign').value;
+                    const selectedPantryIds = Array.from(document.querySelectorAll('#empPantryAssign .empPantryCheck:checked')).map(o => o.value).filter(Boolean);
+                    const pantryId = selectedPantryIds[0] || '';
+                    const assignedPantryIds = {};
+                    selectedPantryIds.forEach(pid => assignedPantryIds[pid] = true);
                     const locNode = document.getElementById('empLocationNodeAssign').value;
                     const roomNo = document.getElementById('empRoom').value.trim();
                     const dept = document.getElementById('empDepartmentAssign').value;
@@ -9173,7 +9673,7 @@ if (
                     if (!name || !cat) return appAlert('Error', 'Name and category are required.');
                     
                     const id = existing?.id || 'emp_' + Date.now();
-                    db.ref('employees/' + id).set({ id, name, category: cat, assignedPantryId: pantryId, locationNode: locNode, roomNo: roomNo, department: dept, photoUrl: pUrl, vipMultipleTea: isVip });
+                    db.ref('employees/' + id).set({ id, name, category: cat, assignedPantryId: pantryId, assignedPantryIds: assignedPantryIds, locationNode: locNode, roomNo: roomNo, department: dept, photoUrl: pUrl, vipMultipleTea: isVip });
                     form.remove();
                     appAlert('Success', 'Employee saved successfully!');
                 };
@@ -9187,7 +9687,7 @@ if (
                 modal.className = 'popup-overlay';
                 modal.id = 'bulkAssignLocModal';
 
-                const locOptions = venueList.map(v => `<option value="${v.id}">${v.name}</option>`).join('');
+                const locOptions = (window.getUniqueVenueList ? window.getUniqueVenueList() : venueList).map(v => `<option value="${v.id}">${v.name}</option>`).join('');
 
                 modal.innerHTML = `
                 <div class="popup-card" style="text-align:center; max-width:400px;">
@@ -9335,7 +9835,7 @@ if (
                     `<p style="text-align:center; padding:20px; color:#74777F; font-size:.9rem;">No pantry staff.</p>`; return; }
                 c.innerHTML = activePantry.map(p => {
                     // એમ્પ્લોયીનું લિસ્ટ એરે (Array) તરીકે લીધું છે 
-                    const assignedEmps = employeeList.filter(e => e.status !== 'Inactive' && e.assignedPantryId === p.id).map(e => e.name);
+                    const assignedEmps = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status) && window.isEmployeeAssignedToPantry(e, p.id)).map(e => e.name);
                     const assignedCount = assignedEmps.length;
 
                     const leaveBadge = p.onLeave ? ' <div style="color:#DC3545; font-weight:700; font-size:0.75rem; margin-top:2px;">(On Leave)</div>' : '';
@@ -9438,7 +9938,7 @@ if (
 
                 pantryTeam.forEach(pb => {
                     if (pb.status === 'Inactive') return;
-                    const myEmps = employeeList.filter(e => e.status !== 'Inactive' && e.assignedPantryId === pb.id);
+                    const myEmps = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status) && window.isEmployeeAssignedToPantry(e, pb.id));
                     
                     if(myEmps.length === 0) {
                         tbodyHtml += `<tr>
@@ -9770,7 +10270,7 @@ if (
                 if (!c) return;
                 if (!venueList.length) { c.innerHTML =
                     `<p style="padding:12px; color:#74777F; font-size:.9rem; text-align:center;">No venues.</p>`; return; }
-                c.innerHTML = venueList.map(v => {
+                c.innerHTML = (window.getUniqueVenueList ? window.getUniqueVenueList() : venueList).map(v => {
                     const depts = v.departments ? (Array.isArray(v.departments) ? v.departments : Object.values(v.departments)) : [];
                     const deptTags = depts.length ? depts.map(d => `<span style="background:#E0F2FE; color:#0284C7; font-size:10px; padding:2px 6px; border-radius:4px; border:1px solid #BAE6FD; margin-right:4px; display:inline-block;">${safeStr(d)}</span>`).join('') : '<span style="color:#94A3B8; font-size:10px;">No departments</span>';
                     return `
@@ -9971,12 +10471,67 @@ window.reloadAdminLiveGrid = function() {
     }, 10);
 };
 
+// Add a full-month VIP column directly from Admin Reports > Monthly Grid > Live.
+window.addAdminLiveVipColumn = function(empId, month, supplySource, pantryId, categoryVal) {
+    const empObj = employeeList.find(e => e.id === empId);
+    if (!empObj || empObj.vipMultipleTea !== true) return;
+    if (!month) return appAlert('Error', 'Select month first.');
+
+    const [yy, mm] = month.split('-');
+    const daysInMonth = getDaysInMonth(yy, mm);
+    const matchingLogs = logsData.filter(l =>
+        l.employeeId === empId &&
+        (l.supplySource === supplySource || (!l.supplySource && supplySource === 'Contractor')) &&
+        l.session && /^VIP_\d+$/.test(String(l.session)) &&
+        canonicalLogDate(l.date).startsWith(month)
+    );
+    const usedNumbers = matchingLogs
+        .map(l => Number(String(l.session).split('_')[1]))
+        .filter(n => Number.isFinite(n) && n > 0);
+    let nextNo = 1;
+    while (usedNumbers.includes(nextNo)) nextNo++;
+    const sessionName = `VIP_${nextNo}`;
+
+    let pId = empObj.assignedPantryId || 'admin';
+    let pName = 'Admin';
+    if (pId !== 'admin') {
+        const pb = pantryTeam.find(p => p.id === pId);
+        if (pb) pName = pb.name;
+    }
+
+    const updates = {};
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dateDMY = `${String(d).padStart(2, '0')}/${mm}/${yy}`;
+        const newId = 'log_admin_vip_' + Date.now() + '_' + d + '_' + Math.floor(Math.random() * 10000);
+        updates['logs/' + newId] = {
+            id: newId,
+            employeeId: empId,
+            employeeName: empObj.name,
+            drink: '',
+            session: sessionName,
+            date: dateDMY,
+            pantryId: pId,
+            pantryName: pName,
+            supplySource: supplySource,
+            vipMonthly: true
+        };
+    }
+
+    db.ref().update(updates)
+        .then(() => db.ref('logs').once('value'))
+        .then(snap => {
+            logsData = parseSnap(snap);
+            window.openAdminLiveGrid(month, supplySource, pantryId, categoryVal, true);
+        })
+        .catch(err => appAlert('Error', 'Unable to add VIP column: ' + err.message));
+};
+
 window.openAdminLiveGrid = function(month, supplySource, pantryId, categoryVal, isReload = false) {
     if (!month) return appAlert('Error', 'Select month.');
     const [yy, mm] = month.split('-');
     const daysInMonth = getDaysInMonth(yy, mm);
     
-    let emps = employeeList.filter(e => e.status !== 'Inactive');
+    let emps = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status));
     if (pantryId !== 'All') {
         emps = emps.filter(e => e.assignedPantryId === pantryId || (e.tempPantryIds && e.tempPantryIds[pantryId] === true));
     }
@@ -10131,14 +10686,20 @@ window.openAdminLiveGrid = function(month, supplySource, pantryId, categoryVal, 
     htmlArr.push(`<thead class="l-thead"><tr><th rowspan="2" class="l-th-date">Date</th>`);
     emps.forEach(emp => {
         const vips = vipColsByEmp[emp.id]||[];
-        htmlArr.push(`<th colspan="${2 + vips.length}" class="l-th-emp">${safeStr(emp.name)}</th>`);
+        const vipAdd = emp.vipMultipleTea === true
+            ? `<button type="button" title="Add full-month VIP column" onclick="event.stopPropagation(); window.addAdminLiveVipColumn('${emp.id}','${month}','${supplySource}','${pantryId}','${categoryVal}')" style="margin-left:4px;background:#F59E0B;color:#fff;border:none;border-radius:4px;font-size:10px;font-weight:900;padding:1px 5px;min-height:18px;line-height:16px;cursor:pointer;">＋ VIP</button>`
+            : '';
+        const vipBadge = emp.vipMultipleTea === true
+            ? `<span title="VIP - Multiple Tea" style="margin-left:3px;color:#D97706;font-size:8px;font-weight:900;">🌟 VIP</span>`
+            : '';
+        htmlArr.push(`<th colspan="${2 + vips.length}" class="l-th-emp">${safeStr(emp.name)}${vipBadge}${vipAdd}</th>`);
     });
     htmlArr.push(`</tr><tr>`);
     emps.forEach(emp => {
         htmlArr.push(`<th class="l-th-sess">Morn</th><th class="l-th-sess aft">Aft</th>`);
         const vips = vipColsByEmp[emp.id]||[];
         vips.forEach((v, idx) => {
-            htmlArr.push(`<th class="l-th-sess" style="background:#FFFBEB;color:#B45309;">V${idx+1}</th>`);
+            htmlArr.push(`<th class="l-th-sess" style="background:#FFFBEB;color:#B45309;" title="VIP monthly tea column">VIP ${idx+1}</th>`);
         });
     });
     htmlArr.push(`</tr></thead><tbody>`);
@@ -10305,7 +10866,7 @@ window.openAdminLiveGrid = function(month, supplySource, pantryId, categoryVal, 
                 }
             };
 
-            scroller.addEventListener('click', function(e) {
+            wrapper.addEventListener('click', function(e) {
                 const cell = e.target.closest('.l-cell');
                 if (cell) {
                     clearSelection();
@@ -10383,14 +10944,16 @@ window.openAdminLiveGrid = function(month, supplySource, pantryId, categoryVal, 
                     if (scrollInterval) clearInterval(scrollInterval);
                     scrollInterval = setInterval(() => {
                         if(!isDragging) return;
-                        const rect = scroller.getBoundingClientRect();
+                        const currentScroller = document.getElementById('adminGridScroller');
+                        if (!currentScroller) return;
+                        const rect = currentScroller.getBoundingClientRect();
                         let scrolled = false;
                         
-                        if(lastY > rect.bottom - 40) { scroller.scrollTop += 25; scrolled = true; }
-                        else if(lastY < rect.top + 40) { scroller.scrollTop -= 25; scrolled = true; }
+                        if(lastY > rect.bottom - 40) { currentScroller.scrollTop += 25; scrolled = true; }
+                        else if(lastY < rect.top + 40) { currentScroller.scrollTop -= 25; scrolled = true; }
                         
-                        if(lastX > rect.right - 40) { scroller.scrollLeft += 25; scrolled = true; }
-                        else if(lastX < rect.left + 40) { scroller.scrollLeft -= 25; scrolled = true; }
+                        if(lastX > rect.right - 40) { currentScroller.scrollLeft += 25; scrolled = true; }
+                        else if(lastX < rect.left + 40) { currentScroller.scrollLeft -= 25; scrolled = true; }
                         
                         if(scrolled) processDragMove(lastX, lastY);
                     }, 40);
@@ -10475,8 +11038,8 @@ window.openAdminLiveGrid = function(month, supplySource, pantryId, categoryVal, 
                 }
             }
 
-            scroller.addEventListener('touchstart', handleDragStart, {passive: false});
-            scroller.addEventListener('mousedown', handleDragStart);
+            wrapper.addEventListener('touchstart', handleDragStart, {passive: false});
+            wrapper.addEventListener('mousedown', handleDragStart);
             document.addEventListener('touchmove', handleDragMove, {passive: false});
             document.addEventListener('mousemove', handleDragMove);
             document.addEventListener('touchend', handleDragEnd);
@@ -10576,7 +11139,7 @@ window.recalcAdminLiveGridTotals = function() {
 
     const firstHeaderRow = table.querySelector('thead tr:first-child');
     if (!firstHeaderRow) return;
-    const empHeaders = Array.from(firstHeaderRow.querySelectorAll('th.p-l-th-emp'));
+    const empHeaders = Array.from(firstHeaderRow.querySelectorAll('th.l-th-emp'));
     const empsInOrder = empHeaders.map(th => {
         const firstCell = table.querySelector(`.l-cell[data-emp]`);
         return firstCell ? null : null;
@@ -12322,7 +12885,15 @@ window.adminExportMonthlyGrid = function(format, overrideMonth, overrideSupply, 
             db.ref('employees').on('value', snap => { employeeList = parseSnap(snap);
                 renderIfNeeded(); });
             db.ref('pantryTeam').on('value', snap => { pantryTeam = parseSnap(snap);
-                renderIfNeeded(); });
+                if (!currentUser && !window.__dauPantrySessionResumeAttempted) {
+                    window.__dauPantrySessionResumeAttempted = true;
+                    if (!window.resumeSavedPantrySession()) renderIfNeeded();
+                } else renderIfNeeded();
+            });
+            db.ref('locationPantryAssignments').on('value', snap => {
+                locationPantryAssignments = snap.val() || {};
+                renderIfNeeded();
+            });
             // --- NEW CODE: લાઈવ સ્ટેટસ વાંચવા માટે ---
             let pantryPresenceData = {};
             db.ref('presence').on('value', snap => { pantryPresenceData = snap.val() || {}; renderIfNeeded(); });
@@ -12465,7 +13036,12 @@ db.ref('dauPurchaseAccess').on('value', snap => { dauPurchaseAccessData = snap.v
                                         renderVendorItemsList();
                                         break;
 										case 'meeting_guests':
-                        window.renderMeetingsGuestsUI('adminContent', 'admin');
+                        // Keep the active Meeting Entry form mounted.
+                        // Firebase value listeners call renderIfNeeded(); rebuilding this
+                        // section on every update clears any values the user is typing.
+                        if (!document.getElementById('adminMeetingOrderedBy')) {
+                            window.renderMeetingsGuestsUI('adminContent', 'admin');
+                        }
                         break;
                                     case 'meeting':
                                         renderAdminMeetingHistory();
@@ -13415,11 +13991,11 @@ window.renderMeetingsGuestsUI = function(containerId, currentRole) {
                     
                     if (currentRole === 'pantry' && typeof currentUser !== 'undefined') {
                         myPantryTeam = pantryTeam.filter(p => p.id === currentUser.id);
-                        myEmployees = employeeList.filter(e => e.assignedPantryId === currentUser.id || (window.getEffectivePantryId && e.assignedPantryId === window.getEffectivePantryId(currentUser.id)));
+                        myEmployees = employeeList.filter(e => window.isEmployeeAssignedToPantry(e, currentUser.id) || (window.getEffectivePantryId && window.isEmployeeAssignedToPantry(e, window.getEffectivePantryId(currentUser.id))));
                     }
 
                     const vendorOpts = `<option value="DAU Direct Purchase" style="color:#059669; font-weight:bold;">DAU</option>` + canteenList.map(c => `<option value="${safeStr(c.name)}">${safeStr(c.name)}</option>`).join('');
-                    const venueOpts = venueList.map(v => `<option value="${safeStr(v.name)}">`).join('');
+                    const venueOpts = (window.getUniqueVenueList ? window.getUniqueVenueList() : venueList).map(v => `<option value="${safeStr(v.name)}">`).join('');
                     const employeeOpts = myEmployees.map(e => `<option value="${safeStr(e.name)}">`).join('');
 
                     window.mgCurrentPantryName = (currentRole === 'pantry' && currentUser) ? currentUser.name : '';
@@ -13453,6 +14029,15 @@ window.renderMeetingsGuestsUI = function(containerId, currentRole) {
                         .transposed-table td.active-cell .col-drag-handle { display: block; }
                         .mg-smart-ac-item { padding: 4px 6px; font-size: 10px; border-bottom: 1px solid #E2E8F0; cursor: pointer; color: #1E293B; font-weight: 700; text-align: left; }
                         .mg-smart-ac-item:active { background: #E0F2FE; }
+
+                        /* Desktop meeting grid: show 8 compact entry columns without wasting space. */
+                        @media (min-width: 900px) {
+                            .transposed-table { width: max(100%, 1080px); table-layout: fixed; }
+                            .transposed-table td { width: 126px; min-width: 126px; height: 25px; }
+                            .transposed-table th.sticky-header { width: 65px; min-width: 65px; max-width: 65px; height: 25px; font-size: 9px; padding: 0 3px; }
+                            .transposed-table .mg-cmp-inp { height: 24px; min-height: 24px; font-size: 9px; padding: 0 2px; }
+                            .transposed-table td button { height: 22px !important; min-height: 22px !important; font-size: 9px !important; }
+                        }
                         </style>
 
                         <div style="display: flex; flex-direction: column; height: 100%; overflow:hidden;">
@@ -13476,7 +14061,7 @@ window.renderMeetingsGuestsUI = function(containerId, currentRole) {
                             </div>
 
                             <div style="flex-grow: 1; overflow: hidden; background: #fff; border-radius: 4px; border: 1px solid #0A56D0; display:flex; flex-direction:column;">
-                                <div style="flex-grow:1; position:relative; background:#f8fafc; overflow:hidden; width:100%;">
+                                <div style="flex-grow:1; position:relative; background:#f8fafc; overflow:auto; width:100%;">
                                     <table class="transposed-table" id="mgTransposedTable">
                                         <tr id="tr_date"><th class="sticky-header">Date</th></tr>
                                         <tr id="tr_time"><th class="sticky-header">Time</th></tr>
@@ -13514,7 +14099,7 @@ window.renderMeetingsGuestsUI = function(containerId, currentRole) {
                         if(val.length < 2) { list.style.display = 'none'; return; } 
 
                         let source = [];
-                        let myEmps = employeeList.filter(e => e.assignedPantryId === currentUser.id || (window.getEffectivePantryId && e.assignedPantryId === window.getEffectivePantryId(currentUser.id)));
+                        let myEmps = employeeList.filter(e => window.isEmployeeAssignedToPantry(e, currentUser.id) || (window.getEffectivePantryId && window.isEmployeeAssignedToPantry(e, window.getEffectivePantryId(currentUser.id))));
                         if(window.mgCurrentRole === 'admin') myEmps = employeeList;
 
                         if(type === 'req') source = myEmps.map(e=>e.name);
@@ -13572,7 +14157,8 @@ window.renderMeetingsGuestsUI = function(containerId, currentRole) {
                         }
                     });
 
-                    for(let i=0; i<4; i++) { window.addMgRow(); }
+                    const initialMgColumns = window.innerWidth >= 900 ? 8 : 4;
+                    for(let i=0; i<initialMgColumns; i++) { window.addMgRow(); }
                     setTimeout(() => { if(window.initMgDragToFill) window.initMgDragToFill(); }, 500);
                     
                 } catch(e) { console.error(e); }
@@ -14416,7 +15002,7 @@ window.submitMgForm = function() {
                 // 2. Form Slips (Group by Date + Purpose + Vendor to match History View)
                 const slips = {};
                 combinedRecords.forEach(rec => {
-                    const key = `${rec.DateFormatted}_${rec.Purpose}_${rec.ReqName}_${rec.Vendor}`;
+                    const key = `${rec.DateFormatted}_${rec.Purpose}_${rec.ReqName}_${rec.Vendor}_${rec.SlipNo || 'LEGACY'}`;
                     if(!slips[key]) {
                         slips[key] = {
                             key: key, DateFormatted: rec.DateFormatted, Time: rec.Time || '', Vendor: rec.Vendor, Purpose: rec.Purpose, ReqName: rec.ReqName,
@@ -14679,6 +15265,7 @@ window.renderMgHistoryTable = function() {
                         Item: item.name, Qty: item.qty, Rate: item.rate || 0, Amount: item.amount || (item.qty * (item.rate || 0)),
                         ReqName: ev.orderedBy || '-', Purpose: ev.eventName || '-', Location: item.locationNode || '-', Vendor: item.vendor || ev.canteenSource || '-',
                         ServedBy: item.servedBy || ev.servedByName || ev.pantryName || '-', Timestamp: ev.timestamp || new Date().getTime(),
+                        SlipNo: item.slipNo || ev.slipNo || '', eventItemIndex: idx,
                         isOldEvent: true, originalId: ev.id
                     });
                 });
@@ -15041,6 +15628,7 @@ window.viewMgSlip = function(encodedData) {
                <div style="flex:1;"></div>
                 <!-- 🚨 નવો ફેરફાર: પ્રિવ્યૂ સ્લિપની અંદર જ એડિટ કરવા માટે નવું બટન -->
                 <button onclick="window.editMgSlipInline('${encodedData}')" style="background:#10B981; color:#fff; border:none; padding:6px 10px; border-radius:4px; font-size:12px; font-weight:bold; white-space:nowrap; margin:0; cursor:pointer;">✏️ Edit Items</button>
+                <button onclick="window.openMgSlipSplit('${encodedData}')" style="background:#7C3AED; color:#fff; border:none; padding:6px 10px; border-radius:4px; font-size:12px; font-weight:bold; white-space:nowrap; margin:0; cursor:pointer;">✂️ Split Slip</button>
                 <button onclick="document.getElementById('printAreaContainer').classList.add('hidden'); window.editMgGroup('${encodedData}')" style="background:#F59E0B; color:#fff; border:none; padding:6px 10px; border-radius:4px; font-size:12px; font-weight:bold; white-space:nowrap; margin:0; cursor:pointer;">✏️ Edit All</button>
                 <button onclick="window.print()" class="success" style="padding:6px 10px; border-radius:4px; font-size:12px; font-weight:bold; white-space:nowrap; margin:0;">🖨️ Print</button>
                 <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger" style="padding:6px 10px; border-radius:4px; font-size:12px; font-weight:bold; white-space:nowrap; margin:0;">✕ Close</button>
@@ -15062,6 +15650,66 @@ window.viewMgSlip = function(encodedData) {
     container.classList.remove('hidden');
 };
 // ============================================================
+// ============================================================
+//  MANUAL GUEST SLIP SPLIT (ASSIGN EACH ITEM TO A SLIP NUMBER)
+// ============================================================
+window.openMgSlipSplit = function(encodedData) {
+    const slip = JSON.parse(decodeURIComponent(encodedData));
+    if (!slip || !Array.isArray(slip.items) || !slip.items.length) return appAlert('Error', 'No items found in this slip.');
+    if (slip.items.some(it => it.isOldEvent ? (!it.originalId || !Number.isInteger(Number(it.eventItemIndex))) : (!it.id || !String(it.id).startsWith('mgrec_')))) {
+        return appAlert('Not Available', 'One or more items in this slip cannot be individually updated.');
+    }
+    const existingNo = String(slip.slipNo || '').trim();
+    const modal = document.createElement('div');
+    modal.className = 'popup-overlay'; modal.id = 'mgSlipSplitModal'; modal.style.zIndex = '1000000000';
+    modal.innerHTML = `
+      <div class="popup-card wide" style="max-width:720px;width:96%;padding:14px;max-height:92vh;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
+          <h3 style="margin:0;color:#6D28D9;font-size:16px;">✂️ Split Guest Slip</h3>
+          <button type="button" class="danger sm" onclick="document.getElementById('mgSlipSplitModal').remove()">✕ Close</button>
+        </div>
+        <div style="font-size:12px;color:#475569;margin-bottom:8px;">દરેક Item સામે Slip No. મેન્યુઅલી લખો. એકસરખા Slip No. ધરાવતી Items એક જ Slip માં જશે. હાલનો નંબર રાખવો હોય તો એ જ રહેવા દો.</div>
+        <div style="display:grid;grid-template-columns:1.5fr .55fr .7fr;gap:5px;padding:6px;background:#F1F5F9;font-size:11px;font-weight:800;"><div>Item</div><div style="text-align:center;">Qty</div><div>Slip No.</div></div>
+        <div id="mgSlipSplitRows" style="max-height:55vh;overflow:auto;"></div>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button type="button" class="outline" style="flex:1;" onclick="window.setAllMgSplitNumbers('${safeStr(existingNo)}')">Keep Original No.</button>
+          <button type="button" class="success" style="flex:1;" onclick="window.saveMgSlipSplit()">💾 Save Split</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.querySelector('#mgSlipSplitRows').innerHTML = slip.items.map(it => `
+      <div class="mg-split-row" data-id="${safeStr(it.id || '')}" data-old-event="${it.isOldEvent ? '1' : '0'}" data-original-id="${safeStr(it.originalId || '')}" data-event-index="${Number.isInteger(Number(it.eventItemIndex)) ? Number(it.eventItemIndex) : ''}" style="display:grid;grid-template-columns:1.5fr .55fr .7fr;gap:5px;align-items:center;padding:6px 2px;border-bottom:1px solid #E2E8F0;">
+        <div style="font-size:12px;font-weight:600;min-width:0;overflow-wrap:anywhere;">${safeStr(it.Item || 'Item')}</div>
+        <div style="text-align:center;font-size:12px;">${safeStr(String(it.Qty ?? 0))}</div>
+        <input class="mg-split-no" type="text" value="${safeStr(existingNo)}" placeholder="e.g. 1 / 2 / KRYY90" maxlength="40" style="width:100%;min-width:0;margin:0;padding:6px;font-size:12px;min-height:32px;border:1px solid #A78BFA;border-radius:5px;">
+      </div>`).join('');
+    window._mgSlipSplitCurrent = slip;
+};
+window.setAllMgSplitNumbers = function(number) { document.querySelectorAll('#mgSlipSplitRows .mg-split-no').forEach(input => input.value = number); };
+window.saveMgSlipSplit = function() {
+    const slip = window._mgSlipSplitCurrent, modal = document.getElementById('mgSlipSplitModal');
+    if (!slip || !modal) return;
+    const rows = Array.from(modal.querySelectorAll('.mg-split-row'));
+    if (!rows.length) return appAlert('Error', 'No items available to split.');
+    const updates = {}, assigned = new Set();
+    for (const row of rows) {
+        const id = row.dataset.id, no = row.querySelector('.mg-split-no').value.trim();
+        const oldEvent = row.dataset.oldEvent === '1';
+        const uniqueKey = oldEvent ? (row.dataset.originalId + '_' + row.dataset.eventIndex) : id;
+        if ((!oldEvent && !id) || (oldEvent && (!row.dataset.originalId || row.dataset.eventIndex === '')) || !no) return appAlert('Missing Slip No.', 'Please enter a Slip No. for every item.');
+        if (assigned.has(uniqueKey)) return appAlert('Error', 'Duplicate item detected. Please reopen the split window.');
+        assigned.add(uniqueKey);
+        if (oldEvent) updates['eventLogs/' + row.dataset.originalId + '/items/' + row.dataset.eventIndex + '/slipNo'] = no;
+        else updates['meetingsGuestsRecords/' + id + '/SlipNo'] = no;
+    }
+    if (assigned.size !== slip.items.length) return appAlert('Error', 'Please assign a Slip No. to every item.');
+    db.ref().update(updates).then(() => {
+        modal.remove(); document.getElementById('printAreaContainer')?.classList.add('hidden');
+        appAlert('Success', 'Slip split successfully. Each Slip No. is now separate.');
+        if (typeof window.renderMgHistoryTable === 'function') window.renderMgHistoryTable();
+    }).catch(err => appAlert('Error', err.message));
+};
+
 //  INLINE GUEST SLIP EDITOR (EDIT ITEMS INSIDE THE SLIP)
 // ============================================================
 window.editMgSlipInline = function(encodedData) {
@@ -15644,7 +16292,8 @@ window.openDuplicateReviewModal = function() {
 
                 const goBack = () => {
                     activePantryTab = null;
-                    contentArea.classList.add('hidden');
+                    const desktopWorkspace = window.matchMedia('(min-width: 900px)').matches;
+                    contentArea.classList.toggle('hidden', !desktopWorkspace);
                     menuArea.classList.remove('hidden');
                     if (liveAlert) liveAlert.classList.remove('hidden');
                     document.getElementById('pantryContent').innerHTML = '';
@@ -15654,11 +16303,8 @@ window.openDuplicateReviewModal = function() {
                 };
 
                 document.getElementById('homePantryBtn').onclick = () => {
+                    // Keep the Pantry Boy signed in; Home returns to the dashboard.
                     goBack();
-                    pantryScreen.classList.add('hidden');
-                    loginScreen.classList.remove('hidden');
-                    currentUser = null;
-                    if (typeof renderLogin === 'function') renderLogin();
                 };
 
                 document.getElementById('logoutPantry').onclick = () => {
@@ -15669,6 +16315,7 @@ window.openDuplicateReviewModal = function() {
                         pantryScreen.classList.add('hidden');
                         loginScreen.classList.remove('hidden');
                         currentUser = null;
+                        localStorage.removeItem('dau_pantry_login_session');
                         db.ref('sessionDevices/pantry_' + old).remove().then(() => {
                             if (typeof renderLogin === 'function') renderLogin();
                         });
@@ -15682,10 +16329,11 @@ window.openDuplicateReviewModal = function() {
                     btn.addEventListener('click', (e) => {
                         const tab = e.currentTarget.dataset.tab;
                         
-                        menuArea.classList.add('hidden');
-                        if (liveAlert) liveAlert.classList.add('hidden');
+                        const desktopWorkspace = window.matchMedia('(min-width: 900px)').matches;
+                        if (!desktopWorkspace) menuArea.classList.add('hidden');
+                        if (liveAlert && !desktopWorkspace) liveAlert.classList.add('hidden');
                         contentArea.classList.remove('hidden');
-                        document.getElementById('pantryContentBackBtn').style.display = 'inline-flex';
+                        document.getElementById('pantryContentBackBtn').style.display = desktopWorkspace ? 'none' : 'inline-flex';
                         activePantryTab = tab;
                         switch (tab) {
                             case 'cross_serve': if(typeof window.renderCrossServeView === 'function') window.renderCrossServeView(); break;
@@ -15912,7 +16560,7 @@ window.openDuplicateReviewModal = function() {
                 const categoryVal = document.getElementById('csCatFilter')?.value || 'All';
                 const searchQ = document.getElementById('csSearchEmp')?.value.toLowerCase().trim() || '';
                 
-                let emps = employeeList.filter(e => e.status !== 'Inactive' && e.assignedPantryId && e.assignedPantryId !== currentUser.id && e.assignedPantryId !== 'unassigned');
+                let emps = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status) && e.assignedPantryId && e.assignedPantryId !== currentUser.id && e.assignedPantryId !== 'unassigned');
                 
                 if (categoryVal !== 'All') {
                     const catMatch = categoryVal.trim().toLowerCase();
