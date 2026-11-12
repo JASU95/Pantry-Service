@@ -3,7 +3,7 @@
 <head>
 <script>
     // ⚠️ જ્યારે પણ તમે ગિટહબ પર નવો કોડ નાખો, ત્યારે આ વર્ઝન નંબર બદલી નાખવો (દા.ત. 1.0.1 થી 1.0.2)
-    const APP_VERSION = "1.0.32"; 
+    const APP_VERSION = "1.0.36"; 
     const currentAppVersion = localStorage.getItem('dau_pantry_version');
 
     if (currentAppVersion !== APP_VERSION) {
@@ -1323,6 +1323,25 @@
             background: #fff;
         }
 
+
+        /* ===== MEETING HISTORY RESPONSIVE TABLE ===== */
+        .mg-history-filters{display:flex;gap:6px;align-items:center;width:100%;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}
+        .mg-history-filters select,.mg-history-filters input{flex:1 1 0;min-width:82px;width:auto;margin:0!important;height:32px;min-height:32px;padding:5px 7px!important;font-size:11px!important;border:1px solid #cbd5e1;border-radius:6px;background:#fff}
+        .mg-history-filters input{flex:1.45 1 0;min-width:105px}
+        .mg-filter-action{flex:0 0 auto;white-space:nowrap;border:1px solid #dbe3ed;border-radius:6px;padding:6px 8px;font-size:10px;font-weight:700;min-height:32px;background:#fff;cursor:pointer}
+        .mg-filter-action.fix{background:#fffbeb;color:#b45309;border-color:#fde68a}
+        .mg-filter-action.pending{background:#fef2f2;color:#dc2626;border-color:#fecaca}
+        .mg-history-table-wrap{width:100%;overflow:auto;border:1px solid #d7e0ea;border-radius:12px;background:#fff;box-shadow:0 4px 16px rgba(15,23,42,.06)}
+        .mg-history-pro-table{width:100%;min-width:920px;border-collapse:separate;border-spacing:0;font-size:12px}
+        .mg-history-pro-table th{position:sticky;top:0;z-index:3;background:#172b4d;color:#fff;text-align:left;padding:11px 10px;font-size:11px;letter-spacing:.2px}
+        .mg-history-pro-table td{padding:10px;border-bottom:1px solid #e8edf3;vertical-align:middle;color:#263449}
+        .mg-history-pro-table tr.slip-row:hover{background:#f6f9fd}
+        .mg-history-pro-table .mg-group-row td{background:#eaf1fb;color:#17365d;font-weight:800;border-top:2px solid #c7d7ed;padding:10px 12px}
+        .mg-history-pro-table .mg-actions{display:flex;gap:5px;flex-wrap:nowrap;white-space:nowrap}
+        .mg-history-pro-table .mg-actions button{min-height:28px;padding:5px 8px;font-size:10px;border-radius:6px;white-space:nowrap}
+        @media(max-width:700px){.mg-history-filters{gap:4px}.mg-history-filters select,.mg-history-filters input{min-width:78px;font-size:10px!important;padding:4px 5px!important}.mg-history-filters input{min-width:96px}.mg-filter-action{font-size:9px;padding:5px 6px}.mg-history-pro-table{min-width:850px}}
+        @media(min-width:900px){#mgHistoryPopupOverlay>div{max-width:none}.mg-history-pro-table{font-size:13px}.mg-history-pro-table td{padding:12px}}
+
         /* ===== PROFESSIONAL TABLE (Meeting History) ===== */
         .pro-table-wrap {
             overflow: auto;
@@ -2439,6 +2458,129 @@
         .form-grid-mobile, .mg-form-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
         .full-width-mobile, .mg-full-width { grid-column: 1 / -1; }
       }
+
+        /* ===== LOGIN SCREEN: DESKTOP TWO-COLUMN LAYOUT ===== */
+        @media (min-width: 900px) {
+            body {
+                display: block;
+                padding: 0;
+                background: #F1F5F9;
+            }
+            #app {
+                width: 100%;
+                max-width: none;
+                height: 100vh;
+                height: 100dvh;
+                min-height: 0;
+                max-height: none;
+                border-radius: 0;
+                box-shadow: none;
+            }
+            #loginScreen {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 34px 5vw;
+            }
+            #loginScreen .login-layout {
+                width: min(1120px, 100%);
+                min-height: 520px;
+                display: grid;
+                grid-template-columns: minmax(390px, 0.88fr) minmax(420px, 1.12fr);
+                align-items: center;
+                gap: clamp(36px, 6vw, 100px);
+                margin: auto;
+            }
+            #loginScreen .login-panel {
+                width: 100%;
+                max-width: 500px;
+                justify-self: end;
+            }
+            #loginScreen .login-panel .card {
+                width: 100%;
+                max-width: none;
+                padding: 30px;
+                margin: 0;
+                border-radius: 18px;
+                box-shadow: 0 12px 35px rgba(15, 23, 42, .07);
+            }
+            #loginScreen .login-panel .card h3 {
+                font-size: 1.35rem !important;
+                margin-bottom: 22px !important;
+            }
+            #loginScreen .login-panel .login-uniform-box,
+            #loginScreen .login-panel .small-pin-input {
+                min-height: 48px;
+            }
+            #loginScreen .login-panel #pantryLoginBtn {
+                margin-top: 22px !important;
+                min-height: 50px;
+            }
+            #loginScreen .login-side-panel {
+                min-height: 430px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                padding: 38px;
+                border-left: 1px solid #DCE5EF;
+            }
+            #loginScreen .login-side-panel .logo-area {
+                margin: 0 0 24px;
+            }
+            #loginScreen .login-side-panel .logo-img {
+                width: min(300px, 70%);
+                max-height: 220px;
+                object-fit: contain;
+            }
+            #loginScreen .login-side-copy h2 {
+                color: #102A72;
+                font-size: clamp(25px, 2.4vw, 34px);
+                font-weight: 800;
+                margin: 0 0 8px;
+            }
+            #loginScreen .login-side-copy p {
+                color: #64748B;
+                font-size: 15px;
+                margin: 0;
+            }
+            #loginScreen .admin-btn-wrapper {
+                margin-top: 34px;
+            }
+            #loginScreen .admin-icon-btn {
+                min-width: 220px;
+                min-height: 46px;
+                padding: 10px 24px;
+                background: #FFFFFF;
+            }
+        }
+
+        @media (min-width: 900px) and (max-height: 650px) {
+            #loginScreen .login-layout { min-height: 0; gap: 34px; }
+            #loginScreen .login-panel .card { padding: 20px 26px; }
+            #loginScreen .login-side-panel { min-height: 0; padding: 18px; }
+            #loginScreen .login-side-panel .logo-img { width: 210px; max-height: 150px; }
+            #loginScreen .login-side-panel .logo-area { margin-bottom: 12px; }
+            #loginScreen .admin-btn-wrapper { margin-top: 18px; }
+        }
+
+        @media (max-width: 899px) {
+            #loginScreen .login-layout {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            #loginScreen .login-side-panel {
+                display: contents;
+            }
+            #loginScreen .login-side-panel .logo-area { order: 0; }
+            #loginScreen .login-panel { order: 1; width: 100%; }
+            #loginScreen .login-side-copy { display: none; }
+            #loginScreen .admin-btn-wrapper { order: 2; margin-top: 16px; }
+        }
+
     </style>
 
 
@@ -2646,6 +2788,15 @@
             <button onclick="closeVendorSheet()" class="danger" style="min-height: 26px; padding: 4px 12px; font-size: 11px; border-radius: 4px; font-weight: bold; margin: 0; flex-shrink: 0;">✕ Exit</button>
         </div>
         <div class="sheet-table-wrap" id="vendorSheetContent" style="flex:1; display:flex; flex-direction:column;"></div>
+    </div>
+
+    <!-- Standalone Meeting & Event Statement page opened from Admin > Reports -->
+    <div id="meetingEventStatementPage" style="display:none; position:fixed; inset:0; z-index:10000000; background:#fff; overflow:auto; padding:12px; flex-direction:column;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:2px solid #0A56D0;padding:4px 0 10px;margin-bottom:10px;">
+        <h2 style="margin:0;color:#0A56D0;font-size:18px;font-weight:800;">📋 Meeting & Event Statement</h2>
+        <button type="button" onclick="window.closeMeetingEventStatement()" class="danger" style="min-height:32px;padding:5px 12px;border-radius:6px;">✕ Exit</button>
+      </div>
+      <div id="meetingEventStatementContent" style="width:100%;"></div>
     </div>
 
     <div id="locationEmployeeModal" class="popup-overlay hidden">
@@ -3881,6 +4032,218 @@
             };
 
             // ============================================================
+            //  MEETING & EVENT STATEMENT (ADMIN REPORT - SEPARATE PAGE)
+            // ============================================================
+            window.openMeetingEventStatement = function() {
+                const page = document.getElementById('meetingEventStatementPage');
+                const appDiv = document.getElementById('app');
+                if (!page) return;
+                appDiv.classList.add('hidden');
+                page.style.display = 'flex';
+                window.renderMeetingEventStatement();
+            };
+
+            window.closeMeetingEventStatement = function() {
+                const page = document.getElementById('meetingEventStatementPage');
+                if (page) page.style.display = 'none';
+                document.getElementById('app').classList.remove('hidden');
+            };
+
+            window.dauGetMeetingCategory = function(value) {
+                const v = String(value || '').trim().toLowerCase();
+                if (v === 'high tea' || v === 'hightea') return 'High Tea';
+                if (v === 'event' || v === 'events') return 'Event';
+                return 'Meeting';
+            };
+
+            window.renderMeetingEventStatement = function() {
+                const host = document.getElementById('meetingEventStatementContent');
+                if (!host) return;
+
+                const allRows = [];
+                const meetingMeta = new Map();
+                const addMeta = (key, date, requestedBy, purpose, location, people, kind) => {
+                    if (!meetingMeta.has(key)) {
+                        meetingMeta.set(key, {
+                            key, date: date || '', requestedBy: requestedBy || '',
+                            purpose: purpose || '', location: location || '',
+                            people: Number(people) || 0, kind: kind || 'Meeting'
+                        });
+                    } else {
+                        const old = meetingMeta.get(key);
+                        if (!old.people && Number(people) > 0) old.people = Number(people);
+                        if (!old.location && location) old.location = location;
+                    }
+                };
+
+                (Array.isArray(eventLogsData) ? eventLogsData : []).forEach((ev, index) => {
+                    const eventKey = String(ev.id || ev.srNo || ev.sr || ('event-' + index));
+                    const eventDate = ev.date || '';
+                    const purpose = ev.eventName || ev.purpose || '';
+                    const kind = window.dauGetMeetingCategory(ev.entryType || ev.Type || ev.Category || ev.type || (ev.isEvent ? 'Event' : 'Meeting'));
+                    const people = ev.numberOfPeople || ev.peopleCount || ev.noOfPeople || ev.pax || ev.persons || ev.attendees || 0;
+                    const items = Array.isArray(ev.items) ? ev.items : [];
+                    addMeta(eventKey, eventDate, ev.orderedBy || ev.requestedBy || '', purpose,
+                        ev.location || ev.locationNode || ev.venue || '', people, kind);
+
+                    items.forEach((item, itemIndex) => {
+                        const location = item.locationNode || item.location || ev.location || ev.venue || '';
+                        const date = item.itemSpecificDate || eventDate;
+                        const qty = Number(item.qty) || 0;
+                        const rate = Number(item.rate) || 0;
+                        allRows.push({
+                            meetingKey: eventKey, sr: ev.srNo || ev.sr || ev.meetingSr || (index + 1),
+                            date, vendor: item.vendor || ev.canteenSource || '',
+                            itemName: item.name || item.itemName || '',
+                            qty, rate, amount: Number(item.amount) || qty * rate,
+                            requestedBy: ev.orderedBy || ev.requestedBy || '',
+                            purpose, location,
+                            dept: (function(){ const t = (purpose + ' ' + (ev.orderedBy || '')).toLowerCase();
+                                if (t.includes('law') || t.includes('sol') || t.includes('llm')) return 'SoL';
+                                if (t.includes('admission')) return 'Admissions';
+                                if (t.includes('placement')) return 'Placement';
+                                return 'Office'; })(),
+                            pantryBoy: item.servedBy || ev.servedByName || ev.pantryName || '-',
+                            people: Number(people) || 0, kind
+                        });
+                    });
+                });
+
+                // Include Meeting & Guests records in the same statement when present.
+                (Array.isArray(mgRecordsData) ? mgRecordsData : []).filter(rec => rec.Status !== 'Review').forEach((rec, index) => {
+                    const key = String(rec.meetingId || rec.MeetingID || rec.SRNo || rec.SR || rec.id || ('guest-' + index));
+                    const date = rec.DateFormatted || rec.RawDate || rec.Date || '';
+                    const purpose = rec.Purpose || '';
+                    const requestedBy = rec.ReqName || rec.RequestedBy || '';
+                    const location = rec.Location || rec.Venue || rec.location || '';
+                    const people = Number(rec.NumberOfPeople || rec.People || rec.Pax || rec.Attendees) || 0;
+                    const recKind = window.dauGetMeetingCategory(rec.Type || rec.Category || (rec.isEvent ? 'Event' : 'Meeting'));
+                    addMeta(key, date, requestedBy, purpose, location, people, recKind);
+                    const qty = Number(rec.Qty) || 0, rate = Number(rec.Rate) || 0;
+                    allRows.push({
+                        meetingKey:key, sr:rec.SRNo || rec.SR || (index + 1), date,
+                        vendor:rec.Vendor || '', itemName:rec.Item || '', qty, rate,
+                        amount:Number(rec.Amount) || qty * rate, requestedBy, purpose, location,
+                        dept:rec.Department || rec.Dept || 'Office', pantryBoy:rec.ServedBy || '-',
+                        people, kind:recKind
+                    });
+                });
+
+                const vendors = [...new Set(allRows.map(r => r.vendor).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+                const today = new Date().toISOString().slice(0,7);
+                host.innerHTML = `
+                  <style>
+                    #meetingEventStatementContent .mes-filter-grid{display:grid;grid-template-columns:repeat(5,minmax(130px,1fr));gap:8px;background:#F8FAFC;border:1px solid #CBD5E1;border-radius:8px;padding:10px;margin-bottom:10px}
+                    #meetingEventStatementContent .mes-filter-grid label{display:block;font-size:11px;font-weight:700;color:#475569;margin-bottom:3px}
+                    #meetingEventStatementContent .mes-filter-grid input,#meetingEventStatementContent .mes-filter-grid select{margin:0;min-height:34px;height:34px;font-size:12px;padding:5px 8px}
+                    #meetingEventStatementContent .mes-table-wrap{overflow:auto;border:1px solid #CBD5E1;border-radius:8px;max-height:calc(100vh - 280px)}
+                    #meetingEventStatementContent table{width:100%;min-width:1150px;border-collapse:collapse;font-size:11px}
+                    #meetingEventStatementContent th{position:sticky;top:0;background:#EFF6FF;color:#0A56D0;z-index:1}
+                    #meetingEventStatementContent th,#meetingEventStatementContent td{border:1px solid #CBD5E1;padding:6px 7px;text-align:left;white-space:nowrap}
+                    #meetingEventStatementContent td.num{text-align:right}
+                    #meetingEventStatementContent .mes-summary{display:grid;grid-template-columns:repeat(5,minmax(130px,1fr));gap:8px;margin:10px 0}
+                    #meetingEventStatementContent .mes-metric{border:1px solid #DBEAFE;background:#EFF6FF;border-radius:8px;padding:10px;text-align:center}
+                    #meetingEventStatementContent .mes-metric small{display:block;color:#475569;font-weight:700;font-size:10px}
+                    #meetingEventStatementContent .mes-metric strong{display:block;color:#0A56D0;font-size:18px;margin-top:3px}
+                    @media(max-width:800px){#meetingEventStatementContent .mes-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#meetingEventStatementContent .mes-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+                    @media print{#meetingEventStatementPage{position:static!important;display:block!important;overflow:visible!important;padding:0!important}#meetingEventStatementPage>div:first-child button,#meetingEventStatementContent .mes-filter-grid,#meetingEventStatementContent .mes-print-btn{display:none!important}#meetingEventStatementContent .mes-table-wrap{max-height:none!important;overflow:visible!important}#meetingEventStatementContent table{min-width:0!important;font-size:8px!important}#meetingEventStatementContent th,#meetingEventStatementContent td{padding:3px!important;white-space:normal!important}}
+                  </style>
+                  <div class="mes-filter-grid">
+                    <div><label>Month</label><input type="month" id="mesMonth" value="${today}"></div>
+                    <div><label>From Date</label><input type="date" id="mesFrom"></div>
+                    <div><label>To Date</label><input type="date" id="mesTo"></div>
+                    <div><label>Vendor</label><select id="mesVendor"><option value="All">All Vendors</option>${vendors.map(v=>`<option value="${safeStr(v)}">${safeStr(v)}</option>`).join('')}</select></div>
+                    <div><label>Entry Category</label><select id="mesCategory"><option value="All">All Categories</option><option value="Meeting">Meeting</option><option value="Event">Event</option><option value="High Tea">High Tea</option></select></div>
+                    <div><label>Smart Search</label><input type="search" id="mesSearch" placeholder="Snacks, Lunch, CEP Conference..."></div>
+                  </div>
+                  <div style="display:flex;justify-content:flex-end;gap:6px;margin-bottom:8px;">
+                    <button type="button" class="success mes-print-btn" onclick="window.print()" style="min-height:32px;padding:5px 14px;border-radius:6px;">🖨️ Print Statement</button>
+                  </div>
+                  <div id="mesSummary" class="mes-summary"></div>
+                  <div id="mesTable" class="mes-table-wrap"></div>
+                `;
+
+                const searchAliases = {
+                    snacks:['snack','samosa','samosas','kachori','dhokla','khaman','sandwich','puff','cookie','cookies','biscuit','biscuits','breakfast','poha','idli','upma','bonda','vada','medu vada','snacks/food'],
+                    tea:['tea','chai','green tea','black tea','lemon tea'],
+                    coffee:['coffee','black coffee'],
+                    lunch:['lunch','dinner','thali','meal','meals','food plate','silver lunch','special thali','gujarati thali']
+                };
+                const norm = v => String(v || '').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+                const tokens = value => norm(value).split(/\s+/).filter(Boolean);
+                const matchesSmart = (row, query) => {
+                    if (!query.trim()) return true;
+                    const hay = norm([row.itemName,row.vendor,row.location,row.purpose,row.requestedBy,row.dept,row.pantryBoy,row.kind].join(' '));
+                    const qs = tokens(query);
+                    return qs.some(token => {
+                        const group = searchAliases[token];
+                        if (group) return group.some(alias => hay.includes(norm(alias)));
+                        return hay.includes(token);
+                    });
+                };
+
+                const render = () => {
+                    const month = document.getElementById('mesMonth').value;
+                    const from = document.getElementById('mesFrom').value;
+                    const to = document.getElementById('mesTo').value;
+                    const vendor = document.getElementById('mesVendor').value;
+                    const category = document.getElementById('mesCategory').value;
+                    const query = document.getElementById('mesSearch').value || '';
+                    const filtered = allRows.filter(row => {
+                        const ymd = (typeof parseDMYToYMD === 'function' ? parseDMYToYMD(row.date) : '') || '';
+                        const monthMatch = !month || ymd.startsWith(month);
+                        const fromMatch = !from || ymd >= from;
+                        const toMatch = !to || ymd <= to;
+                        const vendorMatch = vendor === 'All' || row.vendor === vendor;
+                        const categoryMatch = category === 'All' || window.dauGetMeetingCategory(row.kind) === category;
+                        return monthMatch && fromMatch && toMatch && vendorMatch && categoryMatch && matchesSmart(row, query);
+                    }).sort((a,b) => {
+                        const ad = (typeof parseDMYToYMD === 'function' ? parseDMYToYMD(a.date) : '') || '';
+                        const bd = (typeof parseDMYToYMD === 'function' ? parseDMYToYMD(b.date) : '') || '';
+                        return ad.localeCompare(bd) || String(a.sr).localeCompare(String(b.sr),undefined,{numeric:true});
+                    });
+
+                    const meetingKeys = [...new Set(filtered.map(r=>r.meetingKey))];
+                    const peopleTotal = meetingKeys.reduce((sum,key)=>sum+(meetingMeta.get(key)?.people || 0),0);
+                    const meetingCount = meetingKeys.length;
+                    const qtyTotal = filtered.reduce((sum,r)=>sum+(Number(r.qty)||0),0);
+                    const amountTotal = filtered.reduce((sum,r)=>sum+(Number(r.amount)||0),0);
+                    const snackQty = filtered.filter(r=>matchesSmart(r,'Snacks')).reduce((sum,r)=>sum+(Number(r.qty)||0),0);
+                    const lunchQty = filtered.filter(r=>matchesSmart(r,'Lunch')).reduce((sum,r)=>sum+(Number(r.qty)||0),0);
+                    const drinkQty = filtered.filter(r=>matchesSmart(r,'Tea')||matchesSmart(r,'Coffee')).reduce((sum,r)=>sum+(Number(r.qty)||0),0);
+
+                    document.getElementById('mesSummary').innerHTML = `
+                      <div class="mes-metric"><small>Total Meetings / Events</small><strong>${meetingCount}</strong></div>
+                      <div class="mes-metric"><small>Total People Served</small><strong>${peopleTotal || '—'}</strong></div>
+                      <div class="mes-metric"><small>Tea / Coffee Qty</small><strong>${drinkQty}</strong></div>
+                      <div class="mes-metric"><small>Snacks / Lunch Qty</small><strong>${snackQty + lunchQty}</strong></div>
+                      <div class="mes-metric"><small>Grand Total Amount</small><strong>₹${amountTotal.toFixed(2)}</strong></div>
+                    `;
+
+                    const body = filtered.map((r,i)=>`
+                      <tr>
+                        <td>${i+1}</td><td>${safeStr(r.date)}</td><td>${safeStr(r.kind)}</td>
+                        <td>${safeStr(r.location || '-')}</td><td>${safeStr(r.vendor)}</td>
+                        <td>${safeStr(r.itemName)}</td><td class="num">${r.qty}</td>
+                        <td class="num">₹${r.rate.toFixed(2)}</td><td class="num">₹${r.amount.toFixed(2)}</td>
+                        <td>${safeStr(r.requestedBy)}</td><td>${safeStr(r.purpose)}</td>
+                        <td>${safeStr(r.dept)}</td><td>${safeStr(r.pantryBoy)}</td>
+                      </tr>`).join('');
+                    document.getElementById('mesTable').innerHTML = filtered.length ? `
+                      <table><thead><tr><th>S.R.</th><th>Date</th><th>Type</th><th>Location</th><th>Vendor</th><th>Item Name</th><th>Qty</th><th>Rate</th><th>Amount</th><th>Requested By</th><th>Purpose</th><th>Dept</th><th>Pantry Boy</th></tr></thead>
+                      <tbody>${body}<tr style="font-weight:800;background:#E0F2FE"><td colspan="8" style="text-align:right">GRAND TOTAL</td><td class="num">₹${amountTotal.toFixed(2)}</td><td colspan="4"></td></tr></tbody></table>
+                    ` : '<div style="padding:25px;text-align:center;color:#64748B;font-weight:700;">No records found for selected filters.</div>';
+                };
+
+                ['mesMonth','mesFrom','mesTo','mesVendor','mesCategory','mesSearch'].forEach(id=>{
+                    const el=document.getElementById(id);
+                    el.addEventListener('input',render);
+                    el.addEventListener('change',render);
+                });
+                render();
+            };
+
+            // ============================================================
             //  MEETING / REFRESHMENT SECTION (MOBILE OPTIMIZED)
             // ============================================================
             let meetingSrCounter = 1;
@@ -3922,6 +4285,20 @@
                   <div style="flex:1; width:100%;">
                     <label style="font-size:12px; font-weight:bold; color:#475569;">📝 Meeting Purpose / Event Name</label>
                     <input type="text" id="${prefix}MeetingPurpose" placeholder="E.g. Audit Meeting..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #CBD5E1; font-size:13px;">
+                  </div>
+                  <div style="display:flex;gap:8px;width:100%;flex-wrap:wrap;">
+                    <div style="flex:1;min-width:130px;">
+                      <label style="font-size:12px;font-weight:bold;color:#475569;">Category</label>
+                      <select id="${prefix}MeetingEntryType" style="width:100%;padding:8px;border:1px solid #CBD5E1;border-radius:8px;">
+                        <option value="Meeting">Meeting</option>
+                        <option value="Event">Event</option>
+                        <option value="High Tea">High Tea</option>
+                      </select>
+                    </div>
+                    <div style="flex:1;min-width:130px;">
+                      <label style="font-size:12px;font-weight:bold;color:#475569;">Number of People</label>
+                      <input type="number" id="${prefix}MeetingPeopleCount" min="0" step="1" value="0" placeholder="No. of people" style="width:100%;padding:8px;border:1px solid #CBD5E1;border-radius:8px;">
+                    </div>
                   </div>
                 </div>
 
@@ -3993,6 +4370,8 @@
                 document.getElementById(prefix + 'MeetingSubmitBtn').onclick = function() {
                     const orderedBy = orderedByInput.value.trim();
                     const purpose = document.getElementById(prefix + 'MeetingPurpose').value.trim() || 'General Meeting';
+                    const entryType = document.getElementById(prefix + 'MeetingEntryType')?.value || 'Meeting';
+                    const numberOfPeople = Math.max(0, parseInt(document.getElementById(prefix + 'MeetingPeopleCount')?.value, 10) || 0);
                     if (!orderedBy) return appAlert('Error', 'Please enter Organizer / Requested By.');
 
                     const container = document.getElementById(prefix + 'MeetingItemsContainer');
@@ -4062,6 +4441,11 @@
                         orderedBy: orderedBy,
                         servedByName: uniquePantryBoys,
                         eventName: purpose,
+                        entryType: entryType,
+                        Type: entryType,
+                        Category: entryType,
+                        isEvent: entryType === 'Event',
+                        numberOfPeople: numberOfPeople,
                         date: mainDate,
                         time: new Date().toTimeString().slice(0, 5),
                         items: items,
@@ -4076,6 +4460,8 @@
                         appAlert('Success', `Meeting saved successfully!`);
                         orderedByInput.value = '';
                         document.getElementById(prefix + 'MeetingPurpose').value = '';
+                        if (document.getElementById(prefix + 'MeetingEntryType')) document.getElementById(prefix + 'MeetingEntryType').value = 'Meeting';
+                        if (document.getElementById(prefix + 'MeetingPeopleCount')) document.getElementById(prefix + 'MeetingPeopleCount').value = '0';
                         container.innerHTML = '';
                         window.addMeetingItemRow(prefix, false);
                         window.calcMeetingTotal(prefix);
@@ -7538,8 +7924,9 @@
                 const adminBtnText = isAdminActive ? "Admin Portal (🟢 Active)" : "Admin Portal";
 
                 loginScreen.innerHTML = `
-              <div class="logo-area"><img src="https://iili.io/Cf1HIm7.png" class="logo-img"></div>
-              <div class="card">
+              <div class="login-layout">
+                <div class="login-panel">
+                  <div class="card">
                 <h3 style="text-align:center; margin-bottom:12px; color:#0A56D0; font-size:1.15rem;">Pantry Staff Login</h3>
                 <div style="text-align:center;"><label style="font-size:.85rem; color:#44474E;">Select Name</label></div>
                 <div id="pantrySelectorTrigger" class="login-uniform-box"><span id="selectedPantryBoyText">-- Choose Account --</span><span style="font-size:.8rem; color:#74777F;">▼</span></div>
@@ -7555,8 +7942,15 @@
                   </div>
                 </div>
                 <button id="pantryLoginBtn" class="btn success" style="width:100%; margin-top:14px; min-height:50px;">Secure Login</button>
+                  </div>
+                </div>
+                <div class="login-side-panel">
+                  <div class="logo-area"><img src="https://iili.io/Cf1HIm7.png" class="logo-img"></div>
+                  <div class="login-side-copy">            
+                  </div>
+                  <div class="admin-btn-wrapper"><button id="adminSymbolBtn" class="admin-icon-btn">${adminBtnText}</button></div>
+                </div>
               </div>
-              <div class="admin-btn-wrapper"><button id="adminSymbolBtn" class="admin-icon-btn">${adminBtnText}</button></div>
             `;
 
                 document.getElementById('pantrySelectorTrigger').onclick = window.openPantrySelectionPopup;
@@ -8229,6 +8623,12 @@
                             <button onclick="window.generateExecSummaryReport(false)" class="report-action-btn" style="background:#0284c7; color:#fff; flex:1;">👁️ Preview</button>
                             <button onclick="window.generateExecSummaryReport(true)" class="report-action-btn" style="background:#0369a1; color:#fff; flex:1;">📊 Excel</button>
                         </div>
+                    </div>
+
+                    <!-- New standalone Meeting & Event Statement report -->
+                    <div class="report-action-row" style="padding:8px 0; border-top:1px solid #E2E8F0; margin-top:8px;">
+                      <div class="report-action-title" style="color:#0A56D0;">7. Meeting & Event Statement</div>
+                      <button type="button" onclick="window.openMeetingEventStatement()" class="report-action-btn" style="background:#0A56D0;color:#fff;">📋 Open Statement</button>
                     </div>
                   </div>
                 `;
@@ -9071,6 +9471,8 @@ window.generateExecSummaryReport = function(isExcel) {
                 if (!container) return;
 
                 let filteredEvents = [...eventLogsData];
+                let adminSearchQuery = '';
+                let adminCategoryFilter = 'All';
                 let sortField = 'date';
                 let sortDir = 'desc';
 
@@ -9086,15 +9488,12 @@ window.generateExecSummaryReport = function(isExcel) {
                         return sortDir === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
                     });
 
-                    if (sorted.length === 0) {
-                        container.innerHTML =
-                            `<p style="padding:20px; text-align:center; color:#64748B;">No meeting records found.</p>`;
-                        return;
-                    }
-
                     let html =
                         `<div class="table-toolbar">
-                <input type="text" id="adminMeetingSearch" placeholder="🔍 Search events..." style="flex:2;">
+                <input type="text" id="adminMeetingSearch" value="${safeStr(adminSearchQuery)}" placeholder="🔍 Search events..." style="flex:2;">
+                <select id="adminMeetingCategory" style="flex:1;" aria-label="Filter by entry category">
+                  <option value="All" ${adminCategoryFilter==='All'?'selected':''}>All Categories</option><option value="Meeting" ${adminCategoryFilter==='Meeting'?'selected':''}>Meeting</option><option value="Event" ${adminCategoryFilter==='Event'?'selected':''}>Event</option><option value="High Tea" ${adminCategoryFilter==='High Tea'?'selected':''}>High Tea</option>
+                </select>
                 <select id="adminMeetingSortField" style="flex:1;">
                   <option value="date" ${sortField==='date'?'selected':''}>Sort by Date</option>
                   <option value="eventName" ${sortField==='eventName'?'selected':''}>Sort by Event</option>
@@ -9105,8 +9504,9 @@ window.generateExecSummaryReport = function(isExcel) {
                 <button id="adminMeetingDeleteSelected" class="toolbar-btn danger">🗑 Delete Selected</button>
               </div>
               <table class="pro-table">
-                <thead><tr><th style="width:40px;"><input type="checkbox" id="adminMeetingSelectAll"></th><th>#</th><th>Event</th><th>Date</th><th>Vendor</th><th>Items</th><th>Amount (₹)</th><th>Requested By</th><th>Pantry Boy</th><th style="min-width:120px;">Actions</th></tr></thead>
+                <thead><tr><th style="width:40px;"><input type="checkbox" id="adminMeetingSelectAll"></th><th>#</th><th>Event</th><th>Category</th><th>Date</th><th>Vendor</th><th>Items</th><th>Amount (₹)</th><th>Requested By</th><th>Pantry Boy</th><th style="min-width:120px;">Actions</th></tr></thead>
                 <tbody>`;
+                    if (sorted.length === 0) html += `<tr><td colspan="11" style="padding:20px;text-align:center;color:#64748B;">No meeting records found for the selected filters.</td></tr>`;
 
                     let idx = 1;
                     sorted.forEach(ev => {
@@ -9118,6 +9518,7 @@ window.generateExecSummaryReport = function(isExcel) {
                   <td><input type="checkbox" class="adminMeetingSelect" data-id="${ev.id}"></td>
                   <td>${idx++}</td>
                   <td><strong>${safeStr(ev.eventName)}</strong></td>
+                  <td><span style="font-size:10px;font-weight:800;color:#1D4ED8;">${safeStr(window.dauGetMeetingCategory(ev.entryType || ev.Type || ev.Category || (ev.isEvent ? 'Event' : 'Meeting')))}</span></td>
                   <td>${safeStr(ev.date)}</td>
                   <td style="color:#0A56D0; cursor:pointer;" onclick="window.openVendorSheet('${ev.canteenSource}','${ev.canteenSource}')">${safeStr(ev.canteenSource||'-')}</td>
                   <td style="font-size:.75rem;">${itemsStr || '-'}</td>
@@ -9135,16 +9536,21 @@ window.generateExecSummaryReport = function(isExcel) {
                     html += `</tbody></table>`;
                     container.innerHTML = html;
 
-                    document.getElementById('adminMeetingSearch').addEventListener('input', function() {
-                        const q = this.value.toLowerCase().trim();
-                        filteredEvents = eventLogsData.filter(ev =>
-                            (ev.eventName || '').toLowerCase().includes(q) ||
-                            (ev.orderedBy || '').toLowerCase().includes(q) ||
-                            (ev.canteenSource || '').toLowerCase().includes(q) ||
-                            (ev.pantryName || '').toLowerCase().includes(q)
-                        );
+                    const applyAdminMeetingFilters = () => {
+                        adminSearchQuery = (document.getElementById('adminMeetingSearch')?.value || '').toLowerCase().trim();
+                        adminCategoryFilter = document.getElementById('adminMeetingCategory')?.value || 'All';
+                        const q = adminSearchQuery;
+                        const category = adminCategoryFilter;
+                        filteredEvents = eventLogsData.filter(ev => {
+                            const evCategory = window.dauGetMeetingCategory(ev.entryType || ev.Type || ev.Category || (ev.isEvent ? 'Event' : 'Meeting'));
+                            const categoryMatch = category === 'All' || evCategory === category;
+                            const textMatch = [ev.eventName, ev.orderedBy, ev.canteenSource, ev.pantryName, evCategory].some(v => String(v || '').toLowerCase().includes(q));
+                            return categoryMatch && textMatch;
+                        });
                         renderTable();
-                    });
+                    };
+                    document.getElementById('adminMeetingSearch').addEventListener('input', applyAdminMeetingFilters);
+                    document.getElementById('adminMeetingCategory').addEventListener('change', applyAdminMeetingFilters);
 
                     document.getElementById('adminMeetingSortField').addEventListener('change', function() {
                         sortField = this.value;
@@ -12566,6 +12972,7 @@ window.adminExportMonthlyGrid = function(format, overrideMonth, overrideSupply, 
                             flatRows.push({
                                 parentId: ev.id,
                                 eventName: ev.eventName,
+                                category: window.dauGetMeetingCategory(ev.entryType || ev.Type || ev.Category || (ev.isEvent ? 'Event' : 'Meeting')),
                                 reqBy: ev.orderedBy,
                                 pantry: item.servedBy || ev.servedByName || ev.pantryName || '-',
                                 date: item.itemSpecificDate || ev.date,
@@ -12580,6 +12987,7 @@ window.adminExportMonthlyGrid = function(format, overrideMonth, overrideSupply, 
                         flatRows.push({
                             parentId: ev.id,
                             eventName: ev.eventName,
+                            category: window.dauGetMeetingCategory(ev.entryType || ev.Type || ev.Category || (ev.isEvent ? 'Event' : 'Meeting')),
                             reqBy: ev.orderedBy,
                             pantry: ev.servedByName || ev.pantryName || '-',
                             date: ev.date,
@@ -12604,6 +13012,7 @@ window.adminExportMonthlyGrid = function(format, overrideMonth, overrideSupply, 
                         <tr style="background:#F1F5F9; border-bottom:2px solid #CBD5E1;">
                             <th style="padding:8px; border:1px solid #CBD5E1;">Date</th>
                             <th style="padding:8px; border:1px solid #CBD5E1;">Vendor</th>
+                            <th style="padding:8px; border:1px solid #CBD5E1;">Category</th>
                             <th style="padding:8px; border:1px solid #CBD5E1;">Event Purpose</th>
                             <th style="padding:8px; border:1px solid #CBD5E1;">Requested By</th>
                             <th style="padding:8px; border:1px solid #CBD5E1;">Item Name</th>
@@ -12621,6 +13030,7 @@ window.adminExportMonthlyGrid = function(format, overrideMonth, overrideSupply, 
                         <tr style="border-bottom:1px solid #E2E8F0;">
                             <td style="padding:8px; border:1px solid #E2E8F0; font-weight:600; white-space:nowrap;">${safeStr(row.date)}</td>
                             <td style="padding:8px; border:1px solid #E2E8F0; color:#0A56D0; font-weight:500; cursor:pointer;" onclick="window.openVendorSheet('${row.vendor}','${row.vendor}')"><u>${safeStr(row.vendor)}</u></td>
+                            <td style="padding:8px; border:1px solid #E2E8F0; color:#1D4ED8; font-weight:800;">${safeStr(row.category)}</td>
                             <td style="padding:8px; border:1px solid #E2E8F0; font-weight:700;">${safeStr(row.eventName)}</td>
                             <td style="padding:8px; border:1px solid #E2E8F0;">${safeStr(row.reqBy)}</td>
                             <td style="padding:8px; border:1px solid #E2E8F0; font-weight:600; color:#334155;">${safeStr(row.itemName)}</td>
@@ -12662,11 +13072,13 @@ window.adminExportMonthlyGrid = function(format, overrideMonth, overrideSupply, 
     
     <!-- ઉપરના ઓર્ગેનાઇઝર ખાના એકદમ નાના અને સાઇડ-બાય-સાઇડ સેટ કર્યા -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #F1F5F9; padding: 8px; border-radius: 10px; margin-bottom: 8px; border: 1px solid #E2E8F0; flex-shrink:0;">
-        <div style="grid-column: span 2; display: flex; align-items: center; justify-content: flex-end; margin-bottom: 4px;">
-            <label style="font-size: 11px; font-weight: bold; color: #DC3545; display: flex; align-items: center; cursor: pointer;">
-                <input type="checkbox" id="editEvtIsEvent" ${ev.isEvent ? 'checked' : ''} style="width: 14px; height: 14px; margin-right: 4px; accent-color: #DC3545;">
-                🎪 Is this an Event? (Exclude from regular meetings)
-            </label>
+        <div style="grid-column: span 2; display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <label for="editEvtEntryType" style="font-size:11px;font-weight:800;color:#1E40AF;white-space:nowrap;">Entry Category</label>
+            <select id="editEvtEntryType" style="flex:1;min-height:32px;height:32px;padding:5px 8px;border:1px solid #CBD5E1;border-radius:6px;font-size:12px;font-weight:700;">
+                <option value="Meeting" ${(ev.entryType || ev.Type || ev.Category || (ev.isEvent ? 'Event' : 'Meeting')) === 'Meeting' ? 'selected' : ''}>Meeting</option>
+                <option value="Event" ${(ev.entryType || ev.Type || ev.Category || (ev.isEvent ? 'Event' : 'Meeting')) === 'Event' ? 'selected' : ''}>Event</option>
+                <option value="High Tea" ${(ev.entryType || ev.Type || ev.Category) === 'High Tea' ? 'selected' : ''}>High Tea</option>
+            </select>
         </div>
         <div>
             <label style="font-size:11px; font-weight:700; color:#44474E; display:block;">👤 Organizer</label>
@@ -12833,6 +13245,10 @@ window.adminExportMonthlyGrid = function(format, overrideMonth, overrideSupply, 
             servedByName: uniquePantryBoys,
             pantryName: uniquePantryBoys,
             items: newItems,
+            entryType: document.getElementById('editEvtEntryType')?.value || 'Meeting',
+            Type: document.getElementById('editEvtEntryType')?.value || 'Meeting',
+            Category: document.getElementById('editEvtEntryType')?.value || 'Meeting',
+            isEvent: (document.getElementById('editEvtEntryType')?.value || 'Meeting') === 'Event',
             guestSlipCreated: document.getElementById('editEvtGuestSlipCreated').checked,
             guestSlipSigned: document.getElementById('editEvtGuestSlipSigned').checked,
             guestSlipReturned: document.getElementById('editEvtGuestSlipReturned').checked
@@ -13831,7 +14247,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
 
             function getExcelField(row, names) { const norm = {}; for (let k in row) { if (Object.prototype.hasOwnProperty.call(row, k)) { norm[k.toString().trim().toLowerCase()] = row[k]; } } for (let n of names) { let key = n.toLowerCase(); if (norm.hasOwnProperty(key)) return norm[key]; for (let rk in norm) { if (rk.includes(key)) return norm[rk]; } } return ''; }
             
-            window.downloadMeetingSampleTemplate = function() { try { const sampleData = [["Date", "Item", "Qty", "Rate", "Amount", "Requisitioner's Name", "Purpose", "Location", "Vendor", "Served By"], ["15/07/2026", "Tea", 10, 15, 150, "Admin Dept", "NAAC Meeting", "Conference Hall", "Padmakamal", "Ramesh"], ["16/07/2026", "Samosa", 10, 20, 200, "Admin Dept", "Audit Meeting", "Room 101", "Padmakamal", "Suresh"], ["17/07/2026", "Coffee", 5, 20, 100, "HR Dept", "Interview", "Hall A", "Padmakamal", "Ramesh"]]; const ws = XLSX.utils.aoa_to_sheet(sampleData); ws['!cols'] = [{wch:12},{wch:18},{wch:8},{wch:8},{wch:10},{wch:20},{wch:20},{wch:15},{wch:15},{wch:15}]; const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Format"); window.pantryDownloadExcelFile(wb, "Meeting_Excel_Format.xlsx"); appAlert('Downloaded', 'Sample Excel format downloaded!'); } catch(err) { appAlert('Download Error', err.message); } };
+            window.downloadMeetingSampleTemplate = function() { try { const sampleData = [["Date", "Item", "Qty", "Rate", "Amount", "Requisitioner's Name", "Purpose", "Category", "Location", "Vendor", "Served By"], ["15/07/2026", "Tea", 10, 15, 150, "Admin Dept", "NAAC Meeting", "Meeting", "Conference Hall", "Padmakamal", "Ramesh"], ["16/07/2026", "Samosa", 10, 20, 200, "Admin Dept", "Audit Meeting", "Event", "Room 101", "Padmakamal", "Suresh"], ["17/07/2026", "Coffee", 5, 20, 100, "HR Dept", "Interview", "High Tea", "Hall A", "Padmakamal", "Ramesh"]]; const ws = XLSX.utils.aoa_to_sheet(sampleData); ws['!cols'] = [{wch:12},{wch:18},{wch:8},{wch:8},{wch:10},{wch:20},{wch:20},{wch:15},{wch:15},{wch:15}]; const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Format"); window.pantryDownloadExcelFile(wb, "Meeting_Excel_Format.xlsx"); appAlert('Downloaded', 'Sample Excel format downloaded!'); } catch(err) { appAlert('Download Error', err.message); } };
 
             window.importMeetingExcelFile = async function(event) {
                 const file = event.target.files[0]; 
@@ -13910,7 +14326,7 @@ window.checkPantryBoyDutyAccessToday = function(pantryId) {
                 } 
             };
             window.importMeetingExcelFile = async function(event) {
-                const file = event.target.files[0]; if (!file) return; appAlert('Reading File', 'Please wait, reading ' + file.name + '...'); try { const data = await file.arrayBuffer(); const wb = XLSX.read(data, { cellDates: true, raw: false }); const firstSheetName = wb.SheetNames[0]; const sheet = wb.Sheets[firstSheetName]; const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" }); if (!rows || rows.length === 0) { appAlert('Import Error', 'Excel is empty'); event.target.value = ''; return; } let importCount = 0; const groups = {}; rows.forEach((row) => { let rawDate = getExcelField(row, ['Date']); let itemName = getExcelField(row, ['Item', 'Item Name']); let qty = Number(getExcelField(row, ['Qty', 'Quantity']) || 1); let rate = Number(getExcelField(row, ['Rate']) || 0); let amount = Number(getExcelField(row, ['Amount']) || (qty * rate)); let reqName = getExcelField(row, ["Requisitioner's Name", 'Ordered By', 'Organizer']) || 'General'; let purpose = getExcelField(row, ['Purpose', 'Meeting Purpose']) || 'Meeting Refreshment'; let location = getExcelField(row, ['Location', 'Venue']) || 'Campus'; let vendor = getExcelField(row, ['Vendor']) || 'Padmakamal'; let servedBy = getExcelField(row, ['Served By', 'Pantry Boy']) || 'General'; if (!itemName.toString().trim()) return; let formattedDMY = parseExcelDateToDMY(rawDate); if (!formattedDMY) formattedDMY = getTodayInDMY(); const groupKey = `${purpose.trim()}_${reqName.trim()}_${formattedDMY}`; if (!groups[groupKey]) { groups[groupKey] = { purpose: purpose, orderedBy: reqName, date: formattedDMY, items: [] }; } groups[groupKey].items.push({ vendor: vendor, type: '🍪 Snacks/Food', name: itemName, qty: qty, unit: 'Nos', rate: rate, amount: amount, itemSpecificDate: formattedDMY, servedBy: servedBy, locationNode: location }); }); const updates = {}; for (const key in groups) { const grp = groups[key]; const eventId = 'event_imp_' + Date.now() + '_' + Math.floor(Math.random() * 100000); const totalAmt = grp.items.reduce((sum, i) => sum + (Number(i.amount)||0), 0); const vendors = [...new Set(grp.items.map(i => i.vendor))].join(', '); const pantryBoys = [...new Set(grp.items.map(i => i.servedBy))].join(', '); const summary = grp.items.map(i => `${i.qty} ${i.name} (${i.locationNode})`).join(', '); updates['eventLogs/' + eventId] = { id: eventId, canteenSource: vendors, orderedBy: grp.orderedBy, servedByName: pantryBoys, eventName: grp.purpose, date: grp.date, time: '09:00', items: grp.items, amount: totalAmt, pantryName: pantryBoys, refreshmentSummary: summary, showNotification: false, guestSlipCreated: false, guestSlipSigned: false, guestSlipReturned: false }; importCount++; } if (importCount > 0) { await db.ref().update(updates); appAlert('Import Successful', `✅ ${importCount} meeting log(s) imported! Dates from Excel saved correctly.`); } else { appAlert('Import Failed', 'No valid rows'); } } catch (err) { appAlert('Import Error', err.message); console.error(err); } finally { if(event.target) event.target.value = ''; } };
+                const file = event.target.files[0]; if (!file) return; appAlert('Reading File', 'Please wait, reading ' + file.name + '...'); try { const data = await file.arrayBuffer(); const wb = XLSX.read(data, { cellDates: true, raw: false }); const firstSheetName = wb.SheetNames[0]; const sheet = wb.Sheets[firstSheetName]; const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" }); if (!rows || rows.length === 0) { appAlert('Import Error', 'Excel is empty'); event.target.value = ''; return; } let importCount = 0; const groups = {}; rows.forEach((row) => { let rawDate = getExcelField(row, ['Date']); let itemName = getExcelField(row, ['Item', 'Item Name']); let qty = Number(getExcelField(row, ['Qty', 'Quantity']) || 1); let rate = Number(getExcelField(row, ['Rate']) || 0); let amount = Number(getExcelField(row, ['Amount']) || (qty * rate)); let reqName = getExcelField(row, ["Requisitioner's Name", 'Ordered By', 'Organizer']) || 'General'; let purpose = getExcelField(row, ['Purpose', 'Meeting Purpose']) || 'Meeting Refreshment'; let location = getExcelField(row, ['Location', 'Venue']) || 'Campus'; let vendor = getExcelField(row, ['Vendor']) || 'Padmakamal'; let servedBy = getExcelField(row, ['Served By', 'Pantry Boy']) || 'General'; let entryCategory = window.dauGetMeetingCategory(getExcelField(row, ['Category', 'Entry Type', 'Type']) || 'Meeting'); if (!itemName.toString().trim()) return; let formattedDMY = parseExcelDateToDMY(rawDate); if (!formattedDMY) formattedDMY = getTodayInDMY(); const groupKey = `${purpose.trim()}_${reqName.trim()}_${formattedDMY}_${entryCategory}`; if (!groups[groupKey]) { groups[groupKey] = { purpose: purpose, orderedBy: reqName, date: formattedDMY, category: entryCategory, items: [] }; } groups[groupKey].items.push({ vendor: vendor, type: '🍪 Snacks/Food', name: itemName, qty: qty, unit: 'Nos', rate: rate, amount: amount, itemSpecificDate: formattedDMY, servedBy: servedBy, locationNode: location }); }); const updates = {}; for (const key in groups) { const grp = groups[key]; const eventId = 'event_imp_' + Date.now() + '_' + Math.floor(Math.random() * 100000); const totalAmt = grp.items.reduce((sum, i) => sum + (Number(i.amount)||0), 0); const vendors = [...new Set(grp.items.map(i => i.vendor))].join(', '); const pantryBoys = [...new Set(grp.items.map(i => i.servedBy))].join(', '); const summary = grp.items.map(i => `${i.qty} ${i.name} (${i.locationNode})`).join(', '); updates['eventLogs/' + eventId] = { id: eventId, canteenSource: vendors, orderedBy: grp.orderedBy, servedByName: pantryBoys, eventName: grp.purpose, entryType: grp.category, Type: grp.category, Category: grp.category, isEvent: grp.category === 'Event', date: grp.date, time: '09:00', items: grp.items, amount: totalAmt, pantryName: pantryBoys, refreshmentSummary: summary, showNotification: false, guestSlipCreated: false, guestSlipSigned: false, guestSlipReturned: false }; importCount++; } if (importCount > 0) { await db.ref().update(updates); appAlert('Import Successful', `✅ ${importCount} meeting log(s) imported! Dates from Excel saved correctly.`); } else { appAlert('Import Failed', 'No valid rows'); } } catch (err) { appAlert('Import Error', err.message); console.error(err); } finally { if(event.target) event.target.value = ''; } };
                         window.pantryDeleteHandler = function(type, id) {
                 const typeMap = { employee: { ref: 'employees', binRef: 'recycleBin/employees', data: employeeList }, pantry: { ref: 'pantryTeam', binRef: 'recycleBin/pantryTeam', data: pantryTeam }, extra: { ref: 'extraLogs', binRef: 'recycleBin/extraLogs', data: extraLogsData }, event: { ref: 'eventLogs', binRef: 'recycleBin/eventLogs', data: eventLogsData }, regular_log: { ref: 'logs', binRef: 'recycleBin/logs', data: logsData }, canteen: { ref: 'canteens', binRef: null, data: canteenList }, venue: { ref: 'venues', binRef: null, data: venueList }, upcoming_event: { ref: 'upcomingEvents', binRef: null, data: upcomingEventsData }, supervisor_link: { ref: 'supervisorLinks', binRef: null, data: null } };
                 const entry = typeMap[type]; 
@@ -14030,22 +14446,46 @@ window.renderMeetingsGuestsUI = function(containerId, currentRole) {
                         .mg-smart-ac-item { padding: 4px 6px; font-size: 10px; border-bottom: 1px solid #E2E8F0; cursor: pointer; color: #1E293B; font-weight: 700; text-align: left; }
                         .mg-smart-ac-item:active { background: #E0F2FE; }
 
-                        /* Desktop meeting grid: show 8 compact entry columns without wasting space. */
-                        @media (min-width: 900px) {
-                            .transposed-table { width: max(100%, 1080px); table-layout: fixed; }
-                            .transposed-table td { width: 126px; min-width: 126px; height: 25px; }
-                            .transposed-table th.sticky-header { width: 65px; min-width: 65px; max-width: 65px; height: 25px; font-size: 9px; padding: 0 3px; }
-                            .transposed-table .mg-cmp-inp { height: 24px; min-height: 24px; font-size: 9px; padding: 0 2px; }
-                            .transposed-table td button { height: 22px !important; min-height: 22px !important; font-size: 9px !important; }
+                        /* Meeting entry redesign: fixed viewport, no inner scrolling, same DOM/IDs for existing logic. */
+                        .mg-form-layout { display:grid !important; grid-template-columns:minmax(0,1fr) 210px; grid-template-rows:auto minmax(0,1fr); gap:6px; height:100% !important; min-height:0 !important; overflow:hidden !important; }
+                        .mg-form-layout > input[type="hidden"] { display:none !important; }
+                        .mg-toolbar-row { grid-column:1; grid-row:1; min-width:0; gap:5px !important; margin:0 !important; }
+                        .mg-toolbar-row button,.mg-toolbar-row label { min-width:0 !important; min-height:34px !important; height:34px !important; padding:4px 6px !important; font-size:11px !important; border-radius:7px !important; white-space:nowrap !important; }
+                        .mg-category-selector-row { grid-column:2; grid-row:1; min-width:0; margin:0 !important; padding:4px 7px !important; gap:5px !important; }
+                        .mg-category-selector-row select { flex:1; min-width:0; width:100%; }
+                        .mg-category-selector-row span { display:none; }
+                        .mg-grid-panel { grid-column:1 / -1; grid-row:2; min-height:0 !important; }
+                        .mg-grid-viewport { overflow:hidden !important; min-height:0 !important; }
+                        .transposed-table { width:100% !important; min-width:0 !important; table-layout:fixed !important; }
+                        .transposed-table th.sticky-header { width:68px !important; min-width:68px !important; max-width:68px !important; height:clamp(25px,3.1vh,34px) !important; padding:1px 4px !important; font-size:10px !important; white-space:nowrap !important; }
+                        .transposed-table td { width:auto !important; min-width:0 !important; height:clamp(25px,3.1vh,34px) !important; overflow:hidden !important; }
+                        .transposed-table .mg-cmp-inp { width:100% !important; height:100% !important; min-height:0 !important; padding:1px 3px !important; font-size:clamp(9px, .75vw, 12px) !important; }
+                        .transposed-table td button { width:calc(100% - 4px) !important; height:24px !important; min-height:24px !important; margin:2px !important; padding:2px !important; font-size:9px !important; }
+                        .mg-grid-panel > div:last-child { min-height:30px; }
+                        @media (max-width:899px) {
+                          .mg-form-layout { grid-template-columns:minmax(0,1fr); grid-template-rows:auto auto minmax(0,1fr); gap:5px; }
+                          .mg-toolbar-row { grid-column:1; grid-row:1; gap:3px !important; }
+                          .mg-toolbar-row button,.mg-toolbar-row label { flex:1 1 0 !important; min-width:0 !important; padding:3px 2px !important; font-size:clamp(8px,2.5vw,10px) !important; }
+                          .mg-category-selector-row { grid-column:1; grid-row:2; }
+                          .mg-category-selector-row select { max-width:none !important; }
+                          .mg-grid-panel { grid-column:1; grid-row:3; }
+                          .transposed-table th.sticky-header { width:70px !important; min-width:70px !important; max-width:70px !important; height:clamp(26px,4.1vh,34px) !important; font-size:10px !important; }
+                          .transposed-table td { height:clamp(26px,4.1vh,34px) !important; }
+                          .transposed-table .mg-cmp-inp { font-size:clamp(9px,2.6vw,11px) !important; }
+                        }
+                        @media (max-width:380px) {
+                          .mg-toolbar-row { gap:2px !important; }
+                          .mg-toolbar-row button,.mg-toolbar-row label { font-size:8px !important; }
+                          .transposed-table th.sticky-header { width:62px !important; min-width:62px !important; max-width:62px !important; font-size:9px !important; }
                         }
                         </style>
 
-                        <div style="display: flex; flex-direction: column; height: 100%; overflow:hidden;">
+                        <div class="mg-form-layout" style="display: flex; flex-direction: column; height: 100%; overflow:hidden;">
                             
                             <input type="hidden" id="mgEditModeSlipIds" value="">
 
                             <!-- 🚨 કૉમ્પેક્ટ બટન રો (Clear અને Save ની વચ્ચે Review છૂટું પાડ્યું) -->
-                            <div style="display: flex; gap: 3px; margin-bottom: 8px; width: 100%; align-items: center; flex-wrap: nowrap; overflow: hidden; white-space: nowrap;">
+                            <div class="mg-toolbar-row" style="display: flex; gap: 3px; margin-bottom: 8px; width: 100%; align-items: center; flex-wrap: nowrap; overflow: hidden; white-space: nowrap;">
                                 <button type="button" onclick="window.downloadMgFormat()" class="btn sm" style="flex: 1; padding: 0; font-size: 10px; min-height: 32px; background: #F8FAFC; color: #1E293B; border: 1px solid #CBD5E1;">📥 Fmt</button>
                                 <label class="btn sm" style="flex: 1; padding: 0; font-size: 10px; min-height: 32px; background: #EFF6FF; color: #0A56D0; border: 1px solid #BFDBFE; margin: 0; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                                     📂 Imp <input type="file" style="display: none;" onchange="window.handleMgExcelUpload(event)">
@@ -14060,8 +14500,18 @@ window.renderMeetingsGuestsUI = function(containerId, currentRole) {
                                 <button type="button" onclick="window.submitMgForm()" class="btn success sm" style="flex: 1.5; padding: 0; font-size: 11px; font-weight: bold; min-height: 32px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">💾 Save</button>
                             </div>
 
-                            <div style="flex-grow: 1; overflow: hidden; background: #fff; border-radius: 4px; border: 1px solid #0A56D0; display:flex; flex-direction:column;">
-                                <div style="flex-grow:1; position:relative; background:#f8fafc; overflow:auto; width:100%;">
+                            <div class="mg-category-selector-row" style="display:flex;align-items:center;gap:8px;padding:7px 9px;margin:0 0 7px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:7px;flex-shrink:0;">
+                                <label for="mgEntryType" style="font-size:11px;font-weight:800;color:#1E40AF;white-space:nowrap;">Entry Category</label>
+                                <select id="mgEntryType" style="margin:0;max-width:220px;min-height:32px;height:32px;padding:4px 8px;font-size:12px;font-weight:700;">
+                                    <option value="Meeting">Meeting</option>
+                                    <option value="Event">Event</option>
+                                    <option value="High Tea">High Tea</option>
+                                </select>
+                                <span style="font-size:10px;color:#64748B;">Select before saving</span>
+                            </div>
+
+                            <div class="mg-grid-panel" style="flex-grow: 1; overflow: hidden; background: #fff; border-radius: 10px; border: 1px solid #CBD5E1; display:flex; flex-direction:column; min-height:0;">
+                                <div class="mg-grid-viewport" style="flex-grow:1; position:relative; background:#f8fafc; overflow:hidden; width:100%; min-height:0;">
                                     <table class="transposed-table" id="mgTransposedTable">
                                         <tr id="tr_date"><th class="sticky-header">Date</th></tr>
                                         <tr id="tr_time"><th class="sticky-header">Time</th></tr>
@@ -14169,12 +14619,12 @@ window.renderMeetingsGuestsUI = function(containerId, currentRole) {
             window.downloadMgFormat = function() {
                 try {
                     const sampleData = [
-                        ["Date", "Time", "Item", "Qty", "Rate", "Amount", "Requisitioner's Name", "Purpose", "Location", "Vendor", "Served By"],
-                        ["15-08-2026", "09:30", "Tea", 10, 15, 150, "Admin Dept", "NAAC Meeting", "Conference Hall", "IA Caterers", "Ramesh"],
-                        ["16-08-2026", "14:00", "Samosa", 10, 20, 200, "Admin Dept", "Audit Meeting", "Room 101", "DAU Direct Purchase", "Suresh"]
+                        ["Date", "Time", "Item", "Qty", "Rate", "Amount", "Requisitioner's Name", "Purpose", "Category", "Location", "Vendor", "Served By"],
+                        ["15-08-2026", "09:30", "Tea", 10, 15, 150, "Admin Dept", "NAAC Meeting", "Meeting", "Conference Hall", "IA Caterers", "Ramesh"],
+                        ["16-08-2026", "14:00", "Samosa", 10, 20, 200, "Admin Dept", "Audit Meeting", "Event", "Room 101", "DAU Direct Purchase", "Suresh"]
                     ];
                     const ws = XLSX.utils.aoa_to_sheet(sampleData);
-                    ws['!cols'] = [{wch:12},{wch:8},{wch:18},{wch:8},{wch:8},{wch:10},{wch:20},{wch:20},{wch:15},{wch:15},{wch:15}];
+                    ws['!cols'] = [{wch:12},{wch:8},{wch:18},{wch:8},{wch:8},{wch:10},{wch:20},{wch:20},{wch:14},{wch:15},{wch:15},{wch:15}];
                     const wb = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(wb, ws, "Meeting_Format");
                     window.pantryDownloadExcelFile(wb, "Meeting_Excel_Format.xlsx");
@@ -14223,6 +14673,7 @@ window.handleMgExcelUpload = function(event) {
                             let location = String(getVal(['location', 'venue'])).trim() || 'Campus';
                             let vendor = String(getVal(['vendor', 'canteen'])).trim() || 'Various';
                             let servedBy = String(getVal(['served', 'pantry'])).trim() || 'Multiple Pantry Boys';
+                            let entryCategory = window.dauGetMeetingCategory(String(getVal(['category', 'entry type', 'type']) || 'Meeting'));
 
                             if (!itemName) return; 
 
@@ -14307,6 +14758,9 @@ window.handleMgExcelUpload = function(event) {
                                 Location: location,
                                 Vendor: vendor,
                                 ServedBy: servedBy,
+                                Type: entryCategory,
+                                Category: entryCategory,
+                                isEvent: entryCategory === 'Event',
                                 Status: finalStatus,
                                 Timestamp: Date.now() + idx
                             };
@@ -14613,6 +15067,7 @@ window.handleMgExcelUpload = function(event) {
                 document.addEventListener('touchend', endDrag);
             };
 window.submitMgForm = function() {
+    const selectedEntryCategory = document.getElementById('mgEntryType')?.value || 'Meeting';
     const dateCells = document.querySelectorAll('#tr_date td.drag-wrap');
     if(dateCells.length === 0) return appAlert("Error", "No columns found.");
 
@@ -14744,7 +15199,9 @@ window.submitMgForm = function() {
                 Item: itm, Qty: qt, Rate: rate, Amount: amt, Unit: 'Nos',
                 ReqName: reqName, Purpose: purp, Location: locVal,
                 Vendor: vend, ServedBy: srv, Status: finalStatus, Timestamp: Date.now(),
-                isEvent: isEventValue,
+                isEvent: selectedEntryCategory === 'Event',
+                Type: selectedEntryCategory,
+                Category: selectedEntryCategory,
                 SlipNo: currentSlipNo // 🚨 અહીં નવો કે જૂનો સાચો સ્લિપ નંબર અસાઇન થશે
             };
         });
@@ -15117,7 +15574,7 @@ window.submitMgForm = function() {
             
             <!-- Filters (આડી લાઈનમાં કોમ્પેક્ટ) -->
             <div style="background:#fff; padding:8px; border-bottom:1px solid #cbd5e1; flex-shrink:0; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
-                <div style="display:flex; gap:6px; align-items:center; margin-bottom:6px; width:100%; overflow-x:auto;">
+                <div class="mg-history-filters">
                     <select id="mgPopupMonthFilter" onchange="window.renderMgHistoryTable()" style="flex:1; min-width:90px; padding:6px; font-size:11px; border-radius:4px; border:1px solid #cbd5e1; outline:none; background:#fff; font-weight:bold; color:#0A56D0;">
                         <option value="ALL">All Months</option>
                         <option value="${currentMonthStr}" selected>Current Month</option>
@@ -15126,15 +15583,15 @@ window.submitMgForm = function() {
                         <option value="ALL">All Vendors</option>
                     </select>
                     <input type="text" id="mgPopupSearchFilter" placeholder="🔍 Search..." oninput="window.renderMgHistoryTable()" style="flex:1.5; min-width:100px; padding:6px; font-size:11px; border-radius:4px; border:1px solid #cbd5e1; outline:none;">
+                    <select id="mgPopupPurposeFilter" onchange="window.renderMgHistoryTable()" title="Purpose"><option value="ALL">All Purposes</option></select>
                     <select id="mgPopupTypeFilter" onchange="window.renderMgHistoryTable()" style="flex:1; min-width:80px; padding:6px; font-size:11px; border-radius:4px; border:1px solid #cbd5e1; outline:none; background:#fff; font-weight:bold; color:#DC3545;">
                         <option value="ALL">All Types</option>
                         <option value="Meeting">Meetings Only</option>
                         <option value="Event">Events Only</option>
+                        <option value="High Tea">High Tea Only</option>
                     </select>
-                </div>
-                <div style="display:flex; gap:6px; width:100%;">
-                    <button onclick="window.openBulkReplacePurposeModal()" style="flex:1; background:#fef3c7; color:#d97706; border:1px solid #fde68a; cursor:pointer; font-weight:bold; padding:6px; font-size:11px; border-radius:4px;">🔄 Fix Purpose</button>
-                    <button onclick="window.openDuplicateReviewModal()" id="historyMgReviewBtn" style="display:none; flex:1; background:#FEF2F2; color:#DC3545; border:1px solid #FECACA; cursor:pointer; font-weight:bold; padding:6px; font-size:11px; border-radius:4px;">⚠️ Pending Review (<span id="historyMgReviewCount">0</span>)</button>
+                    <button class="mg-filter-action fix" onclick="window.openBulkReplacePurposeModal()">🔄 Fix Purpose</button>
+                    <button class="mg-filter-action pending" onclick="window.openDuplicateReviewModal()" id="historyMgReviewBtn" style="display:none;">⚠️ Pending Review (<span id="historyMgReviewCount">0</span>)</button>
                 </div>
             </div>
             
@@ -15155,6 +15612,7 @@ window.submitMgForm = function() {
         
         let months = new Set();
         let vendors = new Set();
+        let purposes = new Set();
         
         // 🚨 મહિનાને પરફેક્ટ YYYY-MM ફોર્મેટમાં ફેરવવાનું ફંક્શન
         const getSafeYMDForPopup = (rec) => {
@@ -15185,6 +15643,8 @@ window.submitMgForm = function() {
             };
             addVendor(r.Vendor);
             addVendor(r.canteenSource);
+            const purpose = String(r.Purpose || r.eventName || '').trim();
+            if (purpose && purpose !== '-') purposes.add(purpose);
         });
         
         if(sel) {
@@ -15201,6 +15661,11 @@ window.submitMgForm = function() {
             venArr.forEach(v => {
                 venSel.innerHTML += `<option value="${v}">${v}</option>`;
             });
+        }
+        const purposeSel = document.getElementById('mgPopupPurposeFilter');
+        if(purposeSel){
+            purposeSel.innerHTML = '<option value="ALL">All Purposes</option>';
+            Array.from(purposes).sort().forEach(v => purposeSel.innerHTML += `<option value="${String(v).replace(/&/g,'&amp;').replace(/"/g,'&quot;')}">${v}</option>`);
         }
     }, 500);
 };
@@ -15266,6 +15731,9 @@ window.renderMgHistoryTable = function() {
                         ReqName: ev.orderedBy || '-', Purpose: ev.eventName || '-', Location: item.locationNode || '-', Vendor: item.vendor || ev.canteenSource || '-',
                         ServedBy: item.servedBy || ev.servedByName || ev.pantryName || '-', Timestamp: ev.timestamp || new Date().getTime(),
                         SlipNo: item.slipNo || ev.slipNo || '', eventItemIndex: idx,
+                        Type: window.dauGetMeetingCategory(ev.entryType || ev.Type || ev.Category || (ev.isEvent ? 'Event' : 'Meeting')),
+                        Category: window.dauGetMeetingCategory(ev.entryType || ev.Type || ev.Category || (ev.isEvent ? 'Event' : 'Meeting')),
+                        isEvent: window.dauGetMeetingCategory(ev.entryType || ev.Type || ev.Category || (ev.isEvent ? 'Event' : 'Meeting')) === 'Event',
                         isOldEvent: true, originalId: ev.id
                     });
                 });
@@ -15273,7 +15741,11 @@ window.renderMgHistoryTable = function() {
                 combinedRecords.push({
                     id: ev.id, DateFormatted: ev.date, Day: typeof getDayOfWeek === 'function' ? getDayOfWeek(ev.date) : '', Item: ev.refreshmentSummary || 'Meeting Details', Qty: '-', Rate: '-',
                     Amount: ev.amount || 0, ReqName: ev.orderedBy || '-', Purpose: ev.eventName || '-', Location: '-', Vendor: ev.canteenSource || '-', ServedBy: ev.servedByName || ev.pantryName || '-',
-                    Timestamp: ev.timestamp || new Date().getTime(), isOldEvent: true, originalId: ev.id
+                    Timestamp: ev.timestamp || new Date().getTime(),
+                    Type: window.dauGetMeetingCategory(ev.entryType || ev.Type || ev.Category || (ev.isEvent ? 'Event' : 'Meeting')),
+                    Category: window.dauGetMeetingCategory(ev.entryType || ev.Type || ev.Category || (ev.isEvent ? 'Event' : 'Meeting')),
+                    isEvent: window.dauGetMeetingCategory(ev.entryType || ev.Type || ev.Category || (ev.isEvent ? 'Event' : 'Meeting')) === 'Event',
+                    isOldEvent: true, originalId: ev.id
                 });
             }
         });
@@ -15306,12 +15778,13 @@ window.renderMgHistoryTable = function() {
     const slips = {};
     filteredRecords.forEach(rec => {
         // 🚨 ટાઈમ કાઢીને માત્ર તારીખ, પર્પઝ, રિક્વેસ્ટર અને વેન્ડરના આધારે ગ્રુપિંગ 
-        const key = `${rec.DateFormatted}_${rec.Purpose}_${rec.ReqName}_${rec.Vendor}`;
+        const recordType = window.dauGetMeetingCategory(rec.Type || rec.Category || (rec.isEvent ? 'Event' : 'Meeting'));
+        const key = `${rec.DateFormatted}_${rec.Purpose}_${rec.ReqName}_${rec.Vendor}_${recordType}`;
         
         if(!slips[key]) {
             slips[key] = {
                 key: key, RawDateForSort: getSafeYMD(rec), DateFormatted: rec.DateFormatted, Time: rec.Time || '', 
-                Vendor: rec.Vendor, Vendors: new Set(), Purpose: rec.Purpose, ReqName: rec.ReqName,
+                Vendor: rec.Vendor, Vendors: new Set(), Purpose: rec.Purpose, ReqName: rec.ReqName, Type: recordType, Category: recordType,
                 ServedBy: rec.ServedBy, Location: rec.Location || '-', Timestamp: rec.Timestamp || 0,
                 totalAmt: 0, itemCount: 0, items: [], idsToDelete: [], allTimes: new Set()
             };
@@ -15362,17 +15835,19 @@ window.renderMgHistoryTable = function() {
 
     const typeFilter = document.getElementById('mgPopupTypeFilter') ? document.getElementById('mgPopupTypeFilter').value : 'ALL';
     if (typeFilter !== 'ALL') {
-        finalSlips = finalSlips.filter(slip => {
-            // Check if any item in the slip is marked as an event
-            const isEvent = slip.items.some(item => item.isEvent === true);
-            return typeFilter === 'Event' ? isEvent : !isEvent;
-        });
+        finalSlips = finalSlips.filter(slip =>
+            window.dauGetMeetingCategory(slip.Type || slip.items?.[0]?.Type || (slip.items?.some(item => item.isEvent) ? 'Event' : 'Meeting')) === typeFilter
+        );
     }
+
+    const purposePicker = document.getElementById('mgPopupPurposeFilter');
+    const selectedPurpose = purposePicker ? purposePicker.value : 'ALL';
+    if(selectedPurpose !== 'ALL') finalSlips = finalSlips.filter(slip => String(slip.Purpose || '') === selectedPurpose);
 
     const searchTerms = searchQuery.split(/\s+/).filter(Boolean);
     if (searchTerms.length > 0) {
         finalSlips = finalSlips.filter(slip => {
-            const rowText = `${slip.slipNo} ${slip.DateFormatted} ${slip.Vendor} ${slip.Purpose} ${slip.ReqName} ${slip.Location} ${slip.ServedBy} ${slip.items.map(i=>i.Item).join(' ')}`.toLowerCase();
+            const rowText = `${slip.slipNo} ${slip.Type} ${slip.DateFormatted} ${slip.Vendor} ${slip.Purpose} ${slip.ReqName} ${slip.Location} ${slip.ServedBy} ${slip.items.map(i=>i.Item).join(' ')}`.toLowerCase();
             return searchTerms.every(term => rowText.includes(term));
         });
     }
@@ -15380,54 +15855,62 @@ window.renderMgHistoryTable = function() {
 
     let html = '';
     if(finalSlips.length === 0) {
-        html = `<div style="text-align:center; padding:20px; color:#64748b; font-weight:bold; background:#fff; border-radius:6px; border:1px solid #cbd5e1;">No meeting records found for current filters.</div>`;
+        html = `<div style="text-align:center;padding:28px;color:#64748b;font-weight:700;background:#fff;border:1px solid #dbe3ed;border-radius:10px;">No meeting records found for current filters.</div>`;
     } else {
-        // ટેબલ ડીઝાઇનને 3 કોલમમાં ફેરવી, અને બટન્સને નીચેની હરોળમાં આડા (horizontal) મૂક્યા 
-        html = `
-        <div style="border:1px solid #cbd5e1; border-radius:6px; background:#fff; overflow:hidden; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
-            <table style="width:100%; border-collapse:collapse; font-size:11px; text-align:left; min-width:300px;">
-                <thead style="background:#1e293b; color:#fff; position:sticky; top:0; z-index:5;">
-                    <tr>
-                        <th style="padding:8px 6px; width:25%;">Date & No</th>
-                        <th style="padding:8px 6px; width:55%;">Details</th>
-                        <th style="padding:8px 6px; width:20%; text-align:right;">Amount</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
-
-        finalSlips.forEach((slip, idx) => {
-            const delData = encodeURIComponent(JSON.stringify(slip.idsToDelete)).replace(/'/g, "%27");
-            const itemsData = encodeURIComponent(JSON.stringify(slip)).replace(/'/g, "%27");
-            const bgCol = idx % 2 === 0 ? '#fff' : '#f8fafc';
-
-            html += `
-                <!-- ડેટા રો -->
-                <tr style="background:${bgCol}; border-top:1px solid #cbd5e1;">
-                    <td style="padding:8px 6px; font-weight:bold; color:#1e293b; vertical-align:top;">
-                        ${slip.DateFormatted.slice(0,5)}<br>
-                        <span style="color:#64748B; font-size:9px;">🕒 ${slip.Time || '-'}</span><br>
-                        <span style="color:#d97706; font-size:10px;">#${slip.slipNo.split('-').pop()}</span>
-                    </td>
-                    <td style="padding:8px 6px; vertical-align:top; line-height:1.4;">
-                        <b style="color:#d97706; font-size:11px;">${slip.Purpose}</b><br>
-                        <span style="color:#64748b; font-size:10px;">Req: ${slip.ReqName}</span><br>
-                        <span style="color:#0284c7; font-size:10px;">Ven: ${slip.Vendor} (${slip.itemCount} Items)</span>
-                    </td>
-                    <td style="padding:8px 6px; text-align:right; font-weight:900; color:#10b981; vertical-align:top; font-size:13px;">₹${slip.totalAmt.toFixed(2)}</td>
-                </tr>
-                <!-- 🚨 એક્શન બટન્સ રો (આડી લાઈનમાં ફિટ થાય તે રીતે) -->
-                <tr style="background:${bgCol}; border-bottom:3px solid #cbd5e1;">
-                    <td colspan="3" style="padding:4px 6px 8px 6px;">
-                        <div style="display:flex; gap:6px; justify-content:space-between; width:100%;">
-                            <button onclick="window.viewMgSlip('${itemsData}')" style="flex:1; background:#fef3c7; color:#d97706; border:1px solid #fde68a; padding:6px 2px; border-radius:4px; font-weight:bold; font-size:10px; cursor:pointer;">📜 Preview</button>
-                            <button onclick="window.editMgGroup('${itemsData}')" style="flex:1; background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd; padding:6px 2px; border-radius:4px; font-weight:bold; font-size:10px; cursor:pointer;">✏️ Edit</button>
-                            <button onclick="window.moveToReview('${delData}')" style="flex:1; background:#f5f3ff; color:#7c3aed; border:1px solid #c4b5fd; padding:6px 2px; border-radius:4px; font-weight:bold; font-size:10px; cursor:pointer;">⚠️ Review</button>
-                            <button onclick="window.deleteFullMgSlip('${delData}')" style="flex:1; background:#fee2e2; color:#ef4444; border:1px solid #fecaca; padding:6px 2px; border-radius:4px; font-weight:bold; font-size:10px; cursor:pointer;">🗑 Delete</button>
-                        </div>
-                    </td>
-                </tr>
-            `;
+        // Group by same purpose across consecutive calendar dates; individual guest slips remain separate rows.
+        const toDate = (ymd) => { const p=String(ymd||'').split('-').map(Number); return p.length===3 ? Date.UTC(p[0],p[1]-1,p[2]) : 0; };
+        const purposeBuckets = new Map();
+        finalSlips.forEach(slip=>{
+            const purpose=String(slip.Purpose||'Unspecified Purpose').trim();
+            const purposeKey=purpose.toLowerCase();
+            if(!purposeBuckets.has(purposeKey)) purposeBuckets.set(purposeKey,{Purpose:purpose,days:new Map()});
+            const bucket=purposeBuckets.get(purposeKey);
+            const dayKey=slip.RawDateForSort || '2000-01-01';
+            if(!bucket.days.has(dayKey)) bucket.days.set(dayKey,[]);
+            bucket.days.get(dayKey).push(slip);
+        });
+        const meetingGroups=[];
+        purposeBuckets.forEach(bucket=>{
+            const dates=Array.from(bucket.days.keys()).sort();
+            let current=null;
+            dates.forEach(dateKey=>{
+                const day=toDate(dateKey);
+                if(!current || day-current.lastDay!==86400000){
+                    current={Purpose:bucket.Purpose,slips:[],firstDay:day,lastDay:day};
+                    meetingGroups.push(current);
+                }
+                current.slips.push(...bucket.days.get(dateKey));
+                current.lastDay=day;
+            });
+        });
+        meetingGroups.sort((a,b)=>a.firstDay-b.firstDay || a.Purpose.localeCompare(b.Purpose));
+        meetingGroups.forEach(group=>group.slips.sort((a,b)=>a.RawDateForSort.localeCompare(b.RawDateForSort) || a.Timestamp-b.Timestamp));
+        html = `<div class="mg-history-table-wrap"><table class="mg-history-pro-table"><thead><tr><th style="width:110px">Date</th><th style="width:100px">Time</th><th>Purpose / Meeting</th><th>Vendor</th><th>Requested By</th><th>Items</th><th>Amount</th><th>Guest Slip Actions</th></tr></thead><tbody>`;
+        let rowIndex=0;
+        meetingGroups.forEach((group,groupIndex)=>{
+            const dates=group.slips.map(x=>x.DateFormatted).filter((v,i,a)=>a.indexOf(v)===i);
+            html += `<tr class="mg-group-row"><td colspan="8">${safeStr(group.Purpose)} <span style="font-weight:600;color:#526783;margin-left:8px">${dates.length>1 ? dates[0]+' – '+dates[dates.length-1] : dates[0]||''}</span><span style="float:right;font-size:10px">${group.slips.length} Guest Slip(s)</span></td></tr>`;
+            group.slips.forEach(slip=>{
+                const delData=encodeURIComponent(JSON.stringify(slip.idsToDelete)).replace(/'/g,'%27');
+                const itemsData=encodeURIComponent(JSON.stringify(slip)).replace(/'/g,'%27');
+                const dateText=slip.DateFormatted || slip.RawDateForSort;
+                const vendorText=slip.Vendor || '-';
+                const itemNames=slip.items.map(i=>i.Item||i.name||'Item').join(', ');
+                html += `<tr class="slip-row" style="background:${rowIndex++%2?'#fbfcfe':'#fff'}">
+                    <td><strong>${safeStr(dateText)}</strong><div style="font-size:10px;color:#748197">#${safeStr(String(slip.slipNo||'').split('-').pop())}</div></td>
+                    <td>${safeStr(slip.Time||'-')}</td>
+                    <td><strong>${safeStr(slip.Purpose||'-')}</strong><div style="margin-top:3px"><span style="background:#e8f1ff;color:#2457a6;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700">${safeStr(slip.Type||'Meeting')}</span></div></td>
+                    <td><strong>${safeStr(vendorText)}</strong></td>
+                    <td>${safeStr(slip.ReqName||'-')}<div style="font-size:10px;color:#748197">${safeStr(slip.Location||'')}</div></td>
+                    <td>${safeStr(itemNames||'-')}<div style="font-size:10px;color:#748197">${slip.itemCount} item(s)</div></td>
+                    <td style="font-weight:800;color:#087f5b;white-space:nowrap">₹${Number(slip.totalAmt||0).toFixed(2)}</td>
+                    <td><div class="mg-actions">
+                        <button onclick="window.viewMgSlip('${itemsData}')" style="background:#fff7df;color:#a16207;border:1px solid #f4d78b">Preview</button>
+                        <button onclick="window.moveToReview('${delData}')" style="background:#f4efff;color:#6d42b5;border:1px solid #d9c8ff">Review</button>
+                        <button onclick="window.editMgGroup('${itemsData}')" style="background:#eaf4ff;color:#1765a9;border:1px solid #c5e0fa">Edit</button>
+                        <button onclick="window.deleteFullMgSlip('${delData}')" style="background:#fff0f0;color:#c52b36;border:1px solid #f5c2c7">Delete</button>
+                    </div></td></tr>`;
+            });
         });
         html += `</tbody></table></div>`;
     }
@@ -15600,6 +16083,7 @@ window.viewMgSlip = function(encodedData) {
 
             <div style="font-size:11px; line-height:1.5;">
                 <div><b>Req By:</b> ${slip.ReqName}</div>
+                <div><b>Category:</b> ${safeStr(window.dauGetMeetingCategory(slip.Type || slip.Category || slip.items?.[0]?.Type || 'Meeting'))}</div>
                 <div><b>Purpose:</b> ${slip.Purpose}</div>
                 <div><b>Served By:</b> ${slip.ServedBy}</div>
             </div>
@@ -15753,6 +16237,14 @@ window.editMgSlipInline = function(encodedData) {
                 </div>
             </div>
             
+            <div style="display:flex;align-items:center;gap:8px;margin:0 0 10px;padding:8px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;">
+                <label for="islipCategory" style="font-size:11px;font-weight:800;color:#1E40AF;white-space:nowrap;">Entry Category</label>
+                <select id="islipCategory" style="flex:1;margin:0;min-height:32px;height:32px;padding:4px 8px;font-size:12px;">
+                    <option value="Meeting" ${(slip.Type || slip.Category || 'Meeting') === 'Meeting' ? 'selected' : ''}>Meeting</option>
+                    <option value="Event" ${(slip.Type || slip.Category) === 'Event' ? 'selected' : ''}>Event</option>
+                    <option value="High Tea" ${(slip.Type || slip.Category) === 'High Tea' ? 'selected' : ''}>High Tea</option>
+                </select>
+            </div>
             <table style="width:100%; border-collapse:collapse; margin-bottom:10px; font-size:12px;">
                 <thead>
                     <tr style="background:#F1F5F9;">
@@ -15881,7 +16373,10 @@ window.saveInlineSlip = function() {
                 ServedBy: slip.ServedBy,
                 Status: 'Approved', 
                 Timestamp: Date.now() + idx,
-                SlipNo: slip.slipNo 
+                SlipNo: slip.slipNo,
+                Type: document.getElementById('islipCategory')?.value || slip.Type || slip.Category || 'Meeting',
+                Category: document.getElementById('islipCategory')?.value || slip.Type || slip.Category || 'Meeting',
+                isEvent: (document.getElementById('islipCategory')?.value || slip.Type || slip.Category || 'Meeting') === 'Event'
             };
             
             const vKey = rowVendor.toLowerCase().trim();
@@ -15961,6 +16456,8 @@ window.saveInlineSlip = function() {
                     // આઈડી હિડન સેવ કરો, જેથી સેવ કરતી વખતે જૂનો રેકોર્ડ ડીલીટ થઈ જાય
                     const editInp = document.getElementById('mgEditModeSlipIds');
                     if(editInp) editInp.value = JSON.stringify(slip.idsToDelete);
+                    const categorySelect = document.getElementById('mgEntryType');
+                    if(categorySelect) categorySelect.value = window.dauGetMeetingCategory(slip.Type || slip.Category || slip.items?.[0]?.Type || 'Meeting');
                     
                     appAlert("Edit Mode", "Data loaded into the main grid. Make changes and click 'Save' to update.");
                 }, 100);
