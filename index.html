@@ -686,13 +686,15 @@
             align-items: center;
             gap: 6px !important;
             flex-shrink: 0;
-            flex-wrap: nowrap !important; /* બધા બટનને ફોર્સફુલી એક જ લાઈનમાં રાખવા માટે */
+            flex-wrap: wrap !important;
+            justify-content: flex-start !important;
+            overflow: visible !important;
             width: 100%;
             box-sizing: border-box;
         }
         .preview-header button {
-            flex: 1; /* બટન સ્ક્રીન મુજબ ઓટોમેટિક સાઈઝ સેટ કરી લેશે */
-            padding: 8px 2px !important; /* બટન નાના અને કોમ્પેક્ટ કરવા */
+            flex: 0 0 auto;
+            padding: 8px 9px !important;
             font-size: 12px !important; 
             font-weight: 700 !important;
             min-height: 36px !important;
@@ -702,15 +704,52 @@
             text-align: center;
         }
         .preview-header > div {
-            flex: 1.5;
+            flex: 0 1 auto;
             min-width: 0;
-            overflow: hidden;
+            overflow: visible;
+        }
+        .preview-header > div[style*="flex:1"] {
+            display: none !important;
+        }
+        @media (max-width: 600px) {
+            #printAreaContainer { padding: 8px !important; }
+            #printAreaContainer .preview-card {
+                width: 100% !important;
+                max-width: 100% !important;
+                height: 94vh !important;
+                max-height: 94vh !important;
+                border-radius: 14px !important;
+            }
+            #printAreaContainer .preview-header {
+                gap: 5px !important;
+                padding: 8px !important;
+            }
+            #printAreaContainer .preview-header button {
+                padding: 7px 8px !important;
+                font-size: 11px !important;
+            }
+        }
+        @media (min-width: 601px) {
+            #printAreaContainer .preview-card {
+                width: min(96vw, 980px) !important;
+                height: min(90vh, 900px) !important;
+            }
         }
         .preview-content {
             padding: 20px 24px;
             overflow-y: auto;
             flex: 1;
+            min-height: 0;
             background: #fff;
+        }
+        #printAreaContainer .inline-slip-editor-actions {
+            position: sticky;
+            bottom: -1px;
+            z-index: 20;
+            box-shadow: 0 -5px 12px rgba(15,23,42,.08);
+        }
+        #printAreaContainer .inline-slip-editor-actions button {
+            min-height: 44px !important;
         }
         .preview-content::-webkit-scrollbar {
             width: 5px;
@@ -1341,6 +1380,15 @@
         .mg-history-pro-table .mg-actions button{min-height:28px;padding:5px 8px;font-size:10px;border-radius:6px;white-space:nowrap}
         @media(max-width:700px){.mg-history-filters{gap:4px}.mg-history-filters select,.mg-history-filters input{min-width:78px;font-size:10px!important;padding:4px 5px!important}.mg-history-filters input{min-width:96px}.mg-filter-action{font-size:9px;padding:5px 6px}.mg-history-pro-table{min-width:850px}}
         @media(min-width:900px){#mgHistoryPopupOverlay>div{max-width:none}.mg-history-pro-table{font-size:13px}.mg-history-pro-table td{padding:12px}}
+        #mgHistoryPopupOverlay .mg-history-filter-shell{overflow-x:auto;overflow-y:hidden;white-space:nowrap}
+        #mgHistoryPopupOverlay .mg-history-filters{width:max-content;min-width:100%;flex-wrap:nowrap}
+        #mgHistoryPopupOverlay .mg-history-filters select,#mgHistoryPopupOverlay .mg-history-filters input{flex:0 0 132px;min-width:132px}
+        #mgHistoryPopupOverlay .mg-history-filters input[type="date"]{flex-basis:136px;min-width:136px}
+        #mgHistoryPopupOverlay .mg-history-filters input[type="text"]{flex-basis:180px;min-width:180px}
+        #mgHistoryPopupOverlay .mg-history-totalbar{display:flex;gap:8px;flex-wrap:wrap;padding:9px 10px;margin-top:8px;background:#fff;border:1px solid #d7e0ea;border-radius:9px;color:#17365d;font-size:11px;font-weight:700}
+        #mgHistoryPopupOverlay .mg-history-totalbar span{padding:5px 9px;background:#edf4ff;border-radius:6px;white-space:nowrap}
+        #mgHistoryPopupOverlay .mg-history-totalbar b{color:#087f5b}
+
 
         /* ===== PROFESSIONAL TABLE (Meeting History) ===== */
         .pro-table-wrap {
@@ -8187,6 +8235,7 @@
                                 <button onclick="window.runSubTab('leave', this)" class="btn sub-tab-btn" style="flex:1; background:#fff; color:#475569; border:1px solid #CBD5E1; border-radius:6px; font-weight:bold; padding:6px 0; font-size:11px; min-height:34px;">🏖️ Leave</button>
                                 <button onclick="window.runSubTab('transfer', this)" class="btn sub-tab-btn" style="flex:1; background:#fff; color:#475569; border:1px solid #CBD5E1; border-radius:6px; font-weight:bold; padding:6px 0; font-size:11px; min-height:34px;">🔄 Duty</button>
                                 <button onclick="window.runSubTab('weekend', this)" class="btn sub-tab-btn" style="flex:1; background:#fff; color:#475569; border:1px solid #CBD5E1; border-radius:6px; font-weight:bold; padding:6px 0; font-size:11px; min-height:34px;">📅 Wknd</button>
+                                <button onclick="window.runSubTab('location', this)" class="btn sub-tab-btn" style="flex:1; background:#fff; color:#475569; border:1px solid #CBD5E1; border-radius:6px; font-weight:bold; padding:6px 0; font-size:11px; min-height:34px;">📍 Location</button>
                             </div>
                             <div id="subAdminContent" style="padding-bottom:20px;"></div>
                         `;
@@ -8202,6 +8251,7 @@
                             if (tabName === 'team') renderPantryListAdmin();
                             else if (tabName === 'leave') renderLeaveControlRoomAdmin();
                             else if (tabName === 'transfer') renderDutyTransferSection();
+                            else if (tabName === 'location') renderDirectLocationAssignmentAdmin();
                             else if (tabName === 'weekend') {
                                 document.getElementById('subAdminContent').innerHTML = `
                                   <div class="card" style="border:2px solid #1E3A8A; background:#F0F7FF;">
@@ -8234,45 +8284,34 @@
                           <h4 class="a-title" style="margin:0;">👥 Manage Employees</h4>
                       </div>
                       
-                      <!-- ૪ આઇટમ એક જ લાઇનમાં નાની સાઈઝમાં (સર્ચ, કેટેગરી, પેન્ટ્રી, સિલેક્ટ ઓલ) -->
-                      <div style="display:flex; gap:4px; margin-bottom:8px; align-items:center; width:100%; box-sizing:border-box;">
-                          <input id="employeeSearch" class="a-input" placeholder="🔍 Search..." style="flex:2; padding:6px; min-height:32px; font-size:11px;">
-                          <select id="categoryFilter" class="a-input" style="flex:1.5; padding:6px 2px; min-height:32px; font-size:10px;"><option value="">All Cat.</option><option>Faculty</option><option>Staff</option><option>Law</option><option>Outsourced</option></select>
-                          <select id="pantryFilter" class="a-input" style="flex:1.5; padding:6px 2px; min-height:32px; font-size:10px;">
-    <option value="">All Pantry</option>
-    <option value="unassigned">Unassigned</option>
-    ${pantryTeam.filter(p => p.status !== 'Inactive').map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
-</select>
-                          <label class="a-chk-row" style="flex:1; margin:0; padding:0; justify-content:center; min-height:32px; border:1px solid #CBD5E1; background:#F8FAFC; display:flex; align-items:center; font-size:10px; cursor:pointer;"><input type="checkbox" id="selectAllEmployees" style="margin-right:2px; width:12px; height:12px;"> All</label>
+                      <!-- Employee filters: keep every filter in one horizontal row -->
+                      <div style="display:flex;gap:6px;margin:0 0 8px;align-items:center;width:100%;flex-wrap:nowrap;overflow-x:auto;box-sizing:border-box;">
+                          <input id="employeeSearch" class="a-input" placeholder="🔍 Search..." style="flex:1.8 1 150px;min-width:110px;padding:6px;min-height:34px;font-size:11px;margin:0;">
+                          <select id="categoryFilter" class="a-input" style="flex:1 1 105px;min-width:85px;padding:6px 4px;min-height:34px;font-size:10px;margin:0;"><option value="">All Cat.</option><option>Faculty</option><option>Staff</option><option>Law</option><option>Outsourced</option></select>
+                          <select id="pantryFilter" class="a-input" style="flex:1.2 1 125px;min-width:100px;padding:6px 4px;min-height:34px;font-size:10px;margin:0;">
+                              <option value="">All Pantry</option>
+                              <option value="unassigned">Unassigned</option>
+                              ${pantryTeam.filter(p => p.status !== 'Inactive').map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+                          </select>
+                          <select id="employeeLocationFilter" class="a-input" style="flex:1.3 1 145px;min-width:115px;padding:6px 5px;min-height:34px;font-size:10px;margin:0;">
+                              <option value="">All Locations</option>
+                              ${[...new Map(venueList.map(v => [String(v.name || '').trim().replace(/\\s+/g,' ').toLowerCase(),v])).values()].map(v => `<option value="${safeStr(v.name)}">${safeStr(v.name)}</option>`).join('')}
+                          </select>
+                          <button id="togglePastEmployees" class="a-btn warning" style="flex:0 0 auto;min-width:175px;white-space:nowrap;min-height:34px;font-size:10px;">🗂 Retired / Left / Past Employees</button>
                       </div>
-
-                      <div style="display:flex;gap:6px;margin:0 0 8px;">
-                        <select id="employeeLocationFilter" class="a-input" style="flex:1;padding:7px;min-height:34px;font-size:11px;">
-                          <option value="">All Locations</option>
-                          ${[...new Map(venueList.map(v => [String(v.name || '').trim().replace(/\s+/g,' ').toLowerCase(),v])).values()].map(v => `<option value="${safeStr(v.name)}">${safeStr(v.name)}</option>`).join('')}
-                        </select>
-                        <button id="togglePastEmployees" class="a-btn warning" style="flex:1;">🗂 Retired / Left / Past Employees</button>
-                      </div>
-                      <div class="a-grid-4">
+                      <div class="a-grid-4" style="margin-bottom:8px;">
                           <button id="addEmployeeBtn" class="a-btn primary">➕ Add</button>
                           <button id="importExcelBtn" class="a-btn success">📥 Import</button>
                           <button id="bulkAssignLocBtn" class="a-btn warning">📍 Loc/Dept</button>
                           <button id="bulkDeleteBtn" class="a-btn danger">🗑 Delete</button>
                       </div>
-                  </div>
-                  
-                  <!-- ડુપ્લીકેટ નામ પકડવા માટેનું વોર્નિંગ બોક્સ -->
-                  <div class="card" style="margin:8px 0;padding:12px;border:2px solid #0A56D0;background:#EFF6FF;">
-                    <h4 style="margin:0 0 6px;color:#0A56D0;">📍 Direct Location Assignment</h4>
-                    <small style="display:block;color:#475569;margin-bottom:8px;">Select a location and one or more Pantry Boys. All employees at this location will inherit this assignment automatically.</small>
-                    <select id="empDirectLocationSelect" style="margin:0 0 8px;"><option value="">-- Select Location --</option>${[...new Map(venueList.map(v => [String(v.name || '').trim().replace(/\s+/g,' ').toLowerCase(),v])).values()].map(v => `<option value="${safeStr(v.name)}">${safeStr(v.name)}</option>`).join('')}</select>
-                    <div id="empDirectPantryChecks" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;background:#fff;border:1px solid #CBD5E1;border-radius:8px;padding:8px;max-height:150px;overflow:auto;">
-                      ${pantryTeam.filter(p => p.status !== 'Inactive').map(p => `<label style="display:flex;align-items:center;gap:7px;padding:6px;border:1px solid #E2E8F0;border-radius:7px;font-size:12px;"><input type="checkbox" class="directLocPantryCheck" value="${p.id}" style="width:17px;height:17px;margin:0;accent-color:#0A56D0;">${safeStr(p.name)}</label>`).join('')}
-                    </div>
-                    <button id="saveDirectLocationAssignment" class="success" style="width:100%;margin-top:8px;">💾 Save Location Assignment</button>
-                  </div>
                   <div id="empDuplicateWarningBox"></div>
                   
+                  <div style="display:flex;align-items:center;justify-content:flex-start;padding:7px 10px;margin:2px 0 5px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;">
+                    <label for="selectAllEmployees" style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:#1E40AF;cursor:pointer;">
+                      <input type="checkbox" id="selectAllEmployees" style="width:16px;height:16px;margin:0;accent-color:#0A56D0;"> Select All
+                    </label>
+                  </div>
                   <div id="employeeListContainer" class="scroll-list-box" style="margin-top:0;"></div>
                   <div id="pastEmployeeSection" class="card hidden" style="margin-top:10px;">
                     <h4 style="color:#92400E;margin:0 0 8px;">🗂 Retired / Left / Past Employees</h4>
@@ -8289,6 +8328,46 @@
                             box.classList.toggle('hidden');
                             if (!box.classList.contains('hidden')) renderPastEmployeeList();
                         };
+                        document.getElementById('addEmployeeBtn').onclick = () => openEmployeeForm();
+                        document.getElementById('importExcelBtn').onclick = importExcel;
+                        document.getElementById('bulkDeleteBtn').onclick = bulkDeleteEmployees;
+                        document.getElementById('bulkAssignLocBtn').onclick = window.openBulkAssignLocPopup;
+                        document.getElementById('selectAllEmployees').onchange = (e) => { document.querySelectorAll('.employeeCheckbox').forEach(cb => cb.checked = e.target.checked); };
+                        
+                        renderEmployeeList();
+                        // પેજ લોડ થાય એટલે ડુપ્લીકેટ નામ ચેક કરશે
+                        setTimeout(window.checkAndShowEmployeeDuplicates, 400); 
+                        break;
+
+          // નવું ફંક્શન જે subAdminContent પર કામ કરશે
+            function renderDirectLocationAssignmentAdmin() {
+                const cont = document.getElementById('subAdminContent');
+                if (!cont) return;
+                cont.innerHTML = `
+                  <div class="card" style="max-width:100%;margin:0 auto 12px;padding:18px;border:1px solid #BFDBFE;border-left:5px solid #0A56D0;background:linear-gradient(135deg,#F8FBFF,#EFF6FF);border-radius:12px;box-shadow:0 3px 12px rgba(15,23,42,.06);">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+                      <div style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;background:#DBEAFE;border-radius:10px;font-size:20px;">📍</div>
+                      <div>
+                        <h4 style="margin:0;color:#1D4ED8;font-size:15px;">Direct Location Assignment</h4>
+                        <small style="color:#64748B;">Assign one or more Pantry Boys to a complete location</small>
+                      </div>
+                    </div>
+                    <p style="font-size:12px;line-height:1.5;color:#475569;margin:10px 0 14px;">Select a campus location and the Pantry Boy(s). All employees at this location will inherit this assignment automatically.</p>
+                    <label for="empDirectLocationSelect" style="display:block;font-size:12px;font-weight:700;color:#334155;margin-bottom:5px;">1. Select Location</label>
+                    <select id="empDirectLocationSelect" style="width:100%;margin:0 0 14px;min-height:40px;">
+                      <option value="">-- Select Location --</option>
+                      ${[...new Map(venueList.map(v => [String(v.name || '').trim().replace(/\\s+/g,' ').toLowerCase(),v])).values()].map(v => `<option value="${safeStr(v.name)}">${safeStr(v.name)}</option>`).join('')}
+                    </select>
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;">
+                      <label style="font-size:12px;font-weight:700;color:#334155;">2. Select Pantry Boy(s)</label>
+                      <small style="color:#64748B;">Multiple selection allowed</small>
+                    </div>
+                    <div id="empDirectPantryChecks" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:7px;background:#fff;border:1px solid #DCE5F0;border-radius:9px;padding:10px;max-height:260px;overflow:auto;">
+                      ${pantryTeam.filter(p => p.status !== 'Inactive').map(p => `<label style="display:flex;align-items:center;gap:8px;padding:9px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;background:#FBFDFF;cursor:pointer;"><input type="checkbox" class="directLocPantryCheck" value="${p.id}" style="width:16px;height:16px;margin:0;accent-color:#0A56D0;">${safeStr(p.name)}</label>`).join('')}
+                    </div>
+                    <button id="saveDirectLocationAssignment" class="success" style="width:100%;margin-top:14px;min-height:42px;border-radius:8px;font-size:13px;">💾 Save Location Assignment</button>
+                  </div>
+                `;
                         document.getElementById('empDirectLocationSelect').onchange = () => {
                             const locName = document.getElementById('empDirectLocationSelect').value;
                             const venue = (window.getUniqueVenueList ? window.getUniqueVenueList() : venueList).find(v => String(v.name).trim().toLowerCase() === locName.trim().toLowerCase());
@@ -8307,18 +8386,8 @@
                               .then(() => appAlert('Saved', 'Location assignment saved. Employees at this location will inherit the selected Pantry Boy(s).'))
                               .catch(err => appAlert('Error', err.message));
                         };
-                        document.getElementById('addEmployeeBtn').onclick = () => openEmployeeForm();
-                        document.getElementById('importExcelBtn').onclick = importExcel;
-                        document.getElementById('bulkDeleteBtn').onclick = bulkDeleteEmployees;
-                        document.getElementById('bulkAssignLocBtn').onclick = window.openBulkAssignLocPopup;
-                        document.getElementById('selectAllEmployees').onchange = (e) => { document.querySelectorAll('.employeeCheckbox').forEach(cb => cb.checked = e.target.checked); };
-                        
-                        renderEmployeeList();
-                        // પેજ લોડ થાય એટલે ડુપ્લીકેટ નામ ચેક કરશે
-                        setTimeout(window.checkAndShowEmployeeDuplicates, 400); 
-                        break;
+            }
 
-          // નવું ફંક્શન જે subAdminContent પર કામ કરશે
             function renderPantryListAdmin() {
                 const cont = document.getElementById('subAdminContent');
                 if (!cont) return;
@@ -15574,7 +15643,7 @@ window.submitMgForm = function() {
             
             <!-- Filters (આડી લાઈનમાં કોમ્પેક્ટ) -->
             <div style="background:#fff; padding:8px; border-bottom:1px solid #cbd5e1; flex-shrink:0; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
-                <div class="mg-history-filters">
+                <div class="mg-history-filter-shell"><div class="mg-history-filters">
                     <select id="mgPopupMonthFilter" onchange="window.renderMgHistoryTable()" style="flex:1; min-width:90px; padding:6px; font-size:11px; border-radius:4px; border:1px solid #cbd5e1; outline:none; background:#fff; font-weight:bold; color:#0A56D0;">
                         <option value="ALL">All Months</option>
                         <option value="${currentMonthStr}" selected>Current Month</option>
@@ -15590,9 +15659,15 @@ window.submitMgForm = function() {
                         <option value="Event">Events Only</option>
                         <option value="High Tea">High Tea Only</option>
                     </select>
+                    <input type="date" id="mgPopupFromDate" title="From Date" onchange="window.renderMgHistoryTable()" />
+                    <input type="date" id="mgPopupToDate" title="To Date" onchange="window.renderMgHistoryTable()" />
+                    <select id="mgPopupPantryFilter" title="Pantry Boy" onchange="window.renderMgHistoryTable()"><option value="ALL">All Pantry Boys</option></select>
+                    <select id="mgPopupRefreshmentFilter" title="Refreshment Category" onchange="window.renderMgHistoryTable()"><option value="ALL">All Refreshments</option><option value="Beverage">Beverages</option><option value="Tea">Tea</option><option value="Coffee">Coffee</option><option value="Snacks">Snacks / Breakfast</option><option value="Lunch">Lunch</option><option value="Dinner">Dinner</option><option value="Other">Other Items</option></select>
+                    <select id="mgPopupItemFilter" title="Specific Item" onchange="window.renderMgHistoryTable()"><option value="ALL">All Items</option></select>
+                    <button class="mg-filter-action" onclick="['mgPopupMonthFilter','mgPopupVendorFilter','mgPopupPurposeFilter','mgPopupTypeFilter','mgPopupPantryFilter','mgPopupRefreshmentFilter','mgPopupItemFilter','mgPopupFromDate','mgPopupToDate','mgPopupSearchFilter'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=(e.tagName==='SELECT'?'ALL':'')});window.renderMgHistoryTable()">✕ Clear Filters</button>
                     <button class="mg-filter-action fix" onclick="window.openBulkReplacePurposeModal()">🔄 Fix Purpose</button>
                     <button class="mg-filter-action pending" onclick="window.openDuplicateReviewModal()" id="historyMgReviewBtn" style="display:none;">⚠️ Pending Review (<span id="historyMgReviewCount">0</span>)</button>
-                </div>
+                </div></div>
             </div>
             
             <!-- Table Content Area -->
@@ -15667,6 +15742,16 @@ window.submitMgForm = function() {
             purposeSel.innerHTML = '<option value="ALL">All Purposes</option>';
             Array.from(purposes).sort().forEach(v => purposeSel.innerHTML += `<option value="${String(v).replace(/&/g,'&amp;').replace(/"/g,'&quot;')}">${v}</option>`);
         }
+        const pantrySel=document.getElementById('mgPopupPantryFilter'), itemSel=document.getElementById('mgPopupItemFilter');
+        const pantryNames=new Set(), itemNames=new Set();
+        allRecs.forEach(r=>{
+            const pn=String(r.ServedBy||r.servedByName||r.pantryName||r.pantry||'').trim();
+            if(pn&&pn!=='-')pn.split(',').forEach(x=>{if(x.trim()&&x.trim()!=='-')pantryNames.add(x.trim())});
+            (Array.isArray(r.items)?r.items:[]).forEach(it=>{const nm=String(it.Item||it.name||'').trim();if(nm)itemNames.add(nm)});
+            const nm=String(r.Item||r.item||'').trim();if(nm)itemNames.add(nm);
+        });
+        if(pantrySel){pantrySel.innerHTML='<option value="ALL">All Pantry Boys</option>';Array.from(pantryNames).sort().forEach(v=>pantrySel.innerHTML+=`<option value="${v}">${v}</option>`)}
+        if(itemSel){itemSel.innerHTML='<option value="ALL">All Items</option>';Array.from(itemNames).sort().forEach(v=>itemSel.innerHTML+=`<option value="${v}">${v}</option>`)}
     }, 500);
 };
 
@@ -15774,6 +15859,9 @@ window.renderMgHistoryTable = function() {
         let recYMD = getSafeYMD(rec);
         return recYMD.startsWith(selectedMonthYMD);
     });
+    const fromDateEl=document.getElementById('mgPopupFromDate'), toDateEl=document.getElementById('mgPopupToDate');
+    const fromDate=fromDateEl?fromDateEl.value:'', toDate=toDateEl?toDateEl.value:'';
+    if(fromDate||toDate) filteredRecords=filteredRecords.filter(rec=>{const d=getSafeYMD(rec);return (!fromDate||d>=fromDate)&&(!toDate||d<=toDate)});
 
     const slips = {};
     filteredRecords.forEach(rec => {
@@ -15843,6 +15931,8 @@ window.renderMgHistoryTable = function() {
     const purposePicker = document.getElementById('mgPopupPurposeFilter');
     const selectedPurpose = purposePicker ? purposePicker.value : 'ALL';
     if(selectedPurpose !== 'ALL') finalSlips = finalSlips.filter(slip => String(slip.Purpose || '') === selectedPurpose);
+    const pantryPicker=document.getElementById('mgPopupPantryFilter'), selectedPantry=pantryPicker?pantryPicker.value:'ALL';
+    if(selectedPantry!=='ALL') finalSlips=finalSlips.filter(slip=>String(slip.ServedBy||'').split(',').some(v=>v.trim()===selectedPantry));
 
     const searchTerms = searchQuery.split(/\s+/).filter(Boolean);
     if (searchTerms.length > 0) {
@@ -15851,6 +15941,11 @@ window.renderMgHistoryTable = function() {
             return searchTerms.every(term => rowText.includes(term));
         });
     }
+    const refreshPicker=document.getElementById('mgPopupRefreshmentFilter'), selectedRefresh=refreshPicker?refreshPicker.value:'ALL';
+    const itemPicker=document.getElementById('mgPopupItemFilter'), selectedItem=itemPicker?itemPicker.value:'ALL';
+    const classifyMgItem=(name)=>{const n=String(name||'').toLowerCase();if(/green tea|black tea|lemon tea|tea/.test(n))return 'Tea';if(/coffee/.test(n))return 'Coffee';if(/lunch|meal|thali/.test(n))return 'Lunch';if(/dinner/.test(n))return 'Dinner';if(/snack|breakfast|poha|idli|vada|sandwich|cookie|biscuit|samosa|dhokla|upma|bonda/.test(n))return 'Snacks';if(/water|juice|milk|lassi|buttermilk|beverage/.test(n))return 'Beverage';return 'Other'};
+    const getVisibleItems=(slip)=>slip.items.filter(it=>{const nm=String(it.Item||it.name||'');return (selectedItem==='ALL'||nm===selectedItem)&&(selectedRefresh==='ALL'||(selectedRefresh==='Beverage'?['Tea','Coffee','Beverage'].includes(classifyMgItem(nm)):classifyMgItem(nm)===selectedRefresh))});
+    if(selectedRefresh!=='ALL'||selectedItem!=='ALL') finalSlips=finalSlips.filter(slip=>getVisibleItems(slip).length>0);
     window.mgCurrentViewSlips = finalSlips; 
 
     let html = '';
@@ -15895,14 +15990,17 @@ window.renderMgHistoryTable = function() {
                 const itemsData=encodeURIComponent(JSON.stringify(slip)).replace(/'/g,'%27');
                 const dateText=slip.DateFormatted || slip.RawDateForSort;
                 const vendorText=slip.Vendor || '-';
-                const itemNames=slip.items.map(i=>i.Item||i.name||'Item').join(', ');
+                const visibleItems=getVisibleItems(slip);
+                const displayItems=(selectedRefresh!=='ALL'||selectedItem!=='ALL')?visibleItems:slip.items;
+                const itemNames=displayItems.map(i=>i.Item||i.name||'Item').join(', ');
+                const displayQty=displayItems.reduce((s,i)=>s+(Number(i.Qty??i.qty)||0),0);
                 html += `<tr class="slip-row" style="background:${rowIndex++%2?'#fbfcfe':'#fff'}">
                     <td><strong>${safeStr(dateText)}</strong><div style="font-size:10px;color:#748197">#${safeStr(String(slip.slipNo||'').split('-').pop())}</div></td>
                     <td>${safeStr(slip.Time||'-')}</td>
                     <td><strong>${safeStr(slip.Purpose||'-')}</strong><div style="margin-top:3px"><span style="background:#e8f1ff;color:#2457a6;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700">${safeStr(slip.Type||'Meeting')}</span></div></td>
                     <td><strong>${safeStr(vendorText)}</strong></td>
                     <td>${safeStr(slip.ReqName||'-')}<div style="font-size:10px;color:#748197">${safeStr(slip.Location||'')}</div></td>
-                    <td>${safeStr(itemNames||'-')}<div style="font-size:10px;color:#748197">${slip.itemCount} item(s)</div></td>
+                    <td>${safeStr(itemNames||'-')}<div style="font-size:10px;color:#748197">${displayItems.length} item(s) · Qty ${displayQty}</div></td>
                     <td style="font-weight:800;color:#087f5b;white-space:nowrap">₹${Number(slip.totalAmt||0).toFixed(2)}</td>
                     <td><div class="mg-actions">
                         <button onclick="window.viewMgSlip('${itemsData}')" style="background:#fff7df;color:#a16207;border:1px solid #f4d78b">Preview</button>
@@ -15914,6 +16012,11 @@ window.renderMgHistoryTable = function() {
         });
         html += `</tbody></table></div>`;
     }
+    const totalMeetings=new Set(finalSlips.map(s=>`${s.RawDateForSort||''}|${String(s.Purpose||'').toLowerCase()}|${s.Type||''}`)).size;
+    const allVisibleItems=finalSlips.flatMap(slip=>(selectedRefresh!=='ALL'||selectedItem!=='ALL')?getVisibleItems(slip):slip.items);
+    const itemTotals={Tea:0,Coffee:0,Beverage:0,Snacks:0,Lunch:0,Dinner:0,Other:0,Total:0};
+    allVisibleItems.forEach(it=>{const q=Number(it.Qty??it.qty)||0;const c=classifyMgItem(it.Item||it.name);itemTotals[c]=(itemTotals[c]||0)+q;itemTotals.Total+=q});
+    html += `<div class="mg-history-totalbar"><span>Total Meetings / Events: <b>${totalMeetings}</b></span><span>Total Refreshment Qty: <b>${itemTotals.Total}</b></span><span>Tea: <b>${itemTotals.Tea}</b></span><span>Coffee: <b>${itemTotals.Coffee}</b></span><span>Other Beverages: <b>${itemTotals.Beverage}</b></span><span>Snacks / Breakfast: <b>${itemTotals.Snacks}</b></span><span>Lunch: <b>${itemTotals.Lunch}</b></span><span>Dinner: <b>${itemTotals.Dinner}</b></span><span>Other: <b>${itemTotals.Other}</b></span></div>`;
     if(containerMain) containerMain.innerHTML = html;
     if(containerPopup) containerPopup.innerHTML = html;
 };
@@ -16103,17 +16206,17 @@ window.viewMgSlip = function(encodedData) {
     const slipShortNo = slip.slipNo ? slip.slipNo.split('-').pop() : '';
 
     container.innerHTML = `
-        <div class="preview-card" style="max-width:450px; width:95vw; height:auto; padding:16px;">
-            <div class="preview-header hide-on-print" style="margin-bottom:12px; display:flex; gap:6px; align-items:center; background:#F8FAFC; padding:6px; border-radius:6px; border:1px solid #CBD5E1; overflow-x:auto;">
+        <div class="preview-card" style="width:96vw; max-width:980px; height:90vh; max-height:900px; padding:0;">
+            <div class="preview-header hide-on-print" style="margin-bottom:12px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; background:#F8FAFC; padding:8px; border-radius:6px; border:1px solid #CBD5E1; overflow:visible;">
                 ${prevBtnHtml}
                 <input type="text" id="quickSlipSearchInp" placeholder="No." value="${slipShortNo}" style="width:45px; text-align:center; padding:4px; border:1px solid #0A56D0; border-radius:4px; font-size:12px; font-weight:bold; color:#0A56D0; outline:none;" onkeypress="if(event.key==='Enter') window.quickSearchSlip()">
                 <button onclick="window.quickSearchSlip()" style="background:#0A56D0; color:#fff; border:none; padding:5px 8px; border-radius:4px; font-size:12px; font-weight:bold; cursor:pointer;">🔍</button>
                 ${nextBtnHtml}
                <div style="flex:1;"></div>
                 <!-- 🚨 નવો ફેરફાર: પ્રિવ્યૂ સ્લિપની અંદર જ એડિટ કરવા માટે નવું બટન -->
-                <button onclick="window.editMgSlipInline('${encodedData}')" style="background:#10B981; color:#fff; border:none; padding:6px 10px; border-radius:4px; font-size:12px; font-weight:bold; white-space:nowrap; margin:0; cursor:pointer;">✏️ Edit Items</button>
+                <button onclick="window.editMgSlipInline('${encodedData}')" style="background:#10B981; color:#fff; border:none; padding:6px 10px; border-radius:4px; font-size:12px; font-weight:bold; white-space:nowrap; margin:0; cursor:pointer;">✏️ Edit Slip</button>
                 <button onclick="window.openMgSlipSplit('${encodedData}')" style="background:#7C3AED; color:#fff; border:none; padding:6px 10px; border-radius:4px; font-size:12px; font-weight:bold; white-space:nowrap; margin:0; cursor:pointer;">✂️ Split Slip</button>
-                <button onclick="document.getElementById('printAreaContainer').classList.add('hidden'); window.editMgGroup('${encodedData}')" style="background:#F59E0B; color:#fff; border:none; padding:6px 10px; border-radius:4px; font-size:12px; font-weight:bold; white-space:nowrap; margin:0; cursor:pointer;">✏️ Edit All</button>
+                <button onclick="document.getElementById('printAreaContainer').classList.add('hidden'); window.editMgGroup('${encodedData}')" style="background:#F59E0B; color:#fff; border:none; padding:6px 10px; border-radius:4px; font-size:12px; font-weight:bold; white-space:nowrap; margin:0; cursor:pointer;">✏️ Edit</button>
                 <button onclick="window.print()" class="success" style="padding:6px 10px; border-radius:4px; font-size:12px; font-weight:bold; white-space:nowrap; margin:0;">🖨️ Print</button>
                 <button onclick="document.getElementById('printAreaContainer').classList.add('hidden')" class="danger" style="padding:6px 10px; border-radius:4px; font-size:12px; font-weight:bold; white-space:nowrap; margin:0;">✕ Close</button>
             </div>
@@ -16271,9 +16374,9 @@ window.editMgSlipInline = function(encodedData) {
                 </tfoot>
             </table>
 
-            <div style="display:flex; gap:10px; margin-top:16px;">
-                <button onclick="window.viewMgSlip('${encodedData}')" class="danger" style="flex:1; padding:12px; border-radius:6px; font-weight:bold; font-size:13px;">Cancel</button>
-                <button onclick="window.saveInlineSlip()" class="success" style="flex:2; padding:12px; border-radius:6px; font-weight:bold; font-size:13px; box-shadow:0 2px 4px rgba(20,108,67,0.3);">💾 Save Changes</button>
+            <div class="inline-slip-editor-actions" style="display:flex; gap:10px; margin-top:12px; padding:10px 0 4px; background:#fff; border-top:1px solid #E2E8F0;">
+                <button type="button" onclick="window.viewMgSlip('${encodedData}')" class="danger" style="flex:1; padding:12px; border-radius:8px; font-weight:bold; font-size:13px;">Cancel</button>
+                <button type="button" onclick="window.saveInlineSlip()" class="success" style="flex:2; padding:12px; border-radius:8px; font-weight:bold; font-size:13px; box-shadow:0 2px 4px rgba(20,108,67,0.3);">💾 Save Changes</button>
             </div>
         </div>
     `;
@@ -16330,7 +16433,7 @@ window.saveInlineSlip = function() {
     
     // Delete old
     let oldEventsDeleted = new Set();
-    slip.idsToDelete.forEach(it => {
+    (slip.idsToDelete || []).forEach(it => {
         if (it.isOldEvent || it.isOld) {
             const oId = it.originalId;
             if (oId && !oldEventsDeleted.has(oId)) {
@@ -16452,6 +16555,16 @@ window.saveInlineSlip = function() {
 
                     // એકસ્ટ્રા ખાલી કોલમ મૂકવી હોય તો...
                     window.addMgRow();
+
+                    // Edit વખતે પણ મૂળ Meeting Grid ના બધા Columns દેખાવા જોઈએ.
+                    // Admin માટે Desktop પર 8 અને Mobile પર 4 Columns જાળવો;
+                    // જો જૂના Slip માં Items વધુ હોય તો તમામ Items માટે જરૂરી Columns રહે.
+                    const minimumEditColumns = window.innerWidth >= 900 ? 8 : 4;
+                    const currentEditColumns = document.querySelectorAll('#tr_date td.drag-wrap').length;
+                    const requiredEditColumns = Math.max(minimumEditColumns, (slip.items || []).length + 1);
+                    for (let i = currentEditColumns; i < requiredEditColumns; i++) {
+                        window.addMgRow();
+                    }
 
                     // આઈડી હિડન સેવ કરો, જેથી સેવ કરતી વખતે જૂનો રેકોર્ડ ડીલીટ થઈ જાય
                     const editInp = document.getElementById('mgEditModeSlipIds');
