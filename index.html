@@ -3,7 +3,7 @@
 <head>
 <script>
     // ⚠️ જ્યારે પણ તમે ગિટહબ પર નવો કોડ નાખો, ત્યારે આ વર્ઝન નંબર બદલી નાખવો (દા.ત. 1.0.1 થી 1.0.2)
-    const APP_VERSION = "1.0.36"; 
+    const APP_VERSION = "1.0.41"; 
     const currentAppVersion = localStorage.getItem('dau_pantry_version');
 
     if (currentAppVersion !== APP_VERSION) {
@@ -2816,6 +2816,42 @@
       }
     </style>
 
+<style id="dau-employee-responsive-fixes">
+.employee-filter-grid { grid-template-columns:minmax(0,1.35fr) minmax(0,.9fr); overflow:visible !important; }
+.employee-filter-grid > * { min-width:0 !important; width:100%; }
+.employee-management-card { width:calc(100% - 8px); min-width:0; padding:12px !important; }
+.employee-management-card .employee-main-row { width:100%; }
+.employee-management-card .employee-full-name,.employee-management-card .employee-meta-line { overflow:hidden !important; text-overflow:ellipsis !important; white-space:nowrap !important; }
+.employee-management-card .employee-actions-row { display:grid !important; grid-template-columns:repeat(5,minmax(0,1fr)); }
+.employee-management-card .employee-actions-row button { min-width:0 !important; padding-left:3px !important; padding-right:3px !important; }
+#employeeListContainer { overflow-x:hidden !important; }
+#empPantryAssign label { min-width:0; white-space:nowrap; }
+#empPantryAssign label span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+@media (max-width:600px) {
+ .employee-filter-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:6px !important; }
+ .employee-filter-grid #employeeSearch { grid-column:auto; }
+ .employee-filter-grid #togglePastEmployees { grid-column:1 / -1; width:100%; }
+ .employee-management-card { padding:11px !important; }
+ .employee-management-card .employee-main-row { align-items:flex-start !important; }
+ .employee-management-card .employee-full-name { white-space:nowrap !important; font-size:14px !important; }
+ .employee-management-card .employee-meta-line { white-space:nowrap !important; font-size:10px !important; }
+ .employee-management-card .employee-actions-row { grid-template-columns:repeat(3,minmax(0,1fr)) !important; }
+ .employee-management-card .employee-actions-row button { font-size:10px !important; }
+ #empPantryAssign { grid-template-columns:1fr !important; }
+}
+@media (min-width:601px) {
+ .employee-filter-grid { grid-template-columns:minmax(160px,1.5fr) repeat(3,minmax(115px,1fr)) minmax(150px,1.2fr) !important; }
+}
+@media (min-width:1000px) {
+ html,body { width:100%; min-height:100%; height:100%; }
+ body { padding:0 !important; background:#EEF2F7 !important; align-items:stretch !important; }
+ #app { width:100% !important; max-width:none !important; height:100vh !important; height:100dvh !important; min-height:100vh !important; min-height:100dvh !important; max-height:none !important; border-radius:0 !important; box-shadow:none !important; }
+ .screen { padding:18px 22px !important; }
+ .employee-filter-grid { grid-template-columns:minmax(180px,1.6fr) repeat(3,minmax(130px,1fr)) minmax(190px,1.2fr) !important; }
+ .employee-management-card { padding:14px 16px !important; }
+ .employee-management-card .employee-actions-row { grid-template-columns:repeat(5,minmax(82px,110px)) !important; justify-content:end; }
+}
+</style>
 </head>
 <body>
 
@@ -4977,7 +5013,7 @@
                         return;
                     }
 
-                    const filtered = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status) && e.assignedPantryId !== pId && (!q || e.name.toLowerCase().includes(q)));
+                    const filtered = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status) && e.onLeave !== true && e.assignedPantryId !== pId && (!q || e.name.toLowerCase().includes(q)));
                     
                     container.innerHTML = filtered.map(emp => `
                         <div class="employee-item" style="padding:8px 12px; margin:4px 0; background:#F8FAFC; border-radius:8px; border:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center;">
@@ -6178,6 +6214,7 @@
                                 <button id="modeNameWise" class="slim-btn-mode active" style="padding:0 8px; flex-shrink:0; width:auto;">Daily</button>
                                 <button id="modeDateWise" class="slim-btn-mode" style="padding:0 8px; flex-shrink:0; width:auto;">Monthly</button>
                                 <button onclick="window.renderCrossServeView()" class="slim-btn-mode" style="padding:0 6px; flex-shrink:0; width:auto; background:#FFFBEB; color:#D97706; border-color:#FDE68A;">🌐 All Emp</button>
+                                <button onclick="window.openCrossServeApprovalPage()" class="slim-btn-mode" style="padding:0 7px; flex-shrink:0; width:auto; background:#EFF6FF; color:#1D4ED8; border-color:#BFDBFE; font-weight:800;">📥 Waiting Approval</button>
                                 <button onclick="window.approveAllCrossRequests()" id="btnApproveAllCross" class="slim-btn-mode" style="display:none; padding:0 6px; flex-shrink:0; width:auto; background:#10B981; color:#fff; border-color:#059669; font-weight:bold;">✅ Approve (<span id="crossReqCountDisplay">0</span>)</button>
                             </div>
 
@@ -6204,6 +6241,9 @@
                         ${bottomMenuHtml}
                     </div>
                 `;
+
+                // Daily Tea Entry માં Cross-Pantry Approval / Waiting for Approval વિભાગ બતાવો.
+                if (typeof window.updateCrossServeAlerts === 'function') window.updateCrossServeAlerts();
 
                 // શરૂઆતમાં તારીખ સેટ કરવા માટે
                 setTimeout(window.updateDailyCustomDisplay, 50);
@@ -6328,6 +6368,7 @@
                     }
 
                     const checkCatAndSearch = (emp) => {
+                        if (emp.onLeave === true) return false;
                         if (cat !== 'All') {
                             const empCat = (emp.category || '').trim().toLowerCase();
                             const filterCat = cat.trim().toLowerCase();
@@ -6535,7 +6576,7 @@
                     let effectivePantryId = currentUser.id;
                     if(typeof getEffectivePantryId === 'function') effectivePantryId = getEffectivePantryId(currentUser.id);
 
-                    let emps = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status));
+                    let emps = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status) && e.onLeave !== true);
                     emps = emps.filter(e => window.isEmployeeAssignedToPantry(e, effectivePantryId));
                     
                     if (categoryVal !== 'All') {
@@ -7870,7 +7911,7 @@
                     const deptFilter = document.getElementById('locDeptFilter').value;
                     const search = document.getElementById('locSearchInput').value.toLowerCase().trim();
 
-                    const activeEmps = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status));
+                    const activeEmps = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status) && e.onLeave !== true);
                     const alreadyHere = activeEmps.filter(e => e.locationNode === locationName)
                         .filter(emp => (!deptFilter || emp.department === deptFilter) && (!search || (emp.name || '').toLowerCase().includes(search)))
                         .sort((a,b) => (a.name || '').localeCompare(b.name || ''));
@@ -8284,8 +8325,8 @@
                           <h4 class="a-title" style="margin:0;">👥 Manage Employees</h4>
                       </div>
                       
-                      <!-- Employee filters: keep every filter in one horizontal row -->
-                      <div style="display:flex;gap:6px;margin:0 0 8px;align-items:center;width:100%;flex-wrap:nowrap;overflow-x:auto;box-sizing:border-box;">
+                      <!-- Responsive employee filters: two compact rows on mobile, one row on desktop -->
+                      <div class="employee-filter-grid" style="display:grid;gap:6px;margin:0 0 8px;align-items:center;width:100%;box-sizing:border-box;">
                           <input id="employeeSearch" class="a-input" placeholder="🔍 Search..." style="flex:1.8 1 150px;min-width:110px;padding:6px;min-height:34px;font-size:11px;margin:0;">
                           <select id="categoryFilter" class="a-input" style="flex:1 1 105px;min-width:85px;padding:6px 4px;min-height:34px;font-size:10px;margin:0;"><option value="">All Cat.</option><option>Faculty</option><option>Staff</option><option>Law</option><option>Outsourced</option></select>
                           <select id="pantryFilter" class="a-input" style="flex:1.2 1 125px;min-width:100px;padding:6px 4px;min-height:34px;font-size:10px;margin:0;">
@@ -8297,7 +8338,7 @@
                               <option value="">All Locations</option>
                               ${[...new Map(venueList.map(v => [String(v.name || '').trim().replace(/\\s+/g,' ').toLowerCase(),v])).values()].map(v => `<option value="${safeStr(v.name)}">${safeStr(v.name)}</option>`).join('')}
                           </select>
-                          <button id="togglePastEmployees" class="a-btn warning" style="flex:0 0 auto;min-width:175px;white-space:nowrap;min-height:34px;font-size:10px;">🗂 Retired / Left / Past Employees</button>
+                          <button id="togglePastEmployees" class="a-btn warning" style="white-space:nowrap;min-height:34px;font-size:10px;">🗂 Retired / Left / On Leave</button>
                       </div>
                       <div class="a-grid-4" style="margin-bottom:8px;">
                           <button id="addEmployeeBtn" class="a-btn primary">➕ Add</button>
@@ -8314,8 +8355,8 @@
                   </div>
                   <div id="employeeListContainer" class="scroll-list-box" style="margin-top:0;"></div>
                   <div id="pastEmployeeSection" class="card hidden" style="margin-top:10px;">
-                    <h4 style="color:#92400E;margin:0 0 8px;">🗂 Retired / Left / Past Employees</h4>
-                    <small style="display:block;color:#64748B;margin-bottom:8px;">Archived employees are hidden from regular entries. Their previous records remain saved.</small>
+                    <h4 style="color:#92400E;margin:0 0 8px;">🗂 Retired / Left / On Leave Employees</h4>
+                    <small style="display:block;color:#64748B;margin-bottom:8px;">Retired, left, and on-leave employees are hidden from regular entries. Their previous records remain saved.</small>
                     <div id="pastEmployeeListContainer" class="scroll-list-box"></div>
                   </div>
                 `;
@@ -9075,7 +9116,7 @@
                         function getPantryBoyForLocation(locName) {
                             if (!locName) return "";
                             const parsed = parseWebLoc(locName);
-                            const empsInLoc = employeeList.filter(e => e.locationNode && e.locationNode.toLowerCase() === parsed.loc.toLowerCase() && e.assignedPantryId && e.assignedPantryId !== 'unassigned' && !['Inactive','Retired','Left','Past'].includes(e.status));
+                            const empsInLoc = employeeList.filter(e => e.locationNode && e.locationNode.toLowerCase() === parsed.loc.toLowerCase() && e.assignedPantryId && e.assignedPantryId !== 'unassigned' && !['Inactive','Retired','Left','Past'].includes(e.status) && e.onLeave !== true);
                             if (empsInLoc.length === 0) return "";
                             
                             const counts = {};
@@ -9103,7 +9144,7 @@
                             if (!currentUser || currentUser.role !== 'admin') return;
 
                             const items = Object.values(data);
-                            const activeEmps = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status));
+                            const activeEmps = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status) && e.onLeave !== true);
                             const cleanName = (n) => (n||'').toLowerCase().replace(/^(dr\.|prof\.|mr\.|ms\.|mrs\.|dr|prof|mr|ms|mrs)\s+/g, '').replace(/[^a-z0-9\s]/g, '').trim();
                             
                             const rootUpdates = {};
@@ -9756,7 +9797,7 @@ if (
             // SMART EMPLOYEE DUPLICATE SCANNER (FIXED FOR INITIALS)
             // ============================================================
             window.checkAndShowEmployeeDuplicates = function() {
-                const activeEmps = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status));
+                const activeEmps = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status) && e.onLeave !== true);
                 const duplicates = [];
                 const seenIds = new Set();
 
@@ -9964,7 +10005,7 @@ if (
                 const getAssignedIds = (emp) => (window.getEmployeePantryIds ? window.getEmployeePantryIds(emp) : [emp.assignedPantryId].filter(Boolean));
                 
                 const filtered = employeeList.filter(e => {
-                    if (['Inactive','Retired','Left','Past'].includes(e.status)) return false;
+                    if (['Inactive','Retired','Left','Past'].includes(e.status) || e.onLeave === true) return false;
                     if (locFilter && (e.locationNode || '') !== locFilter) return false;
                     if (search && !(e.name || '').toLowerCase().includes(search)) return false;
                     if (cat && (e.category || '').trim().toLowerCase() !== cat.toLowerCase()) return false;
@@ -9984,34 +10025,34 @@ if (
                 
                 container.innerHTML = filtered.map(emp => {
                     const pantryName = getAssignedIds(emp).map(id => pantryTeam.find(p => p.id === id)?.name).filter(Boolean).join(', ') || 'Unassigned';
-                    const loc = emp.locationNode || 'No Loc';
-                    const roomStr = emp.roomNo ? ` | 🚪 ${emp.roomNo}` : '';
-                    
-                    // ફોટો બતાવવા માટેનો કોડ (જો ફોટો ના હોય તો 👤 આઇકોન બતાવશે)
+                    const loc = emp.locationNode || 'No Location';
+                    const dept = emp.department || 'No Department';
+                    const roomStr = emp.roomNo ? ` · Room ${emp.roomNo}` : '';
                     const photoHtml = emp.photoUrl && emp.photoUrl.length > 5
-                        ? `<img src="${emp.photoUrl}" style="width:42px; height:42px; border-radius:50%; object-fit:cover; border:2px solid #E2E8F0; flex-shrink:0;">` 
-                        : `<div style="width:42px; height:42px; border-radius:50%; background:#F1F5F9; border:2px solid #E2E8F0; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; color:#94A3B8;">👤</div>`;
-
+                        ? `<img src="${emp.photoUrl}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid #E2E8F0;flex-shrink:0;">`
+                        : `<div style="width:48px;height:48px;border-radius:50%;background:#F1F5F9;border:2px solid #E2E8F0;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;color:#94A3B8;">👤</div>`;
                     return `
-                <div class="employee-item" style="margin:6px 4px; display:flex; align-items:center; gap:10px; overflow:hidden;">
-                  ${photoHtml}
-                  <div style="flex:1; min-width:0;">
-                      <div style="font-weight:700; color:#1E293B; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${safeStr(emp.name)}</div>
-                      <div style="color:#64748B; font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px;">
-                          ${safeStr(emp.category)} | 🧑‍🍳 ${pantryName} | 📍 ${loc}${roomStr}
+                    <div class="employee-item employee-management-card" style="margin:7px 4px;display:flex;flex-direction:column;align-items:stretch;gap:8px;overflow:hidden;">
+                      <div class="employee-main-row" style="display:flex;align-items:center;gap:10px;min-width:0;">
+                        ${photoHtml}
+                        <div style="flex:1;min-width:0;">
+                          <div class="employee-full-name" style="font-weight:800;color:#1E293B;font-size:14px;white-space:nowrap;">${safeStr(emp.name)}</div>
+                          <div class="employee-meta-line" style="color:#64748B;font-size:11px;white-space:nowrap;margin-top:4px;">${safeStr(emp.category || 'No Category')} · ${safeStr(dept)} · 📍 ${safeStr(loc)}${roomStr}</div>
+                          <div class="employee-meta-line" style="color:#475569;font-size:11px;white-space:nowrap;margin-top:3px;">🧑‍🍳 ${safeStr(pantryName)}</div>
+                        </div>
+                        <label class="employee-select-label" title="Select employee" style="display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                          <input type="checkbox" class="employeeCheckbox" data-id="${emp.id}" style="width:20px;height:20px;margin:0;accent-color:#0A56D0;">
+                        </label>
                       </div>
-                  </div>
-                  <div style="display:flex; align-items:center; gap:2px; flex-shrink:0;">
-                    <button class="editEmployeeBtn" data-id="${emp.id}" style="background:transparent; border:none; cursor:pointer; font-size:1.1rem; padding:4px; color:#0A56D0; border-radius:8px;">✏️</button>
-                    <button onclick="window.archiveEmployee('${emp.id}','Retired')" title="Retired" style="background:#FEF3C7;border:none;color:#92400E;border-radius:6px;padding:5px;font-size:10px;min-height:28px;">Retire</button>
-                    <button onclick="window.archiveEmployee('${emp.id}','Left')" title="Left" style="background:#E0E7FF;border:none;color:#3730A3;border-radius:6px;padding:5px;font-size:10px;min-height:28px;">Left</button>
-                    <button onclick="window.pantryDeleteHandler('employee','${emp.id}') " style="background:transparent; border:none; color:#DC3545; cursor:pointer; font-size:1.1rem; padding:4px; border-radius:8px;">🗑</button>
-                    <input type="checkbox" class="employeeCheckbox" data-id="${emp.id}" style="width:18px; height:18px; margin-left:2px; accent-color:#0A56D0;">
-                  </div>
-                </div>
-              `;
+                      <div class="employee-actions-row" style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;width:100%;">
+                        <button class="editEmployeeBtn" data-id="${emp.id}" style="flex:1;background:#EAF2FF;color:#0A56D0;border:1px solid #BFDBFE;border-radius:7px;padding:6px 8px;min-height:32px;font-size:11px;white-space:nowrap;">✏️ Edit</button>
+                        <button onclick="window.toggleEmployeeLeave('${emp.id}')" style="flex:1;background:#F3E8FF;color:#6B21A8;border:1px solid #DDD6FE;border-radius:7px;padding:6px 8px;min-height:32px;font-size:11px;white-space:nowrap;">⏸ On Leave</button>
+                        <button onclick="window.archiveEmployee('${emp.id}','Retired')" title="Retired" style="flex:1;background:#FEF3C7;border:1px solid #FDE68A;color:#92400E;border-radius:7px;padding:6px 8px;font-size:11px;min-height:32px;white-space:nowrap;">Retire</button>
+                        <button onclick="window.archiveEmployee('${emp.id}','Left')" title="Left" style="flex:1;background:#E0E7FF;border:1px solid #C7D2FE;color:#3730A3;border-radius:7px;padding:6px 8px;font-size:11px;min-height:32px;white-space:nowrap;">Left</button>
+                        <button onclick="window.pantryDeleteHandler('employee','${emp.id}')" title="Delete" style="flex:0 0 34px;background:#FFF1F2;border:1px solid #FECDD3;color:#DC3545;border-radius:7px;min-height:32px;padding:4px;">🗑</button>
+                      </div>
+                    </div>`;
                 }).join('');
-// ... (જુનો કોડ: renderEmployeeList નો છેલ્લો ભાગ)
                 document.querySelectorAll('.editEmployeeBtn').forEach(b => b.onclick = (e) => {
                     const emp = employeeList.find(em => em.id === e.currentTarget.dataset.id);
                     if (emp) openEmployeeForm(emp);
@@ -10029,6 +10070,21 @@ if (
                         renderEmployeeList();
                     }).catch(err => appAlert('Error', err.message)));
             };
+            window.toggleEmployeeLeave = function(id) {
+                const emp = employeeList.find(e => e.id === id);
+                if (!emp) return;
+                const next = emp.onLeave !== true;
+                const message = next
+                    ? `Mark ${emp.name} as On Leave? They will be hidden from daily pantry entries.`
+                    : `Restore ${emp.name} from leave and show them in daily pantry entries again?`;
+                appConfirm(next ? 'Mark Employee On Leave' : 'Restore Employee', message, () => {
+                    db.ref('employees/' + id + '/onLeave').set(next).then(() => {
+                        appAlert('Updated', next ? `${emp.name} marked On Leave.` : `${emp.name} restored from leave.`);
+                        renderEmployeeList();
+                        if (document.getElementById('pastEmployeeSection') && !document.getElementById('pastEmployeeSection').classList.contains('hidden')) renderPastEmployeeList();
+                    }).catch(err => appAlert('Error', err.message));
+                });
+            };
             window.restorePastEmployee = function(id) {
                 appConfirm('Restore Employee', 'Move this employee back to the active employee list?', () => {
                     db.ref('employees/' + id + '/status').remove().then(() => {
@@ -10041,12 +10097,12 @@ if (
             function renderPastEmployeeList() {
                 const box = document.getElementById('pastEmployeeListContainer');
                 if (!box) return;
-                const archived = employeeList.filter(e => ['Retired','Left','Past'].includes(e.status));
+                const archived = employeeList.filter(e => ['Retired','Left','Past'].includes(e.status) || e.onLeave === true);
                 box.innerHTML = archived.length ? archived.map(e => `
                   <div class="employee-item" style="display:flex;align-items:center;gap:8px;">
                     <div style="flex:1;min-width:0;"><b>${safeStr(e.name)}</b><div style="font-size:11px;color:#64748B;">${safeStr(e.category || '')} · ${safeStr(e.locationNode || 'No Location')} · ${safeStr(e.status)}</div></div>
-                    <button class="sm outline" onclick="window.restorePastEmployee('${e.id}')">↩ Restore</button>
-                  </div>`).join('') : '<p style="padding:12px;text-align:center;color:#64748B;">No retired or left employees.</p>';
+                    ${e.onLeave === true ? `<button class="sm success" onclick="window.toggleEmployeeLeave('${e.id}')">↩ Return from Leave</button>` : `<button class="sm outline" onclick="window.restorePastEmployee('${e.id}')">↩ Restore</button>`}
+                  </div>`).join('') : '<p style="padding:12px;text-align:center;color:#64748B;">No retired, left, or on-leave employees.</p>';
             }
 
             window.openEmployeeForm = function(existing = null) {
@@ -10106,7 +10162,8 @@ if (
                       </div>
                       
                       <label style="font-size:.85rem;color:#44474E;display:block;font-weight:600;margin-bottom:6px;">Assign Pantry Boy(s):</label>
-                      <div id="empPantryAssign" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:6px;padding:9px;border:1px solid #CBD5E1;border-radius:10px;background:#F8FAFC;max-height:170px;overflow:auto;">
+                      <input type="search" id="empPantrySearch" placeholder="🔍 Search Pantry Boy by name..." autocomplete="off" style="width:100%;margin:0 0 6px;padding:10px 12px;min-height:40px;border:1px solid #CBD5E1;border-radius:9px;">
+                      <div id="empPantryAssign" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:6px;padding:9px;border:1px solid #CBD5E1;border-radius:10px;background:#F8FAFC;max-height:220px;overflow-y:auto;overflow-x:hidden;">
                         ${pantryTeam.filter(p => p.status !== 'Inactive').map(p => `<label style="display:flex;align-items:center;gap:8px;padding:8px;background:#fff;border:1px solid ${existingPantryIds.has(p.id) ? '#0A56D0' : '#E2E8F0'};border-radius:8px;font-size:12px;cursor:pointer;"><input type="checkbox" class="empPantryCheck" value="${p.id}" ${existingPantryIds.has(p.id) ? 'checked' : ''} style="width:18px;height:18px;margin:0;accent-color:#0A56D0;"><span style="flex:1;">${safeStr(p.name)}${p.onLeave ? ' (On Leave)' : ''}</span>${existingPantryIds.has(p.id) ? '<b style="color:#0A56D0;">✓</b>' : ''}</label>`).join('')}
                       </div>
                       <small style="display:block;color:#64748B;margin-bottom:12px;">✓ Tick one or more Pantry Boys. Every selected Pantry Boy can enter service for this employee.</small>
@@ -10132,6 +10189,17 @@ if (
                 document.getElementById('closeEmpPopupBtn').onclick = () => form.remove();
                 document.getElementById('cancelEmployeeBtn').onclick = () => form.remove();
                 
+                const pantrySearchInput = document.getElementById('empPantrySearch');
+                if (pantrySearchInput) {
+                    pantrySearchInput.addEventListener('input', () => {
+                        const q = pantrySearchInput.value.trim().toLowerCase();
+                        document.querySelectorAll('#empPantryAssign label').forEach(label => {
+                            const text = (label.textContent || '').toLowerCase();
+                            label.style.display = !q || text.includes(q) ? 'flex' : 'none';
+                        });
+                    });
+                }
+
                 document.getElementById('saveEmployeeBtn').onclick = () => {
                     const name = document.getElementById('empName').value.trim();
                     const cat = document.getElementById('empCat').value;
@@ -10148,7 +10216,7 @@ if (
                     if (!name || !cat) return appAlert('Error', 'Name and category are required.');
                     
                     const id = existing?.id || 'emp_' + Date.now();
-                    db.ref('employees/' + id).set({ id, name, category: cat, assignedPantryId: pantryId, assignedPantryIds: assignedPantryIds, locationNode: locNode, roomNo: roomNo, department: dept, photoUrl: pUrl, vipMultipleTea: isVip });
+                    db.ref('employees/' + id).set({ id, name, category: cat, assignedPantryId: pantryId, assignedPantryIds: assignedPantryIds, locationNode: locNode, roomNo: roomNo, department: dept, photoUrl: pUrl, vipMultipleTea: isVip, ...(existing && existing.onLeave === true ? { onLeave: true } : {}) });
                     form.remove();
                     appAlert('Success', 'Employee saved successfully!');
                 };
@@ -10177,10 +10245,20 @@ if (
                         </select>
                     </div>
                     
-                    <div style="text-align:left; margin-bottom:20px;">
-                        <label style="font-size:.8rem; font-weight:700; color:#44474E;">Select Department</label>
+                    <div style="text-align:left; margin-bottom:12px;">
+                        <label style="font-size:.8rem; font-weight:700; color:#44474E;">Select Department (optional)</label>
                         <select id="bulkDeptSelect" style="width:100%; padding:12px; border-radius:8px; border:1px solid #CBD5E1; margin-top:4px; background:#F8FAFC;" disabled>
-                            <option value="">-- Choose Dept --</option>
+                            <option value="">-- No Change --</option>
+                            ${['Administration','Admissions','Finance','HR','IT','Library','Law','SoL','Placement','Faculty','Staff','Outsource'].map(d => `<option value="${d}">${d}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div style="text-align:left; margin-bottom:18px;">
+                        <label style="font-size:.8rem;font-weight:700;color:#44474E;">Assign Pantry Boy (optional)</label>
+                        <input id="bulkPantrySearch" type="search" placeholder="🔍 Search Pantry Boy..." style="width:100%;margin:5px 0;padding:9px;border:1px solid #CBD5E1;border-radius:8px;">
+                        <select id="bulkPantrySelect" style="width:100%;padding:10px;border:1px solid #CBD5E1;border-radius:8px;">
+                          <option value="">-- No Change --</option>
+                          <option value="__clear__">Clear Pantry Assignment</option>
+                          ${pantryTeam.filter(p => p.status !== 'Inactive').map(p => `<option value="${p.id}">${safeStr(p.name)}</option>`).join('')}
                         </select>
                     </div>
 
@@ -10192,13 +10270,22 @@ if (
                 `;
                 document.body.appendChild(modal);
 
+                document.getElementById('bulkPantrySearch').addEventListener('input', function() {
+                    const q = this.value.trim().toLowerCase();
+                    const select = document.getElementById('bulkPantrySelect');
+                    Array.from(select.options).forEach((opt, i) => {
+                        if (i < 2) { opt.hidden = false; return; }
+                        opt.hidden = !!q && !opt.text.toLowerCase().includes(q);
+                    });
+                });
+
                 document.getElementById('bulkLocSelect').onchange = function() {
                     const vId = this.value;
                     const deptSelect = document.getElementById('bulkDeptSelect');
                     if(!vId) {
-                        deptSelect.innerHTML = '<option value="">-- Choose Dept --</option>';
-                        deptSelect.disabled = true;
-                        deptSelect.style.background = '#F8FAFC';
+                        deptSelect.innerHTML = '<option value="">-- No Change --</option>' + ['Administration','Admissions','Finance','HR','IT','Library','Law','SoL','Placement','Faculty','Staff','Outsource'].map(d => `<option value="${d}">${d}</option>`).join('');
+                        deptSelect.disabled = false;
+                        deptSelect.style.background = '#FFFFFF';
                         return;
                     }
                     const venue = venueList.find(v => v.id === vId);
@@ -10209,33 +10296,37 @@ if (
                         deptSelect.disabled = false;
                         deptSelect.style.background = '#FFFFFF';
                     } else {
-                        deptSelect.innerHTML = '<option value="">No departments available</option>';
-                        deptSelect.disabled = true;
-                        deptSelect.style.background = '#F8FAFC';
+                        deptSelect.innerHTML = '<option value="">-- No Change --</option>' + ['Administration','Admissions','Finance','HR','IT','Library','Law','SoL','Placement','Faculty','Staff','Outsource'].map(d => `<option value="${d}">${d}</option>`).join('');
+                        deptSelect.disabled = false;
+                        deptSelect.style.background = '#FFFFFF';
                     }
                 };
 
                 document.getElementById('saveBulkLocBtn').onclick = function() {
                     const locId = document.getElementById('bulkLocSelect').value;
                     const deptName = document.getElementById('bulkDeptSelect').value;
-                    
-                    if(!locId) return appAlert('Error', 'Please select a Location.');
-                    const locName = venueList.find(v => v.id === locId).name;
-
+                    const pantryChoice = document.getElementById('bulkPantrySelect').value;
+                    if (!locId && !deptName && !pantryChoice) return appAlert('No Changes', 'Select at least one field to update.');
+                    const venue = locId ? venueList.find(v => v.id === locId) : null;
+                    if (locId && !venue) return appAlert('Error', 'Selected location was not found.');
                     const updates = {};
                     checks.forEach(cb => {
                         const empId = cb.dataset.id;
-                        updates[empId + '/locationNode'] = locName;
-                        if(deptName) {
-                            updates[empId + '/department'] = deptName;
+                        if (locId) updates[empId + '/locationNode'] = venue.name;
+                        if (deptName) updates[empId + '/department'] = deptName;
+                        if (pantryChoice === '__clear__') {
+                            updates[empId + '/assignedPantryId'] = '';
+                            updates[empId + '/assignedPantryIds'] = {};
+                        } else if (pantryChoice) {
+                            updates[empId + '/assignedPantryId'] = pantryChoice;
+                            updates[empId + '/assignedPantryIds'] = { [pantryChoice]: true };
                         }
                     });
-
                     db.ref('employees').update(updates).then(() => {
-                        appAlert('Success', 'Location updated for ' + checks.length + ' employees!');
+                        appAlert('Success', 'Selected details updated for ' + checks.length + ' employees!');
                         document.getElementById('bulkAssignLocModal').remove();
-                        if(typeof renderEmployeeList === 'function') renderEmployeeList();
-                    });
+                        if (typeof renderEmployeeList === 'function') renderEmployeeList();
+                    }).catch(err => appAlert('Error', err.message));
                 };
             };
             
@@ -10310,7 +10401,7 @@ if (
                     `<p style="text-align:center; padding:20px; color:#74777F; font-size:.9rem;">No pantry staff.</p>`; return; }
                 c.innerHTML = activePantry.map(p => {
                     // એમ્પ્લોયીનું લિસ્ટ એરે (Array) તરીકે લીધું છે 
-                    const assignedEmps = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status) && window.isEmployeeAssignedToPantry(e, p.id)).map(e => e.name);
+                    const assignedEmps = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status) && e.onLeave !== true && window.isEmployeeAssignedToPantry(e, p.id)).map(e => e.name);
                     const assignedCount = assignedEmps.length;
 
                     const leaveBadge = p.onLeave ? ' <div style="color:#DC3545; font-weight:700; font-size:0.75rem; margin-top:2px;">(On Leave)</div>' : '';
@@ -10413,7 +10504,7 @@ if (
 
                 pantryTeam.forEach(pb => {
                     if (pb.status === 'Inactive') return;
-                    const myEmps = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status) && window.isEmployeeAssignedToPantry(e, pb.id));
+                    const myEmps = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status) && e.onLeave !== true && window.isEmployeeAssignedToPantry(e, pb.id));
                     
                     if(myEmps.length === 0) {
                         tbodyHtml += `<tr>
@@ -11006,7 +11097,7 @@ window.openAdminLiveGrid = function(month, supplySource, pantryId, categoryVal, 
     const [yy, mm] = month.split('-');
     const daysInMonth = getDaysInMonth(yy, mm);
     
-    let emps = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status));
+    let emps = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status) && e.onLeave !== true);
     if (pantryId !== 'All') {
         emps = emps.filter(e => e.assignedPantryId === pantryId || (e.tempPantryIds && e.tempPantryIds[pantryId] === true));
     }
@@ -13387,6 +13478,10 @@ window.adminExportMonthlyGrid = function(format, overrideMonth, overrideSupply, 
                 crossRequestsData = parseSnap(snap); 
                 if(activePantryTab === null && typeof renderPantryDashboard === 'function') {
                     renderPantryDashboard(); // Refresh dashboard to show alerts
+                } else if (activePantryTab === 'cross_serve' && typeof window.openCrossServeLiveGrid === 'function') {
+                    window.openCrossServeLiveGrid(); // Keep All Emp pending/approved cells live.
+                } else if (activePantryTab === 'cross_approval' && typeof window.updateCrossServeAlerts === 'function') {
+                    window.updateCrossServeAlerts(); // Refresh standalone approval page live.
                 }
             });
             // ---------------------------------------
@@ -16707,6 +16802,11 @@ window.openDuplicateReviewModal = function() {
                 const container = document.getElementById('crossServeAlertsContainer');
                 if(!container) return;
                 if (!currentUser || currentUser.role !== 'pantry') return;
+                // Approval requests belong only on their own page, never above Daily Tea Entry.
+                if (activePantryTab !== 'cross_approval') {
+                    container.innerHTML = '';
+                    return;
+                }
 
                 let html = '';
 
@@ -16743,7 +16843,8 @@ window.openDuplicateReviewModal = function() {
                             </div>
 
                             <div style="display:flex; gap:6px; margin-top:4px;">
-                                <button onclick="window.approveCrossRequest('${req.id}')" style="flex:1; background:#10B981; color:#fff; border:none; padding:6px 8px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:12px;">✅ Approve</button>
+                                <button onclick="window.editSentCrossRequest('${req.id}', '${String(req.drink || '').replace(/'/g, "\\'")}')" style="flex:1;background:#EFF6FF;color:#0A56D0;border:1px solid #BFDBFE;padding:6px 8px;border-radius:6px;font-weight:bold;cursor:pointer;font-size:12px;">✏️ Edit</button>
+                                <button onclick="window.approveCrossRequest('${req.id}')" style="flex:1; background:#10B981; color:#fff; border:none; padding:6px 8px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:12px;">✅ Accept</button>
                                 <button onclick="window.rejectCrossRequest('${req.id}')" style="flex:1; background:#EF4444; color:#fff; border:none; padding:6px 8px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:12px;">❌ Deny</button>
                             </div>
                         </div>`;
@@ -16789,6 +16890,11 @@ window.openDuplicateReviewModal = function() {
                     html += `</div>`;
                 }
 
+                if (!html) {
+                    html = `<div style="background:#F8FAFC;border:1px dashed #CBD5E1;border-radius:12px;padding:28px 14px;text-align:center;color:#64748B;font-size:13px;">
+                        <div style="font-size:28px;margin-bottom:8px;">📭</div><b>No approval requests</b><div style="font-size:11px;margin-top:5px;">New requests will appear here automatically.</div>
+                    </div>`;
+                }
                 container.innerHTML = html;
             };
             window.editSentCrossRequest = function(reqId, currentDrink) {
@@ -16866,13 +16972,12 @@ window.openDuplicateReviewModal = function() {
                   </div>
                 </div>
                 
-                <div id="crossServeAlertsContainer"></div>
-
                 <div id="livePantryBroadcastCard" class="card hidden" style="background:#FFFBEB; border:1px solid #D97706; padding:14px; margin-bottom:12px;">
                   <h4 style="color:#D97706; margin:0 0 8px 0; font-size:1rem; display:flex; align-items:center; gap:6px;">📢 Upcoming Meeting Notification</h4><div id="pantryDashboardUpcomingStream"></div>
                 </div>
                 <div id="pantryMenuArea" class="dash-menu-modern">
                   <button class="dash-btn" data-tab="serve" style="color:#D97706; border-color:#FDE68A; background:#FFFBEB;"><span class="icon">☕</span><span><span class="label">Daily / Monthly Entry</span></span></button>
+                  <button class="dash-btn" data-tab="cross_approval" style="color:#1D4ED8; border-color:#BFDBFE; background:#EFF6FF;"><span class="icon">📥</span><span><span class="label">Waiting for Approval</span></span></button>
                   <button class="dash-btn" data-tab="view_plain_events" style="color:#10B981; border-color:#A7F3D0; background:#ECFDF5;"><span class="icon">📢</span><span><span class="label">Upcoming Events</span></span></button>
                   <button class="dash-btn" data-tab="meeting_guests" style="color:#0284C7; border-color:#BAE6FD; background:#F0F9FF;"><span class="icon">🤝</span><span><span class="label">Meetings & Guests</span></span></button>
                   <button class="dash-btn" data-tab="logs" style="color:#7C3AED; border-color:#C4B5FD; background:#F5F3FF;"><span class="icon">📋</span><span><span class="label">My Records</span></span></button>
@@ -16947,6 +17052,7 @@ window.openDuplicateReviewModal = function() {
                         activePantryTab = tab;
                         switch (tab) {
                             case 'cross_serve': if(typeof window.renderCrossServeView === 'function') window.renderCrossServeView(); break;
+                            case 'cross_approval': if(typeof window.openCrossServeApprovalPage === 'function') window.openCrossServeApprovalPage(); break;
                             case 'serve': if(typeof renderServeEntry === 'function') renderServeEntry(); break;
                             case 'meeting': if(typeof window.renderMeetingRefreshmentSection === 'function') window.renderMeetingRefreshmentSection('pantryContent', 'pntMeet_'); break;
                             case 'view_plain_events': if(typeof window.renderPantryPlainEvents === 'function') window.renderPantryPlainEvents(); break;
@@ -16958,6 +17064,12 @@ window.openDuplicateReviewModal = function() {
                         }
                     });
                 });
+
+                // Pantry Boy login થયા પછી સીધું Daily Tea Entry પ્રથમ પેજ તરીકે ખોલો.
+                setTimeout(() => {
+                    const dailyEntryBtn = document.querySelector('#pantryMenuArea .dash-btn[data-tab="serve"]');
+                    if (dailyEntryBtn && currentUser && currentUser.role === 'pantry') dailyEntryBtn.click();
+                }, 80);
 
                                 // 🚨 નવો કોડ: લોગીન થાય એટલે તરત જ બ્રોડકાસ્ટ પોપઅપ બતાવો
                 setTimeout(() => {
@@ -17098,12 +17210,44 @@ window.openDuplicateReviewModal = function() {
             };
 
             // ============================================================
+            // ============================================================
+            //  STANDALONE WAITING FOR APPROVAL PAGE
+            // ============================================================
+            window.openCrossServeApprovalPage = function() {
+                activePantryTab = 'cross_approval';
+                const menu = document.getElementById('pantryMenuArea');
+                const contentArea = document.getElementById('pantryContentArea');
+                const liveAlert = document.getElementById('livePantryBroadcastCard');
+                const container = document.getElementById('pantryContent');
+                if (!container) return;
+                if (menu) menu.classList.add('hidden');
+                if (contentArea) contentArea.classList.remove('hidden');
+                if (liveAlert) liveAlert.classList.add('hidden');
+                const backBtn = document.getElementById('pantryContentBackBtn');
+                if (backBtn) backBtn.style.display = 'inline-flex';
+                container.innerHTML = `
+                    <div style="display:flex;flex-direction:column;min-height:100%;gap:8px;padding:4px 2px 12px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:10px 12px;">
+                            <div><div style="font-size:15px;font-weight:800;color:#1D4ED8;">📥 Waiting for Approval</div><div style="font-size:11px;color:#475569;margin-top:3px;">Review requests sent to you and track requests you have sent</div></div>
+                            <button type="button" onclick="window.updateCrossServeAlerts()" style="min-height:30px;padding:5px 9px;border-radius:7px;font-size:11px;background:#1D4ED8;white-space:nowrap;">↻ Refresh</button>
+                        </div>
+                        <div id="crossServeAlertsContainer" style="width:100%;"></div>
+                    </div>`;
+                window.updateCrossServeAlerts();
+            };
+
+            // ============================================================
             //  SMART CROSS-DEPT SERVE & NOTIFY LOGIC (INLINE ANDROID UI)
             // ============================================================
             window.renderCrossServeView = function() {
                 activePantryTab = 'cross_serve';
                 const container = document.getElementById('pantryContent');
                 if(!container) return;
+                if (window.crossServeDraftOwner !== currentUser.id) {
+                    window.crossServeDraftOwner = currentUser.id;
+                    window.crossServeDrafts = {};
+                }
+                window.crossServeDrafts = window.crossServeDrafts || {};
 
                 const todayYMD = new Date().toISOString().split('T')[0];
                 const currentMonthYMD = todayYMD.slice(0, 7);
@@ -17139,18 +17283,47 @@ window.openDuplicateReviewModal = function() {
                         .l-cell-wrap:has(.active-cell) .fill-handle { display:block; }
                     </style>
                     <div style="display:flex; flex-direction:column; flex:1; height:100%; position:relative; padding-bottom:38px; overflow:hidden;">
-                        <div style="display: flex; gap: 4px; margin-bottom: 6px; width: 100%; flex-shrink: 0; background: #FEF3C7; padding: 4px; border-radius: 6px; border: 1px solid #FDE68A; align-items:center;">
-                            <input type="month" id="csMonthlyDate" value="${currentMonthYMD}" style="flex:1; height: 28px; font-size: 11px; padding: 0 4px; border-radius: 4px; border: 1px solid #FCD34D; outline: none; background: #fff; color: #D97706; font-weight: bold; text-align:center;" onchange="window.openCrossServeLiveGrid()">
-                            <select id="csCatFilter" style="flex:1; height: 28px; font-size: 10px; padding: 0 4px; border-radius: 4px; border: 1px solid #FCD34D; outline: none; background: #fff; color: #D97706; font-weight: bold; text-align-last:center;" onchange="window.openCrossServeLiveGrid()">
-                                <option value="All">All Categories</option>
-                                <option value="Faculty">Faculty</option>
-                                <option value="Staff">Staff</option>
-                                <option value="Law">Law</option>
-                                <option value="Outsourced">Outsourced</option>
+                        <style>
+                          #csFilterBar{display:flex;flex-wrap:wrap;gap:4px;align-items:center;width:100%;flex:0 0 auto;background:#FEF3C7;padding:4px;border:1px solid #FDE68A;border-radius:6px;margin-bottom:6px;box-sizing:border-box}
+                          #csFilterBar input,#csFilterBar select{flex:1 1 135px;min-width:110px;width:auto;height:30px;min-height:30px;margin:0;padding:4px 7px;font-size:11px;border:1px solid #FCD34D;border-radius:4px;background:#fff;color:#7C4A03;box-sizing:border-box}
+                          #csFilterBar #csSearchEmp{flex:1.5 1 170px}
+                          #csSendDraftBtn{flex:0 0 auto;min-height:30px;height:30px;padding:4px 10px;border-radius:5px;font-size:11px;white-space:nowrap;background:#047857;color:#fff;border:1px solid #047857}
+                          #csMonthlyGridWrapper{flex:1 1 0;display:flex;flex-direction:column;overflow:hidden;min-height:0;min-width:0;border:1px solid #D97706;border-radius:4px}
+                          /* All Emp grid: one reliable vertical + horizontal scroller for both Morn and Aft columns */
+                          #csGridScroller{display:block!important;flex:1 1 0!important;width:100%!important;max-width:100%;height:calc(100dvh - 250px)!important;min-height:260px;max-height:calc(100dvh - 210px)!important;overflow:auto!important;overflow-x:auto!important;overflow-y:auto!important;overscroll-behavior:contain;touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch;position:relative;background:#fff;scrollbar-gutter:stable both-edges}
+                          #csGridScroller .p-l-tbl{width:max-content!important;min-width:100%;table-layout:auto;border-collapse:separate;border-spacing:0}
+                          #csGridScroller .p-l-th-emp{min-width:120px;width:120px;max-width:170px;white-space:normal;overflow-wrap:anywhere;line-height:1.2;padding:5px 4px;height:auto;min-height:40px;position:sticky;top:0;z-index:14}
+                          #csGridScroller .p-l-th-sess{width:54px;min-width:54px;height:25px;top:40px;font-size:10px;position:sticky;z-index:13}
+                          #csGridScroller .p-l-th-sess:not(.aft){background:#EFF6FF;color:#1D4ED8;border-bottom:2px solid #60A5FA;border-right:1px solid #BFDBFE}
+                          #csGridScroller .p-l-th-sess.aft{background:#ECFDF5;color:#047857;border-bottom:2px solid #34D399;border-right:1px solid #A7F3D0}
+                          #csGridScroller .p-l-th-date{min-width:48px;left:0;top:0;z-index:24}
+                          #csGridScroller .p-l-td-morn{width:54px;min-width:54px;background:#F8FBFF;border-right:1px solid #DBEAFE}
+                          #csGridScroller .p-l-td-aft{width:54px;min-width:54px;background:#F7FDF9;border-right:1px solid #D1FAE5}
+                          #csGridScroller .p-l-td-date{left:0;z-index:8}
+                          #csGridScroller .l-cell{min-height:28px;height:28px;font-size:10px}
+                          #csGridScroller{scrollbar-width:auto;scrollbar-color:#94A3B8 #F1F5F9}
+                          #csGridScroller::-webkit-scrollbar{width:10px;height:10px}
+                          #csGridScroller::-webkit-scrollbar-thumb{background:#94A3B8;border-radius:8px;border:2px solid #fff}
+                          #csGridScroller::-webkit-scrollbar-track{background:#F1F5F9}
+                          @media(max-width:700px){#csFilterBar input,#csFilterBar select{flex:1 1 28%;min-width:92px;font-size:10px}#csFilterBar #csSearchEmp{flex:1 1 38%;min-width:115px}#csSendDraftBtn{flex:1 1 100%;width:100%}#csGridScroller{height:calc(100dvh - 245px)!important;max-height:calc(100dvh - 205px)!important;min-height:220px}#csGridScroller .p-l-th-emp{min-width:105px;width:105px;font-size:9px}#csGridScroller .p-l-th-sess,#csGridScroller .p-l-td-morn,#csGridScroller .p-l-td-aft{min-width:48px;width:48px}}
+                        </style>
+                        <div id="csFilterBar">
+                            <input type="month" id="csMonthlyDate" value="${currentMonthYMD}" aria-label="Month" onchange="window.openCrossServeLiveGrid()">
+                            <select id="csCatFilter" aria-label="Category" onchange="window.openCrossServeLiveGrid()">
+                                <option value="All">All Categories</option><option value="Faculty">Faculty</option><option value="Staff">Staff</option><option value="Law">Law</option><option value="Outsourced">Outsourced</option>
                             </select>
-                            <input type="text" id="csSearchEmp" placeholder="🔍 Search..." style="flex:1; height: 28px; font-size: 10px; padding: 0 4px; border-radius: 4px; border: 1px solid #FCD34D; outline: none; background: #fff;" oninput="window.openCrossServeLiveGrid()">
+                            <select id="csPantryFilter" aria-label="Pantry Boy" onchange="window.openCrossServeLiveGrid()">
+                                <option value="All">All Pantry Boys</option>
+                                ${pantryTeam.filter(p => p.status !== 'Inactive').map(p => `<option value="${p.id}">${safeStr(p.name)}</option>`).join('')}
+                            </select>
+                            <select id="csLocationFilter" aria-label="Location" onchange="window.openCrossServeLiveGrid()">
+                                <option value="All">All Locations</option>
+                                ${[...new Map((venueList || []).map(v => [String(v.name || '').trim().toLowerCase(),v])).values()].map(v => `<option value="${safeStr(v.name)}">${safeStr(v.name)}</option>`).join('')}
+                            </select>
+                            <input type="text" id="csSearchEmp" placeholder="🔍 Search employee..." aria-label="Search employee" oninput="window.openCrossServeLiveGrid()">
+                            <button type="button" id="csSendDraftBtn" onclick="window.sendCrossServeDrafts()">📤 Send (0)</button>
                         </div>
-                        <div id="csMonthlyGridWrapper" style="flex:1; display:flex; flex-direction:column; overflow:hidden; min-height:0; border:1px solid #D97706; border-radius:4px;"></div>
+                        <div id="csMonthlyGridWrapper"></div>
                         ${bottomMenuHtml}
                     </div>
                 `;
@@ -17168,9 +17341,27 @@ window.openDuplicateReviewModal = function() {
                 const daysInMonth = getDaysInMonth(yy, mm);
                 
                 const categoryVal = document.getElementById('csCatFilter')?.value || 'All';
+                const pantryVal = document.getElementById('csPantryFilter')?.value || 'All';
+                const locationVal = document.getElementById('csLocationFilter')?.value || 'All';
                 const searchQ = document.getElementById('csSearchEmp')?.value.toLowerCase().trim() || '';
-                
-                let emps = employeeList.filter(e => !['Inactive','Retired','Left','Past'].includes(e.status) && e.assignedPantryId && e.assignedPantryId !== currentUser.id && e.assignedPantryId !== 'unassigned');
+                const getEmpPantryIds = (emp) => window.getEmployeePantryIds
+                    ? window.getEmployeePantryIds(emp)
+                    : [emp.assignedPantryId].filter(Boolean).map(String);
+                const getPrimaryPantryId = (emp, ids) => {
+                    // If a Pantry Boy filter is selected, route the entry to that selected assignee.
+                    if (pantryVal !== 'All' && ids.includes(String(pantryVal))) return String(pantryVal);
+                    if (emp.assignedPantryId && ids.includes(String(emp.assignedPantryId))) return String(emp.assignedPantryId);
+                    return ids[0] || '';
+                };
+                let emps = employeeList.filter(e => {
+                    if (['Inactive','Retired','Left','Past'].includes(e.status) || e.onLeave === true) return false;
+                    const assignedIds = getEmpPantryIds(e);
+                    // All Emp is for employees served by another Pantry Boy, not the logged-in Pantry Boy's own list.
+                    if (!assignedIds.length || assignedIds.every(id => id === String(currentUser.id))) return false;
+                    if (pantryVal !== 'All' && !assignedIds.includes(String(pantryVal))) return false;
+                    if (locationVal !== 'All' && String(e.locationNode || '').trim() !== String(locationVal).trim()) return false;
+                    return true;
+                });
                 
                 if (categoryVal !== 'All') {
                     const catMatch = categoryVal.trim().toLowerCase();
@@ -17183,7 +17374,9 @@ window.openDuplicateReviewModal = function() {
                 if (searchQ) emps = emps.filter(e => (e.name || '').toLowerCase().includes(searchQ));
 
                 if(!emps.length) {
-                    wrapper.innerHTML = `<div style="flex:1; display:flex; justify-content:center; align-items:center; color:#D97706; font-weight:bold; font-size:11px; background:#FFFBEB;">No other employees found.</div>`;
+                    wrapper.innerHTML = `<div style="flex:1;display:flex;justify-content:center;align-items:center;text-align:center;padding:20px;color:#92400E;font-weight:700;font-size:12px;background:#FFFBEB;">No employees found for the selected Pantry Boy / Location / Category. Check that employees are active and have a Pantry Boy or Location assignment.</div>`;
+                    const sendBtn = document.getElementById('csSendDraftBtn');
+                    if (sendBtn) sendBtn.textContent = `📤 Send (${Object.keys(window.crossServeDrafts || {}).length})`;
                     return;
                 }
 
@@ -17198,15 +17391,24 @@ window.openDuplicateReviewModal = function() {
                 };
 
                 const buildCell = (empId, dateDMY, session, currentDrink, reqId, status, toPantryId) => {
-                    return `<div class="l-cell-wrap"><div class="l-cell" tabindex="0" data-emp="${empId}" data-date="${dateDMY}" data-session="${session}" data-logid="${reqId || ''}" data-iscross="true" data-topantry="${toPantryId}" data-val="${currentDrink || ''}" data-status="${status || ''}">${formatDrinkHTML(currentDrink, status)}</div><div class="fill-handle" title="Drag to copy"></div></div>`;
+                    const draftKey = [empId, dateDMY, session].join('|');
+                    const draft = window.crossServeDrafts[draftKey];
+                    const displayDrink = draft ? draft.drink : currentDrink;
+                    const displayStatus = draft ? 'Draft' : status;
+                    const draftStyle = draft ? 'background:#E0F2FE;color:#0369A1;' : '';
+                    return `<div class="l-cell-wrap"><div class="l-cell" tabindex="0" data-emp="${empId}" data-date="${dateDMY}" data-session="${session}" data-logid="${reqId || ''}" data-iscross="true" data-topantry="${toPantryId}" data-val="${displayDrink || ''}" data-status="${displayStatus || ''}" style="${draftStyle}" title="${draft ? 'Not sent yet' : (status || 'Click and choose drink')}">${draft ? `<span style="font-size:9px;font-weight:800;color:#0369A1;">✎ ${safeStr(displayDrink)}</span>` : formatDrinkHTML(displayDrink, displayStatus)}</div><div class="fill-handle" title="Drag to copy"></div></div>`;
                 };
 
                 let htmlArr = [];
                 htmlArr.push(`<div class="p-l-wrap pantry-scroller" id="csGridScroller"><table class="p-l-tbl">`);
                 htmlArr.push(`<thead><tr><th rowspan="2" class="p-l-th-date">Date</th>`);
                 emps.forEach(emp => {
-                    const pbName = pantryTeam.find(p => p.id === emp.assignedPantryId)?.name || 'Unknown';
-                    htmlArr.push(`<th colspan="2" class="p-l-th-emp">${safeStr(emp.name)}<br><span style="font-size:7px; color:#D97706;">(To: ${pbName})</span></th>`);
+                    const assignedIds = getEmpPantryIds(emp);
+                    const primaryPantryId = getPrimaryPantryId(emp, assignedIds);
+                    const pbNames = assignedIds.map(id => pantryTeam.find(p => String(p.id) === String(id))?.name).filter(Boolean);
+                    const pbName = pbNames.join(', ') || 'Unassigned';
+                    emp.__crossServeToPantryId = primaryPantryId;
+                    htmlArr.push(`<th colspan="2" class="p-l-th-emp"><span style="display:block;font-weight:800;overflow-wrap:anywhere;">${safeStr(emp.name || 'Unnamed Employee')}</span><span style="display:block;font-size:8px;color:#D97706;margin-top:2px;">To: ${safeStr(pbName)}</span></th>`);
                 });
                 htmlArr.push(`</tr><tr>`);
                 emps.forEach(() => { htmlArr.push(`<th class="p-l-th-sess">Morn</th><th class="p-l-th-sess aft">Aft</th>`); });
@@ -17229,14 +17431,18 @@ window.openDuplicateReviewModal = function() {
                     emps.forEach(emp => {
                         const mReq = fastReqMap[emp.id + '_' + dmy + '_Morning'];
                         const aReq = fastReqMap[emp.id + '_' + dmy + '_Afternoon'];
-                        htmlArr.push(`<td class="p-l-td-morn">${buildCell(emp.id, dmy, 'Morning', mReq ? mReq.drink : '', mReq?.id, mReq?.status, emp.assignedPantryId)}</td>`);
-                        htmlArr.push(`<td class="p-l-td-aft">${buildCell(emp.id, dmy, 'Afternoon', aReq ? aReq.drink : '', aReq?.id, aReq?.status, emp.assignedPantryId)}</td>`);
+                        const assignedIds = getEmpPantryIds(emp);
+                        const targetPantryId = getPrimaryPantryId(emp, assignedIds);
+                        htmlArr.push(`<td class="p-l-td-morn">${buildCell(emp.id, dmy, 'Morning', mReq ? mReq.drink : '', mReq?.id, mReq?.status, targetPantryId)}</td>`);
+                        htmlArr.push(`<td class="p-l-td-aft">${buildCell(emp.id, dmy, 'Afternoon', aReq ? aReq.drink : '', aReq?.id, aReq?.status, targetPantryId)}</td>`);
                     });
                     htmlArr.push(`</tr>`);
                 }
                 htmlArr.push(`</tbody></table></div>`);
                 wrapper.innerHTML = htmlArr.join('');
-                setTimeout(() => { window.initPantryExcelEvents('csGridScroller'); }, 100);
+                const sendBtn = document.getElementById('csSendDraftBtn');
+                if (sendBtn) sendBtn.textContent = `📤 Send (${Object.keys(window.crossServeDrafts || {}).length})`;
+                setTimeout(() => { window.initPantryExcelEvents('csGridScroller'); }, 80);
             };
 
             // 🚨 મેઈન સેવ ફંક્શનમાં ક્રોસ સર્વ લોજીક 
@@ -17276,26 +17482,27 @@ window.openDuplicateReviewModal = function() {
                             });
                         }
                     } else {
+                        const draftKey = [empId, dateDMY, session].join('|');
                         if (val && val !== '-') {
-                            const reqId = 'creq_' + Date.now() + Math.random().toString(36).substring(2, 7);
-                            db.ref('crossPantryRequests/' + reqId).set({
-                                id: reqId, fromPantryId: currentUser.id, fromPantryName: currentUser.name,
-                                toPantryId: toPantryId, empId: empId, empName: empName,
-                                drink: val, session: session, date: dateDMY, status: 'Pending', timestamp: Date.now()
-                            }).then(() => {
-                                cellEl.dataset.logid = reqId;
-                                cellEl.dataset.status = 'Pending';
-                                cellEl.style.backgroundColor = '#DCFCE7';
-                                setTimeout(() => cellEl.style.backgroundColor = 'transparent', 1000);
-                                
-                                let label = val;
-                                let v = val.toLowerCase();
-                                if(v === 'tea') label = 'Tea'; else if(v === 'coffee') label = 'Coffee'; else if(v === 'green tea') label = 'Green Tea'; else if(v === 'lemon tea') label = 'Lemon Tea'; else if(v === 'black tea') label = 'Black Tea'; else if(v === 'black coffee') label = 'Black Coffee';
-                                cellEl.innerHTML = `<span style="font-size:9.5px; font-weight:800; color:#D97706; opacity:0.6;">⏳ ${label}</span>`;
-                            });
+                            if (!toPantryId) return appAlert('Cannot Send', `No Pantry Boy is assigned to ${empName}. Please ask Admin to assign a Pantry Boy first.`);
+                            window.crossServeDrafts = window.crossServeDrafts || {};
+                            window.crossServeDrafts[draftKey] = {
+                                empId, empName, toPantryId, drink: val, session, date: dateDMY,
+                                fromPantryId: currentUser.id, fromPantryName: currentUser.name
+                            };
+                            cellEl.dataset.val = val;
+                            cellEl.dataset.status = 'Draft';
+                            cellEl.style.backgroundColor = '#DBEAFE';
+                            cellEl.innerHTML = `<span style="font-size:9.5px;font-weight:800;color:#0369A1;">✎ ${safeStr(val)}</span>`;
                         } else {
+                            delete (window.crossServeDrafts || {})[draftKey];
+                            cellEl.dataset.val = '';
+                            cellEl.dataset.status = '';
                             cellEl.style.backgroundColor = 'transparent';
+                            cellEl.innerHTML = '-';
                         }
+                        const sendBtn = document.getElementById('csSendDraftBtn');
+                        if (sendBtn) sendBtn.textContent = `📤 Send (${Object.keys(window.crossServeDrafts || {}).length})`;
                     }
                     return;
                 }
@@ -17424,6 +17631,43 @@ window.openDuplicateReviewModal = function() {
             setInterval(() => {
                 if (typeof window.checkPendingCrossRequestsUI === 'function') window.checkPendingCrossRequestsUI();
             }, 2000);
+
+            // Send all staged All Emp entries together as one batch update.
+            window.sendCrossServeDrafts = function() {
+                const drafts = Object.values(window.crossServeDrafts || {}).filter(d => d && d.drink && d.toPantryId);
+                if (!drafts.length) return appAlert('No Entries', 'Please enter Tea / Coffee in at least one employee cell before sending.');
+                const conflicts = [];
+                drafts.forEach(d => {
+                    const alreadyLogged = logsData.find(l => l.employeeId === d.empId && l.date === d.date && l.session === d.session);
+                    const alreadyPending = crossRequestsData.find(r => r.empId === d.empId && r.date === d.date && r.session === d.session && r.status === 'Pending');
+                    if (alreadyLogged) conflicts.push(`${d.empName} (${d.date} ${d.session}) is already served by ${alreadyLogged.pantryName || 'another Pantry Boy'}`);
+                    else if (alreadyPending) conflicts.push(`${d.empName} (${d.date} ${d.session}) already has a pending request`);
+                });
+                if (conflicts.length) return appAlert('Please Review Entries', conflicts.join('<br>'));
+                const batchId = 'cbatch_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+                const updates = {};
+                const sentKeys = [];
+                drafts.forEach((d, idx) => {
+                    const reqId = 'creq_' + Date.now() + '_' + idx + '_' + Math.random().toString(36).slice(2,6);
+                    updates['crossPantryRequests/' + reqId] = {
+                        id: reqId, batchId, batchSize: drafts.length,
+                        fromPantryId: currentUser.id, fromPantryName: currentUser.name,
+                        toPantryId: d.toPantryId,
+                        toPantryName: pantryTeam.find(p => String(p.id) === String(d.toPantryId))?.name || 'Pantry Boy',
+                        empId: d.empId, empName: d.empName, drink: d.drink,
+                        session: d.session, date: d.date, status: 'Pending', timestamp: Date.now()
+                    };
+                    sentKeys.push([d.empId, d.date, d.session].join('|'));
+                });
+                appConfirm('Send All Entries', `Send ${drafts.length} employee entries to their assigned Pantry Boys in one batch?`, () => {
+                    db.ref().update(updates).then(() => {
+                        sentKeys.forEach(k => delete window.crossServeDrafts[k]);
+                        appAlert('Sent Successfully', `${drafts.length} entries have been sent together. Each assigned Pantry Boy can review and accept the entries.`);
+                        if (typeof window.updateCrossServeAlerts === 'function') window.updateCrossServeAlerts();
+                        if (typeof window.openCrossServeLiveGrid === 'function') window.openCrossServeLiveGrid();
+                    }).catch(err => appAlert('Send Failed', err.message || 'Unable to send entries.'));
+                });
+            };
 
             window.sendCrossServeRequest = function() {
                 const dateInputs = document.querySelectorAll('.cs-multi-date');
